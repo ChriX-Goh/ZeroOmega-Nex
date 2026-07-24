@@ -8,6 +8,7 @@ These files are independently constructed compatibility fixtures pinned to ZeroO
 - `minimal-condition-types.json` covers every condition type identifier recognized by the v3.5.0 condition model.
 - `rule-list-formats.json` covers SwitchyOmega Conditions, legacy Switchy, plain AutoProxy, and base64 AutoProxy source shapes.
 - `credentials-and-headers.redacted.json` covers credential slots and download headers using literal `<redacted>` placeholders.
+- `builtin-profile-colors.json` covers the UI-emitted `-builtinProfiles` shape for Direct and System appearance colors without treating it as routing policy.
 
 ## Invalid files
 
@@ -35,6 +36,7 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 4. Capture edge behavior without using real user backups.
 5. Verify that sensitive fields remain redacted in the repository.
 6. Prove that unsafe or ambiguous input fails for a precise reason.
+7. Keep presentation-only built-in customization separate from routing semantics.
 
 ## Rules
 
@@ -46,7 +48,8 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 - Add a short rationale here whenever a fixture represents behavior not obvious from the upstream source.
 - Do not include usable secrets, tokens, usernames, passwords, Gist IDs, WebDAV credentials, or private rule URLs.
 - Credential fields and sensitive header values in positive fixtures must use the exact placeholder `<redacted>`.
+- Built-in customization fixtures may contain only the UI-emitted appearance fields `name`, `profileType`, `color`, and `builtin`; routing fields are forbidden.
 
 ## Validation status
 
-The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. The invalid-fixture harness separately confirms every negative case fails for its expected reason. Decision-vector expectations will be added during the remaining Milestone 2 work.
+The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. A focused built-in-profile validator checks reserved keys, immutable identity fields, valid colors, and the absence of routing fields. The invalid-fixture harness separately confirms every negative case fails for its expected reason. Decision-vector expectations will be added during the remaining Milestone 2 work.
