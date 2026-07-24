@@ -33,13 +33,7 @@ const knownConditionTypes = new Set([
   'TimeCondition',
 ]);
 
-const authSlots = new Set([
-  'proxyForHttp',
-  'proxyForHttps',
-  'proxyForFtp',
-  'fallbackProxy',
-  'all',
-]);
+const authSlots = new Set(['proxyForHttp', 'proxyForHttps', 'proxyForFtp', 'fallbackProxy', 'all']);
 const sensitiveHeaderName = /(authorization|cookie|token|api[-_]?key|secret)/i;
 const ruleProfileTypes = new Set(['SwitchProfile', 'VirtualProfile']);
 const ruleListProfileTypes = new Set([

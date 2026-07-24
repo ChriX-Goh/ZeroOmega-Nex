@@ -14,15 +14,15 @@ The compatibility inventory is pinned to:
 
 ## Primary source files
 
-| Concern                                                 | Upstream path                                                                    | Blob SHA at v3.5.0                         |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------ |
-| Profile model and PAC compilation                       | `omega-pac/src/profiles.coffee`                                                  | `3b49c00a135244e2ff2b4c4383247893ffd5ca6d` |
-| Condition model and matching                            | `omega-pac/src/conditions.coffee`                                                | `2346b2a99fc0e0b066509c9d916374bc17973c90` |
-| Rule-list formats                                       | `omega-pac/src/rule_list.coffee`                                                 | `16fd69fd85479012712f0c6710b22d77c938299b` |
-| Default schema-v2 options                               | `omega-target/src/default_options.coffee`                                        | `0cd5c86523fdaa088b98c4d197643c758054683e` |
-| Loading, upgrades, headers, sync filtering, and options | `omega-target/src/options.coffee`                                                | `82a5a09d428ca20bb2d9d5009f3a4751f4f4a612` |
-| Browser proxy application and auth preflight            | `omega-target-chromium-extension/src/module/proxy/proxy_impl_settings.coffee`    | `d38e3dcbfea6c89a06d21fd8ed9ee76f37329af8` |
-| Proxy credential listener and slot selection            | `omega-target-chromium-extension/src/module/proxy/proxy_auth.coffee`             | `3f9acc2a6f1908ac17eb75ae933ab9b02d32ecb2` |
+| Concern                                                 | Upstream path                                                                 | Blob SHA at v3.5.0                         |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| Profile model and PAC compilation                       | `omega-pac/src/profiles.coffee`                                               | `3b49c00a135244e2ff2b4c4383247893ffd5ca6d` |
+| Condition model and matching                            | `omega-pac/src/conditions.coffee`                                             | `2346b2a99fc0e0b066509c9d916374bc17973c90` |
+| Rule-list formats                                       | `omega-pac/src/rule_list.coffee`                                              | `16fd69fd85479012712f0c6710b22d77c938299b` |
+| Default schema-v2 options                               | `omega-target/src/default_options.coffee`                                     | `0cd5c86523fdaa088b98c4d197643c758054683e` |
+| Loading, upgrades, headers, sync filtering, and options | `omega-target/src/options.coffee`                                             | `82a5a09d428ca20bb2d9d5009f3a4751f4f4a612` |
+| Browser proxy application and auth preflight            | `omega-target-chromium-extension/src/module/proxy/proxy_impl_settings.coffee` | `d38e3dcbfea6c89a06d21fd8ed9ee76f37329af8` |
+| Proxy credential listener and slot selection            | `omega-target-chromium-extension/src/module/proxy/proxy_auth.coffee`          | `3f9acc2a6f1908ac17eb75ae933ab9b02d32ecb2` |
 
 ## Clean-room boundary
 
