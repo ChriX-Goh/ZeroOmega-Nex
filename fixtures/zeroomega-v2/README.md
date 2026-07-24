@@ -12,6 +12,15 @@ These files are independently constructed compatibility fixtures pinned to ZeroO
 - `network-edge-conditions.json` covers Unicode/ASCII IDN forms, IPv4/IPv6 subnets, prefix-zero rules, endpoint ports, `<local>`, scheme/port Bypass, CIDR, bracketed IPv6, and ambiguous malformed Bypass inputs.
 - `large-representative.json` is a generated, committed scale fixture with 36 profiles, 1,024 ordered SwitchProfile rules, and 1,024 rule-list data entries.
 
+## Decision vectors
+
+The `vectors/` directory contains declarative route expectations rather than schema-v2 option containers:
+
+- `condition-decisions.json` covers positive and negative routing outcomes for all twelve condition types.
+- `rule-list-decisions.json` covers AutoProxy and Switchy parser outputs, priority groups, source-line provenance, and selected profiles.
+
+Vectors marked `target-dependent` retain a known source expectation while requiring later browser capability evidence.
+
 ## Invalid files
 
 The `invalid/` directory contains intentionally malformed or unsafe configurations. `expectations.json` records the exact failure reason each case must trigger.
@@ -41,6 +50,7 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 7. Keep presentation-only built-in customization separate from routing semantics.
 8. Preserve network edge cases without prematurely declaring target-dependent behavior exact.
 9. Exercise large-import and future compiler paths with deterministic scale.
+10. Freeze expected route decisions before implementation begins.
 
 ## Rules
 
@@ -55,7 +65,8 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 - Built-in customization fixtures may contain only the UI-emitted appearance fields `name`, `profileType`, `color`, and `builtin`; routing fields are forbidden.
 - Network fixtures must use documentation address ranges and keep Unicode and ASCII IDN source forms visible separately.
 - Do not hand-edit `large-representative.json`; change its generator, regenerate it, and pass exact-byte validation.
+- Do not change a route decision vector merely to make a later implementation pass.
 
 ## Validation status
 
-The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. Focused validators check built-in appearance isolation and network-edge coverage, including IDN pairing, IP families, prefix bounds, endpoint ports, and the exact ambiguous Bypass corpus. The large-fixture validator rebuilds the expected file, compares exact bytes, verifies dimensions, and enforces its size budget. The invalid-fixture harness separately confirms every negative case fails for its expected reason. Decision-vector expectations will be added during the remaining Milestone 2 work.
+The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. Focused validators check built-in appearance isolation and network-edge coverage, including IDN pairing, IP families, prefix bounds, endpoint ports, and the exact ambiguous Bypass corpus. The large-fixture validator rebuilds the expected file, compares exact bytes, verifies dimensions, and enforces its size budget. The decision-vector validator checks unique IDs, complete condition coverage, explicit clock inputs, support classifications, source-line provenance, parser families, and required rule-list constructs. The invalid-fixture harness separately confirms every negative case fails for its expected reason.
