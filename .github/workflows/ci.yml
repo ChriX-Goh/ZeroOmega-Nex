@@ -50,18 +50,18 @@ jobs:
       - name: Verify, test, build, inspect, and package both browser targets
         shell: bash
         run: |
-          if ! pnpm ci >pnpm-ci.log 2>&1; then
-            tail -n 120 pnpm-ci.log
+          if ! pnpm run verify >pnpm-verify.log 2>&1; then
+            tail -n 160 pnpm-verify.log
             exit 1
           fi
-          tail -n 40 pnpm-ci.log
+          tail -n 60 pnpm-verify.log
 
       - name: Preserve verification failure log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: pnpm-ci-log
-          path: pnpm-ci.log
+          name: pnpm-verify-log
+          path: pnpm-verify.log
           if-no-files-found: error
 
       - name: Upload browser build archive
