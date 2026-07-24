@@ -44,8 +44,31 @@ Acceptance:
 - All fixture validators, differential-oracle inputs, linting, formatting, type checks, tests, browser builds, manifest audits, and artifacts passed.
 - PR #4 merged after the verified M1 UI files were consolidated into the final tree.
 
+## Completed in branch — Milestone 3
+
+Delivered:
+
+- Versioned ProfileSpec `1.0` public model with stable IDs and ordered user collections.
+- Fixed, switch, rule-list, PAC, and auto-detect profile variants.
+- Explicit equivalents for all twelve pinned ZeroOmega condition families.
+- Built-in Direct/System route targets without name-based references.
+- Proxy endpoint, rule source, startup, quick-switch, interface, synchronization, legacy metadata, and namespaced extension contracts.
+- JSON Schema 2020-12 structural contract.
+- Semantic validation for references, cycles, IDs, names, hosts, URLs, ports, IP prefixes, regular expressions, ranges, secrets, generated fields, and browser-dependent warnings.
+- Deterministic serialization with sorted object keys and preserved array order.
+- Strict parsing with structured errors.
+- Explicit migration registry and cycle/error detection.
+- Deep cloning and immutable child-revision creation.
+
+Acceptance evidence:
+
+- Public-model Head `bba247e` passed CI run `30111303444`.
+- Schema and semantic-validation Head `f111287` passed CI run `30112709422`.
+- Lifecycle Head `9fec6f6` passed CI run `30113060732`.
+- The final documentation Head must pass the complete read-only pipeline before PR #6 merges.
+
 ## Active development direction
 
-Next implementation work begins with the versioned ProfileSpec and legacy importer, followed by the reference interpreter, PAC compiler, browser adapters, full UI workflow, packaging, migration, and performance hardening.
+After Milestone 3 merges, implementation continues with the ZeroOmega schema-v2 importer, reference interpreter, PAC compiler, browser adapters, full UI workflow, packaging, migration, and performance hardening.
 
 Intermediate work is verified internally and through GitHub CI. The repository owner is not asked to repeatedly inspect partial slices. Owner QC is reserved for a consolidated, installable release candidate unless an irreducible product decision requires direct input.
