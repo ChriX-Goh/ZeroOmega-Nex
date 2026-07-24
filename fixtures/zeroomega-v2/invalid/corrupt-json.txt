@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 2,
+  "+broken": {
+    "name": "broken",
+    "profileType": "DirectProfile",
+  }
