@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -30,21 +30,6 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
-
-      - name: Generate Ajv lock entry once
-        if: github.event_name == 'push' && github.ref_name == 'feat/m3-profile-spec'
-        shell: bash
-        run: |
-          pnpm install --no-frozen-lockfile
-          if [[ -z "$(git status --porcelain pnpm-lock.yaml)" ]]; then
-            echo "Lockfile already current."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          git commit -m "chore(profile-spec): register Ajv in lockfile"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Install locked dependencies
         shell: bash
