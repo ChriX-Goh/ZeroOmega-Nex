@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 3,
+  "+direct-copy": {
+    "name": "direct-copy",
+    "profileType": "DirectProfile",
+    "color": "#aaaaaa"
+  }
+}
