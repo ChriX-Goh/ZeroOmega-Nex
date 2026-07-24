@@ -657,7 +657,8 @@ function mapCondition(
     case 'WeekdayCondition': {
       let days: Weekday[] | undefined;
       if (typeof raw.days === 'string' && raw.days.length === 7) {
-        days = WEEKDAYS.filter((_, index) => !['-', '_', '0'].includes(raw.days![index]!));
+        const dayMask = raw.days as string;
+        days = WEEKDAYS.filter((_, index) => !['-', '_', '0'].includes(dayMask[index]!));
       } else {
         const start = finiteInteger(raw.startDay);
         const end = finiteInteger(raw.endDay);
