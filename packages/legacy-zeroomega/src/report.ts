@@ -47,7 +47,7 @@ export class LegacyImportReportBuilder {
     endpointCount: number,
     ruleSourceCount: number,
   ): LegacyImportReport {
-    const summary: LegacyImportSummary = {
+    const summary = {
       exact: 0,
       targetDependent: 0,
       downgraded: 0,
@@ -58,7 +58,8 @@ export class LegacyImportReportBuilder {
     };
 
     for (const item of this.items) {
-      summary[SUMMARY_KEY[item.status]] += 1;
+      const key = SUMMARY_KEY[item.status];
+      summary[key] = summary[key] + 1;
     }
 
     return {
