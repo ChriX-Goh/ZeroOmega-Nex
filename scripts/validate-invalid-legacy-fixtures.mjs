@@ -42,4 +42,6 @@ for (const expectation of expectations) {
   }
 }
 
-console.log(`Confirmed ${expectations.length} invalid legacy fixtures fail for the expected reasons.`);
+console.log(
+  `Confirmed ${expectations.length} invalid legacy fixtures fail for the expected reasons.`,
+);
