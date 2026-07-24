@@ -113,11 +113,17 @@ function isJsonValue(value: unknown): value is JsonValue {
 }
 
 function cloneRoute(route: ProfileRouteTarget): ProfileRouteTarget {
-  return route.kind === 'profile' ? { kind: 'profile', profileId: route.profileId } : { kind: route.kind };
+  return route.kind === 'profile'
+    ? { kind: 'profile', profileId: route.profileId }
+    : { kind: route.kind };
 }
 
 function stringValue(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
+}
+
+function containsNonAscii(value: string): boolean {
+  return [...value].some((character) => character.codePointAt(0)! > 0x7f);
 }
 
 function finiteInteger(value: unknown): number | undefined {
@@ -212,11 +218,7 @@ function legacyMetadata(
   };
 }
 
-function routeForName(
-  name: unknown,
-  sourcePath: string,
-  state: ImportState,
-): ProfileRouteTarget {
+function routeForName(name: unknown, sourcePath: string, state: ImportState): ProfileRouteTarget {
   if (typeof name !== 'string' || name.length === 0) {
     state.report.add(
       'rejected',
@@ -266,7 +268,12 @@ function mapProxyProtocol(
     return undefined;
   }
   const protocol = value.toLowerCase();
-  if (protocol === 'http' || protocol === 'https' || protocol === 'socks4' || protocol === 'socks5') {
+  if (
+    protocol === 'http' ||
+    protocol === 'https' ||
+    protocol === 'socks4' ||
+    protocol === 'socks5'
+  ) {
     return protocol;
   }
   report.add(
@@ -342,7 +349,7 @@ function validateAuthSlots(
 
 function bypassNeedsCapabilityReview(pattern: string): boolean {
   return (
-    /[^\x00-\x7f]/.test(pattern) ||
+    containsNonAscii(pattern) ||
     /\/[^0-9]+$/.test(pattern) ||
     /:[^0-9\]]+$/.test(pattern) ||
     (/^[0-9a-f:]+:\d+$/i.test(pattern) && !pattern.startsWith('['))
@@ -379,7 +386,12 @@ function mapFixedProfile(descriptor: ProfileDescriptor, state: ImportState): Fix
     const host = stringValue(source.host);
     const port = finiteInteger(source.port);
     if (!host) {
-      state.report.add('rejected', 'endpoint.invalid-host', `${sourcePath}/host`, 'Proxy host is required.');
+      state.report.add(
+        'rejected',
+        'endpoint.invalid-host',
+        `${sourcePath}/host`,
+        'Proxy host is required.',
+      );
     }
     if (port === undefined || port < 1 || port > 65535) {
       state.report.add(
@@ -391,14 +403,15 @@ function mapFixedProfile(descriptor: ProfileDescriptor, state: ImportState): Fix
     }
     if (!protocol || !host || port === undefined || port < 1 || port > 65535) continue;
 
-    const id = legacyStableId('endpoint', descriptor.name, legacySlot, protocol, host, String(port));
-    const credential = extractProxyCredential(
-      auth,
+    const id = legacyStableId(
+      'endpoint',
+      descriptor.name,
       legacySlot,
       protocol,
-      descriptor.path,
-      state,
+      host,
+      String(port),
     );
+    const credential = extractProxyCredential(auth, legacySlot, protocol, descriptor.path, state);
     state.endpoints.push({
       id,
       name: `${descriptor.name} — ${legacySlot}`,
@@ -430,13 +443,26 @@ function mapFixedProfile(descriptor: ProfileDescriptor, state: ImportState): Fix
   }
   if (Array.isArray(raw.bypassList)) {
     raw.bypassList.forEach((entry, index) => {
-      const pattern = typeof entry === 'string' ? entry : isRecord(entry) ? stringValue(entry.pattern) : undefined;
+      const pattern =
+        typeof entry === 'string'
+          ? entry
+          : isRecord(entry)
+            ? stringValue(entry.pattern)
+            : undefined;
       const sourcePath = `${descriptor.path}/bypassList/${index}`;
       if (pattern === undefined || pattern.length === 0) {
-        state.report.add('rejected', 'bypass.invalid-pattern', sourcePath, 'Bypass pattern is required.');
+        state.report.add(
+          'rejected',
+          'bypass.invalid-pattern',
+          sourcePath,
+          'Bypass pattern is required.',
+        );
         return;
       }
-      bypass.push({ id: legacyStableId('bypass', descriptor.name, String(index), pattern), pattern });
+      bypass.push({
+        id: legacyStableId('bypass', descriptor.name, String(index), pattern),
+        pattern,
+      });
       state.report.add(
         bypassNeedsCapabilityReview(pattern) ? 'target-dependent' : 'exact',
         'bypass.mapped',
@@ -517,12 +543,22 @@ function mapCondition(
   report: LegacyImportReportBuilder,
 ): ConditionMapping {
   if (!isRecord(raw) || typeof raw.conditionType !== 'string') {
-    return invalidCondition(path, 'condition.invalid-record', 'Condition object and type are required.', report);
+    return invalidCondition(
+      path,
+      'condition.invalid-record',
+      'Condition object and type are required.',
+      report,
+    );
   }
   const pattern = stringValue(raw.pattern) ?? '';
   switch (raw.conditionType) {
     case 'TrueCondition':
-      return { condition: { kind: 'true' }, status: 'exact', code: 'condition.true', message: 'Catch-all condition mapped exactly.' };
+      return {
+        condition: { kind: 'true' },
+        status: 'exact',
+        code: 'condition.true',
+        message: 'Catch-all condition mapped exactly.',
+      };
     case 'FalseCondition':
       return {
         condition: { kind: 'false', ...(pattern ? { annotation: pattern } : {}) },
@@ -538,13 +574,14 @@ function mapCondition(
           enabled: false,
           status: 'downgraded',
           code: 'condition.invalid-regex-disabled',
-          message: 'Invalid legacy regular expression was disabled rather than silently reinterpreted.',
+          message:
+            'Invalid legacy regular expression was disabled rather than silently reinterpreted.',
         };
       }
       const url = raw.conditionType === 'UrlRegexCondition';
       return {
         condition: { kind: url ? 'url-regex' : 'host-regex', pattern },
-        status: url || /[^\x00-\x7f]/.test(pattern) ? 'target-dependent' : 'exact',
+        status: url || containsNonAscii(pattern) ? 'target-dependent' : 'exact',
         code: url ? 'condition.url-regex' : 'condition.host-regex',
         message: url
           ? 'Full-URL regular expression requires target capability verification.'
@@ -561,9 +598,9 @@ function mapCondition(
     case 'HostWildcardCondition':
       return {
         condition: { kind: 'host-wildcard', pattern },
-        status: /[^\x00-\x7f]/.test(pattern) ? 'target-dependent' : 'exact',
+        status: containsNonAscii(pattern) ? 'target-dependent' : 'exact',
         code: 'condition.host-wildcard',
-        message: /[^\x00-\x7f]/.test(pattern)
+        message: containsNonAscii(pattern)
           ? 'Unicode host source text was preserved for IDN differential verification.'
           : 'Host wildcard was mapped exactly.',
       };
@@ -585,7 +622,12 @@ function mapCondition(
       const address = stringValue(raw.ip);
       const prefixLength = finiteInteger(raw.prefixLength);
       if (!address || prefixLength === undefined) {
-        return invalidCondition(path, 'condition.invalid-ip', 'IP address and prefix length are required.', report);
+        return invalidCondition(
+          path,
+          'condition.invalid-ip',
+          'IP address and prefix length are required.',
+          report,
+        );
       }
       return {
         condition: { kind: 'ip', address, prefixLength },
@@ -598,7 +640,12 @@ function mapCondition(
       const min = finiteInteger(raw.minValue);
       const max = finiteInteger(raw.maxValue);
       if (min === undefined || max === undefined) {
-        return invalidCondition(path, 'condition.invalid-host-levels', 'Host-level range is required.', report);
+        return invalidCondition(
+          path,
+          'condition.invalid-host-levels',
+          'Host-level range is required.',
+          report,
+        );
       }
       return {
         condition: { kind: 'host-levels', min, max },
@@ -614,12 +661,24 @@ function mapCondition(
       } else {
         const start = finiteInteger(raw.startDay);
         const end = finiteInteger(raw.endDay);
-        if (start !== undefined && end !== undefined && start >= 0 && start <= 6 && end >= 0 && end <= 6) {
+        if (
+          start !== undefined &&
+          end !== undefined &&
+          start >= 0 &&
+          start <= 6 &&
+          end >= 0 &&
+          end <= 6
+        ) {
           days = weekdayRange(start, end);
         }
       }
       if (!days || days.length === 0) {
-        return invalidCondition(path, 'condition.invalid-weekdays', 'Weekday selection is invalid or empty.', report);
+        return invalidCondition(
+          path,
+          'condition.invalid-weekdays',
+          'Weekday selection is invalid or empty.',
+          report,
+        );
       }
       return {
         condition: { kind: 'weekday', days, timezone: 'local' },
@@ -639,7 +698,12 @@ function mapCondition(
         endHour < 0 ||
         endHour > 23
       ) {
-        return invalidCondition(path, 'condition.invalid-time', 'Local hour range must use values from 0 to 23.', report);
+        return invalidCondition(
+          path,
+          'condition.invalid-time',
+          'Local hour range must use values from 0 to 23.',
+          report,
+        );
       }
       return {
         condition: { kind: 'time', startHour, endHour, timezone: 'local' },
@@ -662,12 +726,22 @@ function mapSwitchProfile(descriptor: ProfileDescriptor, state: ImportState): Sw
   const raw = descriptor.raw;
   const rules: SwitchRule[] = [];
   if (!Array.isArray(raw.rules)) {
-    state.report.add('rejected', 'switch.invalid-rules', `${descriptor.path}/rules`, 'Switch rules must be an array.');
+    state.report.add(
+      'rejected',
+      'switch.invalid-rules',
+      `${descriptor.path}/rules`,
+      'Switch rules must be an array.',
+    );
   } else {
     raw.rules.forEach((entry, index) => {
       const sourcePath = `${descriptor.path}/rules/${index}`;
       if (!isRecord(entry)) {
-        state.report.add('rejected', 'switch.invalid-rule', sourcePath, 'Switch rule must be an object.');
+        state.report.add(
+          'rejected',
+          'switch.invalid-rule',
+          sourcePath,
+          'Switch rule must be an object.',
+        );
         return;
       }
       const mapping = mapCondition(entry.condition, `${sourcePath}/condition`, state.report);
@@ -681,9 +755,7 @@ function mapSwitchProfile(descriptor: ProfileDescriptor, state: ImportState): Sw
         route,
         ...(typeof entry.note === 'string' ? { note: entry.note } : {}),
         ...(mapping.enabled === undefined ? {} : { enabled: mapping.enabled }),
-        ...(fields === undefined
-          ? {}
-          : { legacy: { source: 'zeroomega-v3.5.0', fields } }),
+        ...(fields === undefined ? {} : { legacy: { source: 'zeroomega-v3.5.0', fields } }),
       });
     });
   }
@@ -738,11 +810,7 @@ interface HeaderMapping {
   readonly headers?: RuleSourceHeader[];
 }
 
-function mapHeaders(
-  raw: unknown,
-  path: string,
-  state: ImportState,
-): HeaderMapping {
+function mapHeaders(raw: unknown, path: string, state: ImportState): HeaderMapping {
   if (raw === undefined) return {};
   if (!Array.isArray(raw)) {
     state.report.add('rejected', 'header.invalid-list', path, 'Download headers must be an array.');
@@ -753,7 +821,12 @@ function mapHeaders(
   raw.forEach((entry, index) => {
     const sourcePath = `${path}/${index}`;
     if (!isRecord(entry)) {
-      state.report.add('rejected', 'header.invalid-record', sourcePath, 'Header must be an object.');
+      state.report.add(
+        'rejected',
+        'header.invalid-record',
+        sourcePath,
+        'Header must be an object.',
+      );
       return;
     }
     const name = stringValue(entry.name)?.trim() ?? '';
@@ -832,7 +905,12 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
   let location: RuleSource['location'];
   if (sourceUrl) {
     location = { kind: 'url', url: sourceUrl };
-    state.report.add('exact', 'rule-source.url-mapped', `${descriptor.path}/sourceUrl`, 'Rule source URL was mapped.');
+    state.report.add(
+      'exact',
+      'rule-source.url-mapped',
+      `${descriptor.path}/sourceUrl`,
+      'Rule source URL was mapped.',
+    );
     if (raw.ruleList !== undefined) {
       state.report.add(
         'ignored-generated',
@@ -878,13 +956,28 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
     'pacScript',
   ]);
   if (raw.lastUpdate !== undefined) {
-    state.report.add('ignored-generated', 'rule-source.last-update-omitted', `${descriptor.path}/lastUpdate`, 'Update timestamp will be recomputed.');
+    state.report.add(
+      'ignored-generated',
+      'rule-source.last-update-omitted',
+      `${descriptor.path}/lastUpdate`,
+      'Update timestamp will be recomputed.',
+    );
   }
   if (raw.sha256 !== undefined) {
-    state.report.add('ignored-generated', 'rule-source.hash-omitted', `${descriptor.path}/sha256`, 'Rule-source hash will be recomputed.');
+    state.report.add(
+      'ignored-generated',
+      'rule-source.hash-omitted',
+      `${descriptor.path}/sha256`,
+      'Rule-source hash will be recomputed.',
+    );
   }
   if (raw.pacScript !== undefined) {
-    state.report.add('ignored-generated', 'rule-source.pac-omitted', `${descriptor.path}/pacScript`, 'Compiled PAC cache was omitted.');
+    state.report.add(
+      'ignored-generated',
+      'rule-source.pac-omitted',
+      `${descriptor.path}/pacScript`,
+      'Compiled PAC cache was omitted.',
+    );
   }
   const fields = safeUnknownFields(raw, known, descriptor.path, state.report);
   return {
@@ -907,23 +1000,53 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
   let source: PacProfile['source'];
   if (pacUrl) {
     source = { kind: 'url', url: pacUrl };
-    state.report.add('exact', 'pac.url-mapped', `${descriptor.path}/pacUrl`, 'PAC source URL was mapped.');
+    state.report.add(
+      'exact',
+      'pac.url-mapped',
+      `${descriptor.path}/pacUrl`,
+      'PAC source URL was mapped.',
+    );
     if (pacScript !== undefined) {
-      state.report.add('ignored-generated', 'pac.cache-omitted', `${descriptor.path}/pacScript`, 'Downloaded PAC cache was omitted and will be refreshed.');
+      state.report.add(
+        'ignored-generated',
+        'pac.cache-omitted',
+        `${descriptor.path}/pacScript`,
+        'Downloaded PAC cache was omitted and will be refreshed.',
+      );
     }
   } else if (pacScript) {
     source = { kind: 'inline', script: pacScript };
-    state.report.add('preserved', 'pac.inline-preserved', `${descriptor.path}/pacScript`, 'Inline PAC script was preserved but remains inactive until review.');
+    state.report.add(
+      'preserved',
+      'pac.inline-preserved',
+      `${descriptor.path}/pacScript`,
+      'Inline PAC script was preserved but remains inactive until review.',
+    );
   } else {
-    state.report.add('rejected', 'pac.missing-source', descriptor.path, 'PAC profile requires a URL or inline script.');
+    state.report.add(
+      'rejected',
+      'pac.missing-source',
+      descriptor.path,
+      'PAC profile requires a URL or inline script.',
+    );
     source = { kind: 'inline', script: 'function FindProxyForURL() { return "DIRECT"; }' };
   }
   const headerMapping = mapHeaders(raw.headers, `${descriptor.path}/headers`, state);
   if (raw.lastUpdate !== undefined) {
-    state.report.add('ignored-generated', 'pac.last-update-omitted', `${descriptor.path}/lastUpdate`, 'PAC update timestamp will be recomputed.');
+    state.report.add(
+      'ignored-generated',
+      'pac.last-update-omitted',
+      `${descriptor.path}/lastUpdate`,
+      'PAC update timestamp will be recomputed.',
+    );
   }
   if (raw.sha256 !== undefined) {
-    state.report.add('ignored-generated', 'pac.hash-omitted', `${descriptor.path}/sha256`, 'PAC hash will be recomputed.');
+    state.report.add(
+      'ignored-generated',
+      'pac.hash-omitted',
+      `${descriptor.path}/sha256`,
+      'PAC hash will be recomputed.',
+    );
   }
   const known = new Set([
     ...COMMON_PROFILE_FIELDS,
@@ -963,13 +1086,7 @@ function mapAutoDetectProfile(
       );
     }
   }
-  const known = new Set([
-    ...COMMON_PROFILE_FIELDS,
-    'pacUrl',
-    'pacScript',
-    'lastUpdate',
-    'sha256',
-  ]);
+  const known = new Set([...COMMON_PROFILE_FIELDS, 'pacUrl', 'pacScript', 'lastUpdate', 'sha256']);
   const fields = safeUnknownFields(raw, known, descriptor.path, state.report);
   return { ...profileBase(descriptor, fields), kind: 'auto-detect' };
 }
@@ -981,14 +1098,24 @@ function mapProfile(descriptor: ProfileDescriptor, state: ImportState): UserProf
     case 'SwitchProfile':
     case 'VirtualProfile':
       if (descriptor.profileType === 'VirtualProfile') {
-        state.report.add('preserved', 'profile.virtual-alias', descriptor.path, 'VirtualProfile origin was preserved while mapping to a switch profile.');
+        state.report.add(
+          'preserved',
+          'profile.virtual-alias',
+          descriptor.path,
+          'VirtualProfile origin was preserved while mapping to a switch profile.',
+        );
       }
       return mapSwitchProfile(descriptor, state);
     case 'RuleListProfile':
     case 'SwitchyRuleListProfile':
     case 'AutoProxyRuleListProfile':
       if (descriptor.profileType !== 'RuleListProfile') {
-        state.report.add('preserved', 'profile.rule-list-alias', descriptor.path, `${descriptor.profileType} origin was preserved.`);
+        state.report.add(
+          'preserved',
+          'profile.rule-list-alias',
+          descriptor.path,
+          `${descriptor.profileType} origin was preserved.`,
+        );
       }
       return mapRuleListProfile(descriptor, state);
     case 'PacProfile':
@@ -1007,23 +1134,43 @@ function mapBuiltInAppearance(
   const raw = options['-builtinProfiles'];
   if (raw === undefined) return undefined;
   if (!isRecord(raw)) {
-    report.add('rejected', 'builtin.invalid-container', '/-builtinProfiles', 'Built-in appearance must be an object.');
+    report.add(
+      'rejected',
+      'builtin.invalid-container',
+      '/-builtinProfiles',
+      'Built-in appearance must be an object.',
+    );
     return undefined;
   }
   const appearance: BuiltInProfileAppearance = {};
   for (const [key, value] of Object.entries(raw)) {
     const path = `/-builtinProfiles/${key}`;
     if (key !== '+direct' && key !== '+system') {
-      report.add('preserved', 'builtin.unknown-key', path, 'Unknown built-in appearance entry was not made authoritative.');
+      report.add(
+        'preserved',
+        'builtin.unknown-key',
+        path,
+        'Unknown built-in appearance entry was not made authoritative.',
+      );
       continue;
     }
     if (!isRecord(value) || typeof value.color !== 'string') {
-      report.add('rejected', 'builtin.invalid-color', path, 'Built-in appearance requires a color string.');
+      report.add(
+        'rejected',
+        'builtin.invalid-color',
+        path,
+        'Built-in appearance requires a color string.',
+      );
       continue;
     }
     if (key === '+direct') appearance.direct = { color: value.color };
     else appearance.system = { color: value.color };
-    report.add('exact', 'builtin.color-mapped', `${path}/color`, 'Built-in profile color was mapped.');
+    report.add(
+      'exact',
+      'builtin.color-mapped',
+      `${path}/color`,
+      'Built-in profile color was mapped.',
+    );
   }
   return Object.keys(appearance).length === 0 ? undefined : appearance;
 }
@@ -1035,7 +1182,12 @@ function mapSettings(
   const quickRoutes: ProfileRouteTarget[] = [];
   const rawQuick = options['-quickSwitchProfiles'];
   if (rawQuick !== undefined && !Array.isArray(rawQuick)) {
-    state.report.add('rejected', 'settings.invalid-quick-switch', '/-quickSwitchProfiles', 'Quick Switch list must be an array.');
+    state.report.add(
+      'rejected',
+      'settings.invalid-quick-switch',
+      '/-quickSwitchProfiles',
+      'Quick Switch list must be an array.',
+    );
   }
   if (Array.isArray(rawQuick)) {
     rawQuick.forEach((name, index) => {
@@ -1052,10 +1204,20 @@ function mapSettings(
   const extensions: Record<string, JsonValue> = {};
   if (typeof options['-customCss'] === 'string') {
     extensions['zeroomega/custom-css'] = options['-customCss'];
-    state.report.add('preserved', 'settings.custom-css-preserved', '/-customCss', 'Custom CSS was preserved as inactive metadata and will not execute automatically.');
+    state.report.add(
+      'preserved',
+      'settings.custom-css-preserved',
+      '/-customCss',
+      'Custom CSS was preserved as inactive metadata and will not execute automatically.',
+    );
   }
   if (options['-monitorWebRequests'] !== undefined) {
-    state.report.add('downgraded', 'settings.monitor-disabled', '/-monitorWebRequests', 'Permanent request monitoring was not imported; diagnostics remain opt-in and bounded.');
+    state.report.add(
+      'downgraded',
+      'settings.monitor-disabled',
+      '/-monitorWebRequests',
+      'Permanent request monitoring was not imported; diagnostics remain opt-in and bounded.',
+    );
   }
 
   const known = new Set([
@@ -1109,8 +1271,7 @@ function mapSettings(
         exportLegacyRuleList: legacyBoolean(options['-exportLegacyRuleList'], false),
         ...(builtInProfiles === undefined ? {} : { builtInProfiles }),
       },
-      ruleSourceUpdateIntervalMinutes:
-        interval !== undefined && interval >= 1 ? interval : 1440,
+      ruleSourceUpdateIntervalMinutes: interval !== undefined && interval >= 1 ? interval : 1440,
       sync: { backend: 'none' },
     },
     ...(Object.keys(extensions).length === 0 ? {} : { extensions }),
@@ -1138,19 +1299,39 @@ function inventoryProfiles(
     const name = stringValue(value.name);
     const profileType = stringValue(value.profileType);
     if (!name || !profileType) {
-      report.add('rejected', 'profile.missing-identity', path, 'Profile name and type are required.');
+      report.add(
+        'rejected',
+        'profile.missing-identity',
+        path,
+        'Profile name and type are required.',
+      );
       continue;
     }
     if (key.slice(1) !== name) {
-      report.add('rejected', 'profile.key-name-mismatch', path, 'Profile key must match the profile name exactly.');
+      report.add(
+        'rejected',
+        'profile.key-name-mismatch',
+        path,
+        'Profile key must match the profile name exactly.',
+      );
     }
     if (seen.has(name)) {
-      report.add('rejected', 'profile.duplicate-name', path, `Profile name "${name}" is duplicated.`);
+      report.add(
+        'rejected',
+        'profile.duplicate-name',
+        path,
+        `Profile name "${name}" is duplicated.`,
+      );
       continue;
     }
     seen.add(name);
     if (!PROFILE_TYPES.has(profileType)) {
-      report.add('rejected', 'profile.unknown-type', `${path}/profileType`, `Unknown profile type "${profileType}" cannot be activated.`);
+      report.add(
+        'rejected',
+        'profile.unknown-type',
+        `${path}/profileType`,
+        `Unknown profile type "${profileType}" cannot be activated.`,
+      );
       continue;
     }
 
@@ -1162,13 +1343,23 @@ function inventoryProfiles(
       } else {
         routes.set(name, route);
       }
-      report.add('downgraded', 'profile.builtin-alias', path, `${profileType} was mapped to the corresponding built-in route; per-alias color cannot remain distinct.`);
+      report.add(
+        'downgraded',
+        'profile.builtin-alias',
+        path,
+        `${profileType} was mapped to the corresponding built-in route; per-alias color cannot remain distinct.`,
+      );
       descriptors.push({ key, path, name, profileType, raw: value });
       continue;
     }
 
     if (name === 'direct' || name === 'system') {
-      report.add('rejected', 'profile.reserved-name', path, `User profile name "${name}" conflicts with a built-in route.`);
+      report.add(
+        'rejected',
+        'profile.reserved-name',
+        path,
+        `User profile name "${name}" conflicts with a built-in route.`,
+      );
       continue;
     }
     const id = legacyStableId('profile', name);
@@ -1199,6 +1390,14 @@ export function importZeroOmegaBackup(
   }
 
   const report = new LegacyImportReportBuilder(decoded.value.encoding);
+  if (decoded.value.stats.profileCount === 0) {
+    report.add(
+      'rejected',
+      'profile.none',
+      '/',
+      'ZeroOmega backup must contain at least one profile.',
+    );
+  }
   const inventory = inventoryProfiles(decoded.value.options, report);
   const downloadInterval = finiteInteger(decoded.value.options['-downloadInterval']);
   const state: ImportState = {
@@ -1207,12 +1406,14 @@ export function importZeroOmegaBackup(
     secretMaterials: [],
     endpoints: [],
     ruleSources: [],
-    downloadInterval: downloadInterval !== undefined && downloadInterval >= 1 ? downloadInterval : 1440,
+    downloadInterval:
+      downloadInterval !== undefined && downloadInterval >= 1 ? downloadInterval : 1440,
   };
 
   const profiles: UserProfile[] = [];
   for (const descriptor of inventory.descriptors) {
-    if (descriptor.profileType === 'DirectProfile' || descriptor.profileType === 'SystemProfile') continue;
+    if (descriptor.profileType === 'DirectProfile' || descriptor.profileType === 'SystemProfile')
+      continue;
     const profile = mapProfile(descriptor, state);
     if (profile) profiles.push(profile);
   }
