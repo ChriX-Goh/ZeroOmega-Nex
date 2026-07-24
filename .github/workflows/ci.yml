@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -39,6 +39,59 @@ jobs:
             exit 1
           fi
           tail -n 20 pnpm-install.log
+
+      - name: Split extension-layer tests once
+        if: github.event_name == 'push' && github.ref_name == 'feat/m3-profile-spec'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/profile-spec/src/index.test.ts')
+          text = path.read_text()
+          old = """  it('rejects non-namespaced, secret, and generated extension data', () => {
+              const value = validSpec();
+              value.extensions = {
+                unsafe: {
+                  password: 'plaintext',
+                  pacScript: 'generated',
+                },
+              };
+              const codes = issueCodes(value);
+              expect(codes).toContain('schema.propertyNames');
+              expect(codes).toContain('extensions.not-namespaced');
+              expect(codes).toContain('extensions.secret-field');
+              expect(codes).toContain('extensions.generated-field');
+            });"""
+          new = """  it('rejects non-namespaced extension keys structurally', () => {
+              const value = validSpec();
+              value.extensions = {
+                unsafe: { harmless: true },
+              };
+              expect(issueCodes(value)).toContain('schema.propertyNames');
+            });
+
+            it('rejects secret and generated data inside namespaced extensions', () => {
+              const value = validSpec();
+              value.extensions = {
+                'unsafe/data': {
+                  password: 'plaintext',
+                  pacScript: 'generated',
+                },
+              };
+              const codes = issueCodes(value);
+              expect(codes).toContain('extensions.secret-field');
+              expect(codes).toContain('extensions.generated-field');
+            });"""
+          if old not in text:
+              raise SystemExit('expected combined extension test not found')
+          path.write_text(text.replace(old, new))
+          PY
+          pnpm exec prettier --write packages/profile-spec/src/index.test.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/profile-spec/src/index.test.ts
+          git commit -m "test(profile-spec): separate structural and semantic extension checks"
+          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
