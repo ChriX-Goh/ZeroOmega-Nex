@@ -207,7 +207,13 @@ describe('ProfileSpec v1', () => {
 
   it('rejects duplicate IDs and names', () => {
     const value = validSpec();
-    value.profiles.push({ ...value.profiles[0]!, kind: 'fixed', bypass: [] });
+    const original = value.profiles[0]!;
+    if (original.kind !== 'fixed') throw new Error('fixture mismatch');
+    value.profiles.push({
+      ...original,
+      proxyByScheme: { ...original.proxyByScheme },
+      bypass: [],
+    });
     const codes = issueCodes(value);
     expect(codes).toContain('profile.duplicate-id');
     expect(codes).toContain('profile.duplicate-name');
