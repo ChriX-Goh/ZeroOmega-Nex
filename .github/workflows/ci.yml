@@ -39,5 +39,13 @@ jobs:
           fi
           tail -n 20 pnpm-install.log
 
+      - name: Upload dependency log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-install-log
+          path: pnpm-install.log
+          if-no-files-found: error
+
       - name: Verify, test, and build both browser targets
         run: pnpm ci
