@@ -3,3 +3,4 @@ node_modules
 **/.wxt
 **/.output
 coverage
+fixtures/zeroomega-v2/large-representative.json
