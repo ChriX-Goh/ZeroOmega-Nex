@@ -69,7 +69,7 @@ jobs:
         run: |
           rm -rf browser-builds
           mkdir browser-builds
-          cp -R apps/extension/.output/. browser-builds/
+          cp -R dist/. browser-builds/
           find browser-builds -maxdepth 3 -type f -print
 
       - name: Upload browser build outputs

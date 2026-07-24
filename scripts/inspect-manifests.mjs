@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { basename, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
-const outputRoot = new URL('../apps/extension/.output/', import.meta.url);
+const outputRoot = new URL('../dist/', import.meta.url);
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
