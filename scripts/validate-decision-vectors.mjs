@@ -6,7 +6,12 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const vectorDir = path.join(rootDir, 'fixtures', 'zeroomega-v2', 'vectors');
 const conditionPath = path.join(vectorDir, 'condition-decisions.json');
 const ruleListPath = path.join(vectorDir, 'rule-list-decisions.json');
-const ruleListFixturePath = path.join(rootDir, 'fixtures', 'zeroomega-v2', 'rule-list-formats.json');
+const ruleListFixturePath = path.join(
+  rootDir,
+  'fixtures',
+  'zeroomega-v2',
+  'rule-list-formats.json',
+);
 
 const knownConditionTypes = new Set([
   'TrueCondition',

@@ -8,7 +8,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "exclusive-host",
       "sourceLine": "@@||direct.example.invalid",
-      "request": { "url": "https://direct.example.invalid/", "host": "direct.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://direct.example.invalid/",
+        "host": "direct.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.direct.example.invalid",
@@ -23,7 +27,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "host-anchor",
       "sourceLine": "||host.example.invalid",
-      "request": { "url": "https://sub.host.example.invalid/", "host": "sub.host.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://sub.host.example.invalid/",
+        "host": "sub.host.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.host.example.invalid",
@@ -38,7 +46,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "url-prefix",
       "sourceLine": "|https://prefix.example.invalid/",
-      "request": { "url": "https://prefix.example.invalid/path", "host": "prefix.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://prefix.example.invalid/path",
+        "host": "prefix.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "UrlWildcardCondition",
         "parsedPattern": "https://prefix.example.invalid/*",
@@ -53,7 +65,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "url-regex",
       "sourceLine": "/plain-regex/",
-      "request": { "url": "http://example.invalid/plain-regex/item", "host": "example.invalid", "scheme": "http" },
+      "request": {
+        "url": "http://example.invalid/plain-regex/item",
+        "host": "example.invalid",
+        "scheme": "http"
+      },
       "expected": {
         "parsedConditionType": "UrlRegexCondition",
         "parsedPattern": "plain-regex",
@@ -68,7 +84,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "keyword",
       "sourceLine": "keyword-without-star",
-      "request": { "url": "http://example.invalid/keyword-without-star/item", "host": "example.invalid", "scheme": "http" },
+      "request": {
+        "url": "http://example.invalid/keyword-without-star/item",
+        "host": "example.invalid",
+        "scheme": "http"
+      },
       "expected": {
         "parsedConditionType": "KeywordCondition",
         "parsedPattern": "keyword-without-star",
@@ -83,7 +103,11 @@
       "parserFamily": "autoproxy-plain",
       "construct": "generic-wildcard",
       "sourceLine": "*wildcard.example.invalid*",
-      "request": { "url": "http://wildcard.example.invalid/path", "host": "wildcard.example.invalid", "scheme": "http" },
+      "request": {
+        "url": "http://wildcard.example.invalid/path",
+        "host": "wildcard.example.invalid",
+        "scheme": "http"
+      },
       "expected": {
         "parsedConditionType": "UrlWildcardCondition",
         "parsedPattern": "http://**wildcard.example.invalid**",
@@ -98,7 +122,11 @@
       "parserFamily": "autoproxy-base64",
       "construct": "base64-host-anchor",
       "sourceLine": "||base64.example.invalid",
-      "request": { "url": "https://base64.example.invalid/", "host": "base64.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://base64.example.invalid/",
+        "host": "base64.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.base64.example.invalid",
@@ -113,7 +141,11 @@
       "parserFamily": "autoproxy-base64",
       "construct": "base64-exclusive-host",
       "sourceLine": "@@||direct.example.invalid",
-      "request": { "url": "https://direct.example.invalid/", "host": "direct.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://direct.example.invalid/",
+        "host": "direct.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.direct.example.invalid",
@@ -128,7 +160,11 @@
       "parserFamily": "switchy-omega",
       "construct": "explicit-result-note",
       "sourceLine": "*.example.invalid +fixed",
-      "request": { "url": "https://www.example.invalid/", "host": "www.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://www.example.invalid/",
+        "host": "www.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.example.invalid",
@@ -144,7 +180,11 @@
       "parserFamily": "switchy-omega",
       "construct": "explicit-catch-all",
       "sourceLine": "* +direct",
-      "request": { "url": "https://unrelated.invalid/", "host": "unrelated.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://unrelated.invalid/",
+        "host": "unrelated.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*",
@@ -159,7 +199,11 @@
       "parserFamily": "switchy-omega",
       "construct": "leading-bang-with-result",
       "sourceLine": "!*.excluded.example.invalid +direct",
-      "request": { "url": "https://www.excluded.example.invalid/", "host": "www.excluded.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://www.excluded.example.invalid/",
+        "host": "www.excluded.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "HostWildcardCondition",
         "parsedPattern": "*.excluded.example.invalid +direct",
@@ -175,7 +219,11 @@
       "parserFamily": "switchy-legacy-wildcard",
       "construct": "exclusive-wildcard",
       "sourceLine": "!*.direct.example.invalid",
-      "request": { "url": "http://www.direct.example.invalid/", "host": "www.direct.example.invalid", "scheme": "http" },
+      "request": {
+        "url": "http://www.direct.example.invalid/",
+        "host": "www.direct.example.invalid",
+        "scheme": "http"
+      },
       "expected": {
         "parsedConditionType": "UrlWildcardCondition",
         "parsedPattern": "*.direct.example.invalid*",
@@ -190,7 +238,11 @@
       "parserFamily": "switchy-legacy-wildcard",
       "construct": "normal-wildcard",
       "sourceLine": "*.legacy.example.invalid",
-      "request": { "url": "http://www.legacy.example.invalid/", "host": "www.legacy.example.invalid", "scheme": "http" },
+      "request": {
+        "url": "http://www.legacy.example.invalid/",
+        "host": "www.legacy.example.invalid",
+        "scheme": "http"
+      },
       "expected": {
         "parsedConditionType": "UrlWildcardCondition",
         "parsedPattern": "*.legacy.example.invalid*",
@@ -205,7 +257,11 @@
       "parserFamily": "switchy-legacy-regexp",
       "construct": "regexp-section",
       "sourceLine": "^https://regex\\.example\\.invalid/",
-      "request": { "url": "https://regex.example.invalid/path", "host": "regex.example.invalid", "scheme": "https" },
+      "request": {
+        "url": "https://regex.example.invalid/path",
+        "host": "regex.example.invalid",
+        "scheme": "https"
+      },
       "expected": {
         "parsedConditionType": "UrlRegexCondition",
         "parsedPattern": "^https://regex\\.example\\.invalid/",
