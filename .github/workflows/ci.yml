@@ -9,7 +9,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -38,21 +38,6 @@ jobs:
             exit 1
           fi
           tail -n 20 pnpm-install.log
-
-      - name: Apply formatter once
-        if: github.event_name == 'push' && github.ref_name == 'feat/m1-tooling-shell'
-        shell: bash
-        run: |
-          pnpm format
-          if [[ -z "$(git status --porcelain)" ]]; then
-            echo "Formatting already clean."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add --all
-          git commit -m "style: apply repository formatter"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
