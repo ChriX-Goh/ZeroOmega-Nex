@@ -19,16 +19,16 @@ It does not cover:
 
 ## 2. Browser capability matrix
 
-| Capability | Chromium MV3 | Firefox MV3 | Nex decision |
-| --- | --- | --- | --- |
-| Observe authentication challenges | `webRequest` | `webRequest` | Required only for authenticated-proxy support |
-| Supply credentials in ordinary store extension | `webRequestAuthProvider` | `webRequestAuthProvider` or Firefox blocking support | Use the cross-browser permission name |
-| Asynchronous response | `asyncBlocking` callback | `asyncBlocking` callback from Firefox 128; Firefox also supports a Promise with `blocking` | Use `asyncBlocking` for one shared path |
-| `webRequestBlocking` in MV3 | Not available to ordinary store extensions; policy-installed only | Supported | Firefox-only permission where required |
-| HTTP/HTTPS proxy challenge | Supported | Supported | Supported capability |
-| SOCKS proxy challenge | Not delivered through `onAuthRequired` | Not delivered through `onAuthRequired` | Explicitly unsupported in browser-only mode |
-| Private/incognito requests | Only after user enables incognito access | Only after user enables private-window access | Explicit capability state; never assume access |
-| Background runtime | Extension service worker | Nonpersistent event page | State must survive background suspension |
+| Capability                                     | Chromium MV3                                                      | Firefox MV3                                                                                | Nex decision                                   |
+| ---------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| Observe authentication challenges              | `webRequest`                                                      | `webRequest`                                                                               | Required only for authenticated-proxy support  |
+| Supply credentials in ordinary store extension | `webRequestAuthProvider`                                          | `webRequestAuthProvider` or Firefox blocking support                                       | Use the cross-browser permission name          |
+| Asynchronous response                          | `asyncBlocking` callback                                          | `asyncBlocking` callback from Firefox 128; Firefox also supports a Promise with `blocking` | Use `asyncBlocking` for one shared path        |
+| `webRequestBlocking` in MV3                    | Not available to ordinary store extensions; policy-installed only | Supported                                                                                  | Firefox-only permission where required         |
+| HTTP/HTTPS proxy challenge                     | Supported                                                         | Supported                                                                                  | Supported capability                           |
+| SOCKS proxy challenge                          | Not delivered through `onAuthRequired`                            | Not delivered through `onAuthRequired`                                                     | Explicitly unsupported in browser-only mode    |
+| Private/incognito requests                     | Only after user enables incognito access                          | Only after user enables private-window access                                              | Explicit capability state; never assume access |
+| Background runtime                             | Extension service worker                                          | Nonpersistent event page                                                                   | State must survive background suspension       |
 
 Shared asynchronous handling requires a candidate minimum of Chrome 120 and Firefox 128. Final release minimum versions remain a release decision, but an older target requires a separate adapter path rather than silently changing the contract.
 
@@ -53,12 +53,7 @@ Comprehensive Firefox proxy authorization, including Firefox system requests, re
 
 ```json
 {
-  "permissions": [
-    "proxy",
-    "webRequest",
-    "webRequestAuthProvider",
-    "webRequestBlocking"
-  ],
+  "permissions": ["proxy", "webRequest", "webRequestAuthProvider", "webRequestBlocking"],
   "optional_host_permissions": ["<all_urls>"]
 }
 ```

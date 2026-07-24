@@ -10,11 +10,7 @@
     "chromium": {
       "manifestVersion": 3,
       "backgroundEnvironment": "service-worker",
-      "requiredPermissions": [
-        "proxy",
-        "webRequest",
-        "webRequestAuthProvider"
-      ],
+      "requiredPermissions": ["proxy", "webRequest", "webRequestAuthProvider"],
       "optionalHostPermissions": ["<all_urls>"],
       "forbiddenPermissions": ["webRequestBlocking"],
       "responseMode": "asyncBlocking-callback",
