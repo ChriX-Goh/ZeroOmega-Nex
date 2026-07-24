@@ -24,16 +24,16 @@ Status: working Milestone 2 contract for ZeroOmega `v3.5.0` schema-v2 data.
 
 ## 3. Common profile fields
 
-| Field         | Classification   | Nex treatment                                                                                                       |
-| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `name`        | `map`            | Preserve display name exactly while assigning an independent stable ID                                              |
-| `profileType` | `map`            | Convert through the explicit legacy profile-type matrix                                                             |
-| `color`       | `map`            | Preserve familiar UI identity                                                                                       |
-| `revision`    | `preserve`       | Keep as legacy metadata; never use as Nex revision identity                                                         |
-| `builtin`     | conditional      | Verify built-in appearance metadata; reject attempts to make an ordinary user profile authoritative by setting it   |
-| `syncOptions` | `ignore-runtime` | Legacy upgrade removes stale values; do not map into profile semantics                                              |
-| `syncError`   | `ignore-runtime` | Diagnostic/runtime state                                                                                            |
-| Unknown field | `preserve`       | Preserve opaque data unless it is secret, generated, executable, or unsafe                                          |
+| Field         | Classification   | Nex treatment                                                                                                     |
+| ------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `name`        | `map`            | Preserve display name exactly while assigning an independent stable ID                                            |
+| `profileType` | `map`            | Convert through the explicit legacy profile-type matrix                                                           |
+| `color`       | `map`            | Preserve familiar UI identity                                                                                     |
+| `revision`    | `preserve`       | Keep as legacy metadata; never use as Nex revision identity                                                       |
+| `builtin`     | conditional      | Verify built-in appearance metadata; reject attempts to make an ordinary user profile authoritative by setting it |
+| `syncOptions` | `ignore-runtime` | Legacy upgrade removes stale values; do not map into profile semantics                                            |
+| `syncError`   | `ignore-runtime` | Diagnostic/runtime state                                                                                          |
+| Unknown field | `preserve`       | Preserve opaque data unless it is secret, generated, executable, or unsafe                                        |
 
 ## 4. FixedProfile
 
@@ -161,15 +161,15 @@ Rules embedded in `ruleList` may introduce extra profile references. They must b
 
 ## 11. Built-in profile appearance
 
-| Field or case                         | Classification | Nex treatment                                                                               |
-| ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `-builtinProfiles['+direct'].color`   | `map`          | Map to Direct appearance color with validation and default fallback                         |
-| `-builtinProfiles['+system'].color`   | `map`          | Map to System appearance color with validation and default fallback                         |
-| Built-in `name` and `profileType`     | `preserve`     | Verify for reporting but never accept as routing authority                                  |
-| Built-in `builtin` flag               | `preserve`     | Verify expected legacy shape; Nex owns built-in identity                                    |
-| Unknown built-in key                  | `preserve`     | Keep inactive metadata and warn; do not create a built-in route                             |
-| Routing-like field in customization   | `reject`       | Block any attempt to alter built-in routing through appearance data                         |
-| Missing or invalid built-in color     | `downgrade`    | Use the Nex default and report the invalid customization                                    |
+| Field or case                       | Classification | Nex treatment                                                       |
+| ----------------------------------- | -------------- | ------------------------------------------------------------------- |
+| `-builtinProfiles['+direct'].color` | `map`          | Map to Direct appearance color with validation and default fallback |
+| `-builtinProfiles['+system'].color` | `map`          | Map to System appearance color with validation and default fallback |
+| Built-in `name` and `profileType`   | `preserve`     | Verify for reporting but never accept as routing authority          |
+| Built-in `builtin` flag             | `preserve`     | Verify expected legacy shape; Nex owns built-in identity            |
+| Unknown built-in key                | `preserve`     | Keep inactive metadata and warn; do not create a built-in route     |
+| Routing-like field in customization | `reject`       | Block any attempt to alter built-in routing through appearance data |
+| Missing or invalid built-in color   | `downgrade`    | Use the Nex default and report the invalid customization            |
 
 Built-in color changes are UI-only. They must not compile a new policy, reinstall PAC, or activate a runtime snapshot.
 

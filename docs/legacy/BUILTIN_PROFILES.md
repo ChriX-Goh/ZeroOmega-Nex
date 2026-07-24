@@ -6,10 +6,10 @@ Status: source-derived inventory pinned to ZeroOmega `v3.5.0`.
 
 The profile model defines exactly two built-in profiles:
 
-| Key | Name | Type | Default color | Built-in flag |
-| --- | --- | --- | --- | --- |
-| `+direct` | `direct` | `DirectProfile` | `#aaaaaa` | `true` |
-| `+system` | `system` | `SystemProfile` | `#000000` | `true` |
+| Key       | Name     | Type            | Default color | Built-in flag |
+| --------- | -------- | --------------- | ------------- | ------------- |
+| `+direct` | `direct` | `DirectProfile` | `#aaaaaa`     | `true`        |
+| `+system` | `system` | `SystemProfile` | `#000000`     | `true`        |
 
 These profiles are program constants rather than ordinary user `+profile` objects.
 
