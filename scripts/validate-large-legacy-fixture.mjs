@@ -29,7 +29,9 @@ const data = JSON.parse(actual);
 const profiles = Object.entries(data).filter(([key]) => key.startsWith('+'));
 const fixedProfiles = profiles.filter(([, profile]) => profile.profileType === 'FixedProfile');
 const switchProfiles = profiles.filter(([, profile]) => profile.profileType === 'SwitchProfile');
-const ruleListProfiles = profiles.filter(([, profile]) => profile.profileType === 'RuleListProfile');
+const ruleListProfiles = profiles.filter(
+  ([, profile]) => profile.profileType === 'RuleListProfile',
+);
 
 if (fixedProfiles.length !== FIXED_PROFILE_COUNT) {
   fail(`expected ${FIXED_PROFILE_COUNT} FixedProfiles, received ${fixedProfiles.length}`);
