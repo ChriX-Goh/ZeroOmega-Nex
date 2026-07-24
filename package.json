@@ -23,7 +23,7 @@
     "ci": "pnpm guard:architecture && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@eslint/js": "10.4.0",
+    "@eslint/js": "10.0.1",
     "eslint": "10.4.0",
     "prettier": "3.8.3",
     "prettier-plugin-svelte": "4.1.1",
