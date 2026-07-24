@@ -33,18 +33,18 @@ References in the new model use stable IDs, but display names remain unchanged.
 
 ## 3. Initial profile matrix
 
-| Legacy profile | Import target | Initial release expectation |
-|---|---|---|
-| `DirectProfile` | Built-in direct route | Full |
-| `SystemProfile` | Browser/system control mode | Full, platform-specific behavior reported |
-| `FixedProfile` | Fixed proxy policy | Full for supported HTTP/HTTPS/SOCKS mappings and bypass rules |
-| `SwitchProfile` | Ordered decision profile | Full for supported conditions and references |
-| `VirtualProfile` | Ordered decision profile | Import and normalize; verify actual legacy use through fixtures |
-| `RuleListProfile` | Rule source plus decision profile | Full for recognized formats and supported rule semantics |
-| `SwitchyRuleListProfile` | Rule source plus decision profile | Supported through format adapter |
+| Legacy profile             | Import target                     | Initial release expectation                                            |
+| -------------------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| `DirectProfile`            | Built-in direct route             | Full                                                                   |
+| `SystemProfile`            | Browser/system control mode       | Full, platform-specific behavior reported                              |
+| `FixedProfile`             | Fixed proxy policy                | Full for supported HTTP/HTTPS/SOCKS mappings and bypass rules          |
+| `SwitchProfile`            | Ordered decision profile          | Full for supported conditions and references                           |
+| `VirtualProfile`           | Ordered decision profile          | Import and normalize; verify actual legacy use through fixtures        |
+| `RuleListProfile`          | Rule source plus decision profile | Full for recognized formats and supported rule semantics               |
+| `SwitchyRuleListProfile`   | Rule source plus decision profile | Supported through format adapter                                       |
 | `AutoProxyRuleListProfile` | Rule source plus decision profile | Supported through format adapter with explicit unsupported-rule report |
-| `PacProfile` | PAC source/profile | Preserve and execute subject to browser capability and security checks |
-| `AutoDetectProfile` | Auto-detect/PAC source | Capability-dependent and explicitly reported |
+| `PacProfile`               | PAC source/profile                | Preserve and execute subject to browser capability and security checks |
+| `AutoDetectProfile`        | Auto-detect/PAC source            | Capability-dependent and explicitly reported                           |
 
 ## 4. Condition matrix
 
@@ -57,17 +57,17 @@ Each legacy condition receives one of four statuses:
 
 Initial candidates:
 
-| Condition family | Expected handling |
-|---|---|
-| Exact host | Exact through indexed model/PAC |
-| Host wildcard/suffix | Exact after normalization and differential tests |
-| URL wildcard | Target-dependent where HTTPS path visibility differs |
-| Host regex | Exact if accepted by safe regular-expression policy and backend |
-| URL regex | Target-dependent; never force global listener |
-| Bypass/local host | Exact where browser semantics permit; normalized explicitly |
-| IPv4/IPv6/CIDR | Backend capability-tested |
-| Scheme/port | Exact when representable in PAC/backend |
-| Time/day conditions | Deferred until legacy semantics and browser execution are proven |
+| Condition family     | Expected handling                                                |
+| -------------------- | ---------------------------------------------------------------- |
+| Exact host           | Exact through indexed model/PAC                                  |
+| Host wildcard/suffix | Exact after normalization and differential tests                 |
+| URL wildcard         | Target-dependent where HTTPS path visibility differs             |
+| Host regex           | Exact if accepted by safe regular-expression policy and backend  |
+| URL regex            | Target-dependent; never force global listener                    |
+| Bypass/local host    | Exact where browser semantics permit; normalized explicitly      |
+| IPv4/IPv6/CIDR       | Backend capability-tested                                        |
+| Scheme/port          | Exact when representable in PAC/backend                          |
+| Time/day conditions  | Deferred until legacy semantics and browser execution are proven |
 
 The final matrix must be generated from actual ZeroOmega condition definitions and fixture tests, not assumptions.
 

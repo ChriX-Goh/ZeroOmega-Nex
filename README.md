@@ -4,9 +4,7 @@ A next-generation, cross-browser proxy profile manager focused on ZeroOmega comp
 
 ## Status
 
-Planning and architecture foundation. No production proxy code has been accepted yet.
-
-The current objective is to make scope, compatibility, architecture, delivery order, and acceptance criteria persistent in the repository before implementation begins.
+Milestone 1 implementation is active on a dedicated branch. The current code is an extension/tooling shell only; no production proxy behavior has been enabled.
 
 ## Core promises
 
@@ -26,20 +24,25 @@ The current objective is to make scope, compatibility, architecture, delivery or
 - [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) — ZeroOmega profile migration contract and test strategy.
 - [`docs/DELIVERY_PLAN.md`](docs/DELIVERY_PLAN.md) — gated milestones and detailed implementation order.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — architecture decision record.
+- [`docs/MILESTONE_STATUS.md`](docs/MILESTONE_STATUS.md) — current milestone scope and outstanding acceptance evidence.
 
-## Planned stack
+## Milestone 1 stack
 
+- Node.js 24 LTS
+- pnpm workspace
 - TypeScript strict mode
-- WXT
-- Svelte
-- Versioned JSON ProfileSpec plus JSON Schema
-- IndexedDB and browser storage
-- Browser-native PAC execution
-- Rust/WASM policy core only after semantic parity and measured need
-- Optional future Rust native engine
+- WXT 0.20.27
+- Svelte 5
+- Vitest
+- ESLint and Prettier
+- Firefox and Chromium build targets
 
-## Current milestone
+## Current architecture state
 
-**Milestone 0 — Foundation and governance**
+- No `proxy` permission.
+- No `<all_urls>` permission or listener.
+- No `proxy.onRequest` handler.
+- No permanent request monitor.
+- Popup and options pages are layout shells that intentionally resemble the familiar ZeroOmega workflow.
 
-Implementation begins with Milestone 1 only after the planning documents are reviewed and merged. Later milestones must not be collapsed into the initial tooling PR.
+See the milestone status document before treating the implementation as complete.

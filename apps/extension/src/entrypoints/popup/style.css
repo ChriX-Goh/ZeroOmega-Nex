@@ -1,0 +1,149 @@
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei UI', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  font-synthesis: none;
+  color: #263238;
+  background: #ffffff;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 300px;
+  min-width: 300px;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+button {
+  font: inherit;
+  line-height: inherit;
+}
+
+.popup-shell {
+  width: 300px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.profile-list {
+  padding: 4px 0;
+}
+
+.profile-list button {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 16px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 5px 10px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: #263238;
+  text-align: left;
+}
+
+.profile-list button.active {
+  border-left-color: #7cb342;
+  background: #eaf4e4;
+}
+
+.profile-list button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.profile-marker {
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgb(0 0 0 / 14%);
+  border-radius: 2px;
+  background: var(--profile-color);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 28%);
+}
+
+.profile-name {
+  overflow: hidden;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.current-mark {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: #558b2f;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 4px 8px;
+  border-top: 1px solid #dfe4e7;
+  background: #f5f6f7;
+}
+
+.settings-button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #455a64;
+  cursor: pointer;
+}
+
+.settings-button:hover,
+.settings-button:focus-visible {
+  border-color: #c5cdd1;
+  background: #ffffff;
+  outline: none;
+}
+
+.settings-button:disabled {
+  color: #90a4ae;
+  cursor: wait;
+}
+
+.settings-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.product-name {
+  color: #90a4ae;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.settings-error {
+  margin: 0;
+  padding: 6px 10px;
+  border-top: 1px solid #ef9a9a;
+  background: #ffebee;
+  color: #b71c1c;
+  font-size: 11px;
+}
