@@ -88,27 +88,27 @@ Migration rules:
 
 The pinned synchronization UI exposes exactly these user inputs:
 
-| UI value | Stored state/backend argument | Classification |
-| --- | --- | --- |
-| Backend selection `gist` or `webdav` | `syncBackendType` | separate sync-account setting |
-| Gist ID/URL or WebDAV base URI | `gistId` | separate sync-account setting; legacy name retained only for import |
-| Gist token or WebDAV password/token | `gistToken` | `secret-ref` |
-| WebDAV username | `syncUsername` | separate sync-account setting |
-| Use built-in sync enhancement | `useBuiltInSync` argument | one-time operation choice, not ProfileSpec |
+| UI value                             | Stored state/backend argument | Classification                                                      |
+| ------------------------------------ | ----------------------------- | ------------------------------------------------------------------- |
+| Backend selection `gist` or `webdav` | `syncBackendType`             | separate sync-account setting                                       |
+| Gist ID/URL or WebDAV base URI       | `gistId`                      | separate sync-account setting; legacy name retained only for import |
+| Gist token or WebDAV password/token  | `gistToken`                   | `secret-ref`                                                        |
+| WebDAV username                      | `syncUsername`                | separate sync-account setting                                       |
+| Use built-in sync enhancement        | `useBuiltInSync` argument     | one-time operation choice, not ProfileSpec                          |
 
 Derived or transient UI values:
 
-| Value | Decision |
-| --- | --- |
-| `syncBackendTypeManuallySet` | local controller state only; `ignore-runtime` |
-| `gistUrl` | derived display URL; `ignore-generated` |
-| `backendTypes` | program constant; not user data |
-| `lastGistSync` | operation timestamp; `ignore-runtime` |
-| `lastGistState` | operation status; `ignore-runtime` |
-| `alertType` | derived presentation state; `ignore-runtime` |
-| `enableOptionsSyncing` | in-progress UI flag; `ignore-runtime` |
-| `syncOptions` | device/backend state; `ignore-runtime` |
-| `web.restoreOnlineUrl` | separate restore-page convenience state; not sync-account data |
+| Value                        | Decision                                                       |
+| ---------------------------- | -------------------------------------------------------------- |
+| `syncBackendTypeManuallySet` | local controller state only; `ignore-runtime`                  |
+| `gistUrl`                    | derived display URL; `ignore-generated`                        |
+| `backendTypes`               | program constant; not user data                                |
+| `lastGistSync`               | operation timestamp; `ignore-runtime`                          |
+| `lastGistState`              | operation status; `ignore-runtime`                             |
+| `alertType`                  | derived presentation state; `ignore-runtime`                   |
+| `enableOptionsSyncing`       | in-progress UI flag; `ignore-runtime`                          |
+| `syncOptions`                | device/backend state; `ignore-runtime`                         |
+| `web.restoreOnlineUrl`       | separate restore-page convenience state; not sync-account data |
 
 No additional durable Gist/WebDAV UI configuration field is present in the pinned controller/template pair.
 
