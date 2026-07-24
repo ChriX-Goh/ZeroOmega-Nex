@@ -31,7 +31,13 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        shell: bash
+        run: |
+          if ! pnpm install --no-frozen-lockfile >pnpm-install.log 2>&1; then
+            tail -n 80 pnpm-install.log
+            exit 1
+          fi
+          tail -n 20 pnpm-install.log
 
       - name: Verify, test, and build both browser targets
         run: pnpm ci
