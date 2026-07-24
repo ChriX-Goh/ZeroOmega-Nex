@@ -145,22 +145,22 @@ Nex classification:
 
 ## 10. Nex public-data classification
 
-| Legacy field family                                  | Nex treatment                                                                 |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Profile structure, names, colors, ordering           | `map`                                                                         |
-| Proxy endpoints, bypass rules, rule sources          | `map`                                                                         |
-| Startup and quick-switch choices                     | `map`                                                                         |
-| Downloaded `ruleList` or remote `pacScript`          | `ignore-generated` when a valid source URL exists; preserve candidate on loss |
-| `lastUpdate` and `sha256`                            | `ignore-generated`                                                            |
-| Profile `revision`                                   | `preserve` as legacy metadata; do not use as Nex revision ID                   |
+| Legacy field family                                 | Nex treatment                                                                 |
+| --------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Profile structure, names, colors, ordering          | `map`                                                                         |
+| Proxy endpoints, bypass rules, rule sources         | `map`                                                                         |
+| Startup and quick-switch choices                    | `map`                                                                         |
+| Downloaded `ruleList` or remote `pacScript`         | `ignore-generated` when a valid source URL exists; preserve candidate on loss |
+| `lastUpdate` and `sha256`                           | `ignore-generated`                                                            |
+| Profile `revision`                                  | `preserve` as legacy metadata; do not use as Nex revision ID                  |
 | Proxy usernames and passwords                       | import into secret storage and replace with credential references             |
 | Sensitive custom header values                      | import into secret storage and replace with secret references                 |
-| Gist/WebDAV backend tokens and passwords             | separate account-secret storage; never ProfileSpec                            |
-| Sync commit, conflict, status, and timestamp fields  | `ignore-runtime`                                                              |
-| Temporary profile/session state                      | `ignore-runtime` unless explicitly converted by the user                      |
-| Network-monitor records                              | `ignore-runtime`                                                              |
-| `-monitorWebRequests`                                | `downgrade` to disabled with warning                                           |
-| `-customCss`                                         | preserve only as optional UI migration metadata; never executable remote code  |
+| Gist/WebDAV backend tokens and passwords            | separate account-secret storage; never ProfileSpec                            |
+| Sync commit, conflict, status, and timestamp fields | `ignore-runtime`                                                              |
+| Temporary profile/session state                     | `ignore-runtime` unless explicitly converted by the user                      |
+| Network-monitor records                             | `ignore-runtime`                                                              |
+| `-monitorWebRequests`                               | `downgrade` to disabled with warning                                          |
+| `-customCss`                                        | preserve only as optional UI migration metadata; never executable remote code |
 
 The final ProfileSpec vocabulary may rename these statuses, but the data boundaries are binding.
 
