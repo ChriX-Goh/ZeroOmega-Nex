@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 2,
+  "+stored-key": {
+    "name": "different-name",
+    "profileType": "DirectProfile",
+    "color": "#aaaaaa"
+  }
+}
