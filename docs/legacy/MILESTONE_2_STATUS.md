@@ -25,8 +25,12 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Inventoried `-builtinProfiles` as a Direct/System appearance-only color override.
 - Confirmed built-in names, types, flags, and routing semantics remain program-defined and cannot be replaced by ordinary option profiles.
 - Defined that built-in color changes must not recompile or reinstall routing policy in Nex.
-- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, and built-in appearance.
-- Added positive fixtures for profile types, condition types, rule-list formats, credentials, headers, and built-in colors.
+- Passed the read-only CI pipeline for the built-in customization Head.
+- Inventoried request-host, IDN, IPv4/IPv6, prefix-zero, `<local>`, scheme/port Bypass, CIDR fallback, and IPv6/port ambiguity semantics.
+- Added a source-shape fixture covering Unicode/ASCII IDN forms, IP families, endpoint ports, valid Bypass forms, and legacy-accepted ambiguous Bypass inputs.
+- Added focused validation for IDN pairing, IP families, prefix bounds, endpoint ports, exact Bypass corpus, and profile references.
+- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, built-in appearance, and network normalization.
+- Added positive fixtures for profile types, condition types, rule-list formats, credentials, headers, built-in colors, and network edges.
 - Added twelve intentionally invalid fixtures with exact expected failure reasons.
 - Added missing-reference, duplicate/reserved-name, key/name mismatch, unknown-type, unredacted-secret, wrong-schema, empty-config, corrupt-JSON, and cycle checks.
 - Added profile-reference cycle detection.
@@ -38,9 +42,8 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 
 ## Still required before Milestone 2 completes
 
-- Pass read-only CI for the built-in profile customization slice.
+- Pass read-only CI for the network edge fixture slice.
 - Additional Gist/WebDAV UI configuration boundaries, if any.
-- IDN, IPv4, IPv6, port, and malformed bypass fixtures.
 - Large representative configuration fixture.
 - Decision vectors for every supported condition and rule-list construct.
 - Current-browser permission and lifecycle evidence for authenticated proxy support.
