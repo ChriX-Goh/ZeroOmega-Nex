@@ -1,0 +1,60 @@
+name: M4 importer lint fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'feat/m4-zeroomega-importer'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m4-zeroomega-importer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Replace control regex and enforce non-empty import
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/legacy-zeroomega/src/import.ts')
+          text = path.read_text()
+          marker = "function finiteInteger(value: unknown): number | undefined {"
+          helper = """function containsNonAscii(value: string): boolean {
+            return [...value].some((character) => character.codePointAt(0)! > 0x7f);
+          }
+
+          """
+          if 'function containsNonAscii(' not in text:
+              text = text.replace(marker, helper + marker)
+          text = text.replace("/[^\\x00-\\x7f]/.test(pattern)", "containsNonAscii(pattern)")
+          anchor = "  const report = new LegacyImportReportBuilder(decoded.value.encoding);\n"
+          addition = """  const report = new LegacyImportReportBuilder(decoded.value.encoding);
+            if (decoded.value.stats.profileCount === 0) {
+              report.add(
+                'rejected',
+                'profile.none',
+                '/',
+                'ZeroOmega backup must contain at least one profile.',
+              );
+            }
+          """
+          if "'profile.none'" not in text:
+              text = text.replace(anchor, addition)
+          path.write_text(text)
+          PY
+          pnpm exec prettier --write packages/legacy-zeroomega/src/import.ts
+          pnpm lint
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/legacy-zeroomega/src/import.ts
+          git commit -m "fix(import): avoid control regex and reject empty backups"
+          git push origin HEAD:feat/m4-zeroomega-importer
