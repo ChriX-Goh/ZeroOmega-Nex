@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "guard:architecture": "node scripts/guard-architecture.mjs",
-    "validate:fixtures": "node scripts/validate-legacy-fixtures.mjs && node scripts/validate-invalid-legacy-fixtures.mjs && node scripts/validate-builtin-profile-fixture.mjs && node scripts/validate-network-edge-fixture.mjs",
+    "generate:large-fixture": "node scripts/generate-large-legacy-fixture.mjs",
+    "validate:fixtures": "node scripts/validate-legacy-fixtures.mjs && node scripts/validate-invalid-legacy-fixtures.mjs && node scripts/validate-builtin-profile-fixture.mjs && node scripts/validate-network-edge-fixture.mjs && node scripts/validate-large-legacy-fixture.mjs",
     "inspect:manifests": "node scripts/inspect-manifests.mjs",
     "stage:builds": "node scripts/stage-builds.mjs",
     "verify": "pnpm guard:architecture && pnpm validate:fixtures && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm build && pnpm inspect:manifests && pnpm stage:builds"
