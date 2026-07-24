@@ -25,12 +25,7 @@ if (manifestFiles.length < 2) {
   throw new Error(`Expected Chromium and Firefox manifests, found ${manifestFiles.length}.`);
 }
 
-const forbiddenPermissions = new Set([
-  'proxy',
-  'webRequest',
-  'webRequestBlocking',
-  '<all_urls>',
-]);
+const forbiddenPermissions = new Set(['proxy', 'webRequest', 'webRequestBlocking', '<all_urls>']);
 
 for (const file of manifestFiles) {
   const manifest = JSON.parse(await readFile(file, 'utf8'));
@@ -53,7 +48,9 @@ for (const file of manifestFiles) {
     throw new Error(`${relative(repositoryRoot.pathname, file)} is missing the popup entrypoint.`);
   }
   if (!manifest.options_ui?.page) {
-    throw new Error(`${relative(repositoryRoot.pathname, file)} is missing the options entrypoint.`);
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} is missing the options entrypoint.`,
+    );
   }
 
   console.log(

@@ -75,9 +75,18 @@
     <section class="card architecture-card">
       <h2>Architecture state</h2>
       <dl>
-        <div><dt>Proxy permission</dt><dd>Not requested</dd></div>
-        <div><dt>Global request listener</dt><dd>Absent</dd></div>
-        <div><dt>Current stage</dt><dd>Tooling and UI shell</dd></div>
+        <div>
+          <dt>Proxy permission</dt>
+          <dd>Not requested</dd>
+        </div>
+        <div>
+          <dt>Global request listener</dt>
+          <dd>Absent</dd>
+        </div>
+        <div>
+          <dt>Current stage</dt>
+          <dd>Tooling and UI shell</dd>
+        </div>
       </dl>
     </section>
   </main>

@@ -3,13 +3,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: [
-      '**/node_modules/**',
-      '**/.wxt/**',
-      '**/.output/**',
-      '**/coverage/**',
-      '**/*.svelte',
-    ],
+    ignores: ['**/node_modules/**', '**/.wxt/**', '**/.output/**', '**/coverage/**', '**/*.svelte'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
