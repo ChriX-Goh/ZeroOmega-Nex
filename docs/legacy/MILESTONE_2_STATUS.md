@@ -22,20 +22,23 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Inventoried ordinary `.bak` export, local restore, online restore, and separate PAC export behavior.
 - Confirmed that ordinary backups serialize the full option container without backup-specific filtering or redaction.
 - Confirmed that synchronization account state, temporary rules, monitor records, and current runtime state are outside the ordinary backup object.
-- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, and secrets.
-- Added positive fixtures for profile types, condition types, rule-list formats, credentials, and headers.
+- Inventoried `-builtinProfiles` as a Direct/System appearance-only color override.
+- Confirmed built-in names, types, flags, and routing semantics remain program-defined and cannot be replaced by ordinary option profiles.
+- Defined that built-in color changes must not recompile or reinstall routing policy in Nex.
+- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, and built-in appearance.
+- Added positive fixtures for profile types, condition types, rule-list formats, credentials, headers, and built-in colors.
 - Added twelve intentionally invalid fixtures with exact expected failure reasons.
 - Added missing-reference, duplicate/reserved-name, key/name mismatch, unknown-type, unredacted-secret, wrong-schema, empty-config, corrupt-JSON, and cycle checks.
 - Added profile-reference cycle detection.
 - Added structural/reference validation for positive fixture JSON.
 - Added credential-slot and sensitive-header redaction validation.
+- Added focused validation for built-in keys, immutable identity fields, colors, and absence of routing fields.
 - Added research branches to the normal CI verification path.
-- Passed the full stacked CI pipeline after the field-classification and negative-fixture expansion.
+- Passed the read-only CI pipeline for the backup/export boundary Head.
 
 ## Still required before Milestone 2 completes
 
-- Pass read-only CI for the backup/export boundary documentation.
-- Built-in profile customization shape.
+- Pass read-only CI for the built-in profile customization slice.
 - Additional Gist/WebDAV UI configuration boundaries, if any.
 - IDN, IPv4, IPv6, port, and malformed bypass fixtures.
 - Large representative configuration fixture.
