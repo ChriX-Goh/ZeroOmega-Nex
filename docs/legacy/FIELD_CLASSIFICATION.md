@@ -24,16 +24,16 @@ Status: working Milestone 2 contract for ZeroOmega `v3.5.0` schema-v2 data.
 
 ## 3. Common profile fields
 
-| Field         | Classification   | Nex treatment                                                                       |
-| ------------- | ---------------- | ----------------------------------------------------------------------------------- |
-| `name`        | `map`            | Preserve display name exactly while assigning an independent stable ID              |
-| `profileType` | `map`            | Convert through the explicit legacy profile-type matrix                             |
-| `color`       | `map`            | Preserve familiar UI identity                                                       |
-| `revision`    | `preserve`       | Keep as legacy metadata; never use as Nex revision identity                         |
-| `builtin`     | `investigate`    | Determine whether it belongs to public backup data or derived built-in presentation |
-| `syncOptions` | `ignore-runtime` | Legacy upgrade removes stale values; do not map into profile semantics              |
-| `syncError`   | `ignore-runtime` | Diagnostic/runtime state                                                            |
-| Unknown field | `preserve`       | Preserve opaque data unless it is secret, generated, executable, or unsafe          |
+| Field         | Classification   | Nex treatment                                                                                                       |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `name`        | `map`            | Preserve display name exactly while assigning an independent stable ID                                              |
+| `profileType` | `map`            | Convert through the explicit legacy profile-type matrix                                                             |
+| `color`       | `map`            | Preserve familiar UI identity                                                                                       |
+| `revision`    | `preserve`       | Keep as legacy metadata; never use as Nex revision identity                                                         |
+| `builtin`     | conditional      | Verify built-in appearance metadata; reject attempts to make an ordinary user profile authoritative by setting it   |
+| `syncOptions` | `ignore-runtime` | Legacy upgrade removes stale values; do not map into profile semantics                                              |
+| `syncError`   | `ignore-runtime` | Diagnostic/runtime state                                                                                            |
+| Unknown field | `preserve`       | Preserve opaque data unless it is secret, generated, executable, or unsafe                                          |
 
 ## 4. FixedProfile
 
@@ -139,27 +139,41 @@ Rules embedded in `ruleList` may introduce extra profile references. They must b
 
 ## 10. Top-level user settings
 
-| Key                                   | Classification      | Nex treatment                                                                      |
-| ------------------------------------- | ------------------- | ---------------------------------------------------------------------------------- |
-| `-enableQuickSwitch`                  | `map`               | Preserve quick-switch preference                                                   |
-| `-refreshOnProfileChange`             | `map`               | Preserve as explicit optional behavior                                             |
-| `-startupProfileName`                 | `map`               | Resolve to stable ID                                                               |
-| `-quickSwitchProfiles`                | `map`               | Preserve order, remove unresolved entries only with warning                        |
-| `-revertProxyChanges`                 | `map`               | Preserve intent through platform adapter                                           |
-| `-confirmDeletion`                    | `map`               | UI preference                                                                      |
-| `-showInspectMenu`                    | `map`               | UI/integration preference subject to available permissions                         |
-| `-addConditionsToBottom`              | `map`               | Rule-editor preference                                                             |
-| `-showResultProfileOnActionBadgeText` | `map`               | UI preference                                                                      |
-| `-showExternalProfile`                | `map`               | UI/platform preference                                                             |
-| `-downloadInterval`                   | `map`               | Convert minutes into Nex rule-source scheduling policy                             |
-| `-monitorWebRequests`                 | `downgrade`         | Import as disabled and show warning; diagnostics remain explicit and bounded       |
-| `-customCss`                          | `preserve`          | Keep as optional inactive UI migration metadata; do not execute by default         |
-| `-exportLegacyRuleList`               | `investigate`       | Determine whether it affects only export presentation or persistent rule semantics |
-| `-showConditionTypes`                 | `map` or `preserve` | UI presentation preference pending exact current shape                             |
-| `-builtinProfiles`                    | `investigate`       | Inventory customization shape and interaction with built-in direct/system profiles |
-| Unknown setting                       | `preserve`          | Keep namespaced metadata unless unsafe; never silently enable behavior             |
+| Key                                   | Classification      | Nex treatment                                                                                       |
+| ------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------- |
+| `-enableQuickSwitch`                  | `map`               | Preserve quick-switch preference                                                                    |
+| `-refreshOnProfileChange`             | `map`               | Preserve as explicit optional behavior                                                              |
+| `-startupProfileName`                 | `map`               | Resolve to stable ID                                                                                |
+| `-quickSwitchProfiles`                | `map`               | Preserve order, remove unresolved entries only with warning                                         |
+| `-revertProxyChanges`                 | `map`               | Preserve intent through platform adapter                                                            |
+| `-confirmDeletion`                    | `map`               | UI preference                                                                                       |
+| `-showInspectMenu`                    | `map`               | UI/integration preference subject to available permissions                                          |
+| `-addConditionsToBottom`              | `map`               | Rule-editor preference                                                                              |
+| `-showResultProfileOnActionBadgeText` | `map`               | UI preference                                                                                       |
+| `-showExternalProfile`                | `map`               | UI/platform preference                                                                              |
+| `-downloadInterval`                   | `map`               | Convert minutes into Nex rule-source scheduling policy                                              |
+| `-monitorWebRequests`                 | `downgrade`         | Import as disabled and show warning; diagnostics remain explicit and bounded                        |
+| `-customCss`                          | `preserve`          | Keep as optional inactive UI migration metadata; do not execute by default                          |
+| `-exportLegacyRuleList`               | `investigate`       | Determine whether it affects only export presentation or persistent rule semantics                  |
+| `-showConditionTypes`                 | `map` or `preserve` | UI presentation preference pending exact current shape                                              |
+| `-builtinProfiles`                    | `map`               | Extract valid Direct/System colors into appearance settings; ignore non-authoritative identity data |
+| Unknown setting                       | `preserve`          | Keep namespaced metadata unless unsafe; never silently enable behavior                              |
 
-## 11. Synchronization and account state
+## 11. Built-in profile appearance
+
+| Field or case                         | Classification | Nex treatment                                                                               |
+| ------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `-builtinProfiles['+direct'].color`   | `map`          | Map to Direct appearance color with validation and default fallback                         |
+| `-builtinProfiles['+system'].color`   | `map`          | Map to System appearance color with validation and default fallback                         |
+| Built-in `name` and `profileType`     | `preserve`     | Verify for reporting but never accept as routing authority                                  |
+| Built-in `builtin` flag               | `preserve`     | Verify expected legacy shape; Nex owns built-in identity                                    |
+| Unknown built-in key                  | `preserve`     | Keep inactive metadata and warn; do not create a built-in route                             |
+| Routing-like field in customization   | `reject`       | Block any attempt to alter built-in routing through appearance data                         |
+| Missing or invalid built-in color     | `downgrade`    | Use the Nex default and report the invalid customization                                    |
+
+Built-in color changes are UI-only. They must not compile a new policy, reinstall PAC, or activate a runtime snapshot.
+
+## 12. Synchronization and account state
 
 | Field                 | Classification   | Nex treatment                                                            |
 | --------------------- | ---------------- | ------------------------------------------------------------------------ |
@@ -175,7 +189,7 @@ Rules embedded in `ruleList` may introduce extra profile references. They must b
 
 Import never silently re-enables a legacy remote sync backend.
 
-## 12. Temporary and diagnostic state
+## 13. Temporary and diagnostic state
 
 | Field or data family                   | Classification   | Nex treatment                                                                           |
 | -------------------------------------- | ---------------- | --------------------------------------------------------------------------------------- |
@@ -188,7 +202,7 @@ Import never silently re-enables a legacy remote sync backend.
 | `isSystemProfile`                      | separate runtime | Device-specific active-state marker                                                     |
 | `proxyNotControllable`                 | `ignore-runtime` | Browser/platform condition                                                              |
 
-## 13. Generated content recovery rule
+## 14. Generated content recovery rule
 
 `ignore-generated` does not mean “delete immediately.” During import:
 
@@ -198,11 +212,10 @@ Import never silently re-enables a legacy remote sync backend.
 4. If refresh fails, offer the legacy cached content as a clearly identified recovery candidate.
 5. Never activate stale cached content silently.
 
-## 14. Remaining classification blockers
+## 15. Remaining classification blockers
 
-- Exact UI backup/export transformation and whether it serializes all `_options` fields unchanged.
-- Full `-builtinProfiles` shape and supported customization semantics.
 - Exact `-showConditionTypes` shape.
+- Exact effect and persistence scope of `-exportLegacyRuleList`.
 - Current-browser permissions and private-window behavior for proxy authentication.
 - Platform-specific IDN normalization.
 - Whether any release-specific fields are injected outside the pinned source paths.
