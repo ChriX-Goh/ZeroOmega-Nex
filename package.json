@@ -21,7 +21,8 @@
     "format:check": "prettier --check .",
     "guard:architecture": "node scripts/guard-architecture.mjs",
     "inspect:manifests": "node scripts/inspect-manifests.mjs",
-    "ci": "pnpm guard:architecture && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm build && pnpm inspect:manifests"
+    "stage:builds": "node scripts/stage-builds.mjs",
+    "ci": "pnpm guard:architecture && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm build && pnpm inspect:manifests && pnpm stage:builds"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
