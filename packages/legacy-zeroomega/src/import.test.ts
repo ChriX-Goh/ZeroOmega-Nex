@@ -48,6 +48,15 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.report.summary.rejected).toBe(0);
   });
 
+  it('imports a base64-encoded backup through the full migration pipeline', async () => {
+    const source = await fixture('minimal-profile-types.json');
+    const result = importZeroOmegaBackup(btoa(source), context);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    expect(result.report.encoding).toBe('base64-json');
+    expect(result.candidate.profiles).toHaveLength(9);
+  });
+
   it('maps all twelve condition families and preserves switch-rule order', async () => {
     const result = importZeroOmegaBackup(await fixture('minimal-condition-types.json'), context);
     expect(result.ok).toBe(true);
@@ -89,6 +98,11 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(reportText).not.toContain('<redacted>');
     expect(result.secretMaterials.some((item) => item.kind === 'proxy-password')).toBe(true);
     expect(result.secretMaterials.some((item) => item.kind === 'request-header')).toBe(true);
+    expect(
+      result.candidate.proxyEndpoints.some(
+        (endpoint) => endpoint.credential?.username === 'proxy-user',
+      ),
+    ).toBe(true);
 
     const pac = result.candidate.profiles.find((profile) => profile.kind === 'pac');
     if (pac?.kind === 'pac') {

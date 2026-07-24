@@ -325,7 +325,10 @@ function extractProxyCredential(
       ? 'SOCKS credential was isolated but requires a future verified backend.'
       : 'Proxy credential was moved to separate secret material.',
   );
-  return { passwordSecretRef: ref };
+  return {
+    ...(username === undefined ? {} : { username }),
+    passwordSecretRef: ref,
+  };
 }
 
 function validateAuthSlots(
