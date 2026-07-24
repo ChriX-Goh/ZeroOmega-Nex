@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./schema": "./schema/profile-spec-v1.schema.json"
   },
   "scripts": {
     "check": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
   },
   "devDependencies": {
     "typescript": "5.9.3"

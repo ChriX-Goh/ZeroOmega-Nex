@@ -1,4 +1,11 @@
 export { PROFILE_SPEC_SCHEMA_VERSION } from './types.js';
+export { profileSpecJsonSchema } from './schema.js';
+export { validateProfileSpec } from './validation.js';
+export type {
+  ProfileSpecValidationResult,
+  ValidationIssue,
+  ValidationSeverity,
+} from './validation.js';
 export type {
   AutoDetectProfile,
   BypassCondition,
