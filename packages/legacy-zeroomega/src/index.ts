@@ -4,6 +4,8 @@ export {
   type LegacyDecodeLimits,
 } from './decode.js';
 export { legacySecretRef, legacyStableId } from './ids.js';
+export { importZeroOmegaBackup } from './import.js';
+export { LegacyImportReportBuilder } from './report.js';
 export type {
   LegacyDecodedBackup,
   LegacyDecodeIssue,
