@@ -36,7 +36,15 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Added rule-list route vectors covering plain/base64 AutoProxy, SwitchyOmega results/notes/catch-all behavior, and legacy Switchy wildcard/regexp paths.
 - Classified source-exact and target-dependent expectations explicitly.
 - Added validation for vector IDs, coverage, clock inputs, result consistency, source-line provenance, parser families, and required constructs.
-- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, built-in appearance, network normalization, scale testing, and route-oracle inputs.
+- Passed the read-only CI pipeline for the route-decision vector Head.
+- Researched current Chromium MV3 and Firefox MV3 proxy-authentication permissions, asynchronous callback behavior, background lifecycle, private-window access, and SOCKS limitations.
+- Defined optional all-host access that is requested only when authenticated HTTP/HTTPS proxy routing is activated.
+- Defined exactly one allowed authentication event, `webRequest.onAuthRequired`, with proxy-only guards and no general request monitoring.
+- Defined a background-suspension-safe bounded retry model without global completion/error listeners.
+- Defined private credential use as disabled until both browser access and explicit user policy permit it.
+- Recorded ADR-013 for the bounded proxy-authentication exception.
+- Added a machine-readable capability fixture and validator covering platform permissions, listener scope, retries, private access, and secret isolation.
+- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, built-in appearance, network normalization, scale testing, route-oracle inputs, and authenticated-proxy capability.
 - Added positive fixtures for profile types, condition types, rule-list formats, credentials, headers, built-in colors, and network edges.
 - Added twelve intentionally invalid fixtures with exact expected failure reasons.
 - Added missing-reference, duplicate/reserved-name, key/name mismatch, unknown-type, unredacted-secret, wrong-schema, empty-config, corrupt-JSON, and cycle checks.
@@ -49,10 +57,9 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 
 ## Still required before Milestone 2 completes
 
-- Pass read-only CI for the route-decision vector slice.
-- Additional Gist/WebDAV UI configuration boundaries, if any.
-- Current-browser permission and lifecycle evidence for authenticated proxy support.
-- Resolve the remaining `investigate` classifications or explicitly defer them with downgrade/reject decisions.
+- Pass read-only CI for the proxy-authentication capability slice.
+- Resolve remaining `investigate` classifications or explicitly defer them with downgrade/reject decisions.
+- Confirm whether any additional Gist/WebDAV UI-only field exists beyond the already inventoried state and backend configuration.
 
 ## Merge gate
 
