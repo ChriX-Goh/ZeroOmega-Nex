@@ -1,0 +1,73 @@
+{
+  "decisionSchemaVersion": 1,
+  "target": {
+    "repository": "zero-peak/ZeroOmega",
+    "release": "v3.5.0",
+    "schemaVersion": 2
+  },
+  "optionDecisions": {
+    "-showConditionTypes": {
+      "classification": "map",
+      "normalizedField": "showAdvancedConditionTypes",
+      "legacyAcceptedValues": [0, 1],
+      "affectsRouting": false,
+      "advancedRulesForceEditorVisibility": true
+    },
+    "-exportLegacyRuleList": {
+      "classification": "map",
+      "normalizedField": "preferLegacyRuleListExport",
+      "legacyAcceptedValues": [false, true],
+      "affectsRouting": false,
+      "requiresLosslessRepresentability": true,
+      "fallbackFormat": "switchy-omega-modern"
+    }
+  },
+  "syncAccountInputs": {
+    "syncBackendType": {
+      "classification": "separate-account",
+      "acceptedValues": ["gist", "webdav"]
+    },
+    "gistId": {
+      "classification": "separate-account",
+      "normalizedField": "remoteUri"
+    },
+    "gistToken": {
+      "classification": "secret-ref",
+      "normalizedField": "credentialRef"
+    },
+    "syncUsername": {
+      "classification": "separate-account",
+      "normalizedField": "username"
+    },
+    "useBuiltInSync": {
+      "classification": "operation-only",
+      "persistentProfileField": false
+    }
+  },
+  "syncDerivedAndRuntime": {
+    "syncBackendTypeManuallySet": "ignore-runtime",
+    "gistUrl": "ignore-generated",
+    "backendTypes": "program-constant",
+    "lastGistSync": "ignore-runtime",
+    "lastGistState": "ignore-runtime",
+    "alertType": "ignore-runtime",
+    "enableOptionsSyncing": "ignore-runtime",
+    "syncOptions": "ignore-runtime",
+    "web.restoreOnlineUrl": "restore-ui-state"
+  },
+  "idn": {
+    "classification": "target-dependent",
+    "preserveOriginalText": true,
+    "produceCanonicalAscii": true,
+    "requiresChromiumFirefoxDifferentialVectors": true,
+    "rewriteDisplayTextSilently": false
+  },
+  "unknownFields": {
+    "safeMetadata": "preserve",
+    "secretLike": "secret-ref-or-reject",
+    "generatedCache": "quarantine-until-classified",
+    "routingExecutablePermissionOrNetworkBehavior": "reject",
+    "unclearRuntimeOrAccountState": "outside-profile-spec-or-reject"
+  },
+  "remainingInvestigateFields": []
+}
