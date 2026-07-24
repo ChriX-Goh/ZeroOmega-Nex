@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "-builtinProfiles": {
+    "+system": {
+      "name": "system",
+      "profileType": "SystemProfile",
+      "color": "#102030",
+      "builtin": true
+    },
+    "+direct": {
+      "name": "direct",
+      "profileType": "DirectProfile",
+      "color": "#aabbcc",
+      "builtin": true
+    }
+  },
+  "+proxy": {
+    "name": "proxy",
+    "profileType": "FixedProfile",
+    "color": "#99ccee",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "proxy.example.invalid",
+      "port": 8080
+    },
+    "bypassList": []
+  }
+}
