@@ -8,6 +8,7 @@ import type {
   JsonValue,
   ProfileRouteTarget,
   ProfileSpec,
+  RuleSourceHeader,
   UserProfile,
 } from './types.js';
 
@@ -292,6 +293,36 @@ function inspectOpaqueValue(value: JsonValue, path: string, issues: ValidationIs
   }
 }
 
+function validateHeaders(
+  headers: readonly RuleSourceHeader[] | undefined,
+  path: string,
+  issues: ValidationIssue[],
+): void {
+  const headerNames = new Set<string>();
+  headers?.forEach((header, headerIndex) => {
+    const normalizedName = header.name.trim().toLowerCase();
+    if (headerNames.has(normalizedName)) {
+      issues.push(
+        issue(
+          'source.duplicate-header',
+          `${path}/${headerIndex}/name`,
+          `header "${header.name}" is duplicated`,
+        ),
+      );
+    }
+    headerNames.add(normalizedName);
+    if (header.value.kind === 'literal' && SENSITIVE_HEADER_NAME.test(normalizedName)) {
+      issues.push(
+        issue(
+          'source.sensitive-literal-header',
+          `${path}/${headerIndex}/value`,
+          `header "${header.name}" must use a secret reference`,
+        ),
+      );
+    }
+  });
+}
+
 function validateSync(spec: ProfileSpec, issues: ValidationIssue[]): void {
   const sync = spec.settings.sync;
   if (!sync) {
@@ -500,22 +531,25 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
       }
     }
 
-    if (profile.kind === 'pac' && profile.source.kind === 'url') {
-      validateUrl(
-        profile.source.url,
-        `/profiles/${profileIndex}/source/url`,
-        ['http:', 'https:', 'file:'],
-        issues,
-      );
-      if (profile.source.url.startsWith('file:')) {
-        issues.push(
-          issue(
-            'profile.target-dependent-file-pac',
-            `/profiles/${profileIndex}/source/url`,
-            'file PAC support depends on browser permissions and target capabilities',
-            'warning',
-          ),
+    if (profile.kind === 'pac') {
+      validateHeaders(profile.headers, `/profiles/${profileIndex}/headers`, issues);
+      if (profile.source.kind === 'url') {
+        validateUrl(
+          profile.source.url,
+          `/profiles/${profileIndex}/source/url`,
+          ['http:', 'https:', 'file:'],
+          issues,
         );
+        if (profile.source.url.startsWith('file:')) {
+          issues.push(
+            issue(
+              'profile.target-dependent-file-pac',
+              `/profiles/${profileIndex}/source/url`,
+              'file PAC support depends on browser permissions and target capabilities',
+              'warning',
+            ),
+          );
+        }
       }
     }
   });
@@ -536,43 +570,21 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
       );
     }
 
-    const headerNames = new Set<string>();
-    source.headers?.forEach((header, headerIndex) => {
-      const normalizedName = header.name.trim().toLowerCase();
-      if (headerNames.has(normalizedName)) {
-        issues.push(
-          issue(
-            'source.duplicate-header',
-            `/ruleSources/${sourceIndex}/headers/${headerIndex}/name`,
-            `header "${header.name}" is duplicated`,
-          ),
-        );
-      }
-      headerNames.add(normalizedName);
-
-      if (header.value.kind === 'literal' && SENSITIVE_HEADER_NAME.test(normalizedName)) {
-        issues.push(
-          issue(
-            'source.sensitive-literal-header',
-            `/ruleSources/${sourceIndex}/headers/${headerIndex}/value`,
-            `header "${header.name}" must use a secret reference`,
-          ),
-        );
-      }
-    });
+    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);
   });
 
-  for (const profileId of spec.settings.quickSwitch.profileIds) {
-    if (!profileIds.has(profileId)) {
+  spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
+    const profileId = routeProfileId(route);
+    if (profileId && !profileIds.has(profileId)) {
       issues.push(
         issue(
           'profile.missing-quick-switch-reference',
-          '/settings/quickSwitch/profileIds',
+          `/settings/quickSwitch/routes/${routeIndex}`,
           `quick-switch profile "${profileId}" does not exist`,
         ),
       );
     }
-  }
+  });
 
   const startupProfileId = routeProfileId(spec.settings.startup.route);
   if (startupProfileId && !profileIds.has(startupProfileId)) {

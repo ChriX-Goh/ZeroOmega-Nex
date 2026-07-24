@@ -65,7 +65,12 @@ function validSpec(): ProfileSpec {
       },
       quickSwitch: {
         enabled: true,
-        profileIds: ['profile-a', 'profile-b'],
+        routes: [
+          { kind: 'profile', profileId: 'profile-a' },
+          { kind: 'direct' },
+          { kind: 'system' },
+          { kind: 'profile', profileId: 'profile-b' },
+        ],
         refreshOnChange: false,
       },
       interface: {

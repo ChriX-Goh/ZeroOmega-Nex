@@ -236,7 +236,7 @@ export interface StartupSettings {
 
 export interface QuickSwitchSettings {
   enabled: boolean;
-  profileIds: Identifier[];
+  routes: ProfileRouteTarget[];
   refreshOnChange: boolean;
 }
 
