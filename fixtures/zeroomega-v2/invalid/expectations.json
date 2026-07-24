@@ -1,0 +1,50 @@
+[
+  {
+    "file": "missing-reference.json",
+    "contains": "references missing profile"
+  },
+  {
+    "file": "cyclic-reference.json",
+    "contains": "profile reference cycle"
+  },
+  {
+    "file": "key-name-mismatch.json",
+    "contains": "does not match profile name"
+  },
+  {
+    "file": "duplicate-name.json",
+    "contains": "duplicate or reserved profile name"
+  },
+  {
+    "file": "reserved-name.json",
+    "contains": "duplicate or reserved profile name"
+  },
+  {
+    "file": "unknown-profile.json",
+    "contains": "unknown profileType"
+  },
+  {
+    "file": "unknown-condition.json",
+    "contains": "unknown conditionType"
+  },
+  {
+    "file": "unredacted-secret.json",
+    "contains": "must use redacted fixture credentials"
+  },
+  {
+    "file": "unredacted-header.json",
+    "contains": "must redact sensitive header values"
+  },
+  {
+    "file": "wrong-schema.json",
+    "contains": "schemaVersion must equal 2"
+  },
+  {
+    "file": "no-profiles.json",
+    "contains": "must contain at least one profile"
+  },
+  {
+    "file": "corrupt-json.txt",
+    "contains": "invalid JSON"
+  }
+]
