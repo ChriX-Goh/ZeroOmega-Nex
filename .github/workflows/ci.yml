@@ -39,13 +39,41 @@ jobs:
           fi
           tail -n 20 pnpm-install.log
 
-      - name: Upload dependency log
-        if: always()
+      - name: Preserve dependency failure log
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: pnpm-install-log
           path: pnpm-install.log
           if-no-files-found: error
 
-      - name: Verify, test, and build both browser targets
-        run: pnpm ci
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-lockfile
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+
+      - name: Verify, test, build, and inspect both browser targets
+        shell: bash
+        run: |
+          if ! pnpm ci >pnpm-ci.log 2>&1; then
+            tail -n 120 pnpm-ci.log
+            exit 1
+          fi
+          tail -n 40 pnpm-ci.log
+
+      - name: Preserve verification failure log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-ci-log
+          path: pnpm-ci.log
+          if-no-files-found: error
+
+      - name: Upload browser build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-builds
+          path: apps/extension/.output
+          if-no-files-found: error
