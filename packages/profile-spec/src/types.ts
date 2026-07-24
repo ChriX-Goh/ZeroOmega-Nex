@@ -29,9 +29,7 @@ export interface LegacyMetadata {
 
 export type BuiltInRouteTarget = { kind: 'direct' } | { kind: 'system' };
 
-export type ProfileRouteTarget =
-  | BuiltInRouteTarget
-  | { kind: 'profile'; profileId: Identifier };
+export type ProfileRouteTarget = BuiltInRouteTarget | { kind: 'profile'; profileId: Identifier };
 
 export interface ProxyCredentialReference {
   username?: string;
@@ -104,9 +102,7 @@ export interface RuleSourceHeader {
   value: LiteralHeaderValue | SecretHeaderValue;
 }
 
-export type RuleSourceLocation =
-  | { kind: 'inline'; content: string }
-  | { kind: 'url'; url: string };
+export type RuleSourceLocation = { kind: 'inline'; content: string } | { kind: 'url'; url: string };
 
 export interface RuleSource {
   id: Identifier;
@@ -125,9 +121,7 @@ export interface RuleListProfile extends ProfileBase {
   defaultRoute: ProfileRouteTarget;
 }
 
-export type PacSource =
-  | { kind: 'inline'; script: string }
-  | { kind: 'url'; url: string };
+export type PacSource = { kind: 'inline'; script: string } | { kind: 'url'; url: string };
 
 export interface PacProfile extends ProfileBase {
   kind: 'pac';
