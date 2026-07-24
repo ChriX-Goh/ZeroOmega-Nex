@@ -13,14 +13,18 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Recorded ordered SwitchProfile semantics.
 - Recorded Switchy and AutoProxy rule-list parsing families.
 - Classified initial top-level options, fetched data, derived data, and runtime state.
-- Added positive fixtures for profile types, condition types, and rule-list formats.
+- Inventoried proxy credential slots, fallback selection, and request-attempt behavior.
+- Inventoried PAC and rule-list custom download headers.
+- Defined secret-handling requirements that intentionally differ from upstream plaintext behavior.
+- Added positive fixtures for profile types, condition types, rule-list formats, credentials, and headers.
 - Added structural/reference validation for fixture JSON.
+- Added credential-slot and sensitive-header redaction validation.
 - Added research branches to the normal CI verification path.
+- Passed the full stacked CI pipeline before the credential/header expansion.
 
 ## Still required before Milestone 2 completes
 
-- Authentication serialization and credential behavior.
-- Rule-list custom request-header fields.
+- Re-run and pass full CI with the credential/header fixture expansion.
 - Complete export-versus-sync field inclusion inventory.
 - Built-in profile customization shape.
 - Gist and WebDAV sync boundaries and secret classification.
@@ -29,6 +33,7 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Missing reference, cycle, duplicate/mismatched name, and corrupt input fixtures.
 - Large representative configuration fixture.
 - Decision vectors for every supported condition and rule-list construct.
+- Current-browser permission and lifecycle evidence for authenticated proxy support.
 - Final `map`, `preserve`, `ignore-generated`, `downgrade`, or `reject` status for every field.
 
 ## Merge gate
