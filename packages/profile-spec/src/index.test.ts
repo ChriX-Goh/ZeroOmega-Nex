@@ -285,17 +285,23 @@ describe('ProfileSpec v1', () => {
     expect(codes).toContain('sync.missing-secret-ref');
   });
 
-  it('rejects non-namespaced, secret, and generated extension data', () => {
+  it('rejects non-namespaced extension keys structurally', () => {
     const value = validSpec();
     value.extensions = {
-      unsafe: {
+      unsafe: { harmless: true },
+    };
+    expect(issueCodes(value)).toContain('schema.propertyNames');
+  });
+
+  it('rejects secret and generated data inside namespaced extensions', () => {
+    const value = validSpec();
+    value.extensions = {
+      'unsafe/data': {
         password: 'plaintext',
         pacScript: 'generated',
       },
     };
     const codes = issueCodes(value);
-    expect(codes).toContain('schema.propertyNames');
-    expect(codes).toContain('extensions.not-namespaced');
     expect(codes).toContain('extensions.secret-field');
     expect(codes).toContain('extensions.generated-field');
   });
