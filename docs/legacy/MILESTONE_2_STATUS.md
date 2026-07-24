@@ -2,7 +2,9 @@
 
 Branch: `research/m2-legacy-inventory`
 
-This branch is stacked on the Milestone 1 engineering shell. It may be reviewed in parallel, but it must not merge until Milestone 1 closes.
+Status: **Complete and verified; merge remains blocked by Milestone 1.**
+
+This branch is stacked on the Milestone 1 engineering shell. It must not merge until Milestone 1 closes and the stacked branches can merge in order.
 
 ## Completed compatibility inventory
 
@@ -39,13 +41,19 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Deterministic large fixture: `26f788f`, CI `30077993487`.
 - Route decision vectors: `e86a14a`, CI `30078666855`.
 - Proxy-auth capability: `912f0df`, CI `30079278092`.
+- Final field closure: `5da86bd`, CI `30080372767`.
 
-## Remaining Milestone 2 action
+## Acceptance result
 
-- Pass read-only CI for the final field-closure Head and record the exact Head/run in PR #4.
+Milestone 2 acceptance criteria are satisfied:
 
-After that verification, Milestone 2 is complete but remains blocked from merge by the Milestone 1 real-browser smoke test in Issue #3.
+- every supported legacy type is documented;
+- every discovered field has an explicit migration/capability decision;
+- positive, negative, network-edge, scale, and decision-vector corpora exist;
+- secret and runtime boundaries are explicit;
+- no global request-time proxy matching or production proxy behavior was introduced;
+- the complete research branch passes the read-only repository verification pipeline.
 
-## Merge gate
+## Remaining project gate
 
-This branch remains Draft research. No ProfileSpec or importer implementation belongs here. Milestone 3 design begins only after Milestone 1 is accepted and this stacked PR can be rebased/merged in order.
+Milestone 2 is complete but PR #4 remains Draft and must not merge until PR #2 completes the real-browser smoke test in Issue #3. Milestone 3 ProfileSpec design must not begin until Milestone 1 is accepted and the stacked merge order is resolved.
