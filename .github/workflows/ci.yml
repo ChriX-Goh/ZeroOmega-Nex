@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -30,34 +30,6 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
-
-      - name: Register and format importer workspace once
-        if: github.event_name == 'push' && github.ref_name == 'feat/m4-zeroomega-importer'
-        shell: bash
-        run: |
-          pnpm install --no-frozen-lockfile
-          pnpm exec prettier --write \
-            package.json \
-            packages/legacy-zeroomega/package.json \
-            packages/legacy-zeroomega/tsconfig.json \
-            packages/legacy-zeroomega/src/contracts.ts \
-            packages/legacy-zeroomega/src/decode.ts \
-            packages/legacy-zeroomega/src/decode.test.ts \
-            packages/legacy-zeroomega/src/ids.ts \
-            packages/legacy-zeroomega/src/index.ts \
-            pnpm-lock.yaml
-          if [[ -z "$(git status --porcelain)" ]]; then
-            echo "Importer workspace already registered and formatted."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            package.json \
-            packages/legacy-zeroomega \
-            pnpm-lock.yaml
-          git commit -m "chore(import): register and format importer workspace"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Install locked dependencies
         shell: bash
