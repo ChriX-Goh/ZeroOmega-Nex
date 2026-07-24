@@ -122,6 +122,18 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Consequence:** `docs/DELIVERY_PLAN.md` controls order. Architecture-changing shortcuts require a new ADR before code merges.
 
+## ADR-013 — Optional all-host exception for proxy authentication challenges
+
+**Status:** Accepted
+
+**Decision:** Browser-only authentication for HTTP and HTTPS proxy endpoints may use exactly one `webRequest.onAuthRequired` listener with an `<all_urls>` request filter. All-host access remains optional and is requested only when an authenticated proxy is activated. The listener handles proxy challenges only and is not a proxy-decision, monitoring, or general request listener.
+
+**Reason:** Browser `onAuthRequired` filters describe destination requests. A fallback proxy can carry arbitrary destination traffic, so comprehensive authentication cannot be represented by a fixed destination list. At the same time, a `407` challenge event is sparse and fundamentally different from evaluating or recording every ordinary request.
+
+**Alternatives considered:** Requiring all-host permission at installation was rejected as excessive. Reintroducing global completion/error listeners for retry cleanup was rejected because it recreates permanent request overhead. Declaring authenticated browser proxies entirely unsupported was rejected because modern Chromium and Firefox provide a bounded challenge API for HTTP/HTTPS proxies.
+
+**Consequences:** Chromium and Firefox use separate permission manifests. Chromium MV3 uses `webRequestAuthProvider` without ordinary `webRequestBlocking`; Firefox may require `webRequestBlocking`, especially for system-request proxy authorization. The shared response path uses `asyncBlocking`. SOCKS authentication remains unsupported in browser-only mode. Retry state must survive background suspension without storing secrets and must not be cleaned through all-request listeners. The architecture guard may later allow this exact adapter boundary only; this ADR does not add permissions or listeners during Milestone 2.
+
 ## ADR template
 
 ```markdown
