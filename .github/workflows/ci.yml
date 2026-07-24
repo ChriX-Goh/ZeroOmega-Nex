@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -39,35 +39,6 @@ jobs:
             exit 1
           fi
           tail -n 20 pnpm-install.log
-
-      - name: Generate and format large fixture once
-        if: github.event_name == 'push' && github.ref_name == 'research/m2-legacy-inventory'
-        shell: bash
-        run: |
-          pnpm exec prettier --write \
-            scripts/large-legacy-fixture-lib.mjs \
-            scripts/generate-large-legacy-fixture.mjs \
-            scripts/validate-large-legacy-fixture.mjs \
-            docs/legacy/LARGE_FIXTURE.md \
-            docs/legacy/MILESTONE_2_STATUS.md \
-            fixtures/zeroomega-v2/README.md
-          pnpm generate:large-fixture
-          if [[ -z "$(git status --porcelain)" ]]; then
-            echo "Generated fixture and formatting already clean."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            scripts/large-legacy-fixture-lib.mjs \
-            scripts/generate-large-legacy-fixture.mjs \
-            scripts/validate-large-legacy-fixture.mjs \
-            docs/legacy/LARGE_FIXTURE.md \
-            docs/legacy/MILESTONE_2_STATUS.md \
-            fixtures/zeroomega-v2/README.md \
-            fixtures/zeroomega-v2/large-representative.json
-          git commit -m "test: generate deterministic large legacy fixture"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
