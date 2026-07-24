@@ -29,11 +29,7 @@ export interface LegacyImportSummary {
   readonly rejected: number;
 }
 
-export type LegacySecretKind =
-  | 'proxy-password'
-  | 'request-header'
-  | 'sync-token'
-  | 'sync-password';
+export type LegacySecretKind = 'proxy-password' | 'request-header' | 'sync-token' | 'sync-password';
 
 export interface LegacySecretMaterial {
   readonly ref: string;

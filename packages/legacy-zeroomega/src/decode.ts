@@ -83,7 +83,10 @@ function parseText(
 
   const decoded = decodeBase64(trimmed, limits);
   if (decoded === undefined) {
-    return failure('decode.invalid-base64', 'backup is neither a JSON object nor valid base64 JSON');
+    return failure(
+      'decode.invalid-base64',
+      'backup is neither a JSON object nor valid base64 JSON',
+    );
   }
 
   try {
@@ -216,7 +219,11 @@ export function decodeZeroOmegaBackup(
     return failure('decode.root-not-object', 'ZeroOmega backup root must be a JSON object');
   }
   if (parsed.schemaVersion !== 2) {
-    return failure('decode.unsupported-schema', 'expected ZeroOmega schemaVersion 2', '/schemaVersion');
+    return failure(
+      'decode.unsupported-schema',
+      'expected ZeroOmega schemaVersion 2',
+      '/schemaVersion',
+    );
   }
 
   const resources = inspectResources(parsed, limits);
