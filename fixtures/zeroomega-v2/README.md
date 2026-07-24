@@ -10,6 +10,7 @@ These files are independently constructed compatibility fixtures pinned to ZeroO
 - `credentials-and-headers.redacted.json` covers credential slots and download headers using literal `<redacted>` placeholders.
 - `builtin-profile-colors.json` covers the UI-emitted `-builtinProfiles` shape for Direct and System appearance colors without treating it as routing policy.
 - `network-edge-conditions.json` covers Unicode/ASCII IDN forms, IPv4/IPv6 subnets, prefix-zero rules, endpoint ports, `<local>`, scheme/port Bypass, CIDR, bracketed IPv6, and ambiguous malformed Bypass inputs.
+- `large-representative.json` is a generated, committed scale fixture with 36 profiles, 1,024 ordered SwitchProfile rules, and 1,024 rule-list data entries.
 
 ## Invalid files
 
@@ -39,6 +40,7 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 6. Prove that unsafe or ambiguous input fails for a precise reason.
 7. Keep presentation-only built-in customization separate from routing semantics.
 8. Preserve network edge cases without prematurely declaring target-dependent behavior exact.
+9. Exercise large-import and future compiler paths with deterministic scale.
 
 ## Rules
 
@@ -52,7 +54,8 @@ Fixtures are not examples of recommended user configuration. Their purpose is to
 - Credential fields and sensitive header values in positive fixtures must use the exact placeholder `<redacted>`.
 - Built-in customization fixtures may contain only the UI-emitted appearance fields `name`, `profileType`, `color`, and `builtin`; routing fields are forbidden.
 - Network fixtures must use documentation address ranges and keep Unicode and ASCII IDN source forms visible separately.
+- Do not hand-edit `large-representative.json`; change its generator, regenerate it, and pass exact-byte validation.
 
 ## Validation status
 
-The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. Focused validators check built-in appearance isolation and network-edge coverage, including IDN pairing, IP families, prefix bounds, endpoint ports, and the exact ambiguous Bypass corpus. The invalid-fixture harness separately confirms every negative case fails for its expected reason. Decision-vector expectations will be added during the remaining Milestone 2 work.
+The positive-fixture validator checks JSON structure, schema version, recognized profile and condition types, profile references, reference cycles, credential slots, credential redaction, header shape, and sensitive-header redaction. Focused validators check built-in appearance isolation and network-edge coverage, including IDN pairing, IP families, prefix bounds, endpoint ports, and the exact ambiguous Bypass corpus. The large-fixture validator rebuilds the expected file, compares exact bytes, verifies dimensions, and enforces its size budget. The invalid-fixture harness separately confirms every negative case fails for its expected reason. Decision-vector expectations will be added during the remaining Milestone 2 work.
