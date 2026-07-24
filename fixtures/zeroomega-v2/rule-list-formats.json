@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "-startupProfileName": "switchy-modern",
+  "+fixed": {
+    "name": "fixed",
+    "profileType": "FixedProfile",
+    "color": "#99ccee",
+    "revision": "fixture-rule-target",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "proxy.example.invalid",
+      "port": 8080
+    }
+  },
+  "+switchy-modern": {
+    "name": "switchy-modern",
+    "profileType": "RuleListProfile",
+    "color": "#99dd99",
+    "revision": "fixture-switchy-modern",
+    "format": "Switchy",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "[SwitchyOmega Conditions]\n@with result\n\n@note explicit result profile\n*.example.invalid +fixed\n!*.excluded.example.invalid +direct\n* +direct\n"
+  },
+  "+switchy-legacy": {
+    "name": "switchy-legacy",
+    "profileType": "RuleListProfile",
+    "color": "#ffee99",
+    "revision": "fixture-switchy-legacy",
+    "format": "Switchy",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "#BEGIN\n[WILDCARD]\n*.legacy.example.invalid\n!*.direct.example.invalid\n[REGEXP]\n^https://regex\\.example\\.invalid/\n#END\n"
+  },
+  "+autoproxy-plain": {
+    "name": "autoproxy-plain",
+    "profileType": "RuleListProfile",
+    "color": "#ffaa88",
+    "revision": "fixture-autoproxy-plain",
+    "format": "AutoProxy",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "[AutoProxy 0.2.9]\n! comment\n||host.example.invalid\n|https://prefix.example.invalid/\n/plain-regex/\nkeyword-without-star\n*wildcard.example.invalid*\n@@||direct.example.invalid\n"
+  },
+  "+autoproxy-base64": {
+    "name": "autoproxy-base64",
+    "profileType": "RuleListProfile",
+    "color": "#d497ee",
+    "revision": "fixture-autoproxy-base64",
+    "format": "AutoProxy",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "W0F1dG9Qcm94eSAwLjIuOV0KfHxiYXNlNjQuZXhhbXBsZS5pbnZhbGlkCkBAfHxkaXJlY3QuZXhhbXBsZS5pbnZhbGlkCg=="
+  }
+}
