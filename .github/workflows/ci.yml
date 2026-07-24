@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -39,23 +39,6 @@ jobs:
             exit 1
           fi
           tail -n 20 pnpm-install.log
-
-      - name: Format built-in profile documents once
-        if: github.event_name == 'push' && github.ref_name == 'research/m2-legacy-inventory'
-        shell: bash
-        run: |
-          pnpm exec prettier --write \
-            docs/legacy/BUILTIN_PROFILES.md \
-            docs/legacy/FIELD_CLASSIFICATION.md
-          if [[ -z "$(git status --porcelain)" ]]; then
-            echo "Formatting already clean."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/legacy/BUILTIN_PROFILES.md docs/legacy/FIELD_CLASSIFICATION.md
-          git commit -m "style: format built-in profile documents"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
