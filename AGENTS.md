@@ -18,6 +18,7 @@ Build a next-generation cross-browser proxy profile manager that preserves the f
 8. Firefox and Chromium behavior must be tested separately; do not hide platform differences behind unsafe assumptions.
 9. Do not add Rust/WASM merely for appearance. Rust is reserved for deterministic parsing, validation, normalization, optimization, compilation, and optional native-engine work.
 10. Do not begin a later phase until the current phase acceptance criteria pass.
+11. Do not repeatedly ask the repository owner to load or inspect partial slices. Intermediate work must be self-verified through CI, deterministic fixtures, differential tests, static audits, browser automation where available, and internal review. Request owner QC only for a consolidated, installable release candidate or when an irreducible product decision requires the owner's judgment.
 
 ## Technical direction
 
@@ -37,6 +38,8 @@ Build a next-generation cross-browser proxy profile manager that preserves the f
 5. Record architecture-changing decisions in `docs/DECISIONS.md`.
 6. Update compatibility fixtures whenever importer behavior changes.
 7. Never silently reinterpret an unsupported legacy field. Import it, preserve it as opaque metadata, explicitly downgrade it with a warning, or reject it with a precise reason.
+8. Commit each coherent slice to GitHub before relying on it, run the repository verification pipeline against that exact Head, and continue only after the Head passes.
+9. Accumulate verified slices into a release candidate and present one concise final QC package containing installation steps, expected behavior, migration checks, and a result template.
 
 ## Definition of done for any feature
 
@@ -47,6 +50,7 @@ Build a next-generation cross-browser proxy profile manager that preserves the f
 - Import/export compatibility impact is assessed.
 - No uncontrolled request-time listener or persistent diagnostic overhead is introduced.
 - Documentation and decision log are updated.
+- The exact GitHub Head containing the feature passes the required automated verification.
 
 ## Current order of work
 
