@@ -1,0 +1,46 @@
+name: Commit M4 Weekday fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'feat/m4-zeroomega-importer'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m4-zeroomega-importer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Commit Weekday narrowing fix
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/legacy-zeroomega/src/import.ts')
+          text = path.read_text()
+          old = """      if (typeof raw.days === 'string' && raw.days.length === 7) {
+            days = WEEKDAYS.filter((_, index) => !['-', '_', '0'].includes(raw.days![index]!));
+          } else {"""
+          new = """      if (typeof raw.days === 'string' && raw.days.length === 7) {
+            const dayMask: string = raw.days;
+            days = WEEKDAYS.filter((_, index) => !['-', '_', '0'].includes(dayMask[index]!));
+          } else {"""
+          if old not in text:
+              raise SystemExit('Weekday narrowing block not found')
+          path.write_text(text.replace(old, new))
+          PY
+          pnpm exec prettier --write packages/legacy-zeroomega/src/import.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/legacy-zeroomega/src/import.ts
+          git commit -m "fix(import): preserve Weekday mask type"
+          git push origin HEAD:feat/m4-zeroomega-importer
