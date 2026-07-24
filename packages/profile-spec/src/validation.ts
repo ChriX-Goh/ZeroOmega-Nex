@@ -30,6 +30,7 @@ const ajv = new Ajv2020({
   allErrors: true,
   allowUnionTypes: true,
   strict: true,
+  validateFormats: false,
 });
 
 const validateStructure = ajv.compile<ProfileSpec>(profileSpecJsonSchema);
