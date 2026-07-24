@@ -1,0 +1,330 @@
+{
+  "vectorSchemaVersion": 1,
+  "routeModel": {
+    "matchedProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "fixedRoute": {
+      "type": "proxy",
+      "scheme": "http",
+      "host": "proxy.example.invalid",
+      "port": 8080
+    },
+    "directRoute": {
+      "type": "direct"
+    }
+  },
+  "vectors": [
+    {
+      "id": "true-always-matches",
+      "condition": { "conditionType": "TrueCondition" },
+      "request": {
+        "url": "https://unrelated.example.invalid/",
+        "host": "unrelated.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "false-never-matches",
+      "condition": { "conditionType": "FalseCondition", "pattern": "disabled" },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "url-regex-private-match",
+      "condition": {
+        "conditionType": "UrlRegexCondition",
+        "pattern": "^https://example\\.invalid/private/"
+      },
+      "request": {
+        "url": "https://example.invalid/private/item",
+        "host": "example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "target-dependent"
+    },
+    {
+      "id": "url-regex-public-fallthrough",
+      "condition": {
+        "conditionType": "UrlRegexCondition",
+        "pattern": "^https://example\\.invalid/private/"
+      },
+      "request": {
+        "url": "https://example.invalid/public/item",
+        "host": "example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "target-dependent"
+    },
+    {
+      "id": "url-wildcard-first-alternative",
+      "condition": {
+        "conditionType": "UrlWildcardCondition",
+        "pattern": "*://*.assets.example.invalid/*|http://legacy.example.invalid/*"
+      },
+      "request": {
+        "url": "https://cdn.assets.example.invalid/app.js",
+        "host": "cdn.assets.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "target-dependent"
+    },
+    {
+      "id": "url-wildcard-second-alternative",
+      "condition": {
+        "conditionType": "UrlWildcardCondition",
+        "pattern": "*://*.assets.example.invalid/*|http://legacy.example.invalid/*"
+      },
+      "request": {
+        "url": "http://legacy.example.invalid/index.html",
+        "host": "legacy.example.invalid",
+        "scheme": "http"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-regex-subdomain-match",
+      "condition": {
+        "conditionType": "HostRegexCondition",
+        "pattern": "(^|\\.)regex\\.example\\.invalid$"
+      },
+      "request": {
+        "url": "https://api.regex.example.invalid/",
+        "host": "api.regex.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-regex-suffix-fallthrough",
+      "condition": {
+        "conditionType": "HostRegexCondition",
+        "pattern": "(^|\\.)regex\\.example\\.invalid$"
+      },
+      "request": {
+        "url": "https://regex.example.invalid.attacker.invalid/",
+        "host": "regex.example.invalid.attacker.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "host-wildcard-root-match",
+      "condition": {
+        "conditionType": "HostWildcardCondition",
+        "pattern": "*.wildcard.example.invalid"
+      },
+      "request": {
+        "url": "https://wildcard.example.invalid/",
+        "host": "wildcard.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-wildcard-subdomain-match",
+      "condition": {
+        "conditionType": "HostWildcardCondition",
+        "pattern": ".wildcard.example.invalid"
+      },
+      "request": {
+        "url": "https://deep.wildcard.example.invalid/",
+        "host": "deep.wildcard.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-wildcard-unicode-idn",
+      "condition": { "conditionType": "HostWildcardCondition", "pattern": "例子.测试" },
+      "request": { "url": "https://例子.测试/", "host": "例子.测试", "scheme": "https" },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "target-dependent"
+    },
+    {
+      "id": "bypass-local-single-label",
+      "condition": { "conditionType": "BypassCondition", "pattern": "<local>" },
+      "request": { "url": "http://printer/", "host": "printer", "scheme": "http" },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "bypass-local-dotted-host-fallthrough",
+      "condition": { "conditionType": "BypassCondition", "pattern": "<local>" },
+      "request": {
+        "url": "http://printer.example.invalid/",
+        "host": "printer.example.invalid",
+        "scheme": "http"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "bypass-scheme-port-match",
+      "condition": {
+        "conditionType": "BypassCondition",
+        "pattern": "https://*.bypass.example.invalid:8443"
+      },
+      "request": {
+        "url": "https://api.bypass.example.invalid:8443/path",
+        "host": "api.bypass.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "bypass-wrong-port-fallthrough",
+      "condition": {
+        "conditionType": "BypassCondition",
+        "pattern": "https://*.bypass.example.invalid:8443"
+      },
+      "request": {
+        "url": "https://api.bypass.example.invalid:443/path",
+        "host": "api.bypass.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "keyword-http-match",
+      "condition": { "conditionType": "KeywordCondition", "pattern": "legacy-keyword" },
+      "request": {
+        "url": "http://example.invalid/path/legacy-keyword/item",
+        "host": "example.invalid",
+        "scheme": "http"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "keyword-https-fallthrough",
+      "condition": { "conditionType": "KeywordCondition", "pattern": "legacy-keyword" },
+      "request": {
+        "url": "https://example.invalid/path/legacy-keyword/item",
+        "host": "example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "ipv4-subnet-match",
+      "condition": { "conditionType": "IpCondition", "ip": "192.0.2.0", "prefixLength": 24 },
+      "request": { "url": "http://192.0.2.44/", "host": "192.0.2.44", "scheme": "http" },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "ipv4-family-mismatch",
+      "condition": { "conditionType": "IpCondition", "ip": "192.0.2.0", "prefixLength": 24 },
+      "request": { "url": "http://[2001:db8::44]/", "host": "2001:db8::44", "scheme": "http" },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "ipv6-subnet-match",
+      "condition": { "conditionType": "IpCondition", "ip": "2001:db8::", "prefixLength": 32 },
+      "request": {
+        "url": "https://[2001:db8:1::44]/",
+        "host": "2001:db8:1::44",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-levels-in-range",
+      "condition": { "conditionType": "HostLevelsCondition", "minValue": 1, "maxValue": 4 },
+      "request": {
+        "url": "https://a.b.example.invalid/",
+        "host": "a.b.example.invalid",
+        "scheme": "https"
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "host-levels-zero-fallthrough",
+      "condition": { "conditionType": "HostLevelsCondition", "minValue": 1, "maxValue": 4 },
+      "request": { "url": "http://localhost/", "host": "localhost", "scheme": "http" },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "weekday-days-monday-match",
+      "condition": { "conditionType": "WeekdayCondition", "days": "-M-----" },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https",
+        "localWeekday": 1
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "weekday-days-sunday-fallthrough",
+      "condition": { "conditionType": "WeekdayCondition", "days": "-M-----" },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https",
+        "localWeekday": 0
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    },
+    {
+      "id": "weekday-range-friday-match",
+      "condition": { "conditionType": "WeekdayCondition", "startDay": 1, "endDay": 5 },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https",
+        "localWeekday": 5
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "time-inclusive-start-match",
+      "condition": { "conditionType": "TimeCondition", "startHour": 9, "endHour": 17 },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https",
+        "localHour": 9
+      },
+      "expected": { "matched": true, "selectedProfileName": "fixed" },
+      "support": "exact"
+    },
+    {
+      "id": "time-after-range-fallthrough",
+      "condition": { "conditionType": "TimeCondition", "startHour": 9, "endHour": 17 },
+      "request": {
+        "url": "https://example.invalid/",
+        "host": "example.invalid",
+        "scheme": "https",
+        "localHour": 18
+      },
+      "expected": { "matched": false, "selectedProfileName": "direct" },
+      "support": "exact"
+    }
+  ]
+}

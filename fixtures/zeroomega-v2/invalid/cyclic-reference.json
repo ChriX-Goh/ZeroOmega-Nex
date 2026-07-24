@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "+alpha": {
+    "name": "alpha",
+    "profileType": "SwitchProfile",
+    "color": "#99dd99",
+    "defaultProfileName": "beta",
+    "rules": []
+  },
+  "+beta": {
+    "name": "beta",
+    "profileType": "VirtualProfile",
+    "color": "#d497ee",
+    "defaultProfileName": "alpha",
+    "rules": []
+  }
+}

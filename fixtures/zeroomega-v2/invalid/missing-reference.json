@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "+switch": {
+    "name": "switch",
+    "profileType": "SwitchProfile",
+    "color": "#99dd99",
+    "defaultProfileName": "missing-profile",
+    "rules": []
+  }
+}

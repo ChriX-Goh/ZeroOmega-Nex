@@ -6,6 +6,7 @@ on:
       - main
       - 'docs/**'
       - 'feat/**'
+      - 'research/**'
   pull_request:
 
 permissions:

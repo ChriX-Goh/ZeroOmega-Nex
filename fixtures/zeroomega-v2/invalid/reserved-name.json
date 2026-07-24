@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 2,
+  "+reserved-copy": {
+    "name": "direct",
+    "profileType": "DirectProfile",
+    "color": "#aaaaaa"
+  }
+}

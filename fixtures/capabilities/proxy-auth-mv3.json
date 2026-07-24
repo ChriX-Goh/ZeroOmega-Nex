@@ -1,0 +1,80 @@
+{
+  "capabilitySchemaVersion": 1,
+  "feature": "browser-proxy-authentication",
+  "implementationStatus": "research-only",
+  "sharedAsyncBlockingBaseline": {
+    "chromiumMinimumVersion": 120,
+    "firefoxMinimumVersion": 128
+  },
+  "platforms": {
+    "chromium": {
+      "manifestVersion": 3,
+      "backgroundEnvironment": "service-worker",
+      "requiredPermissions": ["proxy", "webRequest", "webRequestAuthProvider"],
+      "optionalHostPermissions": ["<all_urls>"],
+      "forbiddenPermissions": ["webRequestBlocking"],
+      "responseMode": "asyncBlocking-callback",
+      "privateAccess": "user-granted"
+    },
+    "firefox": {
+      "manifestVersion": 3,
+      "backgroundEnvironment": "event-page",
+      "requiredPermissions": [
+        "proxy",
+        "webRequest",
+        "webRequestAuthProvider",
+        "webRequestBlocking"
+      ],
+      "optionalHostPermissions": ["<all_urls>"],
+      "forbiddenPermissions": [],
+      "responseMode": "asyncBlocking-callback",
+      "privateAccess": "user-granted"
+    }
+  },
+  "listener": {
+    "event": "webRequest.onAuthRequired",
+    "filterUrls": ["<all_urls>"],
+    "extraInfoSpec": ["asyncBlocking"],
+    "topLevelRegistration": true,
+    "proxyChallengeOnly": true,
+    "callbackAtMostOnce": true,
+    "allowedProxySchemes": ["http", "https"],
+    "unsupportedProxySchemes": ["socks4", "socks5"]
+  },
+  "forbiddenEvents": [
+    "webRequest.onBeforeRequest",
+    "webRequest.onBeforeSendHeaders",
+    "webRequest.onHeadersReceived",
+    "webRequest.onCompleted",
+    "webRequest.onErrorOccurred"
+  ],
+  "permissionPolicy": {
+    "allHostsRequiredAtInstall": false,
+    "requestAllHostsWhenAuthenticatedProxyActivated": true,
+    "offerRevocationWhenLastAuthenticatedProxyDisabled": true,
+    "permissionDenialLeavesProfileEditable": true
+  },
+  "challengePolicy": {
+    "ignoreOriginAuthentication": true,
+    "matchChallengerByHostAndPort": true,
+    "activeSnapshotOnly": true,
+    "exactCredentialBeforeFallback": true,
+    "boundedRetries": true,
+    "attemptStateSurvivesBackgroundSuspension": true,
+    "attemptStateContainsSecrets": false,
+    "cleanupUsesGlobalRequestCompletionListeners": false
+  },
+  "privatePolicy": {
+    "checkBrowserGrant": true,
+    "checkDetailsIncognito": true,
+    "credentialUseDefault": "disabled-until-explicit-user-enable",
+    "normalAndPrivateCredentialStore": "shared-in-spanning-mode"
+  },
+  "secretPolicy": {
+    "runtimeSnapshotContainsSecretValues": false,
+    "authenticationIndexContainsSecretReferencesOnly": true,
+    "logsContainSecretValues": false,
+    "diagnosticsContainSecretValues": false,
+    "ordinaryExportContainsSecretValues": false
+  }
+}

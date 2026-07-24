@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "+rules": {
+    "name": "rules",
+    "profileType": "RuleListProfile",
+    "color": "#99dd99",
+    "format": "Switchy",
+    "sourceUrl": "https://rules.example.invalid/private.txt",
+    "matchProfileName": "direct",
+    "defaultProfileName": "direct",
+    "headers": [
+      {
+        "name": "Authorization",
+        "value": "Bearer fixture-token"
+      }
+    ],
+    "ruleList": "[SwitchyOmega Conditions]\n* +direct\n"
+  }
+}

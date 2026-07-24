@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 2,
+  "-enableQuickSwitch": true,
+  "-refreshOnProfileChange": false,
+  "-startupProfileName": "switch",
+  "-quickSwitchProfiles": ["switch", "fixed", "direct"],
+  "-revertProxyChanges": true,
+  "-confirmDeletion": true,
+  "-showInspectMenu": true,
+  "-addConditionsToBottom": false,
+  "-showResultProfileOnActionBadgeText": false,
+  "-showExternalProfile": true,
+  "-downloadInterval": 1440,
+  "+explicit-direct": {
+    "name": "explicit-direct",
+    "profileType": "DirectProfile",
+    "color": "#aaaaaa",
+    "revision": "fixture-direct"
+  },
+  "+explicit-system": {
+    "name": "explicit-system",
+    "profileType": "SystemProfile",
+    "color": "#000000",
+    "revision": "fixture-system"
+  },
+  "+fixed": {
+    "name": "fixed",
+    "profileType": "FixedProfile",
+    "color": "#99ccee",
+    "revision": "fixture-fixed",
+    "fallbackProxy": {
+      "scheme": "socks5",
+      "host": "127.0.0.1",
+      "port": 1080
+    },
+    "proxyForHttp": {
+      "scheme": "http",
+      "host": "proxy.example.invalid",
+      "port": 8080
+    },
+    "proxyForHttps": {
+      "scheme": "https",
+      "host": "proxy.example.invalid",
+      "port": 8443
+    },
+    "proxyForFtp": {
+      "scheme": "socks4",
+      "host": "127.0.0.1",
+      "port": 1081
+    },
+    "bypassList": [
+      {
+        "conditionType": "BypassCondition",
+        "pattern": "<local>"
+      },
+      {
+        "conditionType": "BypassCondition",
+        "pattern": "192.0.2.0/24"
+      },
+      {
+        "conditionType": "BypassCondition",
+        "pattern": "[2001:db8::1]"
+      },
+      {
+        "conditionType": "BypassCondition",
+        "pattern": "https://*.internal.example.invalid:8443"
+      }
+    ]
+  },
+  "+pac": {
+    "name": "pac",
+    "profileType": "PacProfile",
+    "color": "#00cccc",
+    "revision": "fixture-pac",
+    "pacUrl": "https://pac.example.invalid/proxy.pac",
+    "pacScript": "function FindProxyForURL(url, host) {\n  return 'DIRECT';\n}\n"
+  },
+  "+auto-detect": {
+    "name": "auto-detect",
+    "profileType": "AutoDetectProfile",
+    "color": "#00cccc",
+    "revision": "fixture-auto-detect",
+    "pacUrl": "http://wpad/wpad.dat",
+    "pacScript": "function FindProxyForURL(url, host) {\n  return 'DIRECT';\n}\n"
+  },
+  "+switch": {
+    "name": "switch",
+    "profileType": "SwitchProfile",
+    "color": "#99dd99",
+    "revision": "fixture-switch",
+    "defaultProfileName": "direct",
+    "rules": [
+      {
+        "condition": {
+          "conditionType": "HostWildcardCondition",
+          "pattern": "*.example.invalid"
+        },
+        "profileName": "fixed",
+        "note": "Ordered rule fixture"
+      }
+    ]
+  },
+  "+virtual": {
+    "name": "virtual",
+    "profileType": "VirtualProfile",
+    "color": "#d497ee",
+    "revision": "fixture-virtual",
+    "defaultProfileName": "direct",
+    "rules": [
+      {
+        "condition": {
+          "conditionType": "FalseCondition",
+          "pattern": "disabled virtual rule"
+        },
+        "profileName": "fixed"
+      }
+    ]
+  },
+  "+rule-switchy": {
+    "name": "rule-switchy",
+    "profileType": "RuleListProfile",
+    "color": "#ffee99",
+    "revision": "fixture-rule-switchy",
+    "format": "Switchy",
+    "sourceUrl": "https://rules.example.invalid/switchy.txt",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "[SwitchyOmega Conditions]\n@with result\n\n*.example.invalid +fixed\n* +direct\n"
+  },
+  "+rule-autoproxy": {
+    "name": "rule-autoproxy",
+    "profileType": "RuleListProfile",
+    "color": "#ffaa88",
+    "revision": "fixture-rule-autoproxy",
+    "format": "AutoProxy",
+    "sourceUrl": "https://rules.example.invalid/autoproxy.txt",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "[AutoProxy 0.2.9]\n||example.invalid\n@@||direct.example.invalid\n"
+  },
+  "+legacy-switchy": {
+    "name": "legacy-switchy",
+    "profileType": "SwitchyRuleListProfile",
+    "color": "#ffee99",
+    "revision": "fixture-legacy-switchy",
+    "sourceUrl": "https://rules.example.invalid/legacy-switchy.txt",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "#BEGIN\n[WILDCARD]\n*.example.invalid\n#END\n"
+  },
+  "+legacy-autoproxy": {
+    "name": "legacy-autoproxy",
+    "profileType": "AutoProxyRuleListProfile",
+    "color": "#ffaa88",
+    "revision": "fixture-legacy-autoproxy",
+    "sourceUrl": "https://rules.example.invalid/legacy-autoproxy.txt",
+    "matchProfileName": "fixed",
+    "defaultProfileName": "direct",
+    "ruleList": "[AutoProxy 0.2.9]\n|https://legacy.example.invalid/\n"
+  }
+}
