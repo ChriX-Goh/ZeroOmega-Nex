@@ -36,7 +36,9 @@
         class:active={profile.active}
         type="button"
         disabled
-        title={profile.active ? `${profile.name} is active` : 'Profile switching is not enabled yet'}
+        title={profile.active
+          ? `${profile.name} is active`
+          : 'Profile switching is not enabled yet'}
       >
         <span class="profile-marker" style={`--profile-color: ${profile.color}`}></span>
         <span class="profile-name">{profile.name}</span>

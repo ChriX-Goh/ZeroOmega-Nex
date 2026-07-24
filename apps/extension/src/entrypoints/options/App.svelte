@@ -67,7 +67,9 @@
 
     <section class="settings-section">
       <h2>Proxy servers</h2>
-      <p class="section-help">Use one proxy for all protocols or configure each protocol separately.</p>
+      <p class="section-help">
+        Use one proxy for all protocols or configure each protocol separately.
+      </p>
       <div class="proxy-table" role="group" aria-label="Proxy server shell">
         <div class="proxy-row proxy-headings" aria-hidden="true">
           <span>Protocol</span>
@@ -85,20 +87,28 @@
     <section class="settings-section">
       <h2>Bypass list</h2>
       <p class="section-help">Hosts listed here connect directly instead of using this profile.</p>
-      <textarea aria-label="Bypass list" rows="5" disabled>localhost
+      <textarea aria-label="Bypass list" rows="5" disabled
+        >localhost
 127.0.0.1
-&lt;local&gt;</textarea>
+&lt;local&gt;</textarea
+      >
     </section>
 
     <section class="settings-section shell-status">
       <h2>Milestone 1 status</h2>
       <p>
-        This page is the interaction and layout shell. Profile editing, importing, policy compilation,
-        and browser proxy control remain disabled until their gated milestones.
+        This page is the interaction and layout shell. Profile editing, importing, policy
+        compilation, and browser proxy control remain disabled until their gated milestones.
       </p>
       <dl>
-        <div><dt>Proxy permission</dt><dd>Not requested</dd></div>
-        <div><dt>Global request listener</dt><dd>Absent</dd></div>
+        <div>
+          <dt>Proxy permission</dt>
+          <dd>Not requested</dd>
+        </div>
+        <div>
+          <dt>Global request listener</dt>
+          <dd>Absent</dd>
+        </div>
       </dl>
     </section>
   </main>
