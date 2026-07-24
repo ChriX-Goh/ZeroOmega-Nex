@@ -10,7 +10,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -39,21 +39,6 @@ jobs:
             exit 1
           fi
           tail -n 20 pnpm-install.log
-
-      - name: Apply targeted formatter once
-        if: github.event_name == 'push' && github.ref_name == 'research/m2-legacy-inventory'
-        shell: bash
-        run: |
-          pnpm exec prettier --write docs/legacy/UPSTREAM_BASELINE.md scripts/validate-legacy-fixtures.mjs
-          if [[ -z "$(git status --porcelain)" ]]; then
-            echo "Target files already formatted."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/legacy/UPSTREAM_BASELINE.md scripts/validate-legacy-fixtures.mjs
-          git commit -m "style: format credential inventory support files"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
