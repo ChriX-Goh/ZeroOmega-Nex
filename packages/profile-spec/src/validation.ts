@@ -150,11 +150,7 @@ function validateUrl(
   }
 }
 
-function validateCondition(
-  condition: Condition,
-  path: string,
-  issues: ValidationIssue[],
-): void {
+function validateCondition(condition: Condition, path: string, issues: ValidationIssue[]): void {
   switch (condition.kind) {
     case 'true':
     case 'false':
@@ -302,7 +298,11 @@ function validateSync(spec: ProfileSpec, issues: ValidationIssue[]): void {
   }
 
   if (sync.backend === 'none' || sync.backend === 'browser') {
-    if (sync.remoteUri !== undefined || sync.username !== undefined || sync.secretRef !== undefined) {
+    if (
+      sync.remoteUri !== undefined ||
+      sync.username !== undefined ||
+      sync.secretRef !== undefined
+    ) {
       issues.push(
         issue(
           'sync.unexpected-remote-fields',
