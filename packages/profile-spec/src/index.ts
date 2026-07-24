@@ -1,5 +1,22 @@
-export { PROFILE_SPEC_SCHEMA_VERSION } from './types.js';
+export { InvalidProfileSpecError } from './errors.js';
+export {
+  PROFILE_SPEC_MIGRATIONS,
+  migrateProfileSpec,
+  type ProfileSpecMigration,
+  type ProfileSpecMigrationResult,
+} from './migration.js';
 export { profileSpecJsonSchema } from './schema.js';
+export {
+  canonicalProfileSpecValue,
+  cloneProfileSpec,
+  createProfileSpecRevision,
+  parseProfileSpec,
+  serializeProfileSpec,
+  type CreateProfileSpecRevisionOptions,
+  type ParseProfileSpecResult,
+  type SerializeProfileSpecOptions,
+} from './serialization.js';
+export { PROFILE_SPEC_SCHEMA_VERSION } from './types.js';
 export { validateProfileSpec } from './validation.js';
 export type {
   ProfileSpecValidationResult,
