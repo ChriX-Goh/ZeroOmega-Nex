@@ -21,6 +21,9 @@ The compatibility inventory is pinned to:
 | Rule-list formats                                       | `omega-pac/src/rule_list.coffee`                                              | `16fd69fd85479012712f0c6710b22d77c938299b` |
 | Default schema-v2 options                               | `omega-target/src/default_options.coffee`                                     | `0cd5c86523fdaa088b98c4d197643c758054683e` |
 | Loading, upgrades, headers, sync filtering, and options | `omega-target/src/options.coffee`                                             | `82a5a09d428ca20bb2d9d5009f3a4751f4f4a612` |
+| Backup, local restore, online restore, and sync UI      | `omega-web/src/omega/controllers/io.coffee`                                   | `be1e16ad9b841c0803d55b7ffcd06e16b42c83a5` |
+| UI option source, apply confirmation, and PAC export    | `omega-web/src/omega/controllers/master.coffee`                               | `d4973c0ce27e65419fc0b442fb45966cb44bbdc3` |
+| Web-to-background option bridge                         | `omega-target-chromium-extension/src/coffee/omega_target_web.coffee`          | `4e5ca6d86998d4a044c05ebb3e845b5c3eeeab86` |
 | Browser option state, temporary rules, and monitoring   | `omega-target-chromium-extension/src/module/options.coffee`                   | `163c9835834ad06d698be2c3d9f1b1de2057d461` |
 | Sync staging and backend dispatch                       | `omega-target-chromium-extension/src/module/sync_storage.coffee`              | `fe9dadef484b7d65e63de1fa4eab5b2e7a2422f7` |
 | Gist JSON synchronization                               | `omega-target-chromium-extension/src/module/sync/sync_impl_gist.coffee`       | `c54e2f125a5654233053e0c1ec64d693eb1f729a` |
@@ -52,7 +55,7 @@ When a new ZeroOmega release becomes a target:
 
 1. Record the new tag, commit, and relevant Blob SHAs.
 2. Diff all source areas listed above.
-3. Update profile, condition, settings, credential, header, sync, and derived-field inventories.
+3. Update profile, condition, settings, credential, header, backup, restore, sync, and derived-field inventories.
 4. Add fixtures for every newly discovered public shape.
 5. Record changed compatibility decisions in `docs/DECISIONS.md`.
 6. Do not change importer behavior until differential tests exist.
