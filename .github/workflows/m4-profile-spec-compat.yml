@@ -1,0 +1,252 @@
+name: M4 ProfileSpec compatibility patch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'feat/m4-zeroomega-importer'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m4-zeroomega-importer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply compatibility correction
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          types = Path('packages/profile-spec/src/types.ts')
+          text = types.read_text()
+          text = text.replace(
+              "  source: PacSource;\n  fallbackRoute?: ProfileRouteTarget;",
+              "  source: PacSource;\n  headers?: RuleSourceHeader[];\n  fallbackRoute?: ProfileRouteTarget;",
+          )
+          text = text.replace(
+              "  profileIds: Identifier[];",
+              "  routes: ProfileRouteTarget[];",
+          )
+          types.write_text(text)
+
+          schema_path = Path('packages/profile-spec/schema/profile-spec-v1.schema.json')
+          schema = json.loads(schema_path.read_text())
+          defs = schema['$defs']
+          header_item = defs['ruleSource']['properties']['headers']['items']
+          defs['ruleSourceHeader'] = header_item
+          defs['ruleSource']['properties']['headers']['items'] = {
+              '$ref': '#/$defs/ruleSourceHeader'
+          }
+          pac = next(
+              item for item in defs['profile']['oneOf']
+              if item['properties']['kind'].get('const') == 'pac'
+          )
+          pac['properties']['headers'] = {
+              'type': 'array',
+              'items': {'$ref': '#/$defs/ruleSourceHeader'},
+          }
+          quick = defs['settings']['properties']['quickSwitch']
+          quick['required'] = [
+              'routes' if item == 'profileIds' else item
+              for item in quick['required']
+          ]
+          quick['properties'].pop('profileIds', None)
+          quick['properties']['routes'] = {
+              'type': 'array',
+              'items': {'$ref': '#/$defs/routeTarget'},
+          }
+          schema_path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + '\n')
+
+          validation = Path('packages/profile-spec/src/validation.ts')
+          text = validation.read_text()
+          text = text.replace(
+              "  ProfileSpec,\n  UserProfile,",
+              "  ProfileSpec,\n  RuleSourceHeader,\n  UserProfile,",
+          )
+          helper = '''function validateHeaders(
+            headers: readonly RuleSourceHeader[] | undefined,
+            path: string,
+            issues: ValidationIssue[],
+          ): void {
+            const headerNames = new Set<string>();
+            headers?.forEach((header, headerIndex) => {
+              const normalizedName = header.name.trim().toLowerCase();
+              if (headerNames.has(normalizedName)) {
+                issues.push(
+                  issue(
+                    'source.duplicate-header',
+                    `${path}/${headerIndex}/name`,
+                    `header "${header.name}" is duplicated`,
+                  ),
+                );
+              }
+              headerNames.add(normalizedName);
+              if (header.value.kind === 'literal' && SENSITIVE_HEADER_NAME.test(normalizedName)) {
+                issues.push(
+                  issue(
+                    'source.sensitive-literal-header',
+                    `${path}/${headerIndex}/value`,
+                    `header "${header.name}" must use a secret reference`,
+                  ),
+                );
+              }
+            });
+          }
+
+          '''
+          marker = 'function validateSync(spec: ProfileSpec, issues: ValidationIssue[]): void {'
+          if 'function validateHeaders(' not in text:
+              text = text.replace(marker, helper + marker)
+
+          old = '''    if (profile.kind === 'pac' && profile.source.kind === 'url') {
+              validateUrl(
+                profile.source.url,
+                `/profiles/${profileIndex}/source/url`,
+                ['http:', 'https:', 'file:'],
+                issues,
+              );
+              if (profile.source.url.startsWith('file:')) {
+                issues.push(
+                  issue(
+                    'profile.target-dependent-file-pac',
+                    `/profiles/${profileIndex}/source/url`,
+                    'file PAC support depends on browser permissions and target capabilities',
+                    'warning',
+                  ),
+                );
+              }
+            }'''
+          new = '''    if (profile.kind === 'pac') {
+              validateHeaders(profile.headers, `/profiles/${profileIndex}/headers`, issues);
+              if (profile.source.kind === 'url') {
+                validateUrl(
+                  profile.source.url,
+                  `/profiles/${profileIndex}/source/url`,
+                  ['http:', 'https:', 'file:'],
+                  issues,
+                );
+                if (profile.source.url.startsWith('file:')) {
+                  issues.push(
+                    issue(
+                      'profile.target-dependent-file-pac',
+                      `/profiles/${profileIndex}/source/url`,
+                      'file PAC support depends on browser permissions and target capabilities',
+                      'warning',
+                    ),
+                  );
+                }
+              }
+            }'''
+          if old not in text:
+              raise SystemExit('PAC validation block not found')
+          text = text.replace(old, new)
+
+          start = text.index('    const headerNames = new Set<string>();', text.index('spec.ruleSources.forEach'))
+          end = text.index('    });', start) + len('    });')
+          text = text[:start] + "    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);" + text[end:]
+
+          old = '''  for (const profileId of spec.settings.quickSwitch.profileIds) {
+            if (!profileIds.has(profileId)) {
+              issues.push(
+                issue(
+                  'profile.missing-quick-switch-reference',
+                  '/settings/quickSwitch/profileIds',
+                  `quick-switch profile "${profileId}" does not exist`,
+                ),
+              );
+            }
+          }'''
+          new = '''  spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
+            const profileId = routeProfileId(route);
+            if (profileId && !profileIds.has(profileId)) {
+              issues.push(
+                issue(
+                  'profile.missing-quick-switch-reference',
+                  `/settings/quickSwitch/routes/${routeIndex}`,
+                  `quick-switch profile "${profileId}" does not exist`,
+                ),
+              );
+            }
+          });'''
+          if old not in text:
+              raise SystemExit('Quick Switch validation block not found')
+          validation.write_text(text.replace(old, new))
+
+          index_test = Path('packages/profile-spec/src/index.test.ts')
+          text = index_test.read_text()
+          pac_anchor = "        fallbackRoute: { kind: 'direct' },\n      },"
+          pac_replacement = '''        headers: [
+                  {
+                    name: 'Authorization',
+                    value: { kind: 'secret', secretRef: 'secret-pac-authorization' },
+                  },
+                ],
+                fallbackRoute: { kind: 'direct' },
+              },'''
+          if pac_anchor not in text:
+              raise SystemExit('PAC fixture anchor not found')
+          text = text.replace(pac_anchor, pac_replacement, 1)
+          text = text.replace(
+              "        profileIds: ['profile-switch', 'profile-fixed'],",
+              '''        routes: [
+                  { kind: 'profile', profileId: 'profile-switch' },
+                  { kind: 'profile', profileId: 'profile-fixed' },
+                  { kind: 'direct' },
+                  { kind: 'system' },
+                ],''',
+          )
+          anchor = "  it('rejects remote sync without HTTPS and a secret reference', () => {"
+          test = '''  it('requires sensitive PAC request headers to use secret references', () => {
+              const value = validSpec();
+              const pac = value.profiles[3]!;
+              if (pac.kind !== 'pac') throw new Error('fixture mismatch');
+              pac.headers = [
+                {
+                  name: 'Authorization',
+                  value: { kind: 'literal', value: 'Bearer plaintext' },
+                },
+              ];
+              expect(issueCodes(value)).toContain('source.sensitive-literal-header');
+            });
+
+            '''
+          if test.strip() not in text:
+              text = text.replace(anchor, test + anchor)
+          index_test.write_text(text)
+
+          serial_test = Path('packages/profile-spec/src/serialization.test.ts')
+          text = serial_test.read_text().replace(
+              "        profileIds: ['profile-a', 'profile-b'],",
+              '''        routes: [
+                  { kind: 'profile', profileId: 'profile-a' },
+                  { kind: 'direct' },
+                  { kind: 'system' },
+                  { kind: 'profile', profileId: 'profile-b' },
+                ],''',
+          )
+          serial_test.write_text(text)
+          PY
+          pnpm exec prettier --write \
+            packages/profile-spec/src/types.ts \
+            packages/profile-spec/schema/profile-spec-v1.schema.json \
+            packages/profile-spec/src/validation.ts \
+            packages/profile-spec/src/index.test.ts \
+            packages/profile-spec/src/serialization.test.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/profile-spec
+          git commit -m "fix(profile-spec): preserve built-in quick routes and PAC headers"
+          git push origin HEAD:feat/m4-zeroomega-importer
