@@ -19,6 +19,9 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Inventoried generic synchronization filtering and IndexedDB staging.
 - Inventoried Gist and WebDAV plaintext JSON upload behavior and account-state fields.
 - Classified temporary-profile state and network-monitor records as runtime-only data.
+- Inventoried ordinary `.bak` export, local restore, online restore, and separate PAC export behavior.
+- Confirmed that ordinary backups serialize the full option container without backup-specific filtering or redaction.
+- Confirmed that synchronization account state, temporary rules, monitor records, and current runtime state are outside the ordinary backup object.
 - Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, and secrets.
 - Added positive fixtures for profile types, condition types, rule-list formats, credentials, and headers.
 - Added twelve intentionally invalid fixtures with exact expected failure reasons.
@@ -27,12 +30,11 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Added structural/reference validation for positive fixture JSON.
 - Added credential-slot and sensitive-header redaction validation.
 - Added research branches to the normal CI verification path.
-- Passed the full stacked CI pipeline after the storage/sync boundary work.
+- Passed the full stacked CI pipeline after the field-classification and negative-fixture expansion.
 
 ## Still required before Milestone 2 completes
 
-- Pass the final read-only CI after field classification and negative-fixture expansion.
-- Locate and inventory every UI backup/export transformation.
+- Pass read-only CI for the backup/export boundary documentation.
 - Built-in profile customization shape.
 - Additional Gist/WebDAV UI configuration boundaries, if any.
 - IDN, IPv4, IPv6, port, and malformed bypass fixtures.
