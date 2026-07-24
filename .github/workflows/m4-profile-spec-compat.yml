@@ -32,51 +32,35 @@ jobs:
 
           types = Path('packages/profile-spec/src/types.ts')
           text = types.read_text()
-          text = text.replace(
-              "  source: PacSource;\n  fallbackRoute?: ProfileRouteTarget;",
-              "  source: PacSource;\n  headers?: RuleSourceHeader[];\n  fallbackRoute?: ProfileRouteTarget;",
-          )
-          text = text.replace(
-              "  profileIds: Identifier[];",
-              "  routes: ProfileRouteTarget[];",
-          )
+          if 'headers?: RuleSourceHeader[];' not in text:
+              text = text.replace(
+                  "  source: PacSource;\n  fallbackRoute?: ProfileRouteTarget;",
+                  "  source: PacSource;\n  headers?: RuleSourceHeader[];\n  fallbackRoute?: ProfileRouteTarget;",
+              )
+          text = text.replace('  profileIds: Identifier[];', '  routes: ProfileRouteTarget[];')
           types.write_text(text)
 
           schema_path = Path('packages/profile-spec/schema/profile-spec-v1.schema.json')
           schema = json.loads(schema_path.read_text())
           defs = schema['$defs']
-          header_item = defs['ruleSource']['properties']['headers']['items']
-          defs['ruleSourceHeader'] = header_item
-          defs['ruleSource']['properties']['headers']['items'] = {
-              '$ref': '#/$defs/ruleSourceHeader'
-          }
-          pac = next(
-              item for item in defs['profile']['oneOf']
-              if item['properties']['kind'].get('const') == 'pac'
-          )
-          pac['properties']['headers'] = {
-              'type': 'array',
-              'items': {'$ref': '#/$defs/ruleSourceHeader'},
-          }
+          if 'ruleSourceHeader' not in defs:
+              defs['ruleSourceHeader'] = defs['ruleSource']['properties']['headers']['items']
+          defs['ruleSource']['properties']['headers']['items'] = {'$ref': '#/$defs/ruleSourceHeader'}
+          pac = next(x for x in defs['profile']['oneOf'] if x['properties']['kind'].get('const') == 'pac')
+          pac['properties']['headers'] = {'type': 'array', 'items': {'$ref': '#/$defs/ruleSourceHeader'}}
           quick = defs['settings']['properties']['quickSwitch']
-          quick['required'] = [
-              'routes' if item == 'profileIds' else item
-              for item in quick['required']
-          ]
+          quick['required'] = ['routes' if x == 'profileIds' else x for x in quick['required']]
           quick['properties'].pop('profileIds', None)
-          quick['properties']['routes'] = {
-              'type': 'array',
-              'items': {'$ref': '#/$defs/routeTarget'},
-          }
+          quick['properties']['routes'] = {'type': 'array', 'items': {'$ref': '#/$defs/routeTarget'}}
           schema_path.write_text(json.dumps(schema, ensure_ascii=False, indent=2) + '\n')
 
           validation = Path('packages/profile-spec/src/validation.ts')
           text = validation.read_text()
-          text = text.replace(
-              "  ProfileSpec,\n  UserProfile,",
-              "  ProfileSpec,\n  RuleSourceHeader,\n  UserProfile,",
-          )
-          helper = '''function validateHeaders(
+          if '  RuleSourceHeader,' not in text:
+              text = text.replace('  ProfileSpec,\n  UserProfile,', '  ProfileSpec,\n  RuleSourceHeader,\n  UserProfile,')
+          if 'function validateHeaders(' not in text:
+              marker = 'function validateSync(spec: ProfileSpec, issues: ValidationIssue[]): void {'
+              helper = '''function validateHeaders(
             headers: readonly RuleSourceHeader[] | undefined,
             path: string,
             issues: ValidationIssue[],
@@ -107,29 +91,13 @@ jobs:
           }
 
           '''
-          marker = 'function validateSync(spec: ProfileSpec, issues: ValidationIssue[]): void {'
-          if 'function validateHeaders(' not in text:
               text = text.replace(marker, helper + marker)
 
-          old = '''    if (profile.kind === 'pac' && profile.source.kind === 'url') {
-              validateUrl(
-                profile.source.url,
-                `/profiles/${profileIndex}/source/url`,
-                ['http:', 'https:', 'file:'],
-                issues,
-              );
-              if (profile.source.url.startsWith('file:')) {
-                issues.push(
-                  issue(
-                    'profile.target-dependent-file-pac',
-                    `/profiles/${profileIndex}/source/url`,
-                    'file PAC support depends on browser permissions and target capabilities',
-                    'warning',
-                  ),
-                );
-              }
-            }'''
-          new = '''    if (profile.kind === 'pac') {
+          pac_start_text = "    if (profile.kind === 'pac' && profile.source.kind === 'url') {"
+          if pac_start_text in text:
+              start = text.index(pac_start_text)
+              end = text.index('\n    }\n  });', start) + len('\n    }')
+              replacement = '''    if (profile.kind === 'pac') {
               validateHeaders(profile.headers, `/profiles/${profileIndex}/headers`, issues);
               if (profile.source.kind === 'url') {
                 validateUrl(
@@ -150,26 +118,20 @@ jobs:
                 }
               }
             }'''
-          if old not in text:
-              raise SystemExit('PAC validation block not found')
-          text = text.replace(old, new)
+              text = text[:start] + replacement + text[end:]
 
-          start = text.index('    const headerNames = new Set<string>();', text.index('spec.ruleSources.forEach'))
-          end = text.index('    });', start) + len('    });')
-          text = text[:start] + "    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);" + text[end:]
+          source_loop = text.index('  spec.ruleSources.forEach')
+          header_start_text = '    const headerNames = new Set<string>();'
+          if header_start_text in text[source_loop:]:
+              start = text.index(header_start_text, source_loop)
+              end = text.index('\n    });\n  });', start) + len('\n    });')
+              text = text[:start] + "    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);" + text[end:]
 
-          old = '''  for (const profileId of spec.settings.quickSwitch.profileIds) {
-            if (!profileIds.has(profileId)) {
-              issues.push(
-                issue(
-                  'profile.missing-quick-switch-reference',
-                  '/settings/quickSwitch/profileIds',
-                  `quick-switch profile "${profileId}" does not exist`,
-                ),
-              );
-            }
-          }'''
-          new = '''  spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
+          quick_start_text = '  for (const profileId of spec.settings.quickSwitch.profileIds) {'
+          if quick_start_text in text:
+              start = text.index(quick_start_text)
+              end = text.index('\n  }\n\n  const startupProfileId', start) + len('\n  }')
+              replacement = '''  spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
             const profileId = routeProfileId(route);
             if (profileId && !profileIds.has(profileId)) {
               issues.push(
@@ -181,14 +143,14 @@ jobs:
               );
             }
           });'''
-          if old not in text:
-              raise SystemExit('Quick Switch validation block not found')
-          validation.write_text(text.replace(old, new))
+              text = text[:start] + replacement + text[end:]
+          validation.write_text(text)
 
           index_test = Path('packages/profile-spec/src/index.test.ts')
           text = index_test.read_text()
-          pac_anchor = "        fallbackRoute: { kind: 'direct' },\n      },"
-          pac_replacement = '''        headers: [
+          if 'secret-pac-authorization' not in text:
+              anchor = "        fallbackRoute: { kind: 'direct' },\n      },"
+              replacement = '''        headers: [
                   {
                     name: 'Authorization',
                     value: { kind: 'secret', secretRef: 'secret-pac-authorization' },
@@ -196,9 +158,9 @@ jobs:
                 ],
                 fallbackRoute: { kind: 'direct' },
               },'''
-          if pac_anchor not in text:
-              raise SystemExit('PAC fixture anchor not found')
-          text = text.replace(pac_anchor, pac_replacement, 1)
+              if anchor not in text:
+                  raise SystemExit('PAC test fixture anchor not found')
+              text = text.replace(anchor, replacement, 1)
           text = text.replace(
               "        profileIds: ['profile-switch', 'profile-fixed'],",
               '''        routes: [
@@ -208,8 +170,9 @@ jobs:
                   { kind: 'system' },
                 ],''',
           )
-          anchor = "  it('rejects remote sync without HTTPS and a secret reference', () => {"
-          test = '''  it('requires sensitive PAC request headers to use secret references', () => {
+          if 'requires sensitive PAC request headers' not in text:
+              anchor = "  it('rejects remote sync without HTTPS and a secret reference', () => {"
+              test = '''  it('requires sensitive PAC request headers to use secret references', () => {
               const value = validSpec();
               const pac = value.profiles[3]!;
               if (pac.kind !== 'pac') throw new Error('fixture mismatch');
@@ -223,7 +186,6 @@ jobs:
             });
 
             '''
-          if test.strip() not in text:
               text = text.replace(anchor, test + anchor)
           index_test.write_text(text)
 
@@ -245,6 +207,8 @@ jobs:
             packages/profile-spec/src/validation.ts \
             packages/profile-spec/src/index.test.ts \
             packages/profile-spec/src/serialization.test.ts
+          pnpm --filter @zeroomega-nex/profile-spec check
+          pnpm test -- --run packages/profile-spec/src/index.test.ts packages/profile-spec/src/serialization.test.ts
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add packages/profile-spec
