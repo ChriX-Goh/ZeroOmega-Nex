@@ -47,7 +47,7 @@ jobs:
           path: pnpm-install.log
           if-no-files-found: error
 
-      - name: Verify, test, build, inspect, and stage both browser targets
+      - name: Verify, test, build, inspect, and package both browser targets
         shell: bash
         run: |
           if ! pnpm ci >pnpm-ci.log 2>&1; then
@@ -64,9 +64,9 @@ jobs:
           path: pnpm-ci.log
           if-no-files-found: error
 
-      - name: Upload browser build outputs
+      - name: Upload browser build archive
         uses: actions/upload-artifact@v4
         with:
           name: browser-builds
-          path: browser-builds
+          path: browser-builds.tar.gz
           if-no-files-found: error
