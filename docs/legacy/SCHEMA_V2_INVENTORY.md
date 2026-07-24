@@ -18,18 +18,18 @@ This name-based reference model requires the Nex importer to assign stable IDs b
 
 The upstream source recognizes ten identifiers backed by six core handlers.
 
-| Legacy identifier | Core semantics | Stored fields observed or required | Initial classification |
-|---|---|---|---|
-| `SystemProfile` | Release extension control to browser/system proxy | `name`, `profileType`, `color` for built-in model | Built-in; map to platform control mode |
-| `DirectProfile` | Always return direct connection | `name`, `profileType`, `color` for built-in model | Built-in; exact |
-| `FixedProfile` | Per-scheme or fallback proxy with bypass rules | `fallbackProxy`, `proxyForHttp`, `proxyForHttps`, `proxyForFtp`, `bypassList`, optional `auth` | User intent; exact where browser supports endpoint |
-| `PacProfile` | User-supplied or downloaded PAC | `pacUrl`, `pacScript` | User intent plus fetched content; capability/security review required |
-| `AutoDetectProfile` | Alias of `PacProfile` | Usually `pacUrl`, historically WPAD | Legacy alias; preserve source type in import metadata |
-| `SwitchProfile` | Ordered rules followed by default profile | `rules`, `defaultProfileName` | User intent; rule order is binding |
-| `VirtualProfile` | Alias of `SwitchProfile`, also used as missing-reference fallback | `rules`, `defaultProfileName` | Legacy alias; import explicitly, never create silently for broken references |
-| `RuleListProfile` | Downloaded/local rule list mapped to match/default profiles | `format`, `sourceUrl`, `ruleList`, `matchProfileName`, `defaultProfileName` | User intent plus fetched/derived data |
-| `SwitchyRuleListProfile` | Alias of `RuleListProfile` with `Switchy` format default | Same as rule-list profile | Legacy alias |
-| `AutoProxyRuleListProfile` | Alias of `RuleListProfile` with `AutoProxy` format default | Same as rule-list profile | Legacy alias |
+| Legacy identifier          | Core semantics                                                    | Stored fields observed or required                                                             | Initial classification                                                       |
+| -------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `SystemProfile`            | Release extension control to browser/system proxy                 | `name`, `profileType`, `color` for built-in model                                              | Built-in; map to platform control mode                                       |
+| `DirectProfile`            | Always return direct connection                                   | `name`, `profileType`, `color` for built-in model                                              | Built-in; exact                                                              |
+| `FixedProfile`             | Per-scheme or fallback proxy with bypass rules                    | `fallbackProxy`, `proxyForHttp`, `proxyForHttps`, `proxyForFtp`, `bypassList`, optional `auth` | User intent; exact where browser supports endpoint                           |
+| `PacProfile`               | User-supplied or downloaded PAC                                   | `pacUrl`, `pacScript`                                                                          | User intent plus fetched content; capability/security review required        |
+| `AutoDetectProfile`        | Alias of `PacProfile`                                             | Usually `pacUrl`, historically WPAD                                                            | Legacy alias; preserve source type in import metadata                        |
+| `SwitchProfile`            | Ordered rules followed by default profile                         | `rules`, `defaultProfileName`                                                                  | User intent; rule order is binding                                           |
+| `VirtualProfile`           | Alias of `SwitchProfile`, also used as missing-reference fallback | `rules`, `defaultProfileName`                                                                  | Legacy alias; import explicitly, never create silently for broken references |
+| `RuleListProfile`          | Downloaded/local rule list mapped to match/default profiles       | `format`, `sourceUrl`, `ruleList`, `matchProfileName`, `defaultProfileName`                    | User intent plus fetched/derived data                                        |
+| `SwitchyRuleListProfile`   | Alias of `RuleListProfile` with `Switchy` format default          | Same as rule-list profile                                                                      | Legacy alias                                                                 |
+| `AutoProxyRuleListProfile` | Alias of `RuleListProfile` with `AutoProxy` format default        | Same as rule-list profile                                                                      | Legacy alias                                                                 |
 
 Common profile fields:
 
@@ -61,20 +61,20 @@ Authentication shape still requires a dedicated source/UI inventory. The profile
 
 ## 3. Condition type identifiers
 
-| Condition | Primary fields | Observable semantics | Initial backend expectation |
-|---|---|---|---|
-| `TrueCondition` | no required pattern | Always matches | Exact |
-| `FalseCondition` | optional `pattern` used as annotation | Never matches | Exact |
-| `UrlRegexCondition` | `pattern` | JavaScript regular expression against full request URL | Target-dependent for HTTPS path visibility |
-| `UrlWildcardCondition` | `pattern` | Shell wildcard converted to regular expression against URL; `|` separates alternatives | Target-dependent for HTTPS path visibility |
-| `HostRegexCondition` | `pattern` | JavaScript regular expression against hostname | Exact subject to safe-regex policy |
-| `HostWildcardCondition` | `pattern` | Legacy wildcard rules, including special `*.`, `**.`, and leading-dot behavior | Exact after dedicated vectors |
-| `BypassCondition` | `pattern` | Chrome-style bypass syntax: host, wildcard, scheme, port, IP/CIDR, or `<local>` | Exact only after normalization/platform tests |
-| `KeywordCondition` | `pattern` | HTTP-only substring match against URL | Target-dependent; legacy HTTP restriction is binding |
-| `IpCondition` | `ip`, `prefixLength` | Match literal IPv4/IPv6 host inside subnet | Capability-tested PAC/native implementation |
-| `HostLevelsCondition` | `minValue`, `maxValue` | Match hostname dot-count range | Exact |
-| `WeekdayCondition` | `days` or `startDay`, `endDay` | Local-time weekday match | Exact with explicit local-time semantics |
-| `TimeCondition` | `startHour`, `endHour` | Local-time hour range, inclusive | Exact with explicit local-time semantics |
+| Condition               | Primary fields                        | Observable semantics                                                            | Initial backend expectation                          |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------ |
+| `TrueCondition`         | no required pattern                   | Always matches                                                                  | Exact                                                |
+| `FalseCondition`        | optional `pattern` used as annotation | Never matches                                                                   | Exact                                                |
+| `UrlRegexCondition`     | `pattern`                             | JavaScript regular expression against full request URL                          | Target-dependent for HTTPS path visibility           |
+| `UrlWildcardCondition`  | `pattern`                             | Shell wildcard converted to regular expression against URL; `                   | ` separates alternatives                             | Target-dependent for HTTPS path visibility |
+| `HostRegexCondition`    | `pattern`                             | JavaScript regular expression against hostname                                  | Exact subject to safe-regex policy                   |
+| `HostWildcardCondition` | `pattern`                             | Legacy wildcard rules, including special `*.`, `**.`, and leading-dot behavior  | Exact after dedicated vectors                        |
+| `BypassCondition`       | `pattern`                             | Chrome-style bypass syntax: host, wildcard, scheme, port, IP/CIDR, or `<local>` | Exact only after normalization/platform tests        |
+| `KeywordCondition`      | `pattern`                             | HTTP-only substring match against URL                                           | Target-dependent; legacy HTTP restriction is binding |
+| `IpCondition`           | `ip`, `prefixLength`                  | Match literal IPv4/IPv6 host inside subnet                                      | Capability-tested PAC/native implementation          |
+| `HostLevelsCondition`   | `minValue`, `maxValue`                | Match hostname dot-count range                                                  | Exact                                                |
+| `WeekdayCondition`      | `days` or `startDay`, `endDay`        | Local-time weekday match                                                        | Exact with explicit local-time semantics             |
+| `TimeCondition`         | `startHour`, `endHour`                | Local-time hour range, inclusive                                                | Exact with explicit local-time semantics             |
 
 ### Important legacy semantics
 
@@ -145,19 +145,19 @@ Rule-list parsing can introduce references to profiles beyond `matchProfileName`
 
 ### Defined by default options
 
-| Key | Default | Classification |
-|---|---:|---|
-| `-enableQuickSwitch` | `false` | User preference |
-| `-refreshOnProfileChange` | `true` | User preference; behavior must be reconsidered, not blindly copied |
-| `-startupProfileName` | empty | User intent |
-| `-quickSwitchProfiles` | `[]` | Ordered user intent |
-| `-revertProxyChanges` | `true` | User preference/platform behavior |
-| `-confirmDeletion` | `true` | UI preference |
-| `-showInspectMenu` | `true` | UI/integration preference |
-| `-addConditionsToBottom` | `false` | UI editing preference |
-| `-showResultProfileOnActionBadgeText` | `false` | UI preference |
-| `-showExternalProfile` | `true` | UI/platform preference |
-| `-downloadInterval` | `1440` | Rule-source update preference, minutes |
+| Key                                   | Default | Classification                                                     |
+| ------------------------------------- | ------: | ------------------------------------------------------------------ |
+| `-enableQuickSwitch`                  | `false` | User preference                                                    |
+| `-refreshOnProfileChange`             |  `true` | User preference; behavior must be reconsidered, not blindly copied |
+| `-startupProfileName`                 |   empty | User intent                                                        |
+| `-quickSwitchProfiles`                |    `[]` | Ordered user intent                                                |
+| `-revertProxyChanges`                 |  `true` | User preference/platform behavior                                  |
+| `-confirmDeletion`                    |  `true` | UI preference                                                      |
+| `-showInspectMenu`                    |  `true` | UI/integration preference                                          |
+| `-addConditionsToBottom`              | `false` | UI editing preference                                              |
+| `-showResultProfileOnActionBadgeText` | `false` | UI preference                                                      |
+| `-showExternalProfile`                |  `true` | UI/platform preference                                             |
+| `-downloadInterval`                   |  `1440` | Rule-source update preference, minutes                             |
 
 ### Seen in current code or recent schema-v2 exports
 
