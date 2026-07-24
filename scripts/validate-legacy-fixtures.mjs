@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -33,7 +34,13 @@ const knownConditionTypes = new Set([
   'TimeCondition',
 ]);
 
-const authSlots = new Set(['proxyForHttp', 'proxyForHttps', 'proxyForFtp', 'fallbackProxy', 'all']);
+const authSlots = new Set([
+  'proxyForHttp',
+  'proxyForHttps',
+  'proxyForFtp',
+  'fallbackProxy',
+  'all',
+]);
 const sensitiveHeaderName = /(authorization|cookie|token|api[-_]?key|secret)/i;
 const ruleProfileTypes = new Set(['SwitchProfile', 'VirtualProfile']);
 const ruleListProfileTypes = new Set([
@@ -41,6 +48,7 @@ const ruleListProfileTypes = new Set([
   'SwitchyRuleListProfile',
   'AutoProxyRuleListProfile',
 ]);
+const builtInProfileNames = new Set(['direct', 'system']);
 
 function fail(file, message) {
   throw new Error(`${path.basename(file)}: ${message}`);
@@ -200,9 +208,59 @@ function validateProfile(file, key, profile, names) {
   }
 }
 
+function directProfileReferences(profile) {
+  if (ruleProfileTypes.has(profile.profileType)) {
+    return [profile.defaultProfileName, ...profile.rules.map((rule) => rule.profileName)];
+  }
+  if (ruleListProfileTypes.has(profile.profileType)) {
+    return [profile.matchProfileName, profile.defaultProfileName];
+  }
+  return [];
+}
+
+function assertAcyclicReferences(file, profilesByName) {
+  const visiting = new Set();
+  const visited = new Set();
+  const stack = [];
+
+  function visit(name) {
+    if (visited.has(name) || builtInProfileNames.has(name)) {
+      return;
+    }
+    if (visiting.has(name)) {
+      const cycleStart = stack.indexOf(name);
+      const cycle = [...stack.slice(cycleStart), name];
+      fail(file, `profile reference cycle: ${cycle.join(' -> ')}`);
+    }
+
+    const profile = profilesByName.get(name);
+    if (!profile) {
+      return;
+    }
+
+    visiting.add(name);
+    stack.push(name);
+    for (const reference of directProfileReferences(profile)) {
+      visit(reference);
+    }
+    stack.pop();
+    visiting.delete(name);
+    visited.add(name);
+  }
+
+  for (const name of profilesByName.keys()) {
+    visit(name);
+  }
+}
+
 async function validateFile(file) {
   const source = await readFile(file, 'utf8');
-  const data = JSON.parse(source);
+  let data;
+  try {
+    data = JSON.parse(source);
+  } catch (error) {
+    fail(file, `invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     fail(file, 'root must be an object');
@@ -216,7 +274,8 @@ async function validateFile(file) {
     fail(file, 'must contain at least one profile');
   }
 
-  const names = new Set(['direct', 'system']);
+  const names = new Set(builtInProfileNames);
+  const profilesByName = new Map();
   for (const [key, profile] of profileEntries) {
     if (typeof profile?.name !== 'string' || profile.name.length === 0) {
       fail(file, `${key}.name must be a non-empty string`);
@@ -225,6 +284,7 @@ async function validateFile(file) {
       fail(file, `duplicate or reserved profile name ${JSON.stringify(profile.name)}`);
     }
     names.add(profile.name);
+    profilesByName.set(profile.name, profile);
   }
 
   for (const [key, profile] of profileEntries) {
@@ -244,16 +304,21 @@ async function validateFile(file) {
     });
   }
 
+  assertAcyclicReferences(file, profilesByName);
   return profileEntries.length;
 }
 
-const files = (await readdir(fixtureDir))
-  .filter((name) => name.endsWith('.json'))
-  .sort()
-  .map((name) => path.join(fixtureDir, name));
+const requestedFiles = process.argv.slice(2);
+const files =
+  requestedFiles.length > 0
+    ? requestedFiles.map((file) => path.resolve(rootDir, file))
+    : (await readdir(fixtureDir))
+        .filter((name) => name.endsWith('.json'))
+        .sort()
+        .map((name) => path.join(fixtureDir, name));
 
 if (files.length === 0) {
-  throw new Error('No ZeroOmega schema-v2 JSON fixtures were found');
+  throw new Error('No ZeroOmega schema-v2 fixture files were provided');
 }
 
 let profileCount = 0;
