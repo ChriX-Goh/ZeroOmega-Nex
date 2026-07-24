@@ -8,6 +8,8 @@ ProfileSpec is the stable, versioned representation of user intent in ZeroOmega 
 
 The `profiles`, `proxyEndpoints`, and `ruleSources` arrays are ordered. Profile display order is the order of the `profiles` array. Switch rules are evaluated in array order and the first matching rule wins.
 
+Object keys are canonicalized lexicographically during serialization. Arrays are never sorted automatically because their order carries user intent.
+
 ## Built-in routes
 
 Direct and system behavior are route targets rather than ordinary user profiles:
@@ -62,10 +64,38 @@ The twelve ZeroOmega v3.5.0 condition families have explicit counterparts:
 
 Source patterns remain available for compatibility reporting. Normalized indexes and compiled expressions are runtime artifacts and do not belong in ProfileSpec.
 
+## Structural and semantic validation
+
+`profile-spec-v1.schema.json` is a JSON Schema 2020-12 contract. It rejects unknown top-level fields, malformed discriminated unions, invalid scalar ranges, and extension keys that are not namespaced.
+
+The TypeScript semantic validator additionally checks:
+
+- duplicate IDs and profile names;
+- missing endpoint, source, startup, quick-switch, and profile references;
+- profile-reference cycles;
+- host, URL, IP prefix, regular-expression, range, and timestamp semantics;
+- sensitive literal headers and remote-sync secret boundaries;
+- generated, runtime, and secret-like data hidden inside extension metadata;
+- browser-target-dependent behavior as explicit warnings rather than silent acceptance.
+
 ## Extensions
 
 Unknown safe metadata may be retained only in namespaced extension objects. Importers must not place generated data, executable behavior, permissions, runtime state, or secrets in these objects.
 
+## Serialization
+
+`serializeProfileSpec` validates before writing, canonicalizes object keys, preserves arrays, and emits a trailing newline by default. Identical user intent therefore produces deterministic bytes suitable for revision comparison and later content hashing.
+
+`parseProfileSpec` never throws for malformed JSON or unsupported versions. It returns structured issues and the exact migration steps applied.
+
+## Migration framework
+
+ProfileSpec migrations are explicit directed steps with `fromVersion`, `toVersion`, and a pure migration function. The runner detects missing steps, cycles, invalid intermediates, and thrown migration errors before validating the final v1 document.
+
+The v1 migration registry is intentionally empty because `1.0` is the first public schema. Future schema changes append migration steps rather than weakening v1 validation.
+
 ## Lifecycle
 
-A ProfileSpec document is immutable once stored as a revision. Editing creates a new revision with a new `revision.id` and an optional `revision.parentId`. Runtime activation points to a separately compiled immutable snapshot.
+A ProfileSpec document is immutable once stored as a revision. `createProfileSpecRevision` deep-clones the current document, applies an optional edit to the clone, creates a child revision whose `parentId` points to the previous revision, and rejects the result unless it remains valid.
+
+Runtime activation points to a separately compiled immutable snapshot. Editing ProfileSpec never mutates the currently active runtime snapshot.
