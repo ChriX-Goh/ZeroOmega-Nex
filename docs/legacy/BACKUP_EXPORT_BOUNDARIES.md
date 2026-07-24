@@ -129,18 +129,18 @@ Nex must keep configuration export and compiled-runtime export as visibly separa
 
 ## 9. Field handling consequences
 
-| Legacy data | Present in ordinary `.bak` | Nex migration handling |
-| --- | --- | --- |
-| Profile names, colors, types, endpoints, ordered rules | Yes | `map` |
-| Startup and quick-switch settings | Yes | `map` |
-| Proxy credentials | Yes when configured | `secret-ref` after explicit import |
-| Sensitive custom headers | Yes when configured | `secret-ref` after explicit import |
-| Downloaded rule/PAC content and hashes | Yes when present | `ignore-generated` or retain only as quarantined import evidence until source refresh succeeds |
-| Custom CSS | Yes | `map` as UI preference or explicitly preserve |
-| Unknown option-container fields | Yes | classify; safe unknown fields may be `preserve` |
-| Gist/WebDAV account credentials | No in the observed ordinary backup path | separate account-state migration only |
-| Temporary rules and monitor records | No | `ignore-runtime` |
-| Current active profile runtime state | No | do not infer from startup profile |
+| Legacy data                                            | Present in ordinary `.bak`              | Nex migration handling                                                                         |
+| ------------------------------------------------------ | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Profile names, colors, types, endpoints, ordered rules | Yes                                     | `map`                                                                                          |
+| Startup and quick-switch settings                      | Yes                                     | `map`                                                                                          |
+| Proxy credentials                                      | Yes when configured                     | `secret-ref` after explicit import                                                             |
+| Sensitive custom headers                               | Yes when configured                     | `secret-ref` after explicit import                                                             |
+| Downloaded rule/PAC content and hashes                 | Yes when present                        | `ignore-generated` or retain only as quarantined import evidence until source refresh succeeds |
+| Custom CSS                                             | Yes                                     | `map` as UI preference or explicitly preserve                                                  |
+| Unknown option-container fields                        | Yes                                     | classify; safe unknown fields may be `preserve`                                                |
+| Gist/WebDAV account credentials                        | No in the observed ordinary backup path | separate account-state migration only                                                          |
+| Temporary rules and monitor records                    | No                                      | `ignore-runtime`                                                                               |
+| Current active profile runtime state                   | No                                      | do not infer from startup profile                                                              |
 
 ## 10. Pinned source evidence
 
