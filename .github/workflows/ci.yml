@@ -9,7 +9,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -30,28 +30,14 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
 
-      - name: Install dependencies
+      - name: Install locked dependencies
         shell: bash
         run: |
-          if ! pnpm install --no-frozen-lockfile >pnpm-install.log 2>&1; then
+          if ! pnpm install --frozen-lockfile >pnpm-install.log 2>&1; then
             tail -n 80 pnpm-install.log
             exit 1
           fi
           tail -n 20 pnpm-install.log
-
-      - name: Commit generated lockfile once
-        if: github.event_name == 'push' && github.ref_name == 'feat/m1-tooling-shell'
-        shell: bash
-        run: |
-          if [[ -z "$(git status --porcelain -- pnpm-lock.yaml)" ]]; then
-            echo "Lockfile already committed."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          git commit -m "chore: lock workspace dependencies"
-          git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Preserve dependency failure log
         if: failure()
@@ -59,13 +45,6 @@ jobs:
         with:
           name: pnpm-install-log
           path: pnpm-install.log
-          if-no-files-found: error
-
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: pnpm-lockfile
-          path: pnpm-lock.yaml
           if-no-files-found: error
 
       - name: Verify, test, build, and inspect both browser targets
@@ -85,10 +64,12 @@ jobs:
           path: pnpm-ci.log
           if-no-files-found: error
 
+      - name: Package browser build outputs
+        run: tar -czf browser-builds.tar.gz -C apps/extension .output
+
       - name: Upload browser build outputs
         uses: actions/upload-artifact@v4
         with:
           name: browser-builds
-          path: apps/extension/.output
-          include-hidden-files: true
+          path: browser-builds.tar.gz
           if-no-files-found: error
