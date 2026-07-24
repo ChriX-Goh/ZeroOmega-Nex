@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "+alpha": {
+    "name": "alpha",
+    "profileType": "DirectProfile",
+    "color": "#aaaaaa"
+  },
+  "+duplicate-slot": {
+    "name": "alpha",
+    "profileType": "FixedProfile",
+    "color": "#99ccee",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "proxy.example.invalid",
+      "port": 8080
+    },
+    "bypassList": []
+  }
+}
