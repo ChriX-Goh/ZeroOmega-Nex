@@ -29,9 +29,9 @@ describe('ZeroOmega schema-v2 importer', () => {
     if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
 
     expect(result.activation).toBe('inactive-candidate');
-    expect(result.candidate.profiles).toHaveLength(8);
+    expect(result.candidate.profiles).toHaveLength(9);
     expect(result.candidate.proxyEndpoints).toHaveLength(4);
-    expect(result.candidate.ruleSources).toHaveLength(3);
+    expect(result.candidate.ruleSources).toHaveLength(4);
     expect(result.candidate.profiles.map((profile) => profile.kind)).toEqual([
       'fixed',
       'pac',
@@ -41,9 +41,10 @@ describe('ZeroOmega schema-v2 importer', () => {
       'rule-list',
       'rule-list',
       'rule-list',
+      'rule-list',
     ]);
     expect(result.candidate.settings.quickSwitch.routes).toContainEqual({ kind: 'direct' });
-    expect(result.report.profileCount).toBe(8);
+    expect(result.report.profileCount).toBe(9);
     expect(result.report.summary.rejected).toBe(0);
   });
 
@@ -63,6 +64,7 @@ describe('ZeroOmega schema-v2 importer', () => {
       'host-wildcard',
       'bypass',
       'keyword',
+      'ip',
       'ip',
       'host-levels',
       'weekday',
@@ -99,8 +101,8 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
     expect(result.candidate.settings.interface.builtInProfiles).toEqual({
-      direct: { color: '#9E9E9E' },
-      system: { color: '#607D8B' },
+      direct: { color: '#aabbcc' },
+      system: { color: '#102030' },
     });
     expect(result.candidate.profiles.every((profile) => profile.name !== 'direct')).toBe(true);
   });
