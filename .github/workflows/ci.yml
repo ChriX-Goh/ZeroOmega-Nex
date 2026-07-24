@@ -64,12 +64,17 @@ jobs:
           path: pnpm-ci.log
           if-no-files-found: error
 
-      - name: Package browser build outputs
-        run: tar -czf browser-builds.tar.gz -C apps/extension .output
+      - name: Stage browser build outputs
+        shell: bash
+        run: |
+          rm -rf browser-builds
+          mkdir browser-builds
+          cp -R apps/extension/.output/. browser-builds/
+          find browser-builds -maxdepth 3 -type f -print
 
       - name: Upload browser build outputs
         uses: actions/upload-artifact@v4
         with:
           name: browser-builds
-          path: browser-builds.tar.gz
+          path: browser-builds
           if-no-files-found: error
