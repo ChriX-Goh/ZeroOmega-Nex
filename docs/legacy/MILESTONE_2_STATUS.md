@@ -30,9 +30,13 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 - Added a source-shape fixture covering Unicode/ASCII IDN forms, IP families, endpoint ports, valid Bypass forms, and legacy-accepted ambiguous Bypass inputs.
 - Added focused validation for IDN pairing, IP families, prefix bounds, endpoint ports, exact Bypass corpus, and profile references.
 - Passed the read-only CI pipeline for the network-edge fixture Head.
-- Defined a deterministic large-fixture generator and exact-byte validator.
-- Defined the large corpus as 36 profiles, 1,024 ordered SwitchProfile rules, and 1,024 rule-list entries within a 200 KB to 1 MB budget.
-- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, built-in appearance, network normalization, and scale testing.
+- Defined, generated, committed, and exact-byte validated a deterministic large fixture with 36 profiles, 1,024 ordered SwitchProfile rules, and 1,024 rule-list entries.
+- Passed the read-only CI pipeline for the deterministic large fixture Head.
+- Added declarative condition route vectors covering all twelve condition types.
+- Added rule-list route vectors covering plain/base64 AutoProxy, SwitchyOmega results/notes/catch-all behavior, and legacy Switchy wildcard/regexp paths.
+- Classified source-exact and target-dependent expectations explicitly.
+- Added validation for vector IDs, coverage, clock inputs, result consistency, source-line provenance, parser families, and required constructs.
+- Defined Nex boundaries for public ProfileSpec, generated content, runtime state, account settings, secrets, built-in appearance, network normalization, scale testing, and route-oracle inputs.
 - Added positive fixtures for profile types, condition types, rule-list formats, credentials, headers, built-in colors, and network edges.
 - Added twelve intentionally invalid fixtures with exact expected failure reasons.
 - Added missing-reference, duplicate/reserved-name, key/name mismatch, unknown-type, unredacted-secret, wrong-schema, empty-config, corrupt-JSON, and cycle checks.
@@ -45,9 +49,8 @@ This branch is stacked on the Milestone 1 engineering shell. It may be reviewed 
 
 ## Still required before Milestone 2 completes
 
-- Generate, commit, and pass read-only CI for the deterministic large representative fixture.
+- Pass read-only CI for the route-decision vector slice.
 - Additional Gist/WebDAV UI configuration boundaries, if any.
-- Decision vectors for every supported condition and rule-list construct.
 - Current-browser permission and lifecycle evidence for authenticated proxy support.
 - Resolve the remaining `investigate` classifications or explicitly defer them with downgrade/reject decisions.
 
