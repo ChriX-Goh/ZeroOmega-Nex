@@ -33,6 +33,14 @@ const knownConditionTypes = new Set([
   'TimeCondition',
 ]);
 
+const authSlots = new Set([
+  'proxyForHttp',
+  'proxyForHttps',
+  'proxyForFtp',
+  'fallbackProxy',
+  'all',
+]);
+const sensitiveHeaderName = /(authorization|cookie|token|api[-_]?key|secret)/i;
 const ruleProfileTypes = new Set(['SwitchProfile', 'VirtualProfile']);
 const ruleListProfileTypes = new Set([
   'RuleListProfile',
@@ -105,6 +113,43 @@ function validateCondition(file, condition, location) {
   }
 }
 
+function validateAuth(file, auth, location) {
+  if (!auth || typeof auth !== 'object' || Array.isArray(auth)) {
+    fail(file, `${location} must be an object`);
+  }
+
+  for (const [slot, credentials] of Object.entries(auth)) {
+    if (!authSlots.has(slot)) {
+      fail(file, `${location} has unknown credential slot ${JSON.stringify(slot)}`);
+    }
+    if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials)) {
+      fail(file, `${location}.${slot} must be an object`);
+    }
+    if (credentials.username !== '<redacted>' || credentials.password !== '<redacted>') {
+      fail(file, `${location}.${slot} must use redacted fixture credentials`);
+    }
+  }
+}
+
+function validateHeaders(file, headers, location) {
+  if (!Array.isArray(headers)) {
+    fail(file, `${location} must be an array`);
+  }
+
+  headers.forEach((header, index) => {
+    const itemLocation = `${location}[${index}]`;
+    if (!header || typeof header !== 'object' || Array.isArray(header)) {
+      fail(file, `${itemLocation} must be an object`);
+    }
+    if (typeof header.name !== 'string' || typeof header.value !== 'string') {
+      fail(file, `${itemLocation} requires string name and value`);
+    }
+    if (sensitiveHeaderName.test(header.name) && header.value !== '<redacted>') {
+      fail(file, `${itemLocation} must redact sensitive header values`);
+    }
+  });
+}
+
 function validateProfile(file, key, profile, names) {
   if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
     fail(file, `${key} must contain a profile object`);
@@ -116,6 +161,14 @@ function validateProfile(file, key, profile, names) {
 
   if (!knownProfileTypes.has(profile.profileType)) {
     fail(file, `${key} has unknown profileType ${JSON.stringify(profile.profileType)}`);
+  }
+
+  if (profile.auth !== undefined) {
+    validateAuth(file, profile.auth, `${key}.auth`);
+  }
+
+  if (profile.headers !== undefined) {
+    validateHeaders(file, profile.headers, `${key}.headers`);
   }
 
   if (profile.bypassList !== undefined) {
