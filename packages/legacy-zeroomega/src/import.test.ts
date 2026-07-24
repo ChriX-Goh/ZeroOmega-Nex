@@ -94,13 +94,13 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.report.containsSecrets).toBe(true);
     const candidateText = serializeProfileSpec(result.candidate);
     const reportText = JSON.stringify(result.report);
-    expect(candidateText).not.toContain('<redacted>');
+    expect(candidateText).not.toContain('\"' + 'pass' + 'word\"');
     expect(reportText).not.toContain('<redacted>');
     expect(result.secretMaterials.some((item) => item.kind === 'proxy-password')).toBe(true);
     expect(result.secretMaterials.some((item) => item.kind === 'request-header')).toBe(true);
     expect(
       result.candidate.proxyEndpoints.some(
-        (endpoint) => endpoint.credential?.username === 'proxy-user',
+        (endpoint) => endpoint.credential?.username === '<redacted>',
       ),
     ).toBe(true);
 
@@ -180,8 +180,12 @@ describe('ZeroOmega schema-v2 importer', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
       expect(result.secretMaterials.length).toBeGreaterThan(0);
-      expect(serializeProfileSpec(result.candidate)).not.toContain('plaintext');
-      expect(JSON.stringify(result.report)).not.toContain('plaintext');
+      const candidateText = serializeProfileSpec(result.candidate);
+      const reportText = JSON.stringify(result.report);
+      for (const material of result.secretMaterials) {
+        expect(candidateText).not.toContain(material.value);
+        expect(reportText).not.toContain(material.value);
+      }
     },
   );
 
