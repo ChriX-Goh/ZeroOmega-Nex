@@ -5,7 +5,7 @@ describe('runtime contracts', () => {
   it('identifies the product and active milestone', () => {
     expect(productIdentity).toEqual({
       name: 'ZeroOmega Nex',
-      milestone: 'Milestone 7',
+      milestone: 'Milestone 8',
       architecture: 'compile-first',
     });
   });
