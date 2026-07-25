@@ -42,8 +42,7 @@
   $: endpoint = fixedProfile && state ? findEndpoint(state.draft, fixedProfile) : undefined;
   $: bypassText = fixedProfile?.bypass.map((entry) => entry.pattern).join('\n') ?? '';
 
-  const createWorkflowId: ProfileWorkflowIdFactory = (kind) =>
-    `${kind}-${crypto.randomUUID()}`;
+  const createWorkflowId: ProfileWorkflowIdFactory = (kind) => `${kind}-${crypto.randomUUID()}`;
 
   function profileType(profile: UserProfile): string {
     switch (profile.kind) {
@@ -145,9 +144,7 @@
     });
   }
 
-  async function replaceDraftAndSelect(
-    mutation: ProfileWorkflowProfileMutation,
-  ): Promise<void> {
+  async function replaceDraftAndSelect(mutation: ProfileWorkflowProfileMutation): Promise<void> {
     if (!(await replaceDraft(mutation.draft))) return;
     if (state?.draft.profiles.some((profile) => profile.id === mutation.profileId)) {
       await selectProfile(mutation.profileId);
@@ -305,8 +302,7 @@
         type="button"
         class="primary"
         disabled={!view?.dirty || view.busy || saving}
-        on:click={applyDraft}
-        >{saving ? 'Working…' : 'Apply changes'}</button
+        on:click={applyDraft}>{saving ? 'Working…' : 'Apply changes'}</button
       >
     </div>
   </header>
@@ -368,10 +364,8 @@
           </div>
         </div>
         <div class="profile-actions">
-          <button
-            type="button"
-            disabled={view?.busy || saving}
-            on:click={duplicateSelectedProfile}>Duplicate</button
+          <button type="button" disabled={view?.busy || saving} on:click={duplicateSelectedProfile}
+            >Duplicate</button
           >
           <button
             type="button"
@@ -497,7 +491,9 @@
     {:else}
       <section class="settings-section shell-status">
         <h2>No user profiles</h2>
-        <p>The Draft contains no editable user profile. Create a new Fixed Profile from the sidebar.</p>
+        <p>
+          The Draft contains no editable user profile. Create a new Fixed Profile from the sidebar.
+        </p>
       </section>
     {/if}
   </main>

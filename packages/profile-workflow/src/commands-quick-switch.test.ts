@@ -7,10 +7,7 @@ import {
   type ProfileWorkflowApplyService,
   type ProfileWorkflowInitializer,
 } from './commands.js';
-import type {
-  ProfileWorkflowActivationDriver,
-  ProfileWorkflowRuntimeView,
-} from './contracts.js';
+import type { ProfileWorkflowActivationDriver, ProfileWorkflowRuntimeView } from './contracts.js';
 import { MemoryProfileWorkflowRepository } from './memory-repository.js';
 import { workflowFixture } from './test-fixture.js';
 
@@ -25,11 +22,11 @@ class QuickSwitchDriver implements ProfileWorkflowActivationDriver {
   runtime: ProfileWorkflowRuntimeView = { activeRoute: { kind: 'direct' } };
   error?: Error;
 
-  async activate(
-    spec: ProfileSpec,
-    route?: ProfileRouteTarget,
-  ): Promise<{ snapshotId: string }> {
-    this.activations.push({ spec: structuredClone(spec), ...(route === undefined ? {} : { route }) });
+  async activate(spec: ProfileSpec, route?: ProfileRouteTarget): Promise<{ snapshotId: string }> {
+    this.activations.push({
+      spec: structuredClone(spec),
+      ...(route === undefined ? {} : { route }),
+    });
     if (this.error) throw this.error;
     this.runtime = {
       activeRoute: route ?? spec.settings.startup.route,

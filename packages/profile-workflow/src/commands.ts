@@ -147,15 +147,22 @@ function validRoute(value: unknown): value is ProfileRouteTarget {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
   const route = value as Record<string, unknown>;
   if (route.kind === 'direct' || route.kind === 'system') return true;
-  return route.kind === 'profile' && typeof route.profileId === 'string' && route.profileId.length > 0;
+  return (
+    route.kind === 'profile' && typeof route.profileId === 'string' && route.profileId.length > 0
+  );
 }
 
 function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
   if (left.kind !== right.kind) return false;
-  return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+  return (
+    left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId)
+  );
 }
 
-function validateQuickSwitchRoute(state: ProfileWorkflowState, route: ProfileRouteTarget): string | undefined {
+function validateQuickSwitchRoute(
+  state: ProfileWorkflowState,
+  route: ProfileRouteTarget,
+): string | undefined {
   if (!state.applied.settings.quickSwitch.enabled) {
     return 'quick switching is disabled in the applied ProfileSpec';
   }

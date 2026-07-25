@@ -32,7 +32,9 @@
 
   function sameRoute(left: ProfileRouteTarget | undefined, right: ProfileRouteTarget): boolean {
     if (left?.kind !== right.kind) return false;
-    return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+    return (
+      left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId)
+    );
   }
 
   function routeKey(route: ProfileRouteTarget): string {
@@ -105,7 +107,8 @@
   }
 
   async function activateRoute(item: QuickSwitchItem): Promise<void> {
-    if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route)) return;
+    if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route))
+      return;
     switching = true;
     errorMessage = '';
     try {
@@ -143,7 +146,11 @@
   });
 </script>
 
-<main class="popup-shell" aria-label="ZeroOmega Nex profile switcher" aria-busy={loading || switching}>
+<main
+  class="popup-shell"
+  aria-label="ZeroOmega Nex profile switcher"
+  aria-busy={loading || switching}
+>
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
       <p class="settings-error" role="status">Loading applied profiles…</p>

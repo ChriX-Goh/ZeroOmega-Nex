@@ -137,18 +137,13 @@ describe('ProfileSpec PAC activation driver', () => {
     expect(first.length).toBeGreaterThanOrEqual(6);
     expect(first.some((vector) => vector.request.host === 'localhost')).toBe(true);
     expect(first.some((vector) => vector.request.host === '127.0.0.1')).toBe(true);
-    expect(new Set(first.map((vector) => JSON.stringify(vector.request))).size).toBe(
-      first.length,
-    );
+    expect(new Set(first.map((vector) => JSON.stringify(vector.request))).size).toBe(first.length);
   });
 
   it('compiles, verifies, stores, installs, and confirms the candidate snapshot', async () => {
     const proxy = new FakeProxyDriver('chromium');
     const created = runtime(proxy);
-    const times = [
-      new Date('2026-07-25T09:01:00.000Z'),
-      new Date('2026-07-25T09:01:01.000Z'),
-    ];
+    const times = [new Date('2026-07-25T09:01:00.000Z'), new Date('2026-07-25T09:01:01.000Z')];
     const driver = new BrowserProfileWorkflowActivationDriver({
       createRuntime: () => created.runtime,
       now: () => times.shift() ?? new Date('2026-07-25T09:01:02.000Z'),

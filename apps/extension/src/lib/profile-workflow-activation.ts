@@ -50,12 +50,7 @@ function targetFor(driver: BrowserProxyDriver): PacTarget {
   return driver.family === 'firefox' ? 'firefox' : 'chromium';
 }
 
-function requestUrl(
-  scheme: string,
-  host: string,
-  port?: number,
-  path = '/',
-): string {
+function requestUrl(scheme: string, host: string, port?: number, path = '/'): string {
   const urlHost = host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
   return `${scheme}://${urlHost}${port === undefined ? '' : `:${port}`}${path}`;
 }
@@ -193,10 +188,7 @@ function fixedProfileVectors(
   startIndex: number,
 ): readonly PacVerificationVector[] {
   return profile.bypass.map((entry, offset) =>
-    vectorForCondition(
-      { kind: 'bypass', pattern: entry.pattern },
-      startIndex + offset,
-    ),
+    vectorForCondition({ kind: 'bypass', pattern: entry.pattern }, startIndex + offset),
   );
 }
 
@@ -288,9 +280,7 @@ function snapshotFailureMessage(
     .join('; ');
 }
 
-export class BrowserProfileWorkflowActivationDriver
-  implements ProfileWorkflowActivationDriver
-{
+export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowActivationDriver {
   readonly #createRuntime: () => ProfileWorkflowProxyRuntime;
   readonly #now: () => Date;
 
@@ -355,13 +345,18 @@ export class BrowserProfileWorkflowActivationDriver
     const runtime = this.#createRuntime();
     try {
       const startedAt = this.#now().toISOString();
-      const route: ProfileRouteTarget =
-        startRoute ?? spec.settings.startup.route ?? { kind: 'direct' };
+      const route: ProfileRouteTarget = startRoute ??
+        spec.settings.startup.route ?? { kind: 'direct' };
       if (route.kind === 'direct' || route.kind === 'system') {
-        const activated = await activateBuiltInMode(runtime.repository, runtime.driver, route.kind, {
-          startedAt,
-          failedAt: this.#now().toISOString(),
-        });
+        const activated = await activateBuiltInMode(
+          runtime.repository,
+          runtime.driver,
+          route.kind,
+          {
+            startedAt,
+            failedAt: this.#now().toISOString(),
+          },
+        );
         if (!activated.ok) {
           throw new Error(
             `browser proxy activation failed at ${activated.stage}: ${activated.message}`,

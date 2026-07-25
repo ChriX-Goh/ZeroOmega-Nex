@@ -155,7 +155,8 @@ export async function activatePacSnapshot(
   try {
     platformBefore = await driver.readState();
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'current proxy state could not be read';
+    const message =
+      error instanceof Error ? error.message : 'current proxy state could not be read';
     await repository.setState({
       ...previousState,
       lastFailure: failureRecord(snapshot.snapshotId, 'preflight', message, failedAt, true),

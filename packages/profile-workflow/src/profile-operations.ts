@@ -7,14 +7,7 @@ import {
   type UserProfile,
 } from '@zeroomega-nex/profile-spec';
 
-const PROFILE_COLORS = [
-  '#64b5f6',
-  '#8bc34a',
-  '#ffb74d',
-  '#9575cd',
-  '#4db6ac',
-  '#e57373',
-] as const;
+const PROFILE_COLORS = ['#64b5f6', '#8bc34a', '#ffb74d', '#9575cd', '#4db6ac', '#e57373'] as const;
 
 export type ProfileWorkflowIdKind = 'profile' | 'endpoint' | 'bypass' | 'rule';
 export type ProfileWorkflowIdFactory = (kind: ProfileWorkflowIdKind) => string;
@@ -43,10 +36,7 @@ function uniqueProfileName(spec: ProfileSpec, preferred: string): string {
   return `${preferred} ${suffix}`;
 }
 
-function routeTargetsProfile(
-  route: ProfileRouteTarget | undefined,
-  profileId: string,
-): boolean {
+function routeTargetsProfile(route: ProfileRouteTarget | undefined, profileId: string): boolean {
   return route?.kind === 'profile' && route.profileId === profileId;
 }
 

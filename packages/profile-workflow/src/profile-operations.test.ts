@@ -44,11 +44,7 @@ describe('profile draft operations', () => {
   });
 
   it('duplicates a fixed profile with independent endpoint and bypass IDs', () => {
-    const result = duplicateProfileDraft(
-      workflowFixture(),
-      'profile-primary',
-      deterministicIds(),
-    );
+    const result = duplicateProfileDraft(workflowFixture(), 'profile-primary', deterministicIds());
     const duplicate = result.draft.profiles.find(
       (candidate) => candidate.id === result.profileId && candidate.kind === 'fixed',
     );
