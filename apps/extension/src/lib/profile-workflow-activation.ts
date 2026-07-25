@@ -11,6 +11,7 @@ import {
 import type {
   Condition,
   FixedProfile,
+  ProfileRouteTarget,
   ProfileSpec,
   UserProfile,
   Weekday,
@@ -18,6 +19,7 @@ import type {
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowActivationResult,
+  ProfileWorkflowRuntimeView,
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
@@ -296,21 +298,63 @@ export class BrowserProfileWorkflowActivationDriver
     this.#now = options.now ?? (() => new Date());
   }
 
-  async activate(candidate: ProfileSpec): Promise<ProfileWorkflowActivationResult> {
-    return this.#activateSpec(candidate);
+  async activate(
+    candidate: ProfileSpec,
+    startRoute?: ProfileRouteTarget,
+  ): Promise<ProfileWorkflowActivationResult> {
+    return this.#activateSpec(candidate, startRoute);
   }
 
   async rollback(previousApplied: ProfileSpec): Promise<void> {
-    await this.#activateSpec(previousApplied);
+    await this.#activateSpec(previousApplied, previousApplied.settings.startup.route);
   }
 
-  async #activateSpec(spec: ProfileSpec): Promise<ProfileWorkflowActivationResult> {
+  async inspectRuntime(): Promise<ProfileWorkflowRuntimeView> {
+    const runtime = this.#createRuntime();
+    try {
+      const state = await runtime.repository.getState();
+      const activeSnapshot =
+        state.activeSnapshotId === undefined
+          ? undefined
+          : await runtime.repository.getSnapshot(state.activeSnapshotId);
+      return {
+        ...(state.activeSnapshotId === undefined
+          ? {}
+          : { activeSnapshotId: state.activeSnapshotId }),
+        ...(state.lastKnownGoodSnapshotId === undefined
+          ? {}
+          : { lastKnownGoodSnapshotId: state.lastKnownGoodSnapshotId }),
+        ...(activeSnapshot === undefined ? {} : { activeRoute: activeSnapshot.startRoute }),
+        ...(state.lastFailure === undefined
+          ? {}
+          : {
+              lastFailure: {
+                stage: state.lastFailure.stage,
+                message: state.lastFailure.message,
+                occurredAt: state.lastFailure.occurredAt,
+                ...(state.lastFailure.rollbackSucceeded === undefined
+                  ? {}
+                  : { rollbackSucceeded: state.lastFailure.rollbackSucceeded }),
+              },
+            }),
+      };
+    } finally {
+      runtime.dispose();
+    }
+  }
+
+  async #activateSpec(
+    spec: ProfileSpec,
+    startRoute?: ProfileRouteTarget,
+  ): Promise<ProfileWorkflowActivationResult> {
     const runtime = this.#createRuntime();
     try {
       const startedAt = this.#now().toISOString();
+      const route: ProfileRouteTarget =
+        startRoute ?? spec.settings.startup.route ?? { kind: 'direct' };
       const snapshot = await createVerifiedPacSnapshot(
         spec,
-        spec.settings.startup.route,
+        route,
         buildProfileWorkflowVerificationVectors(spec),
         { createdAt: startedAt },
         { target: targetFor(runtime.driver) },
