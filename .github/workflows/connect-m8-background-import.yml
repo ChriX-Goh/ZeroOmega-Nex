@@ -1,0 +1,82 @@
+name: Connect Milestone 8 Background Import
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  connect:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Connect Options import command
+        run: python .github/scripts/connect-m8-background-import.py
+
+      - name: Format background import slice
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/LegacyImportPanel.svelte \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-workflow/src/commands-import.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/index.ts
+
+      - name: Verify background import slice
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            pnpm --filter @zeroomega-nex/profile-workflow check
+            pnpm --filter @zeroomega-nex/extension check
+            pnpm exec vitest run \
+              packages/profile-workflow/src/import-acceptance.test.ts \
+              packages/profile-workflow/src/commands-import.test.ts
+          } 2>&1 | tee m8-background-import.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-background-import-diagnostics
+          path: m8-background-import.log
+          if-no-files-found: warn
+
+      - name: Commit background import integration
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/LegacyImportPanel.svelte \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-workflow/src/commands-import.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/index.ts
+          git commit -m 'fix: move import acceptance behind background transaction'
+          git push origin HEAD:feat/m8-profile-workflow
