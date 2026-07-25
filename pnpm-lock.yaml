@@ -88,6 +88,9 @@ importers:
         specifier: workspace:*
         version: link:../reference-interpreter
     devDependencies:
+      '@zeroomega-nex/legacy-zeroomega':
+        specifier: workspace:*
+        version: link:../legacy-zeroomega
       typescript:
         specifier: 5.9.3
         version: 5.9.3
