@@ -94,7 +94,7 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.report.containsSecrets).toBe(true);
     const candidateText = serializeProfileSpec(result.candidate);
     const reportText = JSON.stringify(result.report);
-    expect(candidateText).not.toContain('\"' + 'pass' + 'word\"');
+    expect(candidateText).not.toContain('"password"');
     expect(reportText).not.toContain('<redacted>');
     expect(result.secretMaterials.some((item) => item.kind === 'proxy-password')).toBe(true);
     expect(result.secretMaterials.some((item) => item.kind === 'request-header')).toBe(true);
