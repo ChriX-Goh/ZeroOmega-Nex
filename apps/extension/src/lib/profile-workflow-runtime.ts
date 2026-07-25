@@ -7,6 +7,7 @@ import {
   createDefaultProfileSpec,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,
+  type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
   type ProfileWorkflowImportService,
@@ -33,6 +34,10 @@ interface ProfileWorkflowRuntimeApi {
   };
 }
 
+export interface ProfileWorkflowRuntimeOptions {
+  readonly activationDriver?: ProfileWorkflowActivationDriver;
+}
+
 export interface RegisteredProfileWorkflowRuntime {
   dispose(): void;
 }
@@ -55,9 +60,12 @@ class RuntimeInitializer implements ProfileWorkflowInitializer {
   }
 }
 
-function createApplyService(deviceId: string): ProfileWorkflowApplyService {
+function createApplyService(
+  deviceId: string,
+  driver: ProfileWorkflowActivationDriver,
+): ProfileWorkflowApplyService {
   return {
-    driver: new BrowserProfileWorkflowActivationDriver(),
+    driver,
     createContext() {
       const now = new Date().toISOString();
       return {
@@ -79,10 +87,14 @@ function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImp
 
 export function registerProfileWorkflowRuntime(
   api: ProfileWorkflowRuntimeApi,
+  options: ProfileWorkflowRuntimeOptions = {},
 ): RegisteredProfileWorkflowRuntime {
   const repository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
   const initializer = new RuntimeInitializer(api.runtime.id);
-  const applyService = createApplyService(api.runtime.id);
+  const applyService = createApplyService(
+    api.runtime.id,
+    options.activationDriver ?? new BrowserProfileWorkflowActivationDriver(),
+  );
   const importService = createImportService(api);
   const listener = async (
     message: unknown,
