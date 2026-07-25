@@ -15,3 +15,5 @@ The generator emits one deterministic function per reachable profile. Switch and
 Generated PAC uses conservative function/`var` syntax and carries no module imports, browser-extension APIs, ProfileSpec JSON, credentials, or request-header values.
 
 Compiler tests execute generated PAC from imported ZeroOmega switch, fixed, authenticated-proxy, and inline AutoProxy fixtures. Download-backed rule sources remain blocked until their content has been fetched and verified into the candidate snapshot.
+
+A runtime snapshot is created only after differential vectors match the reference interpreter. It records SHA-256 hashes for the canonical ProfileSpec and PAC script, the source revision, selected route, target, compiler version, verification counts, explicit creation time, and a deterministic snapshot identity.
