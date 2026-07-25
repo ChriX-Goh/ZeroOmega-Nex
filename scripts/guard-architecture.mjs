@@ -7,19 +7,15 @@ const sourceExtensions = new Set(['.ts', '.js', '.mjs', '.svelte']);
 const forbidden = [
   {
     expression: /proxy\.onRequest\.addListener/u,
-    reason: 'global request-time proxy decisions are prohibited in the foundation architecture',
+    reason: 'global request-time proxy decisions are prohibited by the PAC-first architecture',
   },
   {
     expression: /webRequest\.[A-Za-z]+\.addListener/u,
-    reason: 'per-request monitoring is not allowed in Milestone 1',
+    reason: 'general per-request monitoring is not allowed in the browser-adapter milestone',
   },
   {
     expression: /["']<all_urls>["']/u,
-    reason: 'Milestone 1 must not request or register all-URL access',
-  },
-  {
-    expression: /permissions\s*:\s*\[[^\]]*["']proxy["']/su,
-    reason: 'proxy permission is introduced only with the reviewed browser-adapter milestone',
+    reason: 'the extension must not request or register all-URL access',
   },
 ];
 
