@@ -1,30 +1,55 @@
-# Milestone 8 Release Candidate and Repository-Owner QC
+# Milestone 8 Replacement Release Candidate and Repository-Owner QC
 
-## Frozen implementation evidence
+## Superseded candidate
 
-- **Implementation head:** `335229f762e6353ec14e57b5cc2695b6395d175c`
-- **Pull request:** #11 (`feat/m8-profile-workflow`)
-- **Full CI:** run `30170265014` — passed
-- **Browser E2E:** run `30170265029` — Chromium and Firefox jobs passed
-- **Installable artifact:** `browser-builds` from CI run `30170265014`
-- **Artifact ID:** `8622723587`
-- **Artifact SHA-256:** `914428216f5fd3c8b9aaf5db4c7dd898b14868efc2c1e2d344a0adf96622b126`
+The earlier implementation head `335229f762e6353ec14e57b5cc2695b6395d175c` and artifact `8622723587` failed repository-owner QC on 2026-07-26. Its layout diverged from original ZeroOmega, detailed and global settings were crowded into the wrong surfaces, and user-visible bugs remained. Do not install or use that artifact for further acceptance.
+
+## Frozen replacement evidence
+
+- **Implementation head:** `90955b49223772a7d7df14317cd011073647055e`
+- **Pull request:** #11 (`feat/m8-profile-workflow`), Draft
+- **Full CI:** run `30174300115` — passed
+- **Browser E2E:** run `30174300078` — Chromium and Firefox jobs passed
+- **Installable artifact:** `browser-builds` from CI run `30174300115`
+- **Artifact ID:** `8623785399`
+- **Artifact SHA-256:** `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
 - **Artifact expiry:** 2026-10-23
 
 The artifact ZIP contains `browser-builds.tar.gz`. That archive contains complete unpacked extension directories for both `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/`.
 
+## What changed after the failed QC
+
+- Options now opens as a complete browser tab.
+- The original ZeroOmega three-group sidebar is restored: Settings, Profiles, and Actions.
+- Interface, General, Import / Export, Theme, Snapshot History, Built-in Profiles, New Profile, and every user profile are independent right-hand pages.
+- Startup and Quick Switch settings were removed from profile editors and placed only on General.
+- A single `New profile…` page replaces the five permanently visible creation buttons.
+- Profile editors use the full right-hand workspace rather than a narrow stacked card column.
+- Original ZeroOmega/SwitchyOmega backup files can be selected directly.
+- `Import and use now` performs import plus verified Apply as one explicit user action.
+- Automatic, Light, and Dark themes are available; Automatic is the default and follows the operating system.
+- Product identity now reports Milestone 8.
+
 ## Automated acceptance evidence
 
-The frozen head passed the permanent repository checks for:
+The replacement head passed:
 
-- Architecture boundaries, including the prohibition on Options/Popup direct proxy, authentication, and persistent-secret storage access.
-- UI compatibility guards, keyboard focus requirements, responsive layout requirements, rollback confirmation, global error visibility, and verification-mode disclosure.
+- Original-layout, full-tab, independent-page, theme, import, architecture, accessibility, responsive, rollback, and global-error guards.
 - ESLint and Prettier checks.
-- Type checking for every workspace package and the extension.
-- Root unit and integration tests plus Svelte component-rendering tests.
-- Chromium and Firefox MV3 builds, manifest audits, dynamic-code/CSP bundle inspection, and staged browser-build packaging.
-- Real Chromium extension automation: initialize, edit a profile, Apply, inspect snapshot history, open Popup, and switch to Direct.
-- Real Firefox temporary-install automation with explicit test-only private-browsing grant: initialize, edit a profile, Apply, inspect snapshot history, open Popup, and switch to Direct.
+- Type checking for every workspace package and the extension, with zero Svelte diagnostics.
+- 274 root unit/integration tests and 6 Svelte component-rendering tests.
+- Chromium and Firefox MV3 builds, manifest audits, dynamic-code/CSP inspection, and packaging.
+- Chromium real-browser automation covering:
+  - full Options initialization,
+  - Automatic → Dark → Automatic theme changes,
+  - profile edit and Apply,
+  - snapshot history,
+  - Popup Direct switching,
+  - upload of a real schema-v2 ZeroOmega fixture file,
+  - compatibility analysis,
+  - `Import and use now`,
+  - presence of imported profiles after activation.
+- Firefox real-browser automation covering profile edit, Apply, restored-layout history navigation, Popup switching, and private-window proxy prerequisites.
 
 ## Permission rationale
 
@@ -46,38 +71,58 @@ Firefox additionally requires the user to allow the extension in private windows
 ## Known limitations and explicit boundaries
 
 1. Browser-only authenticated SOCKS4/SOCKS5 routes are unsupported. Reachable SOCKS credentials are rejected before traffic changes.
-2. MV3 CSP forbids runtime execution of generated PAC through `eval` or `Function`. Node/CI performs differential PAC execution; the extension runtime performs a reference-safety vector check and then requires browser installation confirmation. Snapshot history discloses which verification mode produced each record.
-3. Legacy import targets ZeroOmega/SwitchyOmega schema-version-2 JSON or base64 backups. Import analysis is inactive; acceptance writes only to Draft and never activates traffic automatically.
-4. Firefox PAC activation requires private-window access. Users must grant it in Firefox extension settings.
-5. Auto Detect and file-based PAC behavior can be browser-target-dependent and is surfaced as a warning rather than silently treated as cross-browser exact.
-6. General, Interface, and About navigation placeholders are not completed settings surfaces in Milestone 8. Profile editing, import review, history, Apply/Revert, rollback, and Popup switching are the acceptance scope.
-7. Snapshot rollback requires the archived source revision. Corrupt, incomplete, cross-document, target-incompatible, or missing records are rejected.
-8. The PR remains Draft until repository-owner installation and manual QC of this consolidated artifact are recorded.
+2. MV3 CSP forbids runtime execution of generated PAC through `eval` or `Function`. Node/CI performs differential PAC execution; extension runtime performs reference-safety checks and browser installation confirmation.
+3. Direct legacy migration targets ZeroOmega/SwitchyOmega schema-version-2 JSON or base64 backups. Corrupt, unknown, internally inconsistent, or unsupported records are rejected with migration details rather than guessed.
+4. Selecting a backup file does not alter traffic. `Import and use now` is the explicit activation action; `Import without activating` remains available.
+5. Firefox PAC activation requires private-window access.
+6. Auto Detect and file-based PAC behavior can be browser-target-dependent and is shown as a warning.
+7. Snapshot rollback requires the archived source revision; corrupt, cross-document, target-incompatible, or missing records are rejected.
+8. Automated tests cannot establish visual fidelity or usability by themselves. The repository owner’s comparison with original ZeroOmega is a release gate.
+9. This replacement candidate may still contain bugs not covered by the current suite. Record exact reproduction steps rather than accepting a superficially green build.
 
 ## Repository-owner QC checklist
 
-Use the frozen artifact above. Do not rebuild from a different commit for this acceptance pass.
+Use only the frozen artifact above. Do not reuse the rejected artifact and do not rebuild from another commit for this pass.
 
-### Chromium
+### Chromium — original-layout and migration gate
 
-1. Extract `browser-builds.tar.gz`.
-2. Open the browser extension management page, enable developer mode, and load `browser-builds/chrome-mv3/` unpacked.
-3. Open Options and confirm the default Fixed Profile is visible.
-4. Rename the profile, change endpoint data to a safe test value, and confirm the Draft becomes dirty without changing active traffic.
-5. Apply and confirm the working copy becomes clean and a snapshot appears in Configuration History.
-6. Create a second successful snapshot, then use the two-step rollback control to restore the earlier snapshot.
-7. Open Popup and switch among the Applied profile, Direct, and System; confirm the active marker follows browser-confirmed state.
-8. Review a legacy import and confirm analysis alone does not modify Draft; acceptance modifies Draft but does not activate until Apply.
-9. Exercise an authenticated HTTP/HTTPS route first without optional permission, then after granting it; confirm failure is visible and no partial proxy/auth state remains.
-10. Restart the browser and confirm the last committed active route is restored.
+1. Extract `browser-builds.tar.gz`, enable developer mode, and load `browser-builds/chrome-mv3/` unpacked.
+2. Open Options from the extension and confirm it opens in a complete browser tab.
+3. Compare against original ZeroOmega: confirm the fixed left sidebar has Settings, Profiles, and Actions; profile selection changes only the right-hand page.
+4. Confirm Interface, General, Import / Export, Theme, Snapshot History, Built-in Profiles, New Profile, and each user profile are independent pages.
+5. Confirm Startup and Quick Switch appear only under General, not underneath profile details.
+6. Open Theme. Verify Automatic is selected by default, follows the system appearance, and Light/Dark overrides persist after reopening Options.
+7. Export a real configuration from the original ZeroOmega/SwitchyOmega installation and select that file under Import / Export.
+8. Review migration totals, then click `Import and use now`. Confirm profiles, colors, startup selection, Quick Switch order, switching rules, rule lists, PAC definitions, bypass entries, and supported credentials appear without manual rebuilding.
+9. Open several imported Fixed, Switch, Rule List, PAC, and Auto Detect profiles. Check field values and ordering against the original extension.
+10. Confirm Popup immediately uses the imported Applied configuration and active marker.
+11. Edit a profile, confirm the Draft becomes dirty without changing traffic, then Apply and verify history records the snapshot.
+12. Create a second snapshot and use two-step rollback to restore the earlier one.
+13. Exercise Direct and System switching from Popup.
+14. Exercise an authenticated HTTP/HTTPS route first without optional permission, then after granting it; confirm no partial state remains after failure.
+15. Restart the browser and confirm the last committed active route and chosen theme are restored.
+16. Judge the primary requirement explicitly: an experienced original ZeroOmega user should not need to relearn the navigation or reconstruct an exported configuration.
 
 ### Firefox
 
 1. Temporarily install `browser-builds/firefox-mv3/`.
 2. Grant permission for the extension to run in private windows before testing proxy activation.
-3. Repeat the Chromium workflow: Draft edit, Apply, history, second snapshot, rollback, Popup Direct/System switching, import-to-Draft, authenticated-route permission handling, and restart restoration.
+3. Repeat the full-tab layout, independent pages, themes, real backup import, profile comparison, Apply, history, rollback, Popup, authentication, and restart checks above.
 4. Revoke private-window permission and confirm Apply fails visibly without partially changing committed workflow state.
+
+## Bug-report format for this QC
+
+For every failure, record:
+
+- browser and exact version,
+- page/profile type,
+- imported backup type when relevant,
+- exact steps,
+- expected behavior based on original ZeroOmega,
+- observed behavior,
+- whether active traffic changed,
+- screenshot or console error when available.
 
 ## Closure rule
 
-Record repository-owner QC results against this implementation head and artifact digest. If QC passes, update PR #11 from Draft to ready for review. If QC fails, keep the PR Draft, document the exact browser, version, step, observed state, and expected state, then fix and freeze a new implementation head and artifact.
+Keep PR #11 Draft until this replacement candidate passes both browser checks. A failure requires a code fix, new implementation head, full CI and Browser E2E rerun, new artifact digest, and another focused QC pass. Automated green status alone is not sufficient.
