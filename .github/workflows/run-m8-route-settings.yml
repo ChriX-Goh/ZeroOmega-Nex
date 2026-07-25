@@ -37,13 +37,21 @@ jobs:
         shell: bash
         run: |
           set +e
-          python .github/scripts/patch-m8-route-settings.py > m8-route-patch.log 2>&1
+          {
+            python .github/scripts/patch-m8-route-settings.py
+            python .github/scripts/fix-m8-route-diagnostics.py
+          } > m8-route-patch.log 2>&1
           status=$?
           cat m8-route-patch.log
           exit $status
 
       - name: Format route settings
-        run: pnpm exec prettier --write apps/extension/src/entrypoints/options/App.svelte
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/package.json \
+            packages/profile-workflow/src/profile-operations.ts \
+            pnpm-lock.yaml
 
       - name: Verify extension type surface
         shell: bash
@@ -67,6 +75,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/extension/src/entrypoints/options/App.svelte
+          git add \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/package.json \
+            packages/profile-workflow/src/profile-operations.ts \
+            pnpm-lock.yaml
           git commit -m 'feat: add startup and quick-switch settings'
           git push origin HEAD:feat/m8-profile-workflow
