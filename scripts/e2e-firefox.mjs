@@ -19,6 +19,46 @@ const driver = await new Builder()
   .setFirefoxOptions(options)
   .build();
 
+async function runtimeDiagnostics() {
+  return driver.executeAsyncScript(`
+    const done = arguments[0];
+    (async () => {
+      const result = {
+        manifest: browser.runtime.getManifest(),
+        incognitoAllowed: await browser.extension.isAllowedIncognitoAccess(),
+        proxyState: await browser.proxy.settings.get({}),
+        storage: await browser.storage.local.get(null),
+      };
+      try {
+        result.response = await browser.runtime.sendMessage({
+          channel: 'zeroomega-nex/profile-workflow/v1',
+          action: 'get',
+        });
+      } catch (sendError) {
+        result.sendError = {
+          message: sendError instanceof Error ? sendError.message : String(sendError),
+          stack: sendError instanceof Error ? sendError.stack : undefined,
+        };
+      }
+      result.storageAfterMessage = await browser.storage.local.get(null);
+      done(result);
+    })().catch((diagnosticError) => done({
+      diagnosticError: diagnosticError instanceof Error
+        ? { message: diagnosticError.message, stack: diagnosticError.stack }
+        : String(diagnosticError),
+    }));
+  `);
+}
+
+async function logDiagnostics(stage) {
+  console.error(`[Firefox ${stage} URL] ${await driver.getCurrentUrl()}`);
+  console.error(`[Firefox ${stage} title] ${await driver.getTitle()}`);
+  console.error(
+    `[Firefox ${stage} body] ${await driver.executeScript('return document.body?.innerText ?? "";')}`,
+  );
+  console.error(`[Firefox ${stage} runtime] ${JSON.stringify(await runtimeDiagnostics())}`);
+}
+
 try {
   const installedId = await driver.installAddon(extensionPath, true);
   assert.equal(installedId, addonId, 'Firefox returned an unexpected add-on ID');
@@ -32,47 +72,8 @@ try {
     );
     await driver.wait(until.elementIsVisible(profileName), 15_000);
   } catch (error) {
-    console.error(`[Firefox Options URL] ${await driver.getCurrentUrl()}`);
-    console.error(`[Firefox Options title] ${await driver.getTitle()}`);
-    console.error(
-      `[Firefox Options body] ${await driver.executeScript('return document.body?.innerText ?? "";')}`,
-    );
-    const runtimeDiagnostics = await driver.executeAsyncScript(`
-      const done = arguments[0];
-      (async () => {
-        const result = {
-          manifest: browser.runtime.getManifest(),
-          storage: await browser.storage.local.get(null),
-        };
-        try {
-          result.response = await browser.runtime.sendMessage({
-            channel: 'zeroomega-nex/profile-workflow/v1',
-            action: 'get',
-          });
-        } catch (sendError) {
-          result.sendError = {
-            message: sendError instanceof Error ? sendError.message : String(sendError),
-            stack: sendError instanceof Error ? sendError.stack : undefined,
-          };
-        }
-        result.storageAfterMessage = await browser.storage.local.get(null);
-        done(result);
-      })().catch((diagnosticError) => done({
-        diagnosticError: diagnosticError instanceof Error
-          ? { message: diagnosticError.message, stack: diagnosticError.stack }
-          : String(diagnosticError),
-      }));
-    `);
-    console.error(`[Firefox runtime diagnostics] ${JSON.stringify(runtimeDiagnostics)}`);
+    await logDiagnostics('Options initialization');
     console.error(`[Firefox Options source] ${(await driver.getPageSource()).slice(0, 20_000)}`);
-    try {
-      const browserLogs = await driver.manage().logs().get('browser');
-      console.error(`[Firefox browser logs] ${JSON.stringify(browserLogs)}`);
-    } catch (logError) {
-      console.error(
-        `[Firefox browser logs unavailable] ${logError instanceof Error ? logError.message : String(logError)}`,
-      );
-    }
     throw error;
   }
   assert.equal(await profileName.getAttribute('value'), 'Proxy');
@@ -93,12 +94,17 @@ try {
   const apply = await driver.wait(until.elementLocated(By.css('.actions button.primary')), 15_000);
   await driver.wait(until.elementIsEnabled(apply), 15_000);
   await apply.click();
-  await driver.wait(
-    until.elementLocated(
-      By.xpath("//*[contains(normalize-space(.), 'Draft matches the currently applied revision.') ]"),
-    ),
-    20_000,
-  );
+  try {
+    await driver.wait(
+      until.elementLocated(
+        By.xpath("//*[contains(normalize-space(.), 'Draft matches the currently applied revision.') ]"),
+      ),
+      20_000,
+    );
+  } catch (error) {
+    await logDiagnostics('Apply');
+    throw error;
+  }
 
   const historyButton = await driver.findElement(
     By.xpath("//button[normalize-space(.)='Snapshot History']"),
