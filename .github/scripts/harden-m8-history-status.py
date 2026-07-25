@@ -84,7 +84,9 @@ patch(
         (
             '''        <div>
           <dt>Verification</dt>
-          <dd>{entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched</dd>
+          <dd>
+            {entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched
+          </dd>
         </div>''',
             '''        <div>
           <dt>Verification mode</dt>
@@ -92,7 +94,9 @@ patch(
         </div>
         <div>
           <dt>Verification vectors</dt>
-          <dd>{entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched</dd>
+          <dd>
+            {entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched
+          </dd>
         </div>''',
             'verification mode history display',
         ),
@@ -128,19 +132,25 @@ patch(
     'packages/browser-adapters/src/snapshot-history.test.ts',
     [
         (
-            '''      verification: { passed: true, vectorCount: 3, matchedCount: 3 },''',
-            '''      verification: {
-        passed: true,
-        mode: 'reference-safety',
-        vectorCount: 3,
-        matchedCount: 3,
-      },''',
+            '''    warnings: [],
+    verification: { passed: true, vectorCount: 3, matchedCount: 3 },
+    ...overrides,''',
+            '''    warnings: [],
+    verification: {
+      passed: true,
+      mode: 'reference-safety',
+      vectorCount: 3,
+      matchedCount: 3,
+    },
+    ...overrides,''',
             'snapshot history verification mode fixture',
         ),
         (
-            '''      verification: { passed: true, vectorCount: 3, matchedCount: 3 },
+            '''      compilerVersion: '0.1.0',
+      verification: { passed: true, vectorCount: 3, matchedCount: 3 },
     });''',
-            '''      verification: {
+            '''      compilerVersion: '0.1.0',
+      verification: {
         passed: true,
         mode: 'reference-safety',
         vectorCount: 3,
