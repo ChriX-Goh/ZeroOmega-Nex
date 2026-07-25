@@ -130,9 +130,7 @@ describe('deterministic PAC compiler', () => {
     const remote = compilePac(spec, profileRoute(spec, 'rule-autoproxy'));
     expect(remote.ok).toBe(false);
     if (remote.ok) throw new Error('expected unavailable rule-source block');
-    expect(remote.issues.map((issue) => issue.code)).toContain(
-      'rule-source.content-unavailable',
-    );
+    expect(remote.issues.map((issue) => issue.code)).toContain('rule-source.content-unavailable');
   });
 
   it('enforces script, profile, and rule budgets without emitting partial artifacts', async () => {
