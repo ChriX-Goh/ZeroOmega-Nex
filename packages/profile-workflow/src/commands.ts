@@ -1,10 +1,11 @@
-import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
+import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 
 import { applyProfileWorkflow } from './apply.js';
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
   ProfileWorkflowRepository,
+  ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
   ProfileWorkflowView,
 } from './contracts.js';
@@ -39,6 +40,12 @@ export type ProfileWorkflowCommand =
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'revert' | 'apply';
       readonly expectedGeneration: number;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'activate-route';
+      readonly expectedAppliedRevisionId: string;
+      readonly route: ProfileRouteTarget;
     };
 
 export type ProfileWorkflowCommandResponse =
@@ -47,6 +54,7 @@ export type ProfileWorkflowCommandResponse =
       readonly state: ProfileWorkflowState;
       readonly view: ProfileWorkflowView;
       readonly appliedSnapshotId?: string;
+      readonly runtime?: ProfileWorkflowRuntimeView;
     }
   | {
       readonly ok: false;
@@ -55,7 +63,8 @@ export type ProfileWorkflowCommandResponse =
         | 'invalid'
         | 'busy'
         | 'storage-failure'
-        | 'apply-failed';
+        | 'apply-failed'
+        | 'activation-failed';
       readonly message: string;
       readonly state?: ProfileWorkflowState;
       readonly view?: ProfileWorkflowView;
@@ -77,12 +86,14 @@ function errorMessage(error: unknown): string {
 function response(
   state: ProfileWorkflowState,
   appliedSnapshotId?: string,
+  runtime?: ProfileWorkflowRuntimeView,
 ): ProfileWorkflowCommandResponse {
   return {
     ok: true,
     state,
     view: inspectProfileWorkflow(state),
     ...(appliedSnapshotId === undefined ? {} : { appliedSnapshotId }),
+    ...(runtime === undefined ? {} : { runtime }),
   };
 }
 
@@ -104,6 +115,17 @@ function failure(
   };
 }
 
+async function runtimeView(
+  applyService: ProfileWorkflowApplyService | undefined,
+): Promise<ProfileWorkflowRuntimeView | undefined> {
+  if (!applyService?.driver.inspectRuntime) return undefined;
+  try {
+    return await applyService.driver.inspectRuntime();
+  } catch {
+    return undefined;
+  }
+}
+
 async function ensureState(
   repository: ProfileWorkflowRepository,
   initializer: ProfileWorkflowInitializer,
@@ -119,6 +141,32 @@ async function ensureState(
 
 function validGeneration(value: unknown): value is number {
   return Number.isInteger(value) && Number(value) >= 0;
+}
+
+function validRoute(value: unknown): value is ProfileRouteTarget {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const route = value as Record<string, unknown>;
+  if (route.kind === 'direct' || route.kind === 'system') return true;
+  return route.kind === 'profile' && typeof route.profileId === 'string' && route.profileId.length > 0;
+}
+
+function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
+  if (left.kind !== right.kind) return false;
+  return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+}
+
+function validateQuickSwitchRoute(state: ProfileWorkflowState, route: ProfileRouteTarget): string | undefined {
+  if (!state.applied.settings.quickSwitch.enabled) {
+    return 'quick switching is disabled in the applied ProfileSpec';
+  }
+  if (!state.applied.settings.quickSwitch.routes.some((candidate) => sameRoute(candidate, route))) {
+    return 'route is not present in the applied quick-switch list';
+  }
+  if (route.kind !== 'profile') return undefined;
+  const profile = state.applied.profiles.find((candidate) => candidate.id === route.profileId);
+  if (!profile) return `profile ${route.profileId} does not exist in the applied ProfileSpec`;
+  if (profile.enabled === false) return `profile ${route.profileId} is disabled`;
+  return undefined;
 }
 
 export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkflowCommand {
@@ -138,6 +186,12 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
     case 'revert':
     case 'apply':
       return validGeneration(record.expectedGeneration);
+    case 'activate-route':
+      return (
+        typeof record.expectedAppliedRevisionId === 'string' &&
+        record.expectedAppliedRevisionId.length > 0 &&
+        validRoute(record.route)
+      );
     default:
       return false;
   }
@@ -156,7 +210,34 @@ export async function executeProfileWorkflowCommand(
     return failure('storage-failure', errorMessage(error));
   }
 
-  if (command.action === 'get') return response(state);
+  if (command.action === 'get') {
+    return response(state, undefined, await runtimeView(applyService));
+  }
+
+  if (command.action === 'activate-route') {
+    if (state.applied.revision.id !== command.expectedAppliedRevisionId) {
+      return failure(
+        'conflict',
+        `expected applied revision ${command.expectedAppliedRevisionId}, current revision is ${state.applied.revision.id}`,
+        state,
+      );
+    }
+    if (state.pendingApply) {
+      return failure('busy', 'profile workflow is busy applying another revision', state);
+    }
+    if (!applyService) {
+      return failure('invalid', 'profile workflow activation service is unavailable', state);
+    }
+    const invalidRoute = validateQuickSwitchRoute(state, command.route);
+    if (invalidRoute) return failure('invalid', invalidRoute, state);
+    try {
+      const activated = await applyService.driver.activate(state.applied, command.route);
+      return response(state, activated.snapshotId, await runtimeView(applyService));
+    } catch (error) {
+      return failure('activation-failed', errorMessage(error), state);
+    }
+  }
+
   if (state.generation !== command.expectedGeneration) {
     return failure(
       'conflict',
@@ -178,7 +259,7 @@ export async function executeProfileWorkflowCommand(
       applyService.createContext(state),
     );
     if (result.status === 'applied') {
-      return response(result.state, result.snapshotId);
+      return response(result.state, result.snapshotId, await runtimeView(applyService));
     }
     return failure(
       result.status === 'busy'
