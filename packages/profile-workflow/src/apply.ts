@@ -1,7 +1,8 @@
-import { cloneProfileSpec } from '@zeroomega-nex/profile-spec';
+import { cloneProfileSpec, type ProfileSpec } from '@zeroomega-nex/profile-spec';
 
 import type {
   ProfileWorkflowActivationDriver,
+  ProfileWorkflowActivationResult,
   ProfileWorkflowApplyContext,
   ProfileWorkflowApplyRecord,
   ProfileWorkflowApplyResult,
@@ -19,9 +20,11 @@ function withoutPending(
   state: ProfileWorkflowState,
   lastApply: ProfileWorkflowApplyRecord,
 ): ProfileWorkflowState {
-  const { pendingApply: _pendingApply, lastApply: _lastApply, ...rest } = state;
+  const next = { ...state };
+  delete next.pendingApply;
+  delete next.lastApply;
   return {
-    ...rest,
+    ...next,
     generation: state.generation + 1,
     lastApply,
   };
@@ -109,7 +112,7 @@ export async function applyProfileWorkflow(
     return { status: 'clean', state: initial, message: 'draft has no unapplied changes' };
   }
 
-  let candidate;
+  let candidate: ProfileSpec;
   try {
     candidate = createProfileWorkflowCandidate(initial, context);
   } catch (error) {
@@ -132,14 +135,15 @@ export async function applyProfileWorkflow(
     },
   };
   if (!(await repository.compareAndSwap(initial.generation, pending))) {
+    const state = await repository.read();
     return {
       status: 'conflict',
-      state: await repository.read(),
       message: 'profile workflow changed before Apply could start',
+      ...(state === undefined ? {} : { state }),
     };
   }
 
-  let activation;
+  let activation: ProfileWorkflowActivationResult;
   try {
     activation = await driver.activate(candidate);
   } catch (error) {
@@ -186,7 +190,9 @@ export async function applyProfileWorkflow(
     );
   }
 
-  const { pendingApply: _pendingApply, lastApply: _lastApply, ...committingBase } = committing;
+  const committingBase = { ...committing };
+  delete committingBase.pendingApply;
+  delete committingBase.lastApply;
   const committed: ProfileWorkflowState = {
     ...committingBase,
     generation: committing.generation + 1,
