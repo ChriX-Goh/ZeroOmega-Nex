@@ -1,0 +1,35 @@
+name: M7 bootstrap
+
+on:
+  push:
+    branches:
+      - feat/m7-browser-adapters
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m7-browser-adapters
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Register lockfile, format package, and remove workflow
+        run: |
+          pnpm install --lockfile-only
+          pnpm exec prettier --write package.json packages/browser-adapters
+          rm .github/workflows/m7-bootstrap.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add package.json pnpm-lock.yaml packages/browser-adapters .github/workflows/m7-bootstrap.yml
+          git diff --cached --quiet || git commit -m "build: lock and format browser adapter workspace"
+          git push origin HEAD:feat/m7-browser-adapters
