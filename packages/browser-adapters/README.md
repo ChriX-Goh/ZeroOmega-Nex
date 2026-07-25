@@ -17,4 +17,6 @@ Chromium uses a regular-scope `pac_script` configuration with an inline script a
 
 The persistent repository stores activation state and verified snapshots under a versioned `storage.local` namespace. It validates records on every read, rejects corrupted or mismatched snapshot identities, and preserves pending rollback context across service-worker restarts.
 
+The extension background performs recovery before normal restoration. An interrupted activation is rolled back first; only then is the last verified active snapshot confirmed or reinstalled. No profile is activated merely because the extension restarted.
+
 A conflicting extension or browser policy is reported explicitly. The package never claims a candidate is active after a failed confirmation or rollback, and it never moves per-request routing into extension JavaScript.
