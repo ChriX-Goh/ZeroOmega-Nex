@@ -299,12 +299,17 @@ export function localizeDocument(
         translateElement(record.target as Element, locale);
         continue;
       }
+      if (record.type === 'characterData') {
+        translateTextNode(record.target as Text, locale);
+        continue;
+      }
       for (const node of record.addedNodes) translateNode(node, locale);
     }
   });
   observer.observe(root.documentElement, {
     subtree: true,
     childList: true,
+    characterData: true,
     attributes: true,
     attributeFilter: ['aria-label', 'title', 'placeholder'],
   });
