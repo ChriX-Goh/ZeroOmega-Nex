@@ -10,6 +10,11 @@ export default defineConfig({
     description: 'A compile-first, cross-browser proxy profile manager.',
     version: '0.0.1',
     permissions: ['proxy', 'storage'],
+    optional_permissions:
+      browser === 'firefox'
+        ? ['webRequest', 'webRequestBlocking']
+        : ['webRequest', 'webRequestAuthProvider'],
+    optional_host_permissions: ['http://*/*', 'https://*/*'],
     action: {
       default_title: 'ZeroOmega Nex',
     },
