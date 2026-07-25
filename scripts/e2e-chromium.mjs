@@ -60,8 +60,10 @@ try {
     .waitFor({ state: 'visible', timeout: 20_000 });
 
   await options.getByRole('button', { name: 'Snapshot History' }).click();
-  await options.getByRole('heading', { name: 'Configuration History' }).waitFor();
-  await options.getByRole('heading', { name: 'Verified PAC snapshots' }).waitFor();
+  await options
+    .getByRole('heading', { name: 'Configuration History', exact: true, level: 1 })
+    .waitFor();
+  await options.getByRole('heading', { name: 'Verified PAC snapshots', exact: true }).waitFor();
   await options.getByText(/^Snapshot pac-/u).first().waitFor({ timeout: 20_000 });
 
   const popup = await context.newPage();
