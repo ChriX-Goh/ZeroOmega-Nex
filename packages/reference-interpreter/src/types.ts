@@ -79,7 +79,13 @@ export type RuleListDecision =
       readonly trace: readonly RuleListTraceEntry[];
     }
   | {
-      readonly status: 'indeterminate' | 'invalid';
+      readonly status: 'indeterminate';
+      readonly support: ReferenceSupport;
+      readonly trace: readonly RuleListTraceEntry[];
+      readonly reason: string;
+    }
+  | {
+      readonly status: 'invalid';
       readonly support: ReferenceSupport;
       readonly trace: readonly RuleListTraceEntry[];
       readonly reason: string;
