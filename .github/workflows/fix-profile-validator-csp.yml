@@ -1,0 +1,82 @@
+name: Fix Profile Validator CSP
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate standalone ProfileSpec validator
+        run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
+
+      - name: Connect standalone validator
+        run: python .github/scripts/connect-profile-validator-standalone.py
+
+      - name: Format CSP validator slice
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-spec/package.json \
+            packages/profile-spec/scripts/generate-validator.mjs \
+            packages/profile-spec/src/profile-spec-validator.generated.ts \
+            packages/profile-spec/src/validation.ts \
+            scripts/inspect-manifests.mjs
+
+      - name: Verify CSP validator slice
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            pnpm --filter @zeroomega-nex/profile-spec check
+            pnpm test
+            pnpm build
+            pnpm inspect:manifests
+          } 2>&1 | tee profile-validator-csp.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-validator-csp-diagnostics
+          path: profile-validator-csp.log
+          if-no-files-found: warn
+
+      - name: Commit CSP-safe validator
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            packages/profile-spec/package.json \
+            packages/profile-spec/scripts/generate-validator.mjs \
+            packages/profile-spec/src/profile-spec-validator.generated.ts \
+            packages/profile-spec/src/validation.ts \
+            scripts/inspect-manifests.mjs
+          git commit -m 'fix: precompile ProfileSpec validation for extension CSP'
+          git push origin HEAD:feat/m8-profile-workflow
