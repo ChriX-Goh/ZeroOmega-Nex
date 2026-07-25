@@ -1,3 +1,4 @@
+export { createBrowserSafePacSnapshot, type BrowserSafePacSnapshotResult } from './browser-snapshot.js';
 export { analyzePacCompatibility } from './capabilities.js';
 export { compilePac } from './compiler.js';
 export {
@@ -23,6 +24,7 @@ export {
   type PacEvaluator,
 } from './harness.js';
 export { sha256Hex } from './hash.js';
+export { verifyPacReferenceSafety } from './reference-safety.js';
 export {
   createVerifiedPacSnapshot,
   type PacRuntimeSnapshot,
