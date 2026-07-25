@@ -28,6 +28,14 @@ export {
 } from './defaults.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
+  createFixedProfileDraft,
+  deleteProfileDraft,
+  duplicateProfileDraft,
+  type ProfileWorkflowIdFactory,
+  type ProfileWorkflowIdKind,
+  type ProfileWorkflowProfileMutation,
+} from './profile-operations.js';
+export {
   createProfileWorkflowCandidate,
   createProfileWorkflowState,
   inspectProfileWorkflow,
