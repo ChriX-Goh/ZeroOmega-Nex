@@ -168,9 +168,11 @@ describe('typed profile workflow command service', () => {
       view: { dirty: true, busy: false },
       state: {
         applied: { revision: { id: 'revision-applied' } },
-        draft: { profiles: [{ name: 'Failed Apply Edit' }] },
       },
     });
+    if (failed.ok || !failed.state) throw new Error('expected recoverable failed state');
+    expect(failed.state.draft.profiles[0]?.name).toBe('Failed Apply Edit');
+    expect(failed.state.draft.profiles[1]?.name).toBe('Backup Proxy');
   });
 
   it('rejects Apply when the background activation service is unavailable', async () => {
