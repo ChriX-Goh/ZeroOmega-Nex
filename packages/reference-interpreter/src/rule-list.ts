@@ -98,9 +98,7 @@ function parseAutoProxy(
     (isExclusive ? exclusive : normal).push(rule);
   }
 
-  return issues.length > 0
-    ? { ok: false, issues }
-    : { ok: true, rules: [...exclusive, ...normal] };
+  return issues.length > 0 ? { ok: false, issues } : { ok: true, rules: [...exclusive, ...normal] };
 }
 
 function parseSwitchyModern(
@@ -151,9 +149,7 @@ function parseSwitchyModern(
         ? { kind: 'url-regex', pattern: conditionText.slice(1, -1) }
         : { kind: 'host-wildcard', pattern: conditionText };
 
-    rules.push(
-      parsedRule(source, parsedIndex, sourceLine, condition, route, 'ordered', note),
-    );
+    rules.push(parsedRule(source, parsedIndex, sourceLine, condition, route, 'ordered', note));
     parsedIndex += 1;
     note = undefined;
   }
@@ -207,9 +203,7 @@ function parseSwitchyLegacy(
     (isExclusive ? exclusive : normal).push(rule);
   }
 
-  return issues.length > 0
-    ? { ok: false, issues }
-    : { ok: true, rules: [...exclusive, ...normal] };
+  return issues.length > 0 ? { ok: false, issues } : { ok: true, rules: [...exclusive, ...normal] };
 }
 
 export function parseRuleList(
@@ -256,11 +250,7 @@ export function evaluateRuleListProfile(
       ruleId: rule.id,
       sourceLine: rule.sourceLine,
       priorityGroup: rule.priorityGroup,
-      status: match.determinate
-        ? match.matched
-          ? 'matched'
-          : 'not-matched'
-        : 'indeterminate',
+      status: match.determinate ? (match.matched ? 'matched' : 'not-matched') : 'indeterminate',
       support: match.support,
       ...(match.reason === undefined ? {} : { reason: match.reason }),
     });
