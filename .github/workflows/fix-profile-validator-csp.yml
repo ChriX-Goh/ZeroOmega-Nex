@@ -44,9 +44,11 @@ jobs:
           pnpm exec prettier --write \
             apps/extension/src/lib/profile-workflow-activation.ts \
             packages/pac-compiler/src/browser-snapshot.ts \
+            packages/pac-compiler/src/browser-snapshot.test.ts \
             packages/pac-compiler/src/index.ts \
             packages/pac-compiler/src/reference-safety.ts \
             packages/pac-compiler/src/snapshot.ts \
+            packages/pac-compiler/src/snapshot.test.ts \
             packages/profile-spec/package.json \
             packages/profile-spec/scripts/generate-validator.mjs \
             packages/profile-spec/src/profile-spec-validator.generated.ts \
@@ -86,9 +88,11 @@ jobs:
           git add \
             apps/extension/src/lib/profile-workflow-activation.ts \
             packages/pac-compiler/src/browser-snapshot.ts \
+            packages/pac-compiler/src/browser-snapshot.test.ts \
             packages/pac-compiler/src/index.ts \
             packages/pac-compiler/src/reference-safety.ts \
             packages/pac-compiler/src/snapshot.ts \
+            packages/pac-compiler/src/snapshot.test.ts \
             packages/profile-spec/package.json \
             packages/profile-spec/scripts/generate-validator.mjs \
             packages/profile-spec/src/profile-spec-validator.generated.ts \
