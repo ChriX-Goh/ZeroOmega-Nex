@@ -160,7 +160,7 @@ try {
   }
 
   const historyButton = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='Snapshot History']"),
+    By.xpath("//button[.//span[normalize-space(.)='Snapshot History']]"),
   );
   await historyButton.click();
   await driver.wait(
