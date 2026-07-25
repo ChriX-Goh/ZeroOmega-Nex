@@ -9,7 +9,7 @@ export default defineConfig({
     name: 'ZeroOmega Nex',
     description: 'A compile-first, cross-browser proxy profile manager.',
     version: '0.0.1',
-    permissions: [],
+    permissions: ['proxy', 'storage'],
     action: {
       default_title: 'ZeroOmega Nex',
     },
@@ -18,6 +18,7 @@ export default defineConfig({
           browser_specific_settings: {
             gecko: {
               id: 'zeroomega-nex@chrix-goh.github',
+              strict_min_version: '91.1.0',
               data_collection_permissions: {
                 required: ['none'],
               },
