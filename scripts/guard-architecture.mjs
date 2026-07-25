@@ -2,7 +2,11 @@ import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
-const guardedPaths = ['apps/extension/src', 'apps/extension/wxt.config.ts'];
+const guardedPaths = [
+  'apps/extension/src',
+  'apps/extension/wxt.config.ts',
+  'packages/browser-adapters/src/authentication-listener.ts',
+];
 const sourceExtensions = new Set(['.ts', '.js', '.mjs', '.svelte']);
 const forbidden = [
   {
@@ -10,8 +14,12 @@ const forbidden = [
     reason: 'global request-time proxy decisions are prohibited by the PAC-first architecture',
   },
   {
-    expression: /webRequest\.[A-Za-z]+\.addListener/u,
-    reason: 'general per-request monitoring is not allowed in the browser-adapter milestone',
+    expression: /webRequest\.(?!onAuthRequired\b)[A-Za-z]+\.addListener/u,
+    reason: 'only the opt-in proxy authentication challenge listener may use WebRequest',
+  },
+  {
+    expression: /on(?:Completed|ErrorOccurred)\??\.addListener/u,
+    reason: 'proxy authentication must not add persistent request completion monitoring',
   },
   {
     expression: /["']<all_urls>["']/u,
