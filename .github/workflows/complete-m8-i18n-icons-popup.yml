@@ -56,6 +56,34 @@ jobs:
           if text.count(old) != 1:
               raise SystemExit('command initialization lint anchor missing')
           path.write_text(text.replace(old, new, 1))
+
+          path = Path('packages/profile-workflow/src/defaults.ts')
+          text = path.read_text()
+          old = "      startup: {\n        route: { kind: 'direct' },\n        revertProxyChanges: true,\n      },"
+          new = "      startup: {\n        route: { kind: 'profile', profileId: DEFAULT_FIXED_PROFILE_ID },\n        revertProxyChanges: true,\n      },"
+          if text.count(old) != 1:
+              raise SystemExit('default startup fixture anchor missing')
+          path.write_text(text.replace(old, new, 1))
+
+          path = Path('packages/profile-workflow/src/defaults.test.ts')
+          text = path.read_text()
+          text = text.replace(
+              "creates a valid familiar fixed proxy profile while starting in Direct mode",
+              "creates a valid familiar fixed proxy profile with original Popup ordering",
+          )
+          old = "    expect(spec.settings.startup.route).toEqual({ kind: 'direct' });"
+          new = "    expect(spec.settings.startup.route).toEqual({\n      kind: 'profile',\n      profileId: DEFAULT_FIXED_PROFILE_ID,\n    });"
+          if text.count(old) != 1:
+              raise SystemExit('default startup test anchor missing')
+          path.write_text(text.replace(old, new, 1))
+
+          path = Path('apps/extension/src/lib/profile-workflow-runtime.ts')
+          text = path.read_text()
+          old = "    return createDefaultProfileSpec({\n      documentId: `document-${crypto.randomUUID()}`,\n      revisionId: `revision-${crypto.randomUUID()}`,\n      createdAt: now,\n      deviceId: this.#deviceId,\n    });"
+          new = "    const initial = createDefaultProfileSpec({\n      documentId: `document-${crypto.randomUUID()}`,\n      revisionId: `revision-${crypto.randomUUID()}`,\n      createdAt: now,\n      deviceId: this.#deviceId,\n    });\n    initial.settings.startup.route = { kind: 'direct' };\n    return initial;"
+          if text.count(old) != 1:
+              raise SystemExit('runtime initial Direct anchor missing')
+          path.write_text(text.replace(old, new, 1))
           PY
 
       - name: Format changed text files
@@ -64,6 +92,7 @@ jobs:
             apps/extension/src/lib/i18n.ts \
             apps/extension/src/lib/i18n.test.ts \
             apps/extension/src/lib/ui-theme.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
             apps/extension/src/components/ProfileIcon.svelte \
             apps/extension/src/entrypoints/options/App.svelte \
             apps/extension/src/entrypoints/options/style.css \
