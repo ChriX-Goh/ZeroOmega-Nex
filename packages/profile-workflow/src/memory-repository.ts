@@ -1,7 +1,4 @@
-import type {
-  ProfileWorkflowRepository,
-  ProfileWorkflowState,
-} from './contracts.js';
+import type { ProfileWorkflowRepository, ProfileWorkflowState } from './contracts.js';
 
 function cloneState(state: ProfileWorkflowState): ProfileWorkflowState {
   return structuredClone(state);

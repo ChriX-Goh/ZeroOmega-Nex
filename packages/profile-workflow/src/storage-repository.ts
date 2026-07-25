@@ -49,11 +49,7 @@ function parsePending(value: unknown): ProfileWorkflowPendingApply {
   return {
     applyId: requiredString(pending, 'applyId', 'pendingApply'),
     candidate: parseProfileSpec(pending.candidate, 'pendingApply.candidate'),
-    previousAppliedRevisionId: requiredString(
-      pending,
-      'previousAppliedRevisionId',
-      'pendingApply',
-    ),
+    previousAppliedRevisionId: requiredString(pending, 'previousAppliedRevisionId', 'pendingApply'),
     startedAt: requiredString(pending, 'startedAt', 'pendingApply'),
     phase,
   };

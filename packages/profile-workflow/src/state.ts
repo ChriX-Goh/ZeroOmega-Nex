@@ -97,7 +97,10 @@ export function selectProfileWorkflowProfile(
   state: ProfileWorkflowState,
   profileId: string | undefined,
 ): ProfileWorkflowState {
-  if (profileId !== undefined && !state.draft.profiles.some((profile) => profile.id === profileId)) {
+  if (
+    profileId !== undefined &&
+    !state.draft.profiles.some((profile) => profile.id === profileId)
+  ) {
     throw new RangeError(`profile ${profileId} does not exist in the draft`);
   }
   if (state.selectedProfileId === profileId) return state;

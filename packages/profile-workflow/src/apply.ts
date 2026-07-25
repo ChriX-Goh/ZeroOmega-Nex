@@ -82,12 +82,7 @@ async function rollbackAfterCommitFailure(
       occurredAt: context.completedAt,
       rollbackSucceeded: false,
     };
-    const state = await persistFailure(
-      repository,
-      context.applyId,
-      record,
-      'rollback-required',
-    );
+    const state = await persistFailure(repository, context.applyId, record, 'rollback-required');
     return {
       status: 'failed',
       stage: 'rollback',

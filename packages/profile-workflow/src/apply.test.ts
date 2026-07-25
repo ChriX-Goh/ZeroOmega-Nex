@@ -2,10 +2,7 @@ import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
 import { applyProfileWorkflow } from './apply.js';
-import type {
-  ProfileWorkflowActivationDriver,
-  ProfileWorkflowApplyContext,
-} from './contracts.js';
+import type { ProfileWorkflowActivationDriver, ProfileWorkflowApplyContext } from './contracts.js';
 import { MemoryProfileWorkflowRepository } from './memory-repository.js';
 import {
   createProfileWorkflowState,
