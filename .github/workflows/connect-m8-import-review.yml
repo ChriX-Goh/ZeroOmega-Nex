@@ -37,12 +37,14 @@ jobs:
         run: python .github/scripts/connect-m8-import-review.py
 
       - name: Format import review slice
+        shell: bash
         run: |
+          set -o pipefail
           pnpm exec prettier --write \
             apps/extension/package.json \
             apps/extension/src/entrypoints/options/App.svelte \
             apps/extension/src/entrypoints/options/LegacyImportPanel.svelte \
-            pnpm-lock.yaml
+            pnpm-lock.yaml 2>&1 | tee m8-import-format.log
 
       - name: Verify import review slice
         shell: bash
@@ -59,7 +61,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: m8-import-review-diagnostics
-          path: m8-import-review.log
+          path: |
+            m8-import-format.log
+            m8-import-review.log
+            apps/extension/package.json
+            apps/extension/src/entrypoints/options/App.svelte
+            apps/extension/src/entrypoints/options/LegacyImportPanel.svelte
+            pnpm-lock.yaml
           if-no-files-found: warn
 
       - name: Commit import review integration
