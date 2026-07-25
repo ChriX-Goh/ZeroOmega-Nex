@@ -199,6 +199,17 @@
     });
   }
 
+  async function rollbackSnapshot(
+    expectedGeneration: number,
+    snapshotId: string,
+  ): Promise<boolean> {
+    return runCommand({
+      action: 'rollback-snapshot',
+      expectedGeneration,
+      snapshotId,
+    });
+  }
+
   async function replaceDraftAndSelect(mutation: ProfileWorkflowProfileMutation): Promise<void> {
     if (!(await replaceDraft(mutation.draft))) return;
     if (state?.draft.profiles.some((profile) => profile.id === mutation.profileId)) {
@@ -547,12 +558,19 @@
       <header class="editor-heading">
         <div class="profile-title">
           <div>
-            <h1>Snapshot History</h1>
-            <p>Inspect verified PAC snapshots without exposing PAC source or secret material.</p>
+            <h1>Configuration History</h1>
+            <p>
+              Inspect revisions and verified PAC snapshots, or restore a previous verified state.
+            </p>
           </div>
         </div>
       </header>
-      <SnapshotHistoryPanel disabled={saving || view?.busy === true} />
+      <SnapshotHistoryPanel
+        disabled={saving || view?.busy === true}
+        dirty={view?.dirty === true}
+        generation={state.generation}
+        onRollbackSnapshot={rollbackSnapshot}
+      />
     {:else if activeSection === 'import' && state}
       <header class="editor-heading">
         <div class="profile-title">
