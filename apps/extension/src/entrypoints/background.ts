@@ -56,6 +56,7 @@ export default defineBackground(() => {
   });
   profileWorkflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
     activationDriver,
+    authentication: authenticationManager,
   });
 
   void restoreProxyRuntime(authenticationManager).catch((error: unknown) => {
