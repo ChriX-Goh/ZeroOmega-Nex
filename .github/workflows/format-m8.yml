@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - 'feat/m8-profile-workflow'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,7 +14,7 @@ permissions:
 
 jobs:
   format:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
