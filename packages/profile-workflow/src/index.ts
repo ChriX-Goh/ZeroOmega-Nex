@@ -11,6 +11,7 @@ export {
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommand,
   type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
 } from './commands.js';
 export {
