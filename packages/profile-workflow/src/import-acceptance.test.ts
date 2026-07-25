@@ -81,10 +81,12 @@ describe('profile workflow import acceptance', () => {
         draft: {
           documentId: state.applied.documentId,
           revision: state.applied.revision,
-          profiles: [{ name: 'Imported Primary Proxy' }],
         },
       },
     });
+    if (result.status !== 'accepted') throw new Error('expected accepted import');
+    expect(result.state.draft.profiles[0]?.name).toBe('Imported Primary Proxy');
+    expect(result.state.draft.profiles[1]?.name).toBe('Backup Proxy');
     expect(secrets.values).toEqual(
       new Map([
         ['secret-import-one', 'first-secret-value'],
