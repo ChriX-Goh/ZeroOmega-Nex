@@ -67,6 +67,11 @@ export {
 } from './firefox.js';
 export { MemorySnapshotActivationRepository } from './memory-repository.js';
 export {
+  listPacSnapshotHistory,
+  type PacSnapshotHistoryEntry,
+  type SnapshotHistoryRepository,
+} from './snapshot-history.js';
+export {
   BrowserStorageSnapshotActivationRepository,
   type BrowserStorageArea,
   type BrowserStorageRepositoryOptions,
