@@ -2,6 +2,7 @@ import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 
 import type {
   ActivationFailureRecord,
+  BuiltInProxyMode,
   PendingActivation,
   PlatformProxyState,
   SnapshotActivationRepository,
@@ -23,6 +24,18 @@ function optionalString(value: Record<string, unknown>, key: string): string | u
   const candidate = value[key];
   if (candidate === undefined) return undefined;
   if (typeof candidate !== 'string') throw new TypeError(`${key} must be a string`);
+  return candidate;
+}
+
+function optionalBuiltInMode(
+  value: Record<string, unknown>,
+  key: string,
+): BuiltInProxyMode | undefined {
+  const candidate = optionalString(value, key);
+  if (candidate === undefined) return undefined;
+  if (candidate !== 'direct' && candidate !== 'system') {
+    throw new TypeError(`${key} must be direct or system`);
+  }
   return candidate;
 }
 
@@ -57,9 +70,14 @@ function parsePending(value: unknown): PendingActivation {
     throw new TypeError('pending snapshotId and startedAt are required');
   }
   const previousActiveSnapshotId = optionalString(record, 'previousActiveSnapshotId');
+  const previousActiveBuiltInMode = optionalBuiltInMode(record, 'previousActiveBuiltInMode');
+  if (previousActiveSnapshotId !== undefined && previousActiveBuiltInMode !== undefined) {
+    throw new TypeError('pending previous active PAC and built-in mode are mutually exclusive');
+  }
   return {
     snapshotId,
     ...(previousActiveSnapshotId === undefined ? {} : { previousActiveSnapshotId }),
+    ...(previousActiveBuiltInMode === undefined ? {} : { previousActiveBuiltInMode }),
     platformBefore: parsePlatformState(record.platformBefore),
     startedAt,
   };
@@ -107,9 +125,19 @@ function parseState(value: unknown): SnapshotActivationState {
   const record = value as Record<string, unknown>;
   const activeSnapshotId = optionalString(record, 'activeSnapshotId');
   const lastKnownGoodSnapshotId = optionalString(record, 'lastKnownGoodSnapshotId');
+  const activeBuiltInMode = optionalBuiltInMode(record, 'activeBuiltInMode');
+  const lastKnownGoodBuiltInMode = optionalBuiltInMode(record, 'lastKnownGoodBuiltInMode');
+  if (activeSnapshotId !== undefined && activeBuiltInMode !== undefined) {
+    throw new TypeError('active PAC snapshot and built-in mode are mutually exclusive');
+  }
+  if (lastKnownGoodSnapshotId !== undefined && lastKnownGoodBuiltInMode !== undefined) {
+    throw new TypeError('last-known-good PAC snapshot and built-in mode are mutually exclusive');
+  }
   return {
     ...(activeSnapshotId === undefined ? {} : { activeSnapshotId }),
     ...(lastKnownGoodSnapshotId === undefined ? {} : { lastKnownGoodSnapshotId }),
+    ...(activeBuiltInMode === undefined ? {} : { activeBuiltInMode }),
+    ...(lastKnownGoodBuiltInMode === undefined ? {} : { lastKnownGoodBuiltInMode }),
     ...(record.pending === undefined ? {} : { pending: parsePending(record.pending) }),
     ...(record.lastFailure === undefined ? {} : { lastFailure: parseFailure(record.lastFailure) }),
   };
@@ -151,7 +179,8 @@ export class BrowserStorageSnapshotActivationRepository implements SnapshotActiv
   }
 
   async setState(state: SnapshotActivationState): Promise<void> {
-    await this.#area.set({ [this.#stateKey]: state });
+    const normalized = parseState(state);
+    await this.#area.set({ [this.#stateKey]: normalized });
   }
 
   async putSnapshot(snapshot: PacRuntimeSnapshot): Promise<void> {
