@@ -7,12 +7,9 @@ The earlier implementation head `335229f762e6353ec14e57b5cc2695b6395d175c` and a
 ## Frozen replacement evidence
 
 - **Product implementation head:** `90955b49223772a7d7df14317cd011073647055e`
-- **Final documentation head before this evidence update:** `fb822219a8b69c19e294ba8484243dac83cf1892`
 - **Pull request:** #11 (`feat/m8-profile-workflow`), Draft
 - **Product full CI:** run `30174300115` — passed
 - **Product Browser E2E:** run `30174300078` — Chromium and Firefox jobs passed
-- **Final-head full CI:** run `30174571244` — passed
-- **Final-head Browser E2E:** run `30174571240` — Chromium and Firefox jobs passed
 - **Installable artifact:** `browser-builds` from product CI run `30174300115`
 - **Artifact ID:** `8623785399`
 - **Artifact SHA-256:** `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
