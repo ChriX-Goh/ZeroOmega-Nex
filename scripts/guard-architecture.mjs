@@ -2,13 +2,17 @@ import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
-const guardedPaths = [
+const architectureGuardedPaths = [
   'apps/extension/src',
   'apps/extension/wxt.config.ts',
   'packages/browser-adapters/src/authentication-listener.ts',
 ];
+const uiGuardedPaths = [
+  'apps/extension/src/entrypoints/options',
+  'apps/extension/src/entrypoints/popup',
+];
 const sourceExtensions = new Set(['.ts', '.js', '.mjs', '.svelte']);
-const forbidden = [
+const architectureForbidden = [
   {
     expression: /proxy\.onRequest\.addListener/u,
     reason: 'global request-time proxy decisions are prohibited by the PAC-first architecture',
@@ -24,6 +28,38 @@ const forbidden = [
   {
     expression: /["']<all_urls>["']/u,
     reason: 'the extension must not request or register all-URL access',
+  },
+];
+const uiForbidden = [
+  {
+    expression: /\b(?:browser|chrome)\??\.(?:proxy|storage|webRequest)\b/u,
+    reason: 'Options and Popup code must not access proxy, storage, or WebRequest APIs directly',
+  },
+  {
+    expression: /\bglobalThis\.(?:browser|chrome)\??\.(?:proxy|storage|webRequest)\b/u,
+    reason: 'Options and Popup code must not reach browser APIs through globalThis',
+  },
+  {
+    expression: /\b(?:browser|chrome)\s*\[\s*["'](?:proxy|storage|webRequest)["']\s*\]/u,
+    reason: 'Options and Popup code must not use computed browser API access',
+  },
+  {
+    expression: /\b(?:browser|chrome)\??\.runtime\.sendMessage\b/u,
+    reason: 'Options and Popup code must use the typed profile-workflow client',
+  },
+  {
+    expression: /from\s+["']@zeroomega-nex\/browser-adapters["']/u,
+    reason: 'Options and Popup components must not import browser adapter implementations',
+  },
+  {
+    expression:
+      /from\s+["'][^"']*(?:browser-proxy-runtime|proxy-auth-runtime|profile-workflow-runtime)["']/u,
+    reason: 'Options and Popup components must not import background runtime implementations',
+  },
+  {
+    expression:
+      /\bBrowserStorage(?:ProxyAuthentication|SnapshotActivation|ProfileWorkflow)Repository\b/u,
+    reason: 'persistent repositories belong to the background control plane, not UI components',
   },
 ];
 
@@ -49,21 +85,38 @@ async function collect(pathname) {
   }
 }
 
-const violations = [];
-for (const guardedPath of guardedPaths) {
-  for (const file of await collect(guardedPath)) {
+async function scan(paths, rules, scope) {
+  const violations = [];
+  const files = new Set();
+  for (const guardedPath of paths) {
+    for (const file of await collect(guardedPath)) files.add(file);
+  }
+  for (const file of files) {
     const source = await readFile(file, 'utf8');
-    for (const rule of forbidden) {
+    for (const rule of rules) {
       if (rule.expression.test(source)) {
-        violations.push(`${relative(repositoryRoot.pathname, file)}: ${rule.reason}`);
+        violations.push(
+          `${relative(repositoryRoot.pathname, file)} [${scope}]: ${rule.reason}`,
+        );
       }
     }
   }
+  return { files: files.size, violations };
 }
+
+const architecture = await scan(
+  architectureGuardedPaths,
+  architectureForbidden,
+  'PAC-first architecture',
+);
+const ui = await scan(uiGuardedPaths, uiForbidden, 'UI/background boundary');
+const violations = [...architecture.violations, ...ui.violations];
 
 if (violations.length > 0) {
   console.error('Architecture guard failed:\n' + violations.map((item) => `- ${item}`).join('\n'));
   process.exitCode = 1;
 } else {
-  console.log('Architecture guard passed.');
+  console.log(
+    `Architecture guard passed: ${architecture.files} architecture files and ${ui.files} UI files checked.`,
+  );
 }
