@@ -6,9 +6,9 @@ import {
 import {
   BrowserStorageProfileWorkflowRepository,
   createDefaultProfileSpec,
-  listProfileWorkflowRevisionHistory,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,
+  listProfileWorkflowRevisionHistory,
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
@@ -19,7 +19,11 @@ import {
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
-import { BrowserProfileWorkflowActivationDriver } from './profile-workflow-activation';
+import {
+  BrowserProfileWorkflowActivationDriver,
+  type ProfileWorkflowAuthenticationCoordinator,
+} from './profile-workflow-activation';
+import { BrowserSnapshotRollbackService } from './snapshot-rollback-runtime';
 
 interface ProfileWorkflowMessageEvent {
   addListener(
@@ -40,6 +44,7 @@ interface ProfileWorkflowRuntimeApi {
 
 export interface ProfileWorkflowRuntimeOptions {
   readonly activationDriver?: ProfileWorkflowActivationDriver;
+  readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
 }
 
 export interface RegisteredProfileWorkflowRuntime {
@@ -117,6 +122,13 @@ export function registerProfileWorkflowRuntime(
   );
   const importService = createImportService(api);
   const historyService = createHistoryService(repository);
+  const rollbackService =
+    options.authentication === undefined
+      ? undefined
+      : new BrowserSnapshotRollbackService({
+          revisions: repository,
+          authentication: options.authentication,
+        });
   const listener = async (
     message: unknown,
   ): Promise<ProfileWorkflowCommandResponse | undefined> => {
@@ -128,6 +140,7 @@ export function registerProfileWorkflowRuntime(
       applyService,
       importService,
       historyService,
+      rollbackService,
     );
   };
   api.runtime.onMessage.addListener(listener);
