@@ -127,11 +127,12 @@ describe('deterministic PAC compiler', () => {
     if (pac.ok) throw new Error('expected unsupported PAC nesting');
     expect(pac.issues.map((issue) => issue.code)).toContain('profile.pac-nesting-unsupported');
 
-    const ruleSpec = await importedFixture('rule-list-formats.json');
-    const remote = compilePac(ruleSpec, profileRoute(ruleSpec, 'autoproxy-plain'));
+    const remote = compilePac(spec, profileRoute(spec, 'rule-autoproxy'));
     expect(remote.ok).toBe(false);
     if (remote.ok) throw new Error('expected unavailable rule-source block');
-    expect(remote.issues.map((issue) => issue.code)).toContain('rule-source.content-unavailable');
+    expect(remote.issues.map((issue) => issue.code)).toContain(
+      'rule-source.content-unavailable',
+    );
   });
 
   it('enforces script, profile, and rule budgets without emitting partial artifacts', async () => {
