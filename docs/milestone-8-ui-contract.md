@@ -1,139 +1,195 @@
-# Milestone 8 — Familiar UI and Profile Workflow
+# Milestone 8 — Original-Compatible UI and Profile Workflow
 
 ## Objective
 
-Deliver a recognizable ZeroOmega/SwitchyOmega-style workflow on top of the verified ProfileSpec, importer, compiler, and browser-adapter layers.
+Deliver a ZeroOmega Nex workflow that an existing ZeroOmega/SwitchyOmega user can use without relearning the Options layout or manually rebuilding an exported configuration.
 
-The UI is a control surface. It never calls browser proxy APIs directly and never treats an edited document as active merely because it was saved.
+Compatibility means more than similar colors or terminology. The information architecture, page boundaries, navigation order, profile workflow, Apply/Discard placement, and migration path must remain recognizably original.
+
+The UI remains a control surface. It never calls browser proxy APIs or persistent secret storage directly and never treats edited data as active merely because it was rendered or saved.
+
+## Primary user contract
+
+1. Opening Options produces a complete browser tab, not a cramped extension dialog.
+2. The left navigation remains persistent while the selected page opens independently on the right.
+3. Existing users find Settings, Profiles, and Actions in the same conceptual order as original ZeroOmega.
+4. Global settings never appear inside a profile editor.
+5. There is one `New profile…` entry, followed by an independent profile-type selection page.
+6. An original schema-version-2 export can be selected as a file and used without reconstructing profiles by hand.
+7. Automatic, Light, and Dark appearance modes are available; Automatic is the default.
+8. Internal safety concepts such as candidate revisions and compare-and-swap remain implemented but do not force users to learn a new navigation model.
 
 ## User-facing state model
 
-The interface must keep these states visibly distinct:
+The control plane keeps these states distinct internally:
 
-1. **Saved** — the persisted ProfileSpec revision.
-2. **Draft** — local edits that have not been saved.
-3. **Candidate** — a saved revision submitted for validation and PAC compilation.
-4. **Verified** — a candidate that passed ProfileSpec validation, PAC capability analysis, and differential verification.
-5. **Installed** — a verified runtime snapshot written to the browser proxy API.
-6. **Active** — the installed snapshot confirmed as browser-controlled and recorded as active.
-7. **Failed** — validation, compilation, installation, confirmation, or rollback failed with a reviewable reason.
+1. **Draft** — edited configuration not yet active.
+2. **Candidate** — a revision submitted for validation and compilation.
+3. **Verified** — a candidate that passed validation and the applicable PAC safety checks.
+4. **Installed** — a verified runtime snapshot written to the browser proxy API.
+5. **Active** — installed state confirmed from the browser and committed as active.
+6. **Failed** — validation, compilation, installation, confirmation, commit, or rollback failed with a visible reason.
 
-No UI action may collapse these stages into a single optimistic “Apply” success state.
+The familiar user-facing actions remain `Apply changes` and `Discard changes`. A successful Apply is reported only after browser confirmation and workflow commit.
 
-## Familiar layout
+## Required Options architecture
 
-### Options page
+### Full-tab shell
 
-- Persistent left profile navigation with profile color, name, type, and active/draft indicators.
-- Built-in Direct and System routes shown as special routes, not editable user profiles.
-- Main editor area for the selected profile.
-- Top-level Save/Revert and Compile/Apply actions with clear disabled and busy states.
-- General, Import/Export, Interface, Snapshot History, and About sections.
-- Responsive behavior that preserves navigation and primary actions at narrow widths.
+- Options declares the browser `open_in_tab` behavior.
+- The shell uses a fixed-width left navigation and a flexible right-hand editor.
+- The right side is not artificially constrained to a narrow card column on desktop.
+- Narrow screens may collapse to one column, but navigation and actions remain available.
 
-### Popup
+### Settings group
 
-- Active route shown first and clearly marked.
-- Ordered quick-switch routes, including Direct and System.
-- One-click activation only for already saved and compilable routes.
-- Busy, failed, conflict, and permission-required states remain visible rather than closing silently.
-- Options-page entry remains available at all times.
+Independent pages, in this order:
+
+- Interface
+- General
+- Import / Export
+- Theme
+- Snapshot History
+
+General owns startup and Quick Switch behavior. Those controls must not be duplicated beneath every profile.
+
+### Profiles group
+
+- Built-in Profiles
+- One entry per user profile, preserving profile name and color
+- One `New profile…` entry
+
+Selecting a profile changes only the right-hand editor page. Direct and System remain built-in routes, not editable user profiles.
+
+### Actions group
+
+- Apply changes
+- Discard changes
+- Visible Draft/busy status
+
+These actions remain available in the persistent navigation rather than moving unpredictably among profile pages.
+
+## Independent page requirements
+
+### Interface
+
+Contains confirmation, condition-order, advanced-condition, inspect-menu, badge, external-profile, and legacy-export preferences supported by ProfileSpec.
+
+### General
+
+Contains startup route, release-control restoration, Quick Switch enabled state, refresh behavior, route order, and route additions/removals.
+
+### Import / Export
+
+Provides file-first original backup restoration, optional pasted backup text, compatibility analysis, explicit `Import and use now`, and `Import without activating`.
+
+### Theme
+
+Provides:
+
+- Automatic — default; follows `prefers-color-scheme`
+- Light — persistent device-local override
+- Dark — persistent device-local override
+
+Appearance preference is UI-local and must not change routing state, ProfileSpec revision identity, or imported configuration bytes.
+
+### Snapshot History
+
+Lists redacted revision and PAC snapshot metadata, active/last-known-good state, verification mode, warnings, and two-step rollback.
+
+### Built-in Profiles
+
+Shows Direct and System Proxy behavior and editable colors without creating fake user profiles.
+
+### New Profile
+
+Offers Fixed, Switch, Rule List, PAC, and Auto Detect types from one independent selection page.
+
+### User profile
+
+Contains only the selected profile’s identity and detailed configuration, plus profile-scoped duplicate/delete actions.
 
 ## Profile editors
 
 ### Fixed profile
 
-- Per-scheme proxy endpoint selection with fallback endpoint.
-- Endpoint protocol, host, port, display name, and optional username.
-- Password represented only through secret storage; never echoed into ordinary form state after save.
-- Ordered bypass entries with enabled state and validation feedback.
+- Protocol, server, port, and bypass settings use the full right-hand workspace.
+- Supported credential references remain background-owned and secrets never re-enter ordinary form state.
+- Original imported endpoint ordering and bypass entries are preserved where representable.
 
 ### Switch profile
 
-- Ordered rules with condition editor and route target.
-- First-match ordering is visually explicit.
-- Drag, keyboard reorder, duplicate, enable/disable, and delete operations.
-- Default route remains separate from ordered rules.
+- Ordered rules, default route, condition editor, enable/disable, duplicate, delete, and move operations.
+- First-match order remains explicit.
+- Imported condition order must not be silently rearranged.
 
 ### Rule-list profile
 
-- Source selection, format, match route, and default route.
-- Inline source editor or URL source configuration.
-- Sensitive request headers use secret references and masked editing.
-- Parsed-rule preview and update state are separate from the saved source definition.
+- Inline or URL source, source format, refresh interval, match route, default route, and request-header references.
+- Original Switchy and AutoProxy formats are mapped deterministically.
 
 ### PAC profile
 
-- Inline or URL source selection.
-- Sensitive request headers use secret references.
-- Fallback route is explicit.
-- Arbitrary PAC profiles are visibly marked as outside the deterministic compiler path.
+- Inline or URL source, fallback route, and request-header references.
+- Browser-target-dependent behavior is disclosed instead of silently treated as exact.
 
 ### Auto-detect profile
 
-- Browser-dependent capability warning.
-- Explicit fallback route.
+- Explicit browser capability warning and fallback route.
 
-## Import workflow
+## Original backup migration contract
 
-1. Select or paste a ZeroOmega/SwitchyOmega backup.
-2. Decode and validate without changing the active browser proxy state.
-3. Show exact, preserved, downgraded, target-dependent, ignored, and rejected migration items.
-4. Show extracted secret-material destinations without rendering secret values.
-5. Allow profile-by-profile review before accepting the imported candidate.
-6. Save as a new ProfileSpec revision.
-7. Compile and activate only through the normal candidate pipeline.
+1. Accept an original `.bak`, `.json`, or `.txt` file, or pasted JSON/base64 backup text.
+2. Decode and validate without changing Draft or active traffic.
+3. Show encoding, profile count, endpoint count, rule-source count, credential presence, migration status totals, and technical details.
+4. Extract secrets into background-owned storage without showing their values.
+5. Preserve supported profile names, colors, types, endpoint values, bypass entries, switch-rule order, rule-list sources, PAC definitions, startup route, Quick Switch order, and interface settings.
+6. `Import and use now` performs the typed import transaction followed by the normal verified Apply transaction as one explicit user action.
+7. `Import without activating` writes the imported configuration to Draft only.
+8. Corrupt, unknown, cyclic, internally inconsistent, or unsupported records are rejected explicitly rather than guessed.
 
-Import never activates automatically.
+Selecting a file or viewing compatibility results never activates traffic automatically. Activation requires the explicit `Import and use now` action.
 
 ## Compile and activation workflow
 
-1. Save the draft as a new immutable revision.
+1. Persist Draft as a new immutable revision.
 2. Validate ProfileSpec.
-3. Select a start route and target browser contract.
-4. Compile and run differential verification.
+3. Select start route and target browser contract.
+4. Compile and run the applicable verification path.
 5. Persist the verified runtime snapshot.
-6. Activate through the browser-adapter transaction.
-7. Read back browser ownership and installed snapshot identity.
-8. Report active only after confirmation.
+6. Prepare authentication bindings and optional permissions where required.
+7. Install through the browser-adapter transaction.
+8. Read back browser ownership and installed identity.
+9. Commit active workflow state only after confirmation.
+10. Restore prior browser/authentication state if any later step fails.
 
-Failures expose stage, reason, prior active snapshot, and rollback status.
+Failures expose stage, reason, and rollback outcome globally in Options.
 
-## Snapshot history and rollback
+## Popup contract
 
-- List verified snapshots by creation time, source revision, start route, browser target, compiler version, and script hash prefix.
-- Mark active and last-known-good snapshots.
-- Allow inspection of warnings and verification counts without exposing PAC source secrets.
-- Rollback uses the same atomic activation transaction as normal activation.
-- Missing or corrupted snapshots cannot be selected.
-
-## Component and state boundaries
-
-- Svelte components use explicit Svelte 5 runes for local reactive state.
-- Persistent state and browser operations live behind typed service interfaces.
-- Background messaging is typed and command-oriented.
-- Browser APIs are accessed only inside background adapters, never during component module evaluation.
-- UI state must be serializable for deterministic tests, except ephemeral DOM focus and animation state.
-- Effects are reserved for browser/DOM synchronization, not ordinary derived state.
+- Popup reads Applied configuration only.
+- Ordered Quick Switch routes include supported user profiles, Direct, and System.
+- Active route is based on browser-confirmed state.
+- Busy, failed, stale-revision, conflict, and permission-required states remain visible.
+- Options-page entry remains available.
 
 ## Accessibility and interaction
 
-- Full keyboard navigation for profile lists, rule lists, dialogs, and action bars.
-- Visible focus state and semantic labels.
+- Full keyboard access for navigation, forms, rule lists, dialogs, themes, actions, and rollback.
+- Visible focus state.
+- Semantic labels and headings.
 - Color never carries status alone.
-- Destructive actions require explicit confirmation and identify the affected profile or snapshot.
-- Long-running operations expose progress and remain cancellable where cancellation is safe.
+- Destructive actions require explicit confirmation identifying the affected object.
 
-## Automated acceptance
+## Permanent automated acceptance
 
-- State-machine tests cover save, revert, compile, activation, conflict, failure, and rollback transitions.
-- Component tests cover every profile editor and popup route action.
-- Import fixtures render deterministic migration summaries.
-- Snapshot history excludes secrets and rejects corrupted records.
-- Keyboard and accessibility checks cover primary workflows.
-- Chromium and Firefox production builds pass manifest and architecture audits.
-- No component source contains direct `proxy.settings`, `proxy.onRequest`, or WebRequest listener registration.
+- UI guard checks full-tab behavior, original navigation groups, independent General/profile pages, one-step original backup migration, themes, responsive layout, focus visibility, rollback confirmation, and global error visibility.
+- Component tests cover Popup, profile editors, import entry, theme choices, and history/rollback states.
+- Importer tests cover schema-v2 JSON, base64, every supported profile and condition family, built-in colors, rule formats, secrets, invalid records, and representative scale.
+- Chromium real-browser E2E uploads an original backup fixture and completes `Import and use now`, in addition to theme, edit, Apply, history, Popup, and Direct switching.
+- Firefox real-browser E2E covers the restored navigation, edit, Apply, history, Popup, Direct switching, and private-window proxy prerequisites.
+- Production builds pass manifest, CSP/dynamic-code, architecture, type, format, lint, and packaging checks.
 
 ## Repository-owner QC
 
-Intermediate UI slices are verified through GitHub CI and automated browser/component checks. Repository-owner QC is deferred until the complete installable release candidate, with a single prepared package and focused checklist.
+Automated checks cannot determine whether the result feels like original ZeroOmega or whether a personal real-world export is fully usable. Repository-owner QC must compare navigation and fields against the original extension, import an actual personal export, and record exact defects. The PR remains Draft until that replacement candidate passes.
