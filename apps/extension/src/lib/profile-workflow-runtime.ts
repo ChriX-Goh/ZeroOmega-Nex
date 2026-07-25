@@ -19,6 +19,7 @@ import {
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
+import { normalizeExtensionDeviceId } from './extension-device-id';
 import {
   BrowserProfileWorkflowActivationDriver,
   type ProfileWorkflowAuthenticationCoordinator,
@@ -115,9 +116,10 @@ export function registerProfileWorkflowRuntime(
   options: ProfileWorkflowRuntimeOptions = {},
 ): RegisteredProfileWorkflowRuntime {
   const repository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
-  const initializer = new RuntimeInitializer(api.runtime.id);
+  const deviceId = normalizeExtensionDeviceId(api.runtime.id);
+  const initializer = new RuntimeInitializer(deviceId);
   const applyService = createApplyService(
-    api.runtime.id,
+    deviceId,
     options.activationDriver ?? new BrowserProfileWorkflowActivationDriver(),
   );
   const importService = createImportService(api);
