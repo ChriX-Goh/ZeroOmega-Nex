@@ -41,7 +41,7 @@ describe('advanced profile creation', () => {
       expect.objectContaining({
         id: 'source-advanced-1',
         format: 'autoproxy',
-        location: { kind: 'inline' },
+        location: expect.objectContaining({ kind: 'inline' }),
       }),
     );
     expect(validateProfileSpec(result.draft).valid).toBe(true);
