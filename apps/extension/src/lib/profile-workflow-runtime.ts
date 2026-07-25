@@ -1,3 +1,4 @@
+import { BrowserStorageProxyAuthenticationRepository } from '@zeroomega-nex/browser-adapters';
 import {
   BrowserStorageProfileWorkflowRepository,
   createDefaultProfileSpec,
@@ -5,6 +6,7 @@ import {
   isProfileWorkflowCommand,
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
@@ -66,17 +68,30 @@ function createApplyService(deviceId: string): ProfileWorkflowApplyService {
   };
 }
 
+function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImportService {
+  return {
+    secretStore: new BrowserStorageProxyAuthenticationRepository(api.storage.local),
+  };
+}
+
 export function registerProfileWorkflowRuntime(
   api: ProfileWorkflowRuntimeApi,
 ): RegisteredProfileWorkflowRuntime {
   const repository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
   const initializer = new RuntimeInitializer(api.runtime.id);
   const applyService = createApplyService(api.runtime.id);
+  const importService = createImportService(api);
   const listener = async (
     message: unknown,
   ): Promise<ProfileWorkflowCommandResponse | undefined> => {
     if (!isProfileWorkflowCommand(message)) return undefined;
-    return executeProfileWorkflowCommand(repository, initializer, message, applyService);
+    return executeProfileWorkflowCommand(
+      repository,
+      initializer,
+      message,
+      applyService,
+      importService,
+    );
   };
   api.runtime.onMessage.addListener(listener);
   return {
