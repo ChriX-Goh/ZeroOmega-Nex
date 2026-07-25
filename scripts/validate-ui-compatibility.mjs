@@ -4,8 +4,7 @@ const popupAppPath = 'apps/extension/src/entrypoints/popup/App.svelte';
 const popupStylePath = 'apps/extension/src/entrypoints/popup/style.css';
 const optionsAppPath = 'apps/extension/src/entrypoints/options/App.svelte';
 const optionsStylePath = 'apps/extension/src/entrypoints/options/style.css';
-const snapshotHistoryPath =
-  'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
+const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
 
 const [popupApp, popupStyle, optionsApp, optionsStyle, snapshotHistory] = await Promise.all([
   readFile(popupAppPath, 'utf8'),

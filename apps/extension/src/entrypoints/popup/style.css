@@ -57,6 +57,12 @@ button {
   background: #eaf4e4;
 }
 
+.profile-list button:focus-visible,
+.settings-button:focus-visible {
+  outline: 3px solid #1565c0;
+  outline-offset: -2px;
+}
+
 .profile-list button:disabled {
   opacity: 1;
   cursor: default;

@@ -95,9 +95,7 @@ async function scan(paths, rules, scope) {
     const source = await readFile(file, 'utf8');
     for (const rule of rules) {
       if (rule.expression.test(source)) {
-        violations.push(
-          `${relative(repositoryRoot.pathname, file)} [${scope}]: ${rule.reason}`,
-        );
+        violations.push(`${relative(repositoryRoot.pathname, file)} [${scope}]: ${rule.reason}`);
       }
     }
   }
