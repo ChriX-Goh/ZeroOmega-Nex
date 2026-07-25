@@ -1,4 +1,9 @@
-import type { ProfileRouteTarget } from '@zeroomega-nex/profile-spec';
+import type {
+  PacSource,
+  ProfileRouteTarget,
+  ProxyEndpoint,
+  UserProfile,
+} from '@zeroomega-nex/profile-spec';
 
 export type ReferenceSupport = 'exact' | 'target-dependent';
 
@@ -39,3 +44,62 @@ export type SwitchDecision =
       readonly trace: readonly RuleTraceEntry[];
       readonly reason: string;
     };
+
+export type ResolvedReferenceRoute =
+  | { readonly kind: 'direct' }
+  | { readonly kind: 'system' }
+  | {
+      readonly kind: 'proxy';
+      readonly endpointId: string;
+      readonly endpoint: ProxyEndpoint;
+    };
+
+export interface GraphTraceEntry {
+  readonly action:
+    | 'direct'
+    | 'system'
+    | 'enter-profile'
+    | 'switch-rule'
+    | 'switch-default'
+    | 'fixed-bypass'
+    | 'fixed-endpoint'
+    | 'fixed-unmapped-direct'
+    | 'rule-list'
+    | 'pac'
+    | 'auto-detect'
+    | 'invalid';
+  readonly profileId?: string;
+  readonly profileName?: string;
+  readonly profileKind?: UserProfile['kind'];
+  readonly ruleId?: string;
+  readonly bypassId?: string;
+  readonly endpointId?: string;
+  readonly matched?: boolean;
+  readonly support?: ReferenceSupport;
+  readonly reason?: string;
+  readonly pacSource?: PacSource;
+}
+
+export type GraphDecision =
+  | {
+      readonly status: 'resolved';
+      readonly route: ResolvedReferenceRoute;
+      readonly support: ReferenceSupport;
+      readonly trace: readonly GraphTraceEntry[];
+    }
+  | {
+      readonly status: 'indeterminate';
+      readonly support: ReferenceSupport;
+      readonly trace: readonly GraphTraceEntry[];
+      readonly reason: string;
+    }
+  | {
+      readonly status: 'invalid';
+      readonly support: ReferenceSupport;
+      readonly trace: readonly GraphTraceEntry[];
+      readonly reason: string;
+    };
+
+export interface GraphEvaluationOptions {
+  readonly maxProfileDepth?: number;
+}
