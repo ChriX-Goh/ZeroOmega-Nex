@@ -2,6 +2,13 @@ import { recoverPendingActivation, restoreActiveSnapshot } from '@zeroomega-nex/
 import { productIdentity } from '@zeroomega-nex/core-contracts';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
+import {
+  currentProxyAuthenticationApi,
+  registerStoredProxyAuthentication,
+  type ProxyAuthenticationRuntime,
+} from '../lib/proxy-auth-runtime';
+
+let authenticationRuntime: ProxyAuthenticationRuntime | undefined;
 
 async function restoreProxyRuntime(): Promise<void> {
   const runtime = currentBrowserProxyRuntime();
@@ -24,6 +31,14 @@ async function restoreProxyRuntime(): Promise<void> {
     return;
   }
   console.info(`[${productIdentity.name}] proxy runtime state: ${restored.status}.`);
+
+  authenticationRuntime?.dispose();
+  authenticationRuntime = await registerStoredProxyAuthentication(
+    currentProxyAuthenticationApi(),
+  );
+  console.info(
+    `[${productIdentity.name}] proxy authentication state: ${authenticationRuntime.status}.`,
+  );
 }
 
 export default defineBackground(() => {
