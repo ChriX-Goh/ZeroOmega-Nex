@@ -30,7 +30,12 @@ function snapshot(
       ruleListRuleCount: 0,
     },
     warnings: [],
-    verification: { passed: true, vectorCount: 3, matchedCount: 3 },
+    verification: {
+      passed: true,
+      mode: 'reference-safety',
+      vectorCount: 3,
+      matchedCount: 3,
+    },
     ...overrides,
   };
 }
@@ -66,7 +71,12 @@ describe('PAC snapshot history', () => {
       lastKnownGood: false,
       target: 'chromium',
       compilerVersion: '0.1.0',
-      verification: { passed: true, vectorCount: 3, matchedCount: 3 },
+      verification: {
+        passed: true,
+        mode: 'reference-safety',
+        vectorCount: 3,
+        matchedCount: 3,
+      },
     });
     expect(history[1]).toMatchObject({
       active: false,

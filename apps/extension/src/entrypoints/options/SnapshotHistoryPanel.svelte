@@ -39,6 +39,14 @@
     return revisions.some((revision) => revision.revisionId === entry.sourceRevisionId);
   }
 
+  function verificationModeLabel(entry: ProfileWorkflowSnapshotHistoryEntry): string {
+    if (entry.verification.mode === 'differential') return 'Node differential execution';
+    if (entry.verification.mode === 'reference-safety') {
+      return 'Extension reference-safety check plus browser install confirmation';
+    }
+    return 'Legacy verification record';
+  }
+
   function acceptResponse(response: ProfileWorkflowCommandResponse): void {
     if (!response.ok) {
       errorMessage = response.message;
@@ -215,7 +223,11 @@
           <dd>{entry.sourceProfileSpecSha256Prefix}…</dd>
         </div>
         <div>
-          <dt>Verification</dt>
+          <dt>Verification mode</dt>
+          <dd>{verificationModeLabel(entry)}</dd>
+        </div>
+        <div>
+          <dt>Verification vectors</dt>
           <dd>
             {entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched
           </dd>

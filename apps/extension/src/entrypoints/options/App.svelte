@@ -549,6 +549,13 @@
   </aside>
 
   <main class="editor">
+    {#if errorMessage}
+      <section class="settings-section global-error" aria-live="assertive">
+        <h2>Operation failed</h2>
+        <p role="alert">{errorMessage}</p>
+      </section>
+    {/if}
+
     {#if loading}
       <section class="settings-section shell-status">
         <h2>Loading profiles</h2>
@@ -792,9 +799,7 @@
 
       <section class="settings-section shell-status">
         <h2>Working copy</h2>
-        {#if errorMessage}
-          <p role="alert">{errorMessage}</p>
-        {:else if view?.busy}
+        {#if view?.busy}
           <p>Apply is in progress: {state?.pendingApply?.phase ?? 'preparing'}.</p>
         {:else}
           <p>

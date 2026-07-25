@@ -80,6 +80,14 @@ const requirements = [
     snapshotHistory.includes('Confirm rollback'),
     'Snapshot rollback must require an explicit second confirmation action.',
   ],
+  [
+    optionsApp.includes('class="settings-section global-error"'),
+    'Options must surface background errors independently of the selected section.',
+  ],
+  [
+    snapshotHistory.includes('Extension reference-safety check plus browser install confirmation'),
+    'Snapshot history must disclose browser-safe runtime verification mode.',
+  ],
 ];
 
 const failures = requirements.filter(([passed]) => !passed).map(([, message]) => message);
