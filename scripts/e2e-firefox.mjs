@@ -156,19 +156,23 @@ try {
     throw error;
   }
 
-  const historyButton = await driver.findElement(
-    By.xpath("//button[.//span[normalize-space(.)='設定歷史']]"),
+  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  const customProfile = await driver.wait(
+    until.elementLocated(By.xpath("//button[contains(., 'Firefox E2E Proxy')]")),
+    15_000,
   );
-  await historyButton.click();
+  await customProfile.click();
+  await driver.wait(until.elementIsDisabled(customProfile), 20_000);
+
+  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
   await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
   await driver.wait(until.elementLocated(By.css('article.settings-section')), 20_000);
 
   await driver.get(`moz-extension://${extensionUuid}/popup.html`);
-  await driver.wait(
-    until.elementLocated(By.xpath("//button[contains(., 'Firefox E2E Proxy')]")),
+  const direct = await driver.wait(
+    until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),
     15_000,
   );
-  const direct = await driver.findElement(By.xpath("//button[contains(., '直接連線')]"));
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
 
