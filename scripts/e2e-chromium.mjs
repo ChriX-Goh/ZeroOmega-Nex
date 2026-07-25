@@ -86,17 +86,22 @@ try {
   await apply.click();
   await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
 
-  await options.getByRole('button', { name: '配置历史' }).click();
-  await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
-  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
-  await options.locator('article.settings-section').first().waitFor({ timeout: 20_000 });
-
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>
     console.error(`[Chromium Popup pageerror] ${error.stack ?? error.message}`),
   );
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-  await popup.getByRole('button', { name: /Chromium E2E Proxy/u }).waitFor();
+  const customProfile = popup.getByRole('button', { name: /Chromium E2E Proxy/u });
+  await customProfile.waitFor();
+  await customProfile.click();
+  await assertEventually(async () => customProfile.isDisabled(), 'Custom profile did not become active');
+
+  await options.getByRole('button', { name: '配置历史' }).click();
+  await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
+  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
+  await options.locator('article.settings-section').first().waitFor({ timeout: 20_000 });
+
+  await popup.bringToFront();
   const direct = popup.getByRole('button', { name: /直接连接/u });
   await direct.click();
   await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
@@ -121,7 +126,7 @@ try {
 
 async function assertEventually(check, message, timeout = 15_000) {
   const deadline = Date.now() + timeout;
-  while (Date.now() < deadline) {
+  while (Date.now() < timeout + deadline - timeout) {
     if (await check()) return;
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
   }
