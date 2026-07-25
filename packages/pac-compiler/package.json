@@ -14,6 +14,7 @@
     "@zeroomega-nex/reference-interpreter": "workspace:*"
   },
   "devDependencies": {
+    "@zeroomega-nex/legacy-zeroomega": "workspace:*",
     "typescript": "5.9.3"
   }
 }
