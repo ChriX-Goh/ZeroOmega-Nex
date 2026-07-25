@@ -17,6 +17,8 @@ export {
   type ProfileWorkflowApplyResult,
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
+  type ProfileWorkflowRuntimeFailure,
+  type ProfileWorkflowRuntimeView,
   type ProfileWorkflowState,
   type ProfileWorkflowView,
 } from './contracts.js';
