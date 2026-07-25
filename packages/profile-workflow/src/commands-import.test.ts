@@ -133,17 +133,13 @@ describe('profile workflow import command', () => {
     const state = createProfileWorkflowState(workflowFixture());
     const repository = new MemoryProfileWorkflowRepository(state);
 
-    const response = await executeProfileWorkflowCommand(
-      repository,
-      new Initializer(),
-      {
-        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
-        action: 'accept-import',
-        expectedGeneration: state.generation,
-        candidate: importedCandidate(),
-        secretMaterials: [{ ref: 'secret-one', value: 'sensitive-value' }],
-      },
-    );
+    const response = await executeProfileWorkflowCommand(repository, new Initializer(), {
+      channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+      action: 'accept-import',
+      expectedGeneration: state.generation,
+      candidate: importedCandidate(),
+      secretMaterials: [{ ref: 'secret-one', value: 'sensitive-value' }],
+    });
 
     expect(response).toMatchObject({
       ok: false,

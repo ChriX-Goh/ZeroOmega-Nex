@@ -22,6 +22,7 @@
     ProfileWorkflowCommandResponse,
     ProfileWorkflowIdFactory,
     ProfileWorkflowProfileMutation,
+    ProfileWorkflowSecretMaterial,
     ProfileWorkflowState,
     ProfileWorkflowView,
   } from '@zeroomega-nex/profile-workflow';
@@ -181,6 +182,19 @@
       action: 'replace-draft',
       expectedGeneration: state.generation,
       draft,
+    });
+  }
+
+  async function acceptImportedDraft(
+    expectedGeneration: number,
+    candidate: ProfileSpec,
+    secretMaterials: readonly ProfileWorkflowSecretMaterial[],
+  ): Promise<boolean> {
+    return runCommand({
+      action: 'accept-import',
+      expectedGeneration,
+      candidate,
+      secretMaterials,
     });
   }
 
@@ -531,7 +545,12 @@
           </div>
         </div>
       </header>
-      <LegacyImportPanel disabled={saving || view?.busy === true} onReplaceDraft={replaceDraft} />
+      <LegacyImportPanel
+        disabled={saving || view?.busy === true}
+        generation={state.generation}
+        deviceId={state.applied.revision.deviceId ?? 'zeroomega-nex-extension'}
+        onAcceptImport={acceptImportedDraft}
+      />
     {:else if selectedProfile && state}
       <header class="editor-heading">
         <div class="profile-title">
