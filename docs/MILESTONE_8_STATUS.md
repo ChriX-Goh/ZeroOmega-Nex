@@ -8,7 +8,7 @@
 **Browser E2E:** run `30174300078` passed for Chromium and Firefox  
 **Installable artifact:** `browser-builds`, artifact `8623785399`, SHA-256 `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
 
-The downloaded artifact ZIP contains `browser-builds.tar.gz`; extracting it produces complete `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/` unpacked extension directories.
+The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract the ZIP first, then extract the TAR.GZ to obtain complete `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/` unpacked extension directories.
 
 The earlier candidate at `335229f762e6353ec14e57b5cc2695b6395d175c` and artifact `8622723587` failed repository-owner QC on 2026-07-26 because the layout diverged from original ZeroOmega, global settings were mixed into profile pages, the Options surface felt cramped, and user-visible bugs remained. That candidate and artifact are obsolete and must not be used for acceptance.
 
