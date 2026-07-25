@@ -1,0 +1,79 @@
+name: Connect Milestone 8 Snapshot Rollback Command
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  connect:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Connect snapshot rollback command
+        run: python .github/scripts/connect-m8-snapshot-rollback-command.py
+
+      - name: Format snapshot rollback command slice
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/commands-rollback.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/index.ts \
+            packages/profile-workflow/src/snapshot-rollback.test.ts \
+            packages/profile-workflow/src/snapshot-rollback.ts
+
+      - name: Verify snapshot rollback command slice
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            pnpm --filter @zeroomega-nex/profile-workflow check
+            pnpm exec vitest run \
+              packages/profile-workflow/src/snapshot-rollback.test.ts \
+              packages/profile-workflow/src/commands-rollback.test.ts
+          } 2>&1 | tee m8-snapshot-rollback-command.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-snapshot-rollback-command-diagnostics
+          path: m8-snapshot-rollback-command.log
+          if-no-files-found: warn
+
+      - name: Commit snapshot rollback command integration
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            packages/profile-workflow/src/commands-rollback.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/index.ts \
+            packages/profile-workflow/src/snapshot-rollback.test.ts \
+            packages/profile-workflow/src/snapshot-rollback.ts
+          git commit -m 'feat: add atomic snapshot rollback command'
+          git push origin HEAD:feat/m8-profile-workflow
