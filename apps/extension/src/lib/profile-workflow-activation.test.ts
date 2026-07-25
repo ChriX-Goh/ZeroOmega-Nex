@@ -4,6 +4,7 @@ import {
   type BrowserProxyDriver,
   type PacInstallConfirmation,
   type PlatformProxyState,
+  type ProxyAuthenticationBinding,
 } from '@zeroomega-nex/browser-adapters';
 import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 import { cloneProfileSpec } from '@zeroomega-nex/profile-spec';
@@ -13,8 +14,10 @@ import { describe, expect, it } from 'vitest';
 import {
   BrowserProfileWorkflowActivationDriver,
   buildProfileWorkflowVerificationVectors,
+  type ProfileWorkflowAuthenticationCoordinator,
   type ProfileWorkflowProxyRuntime,
 } from './profile-workflow-activation';
+import type { ProxyAuthenticationPreparationResult } from './proxy-auth-runtime';
 
 function defaultSpec() {
   return createDefaultProfileSpec({
@@ -25,10 +28,22 @@ function defaultSpec() {
   });
 }
 
+function authenticatedSpec(protocol: 'http' | 'socks5' = 'http') {
+  const spec = cloneProfileSpec(defaultSpec());
+  const endpoint = spec.proxyEndpoints[0]!;
+  endpoint.protocol = protocol;
+  endpoint.credential = {
+    username: 'proxy-user',
+    passwordSecretRef: 'secret-proxy-password',
+  };
+  return spec;
+}
+
 class FakeProxyDriver implements BrowserProxyDriver {
   readonly family: 'chromium' | 'firefox';
   installed: PacRuntimeSnapshot | undefined;
   installCount = 0;
+  failInstall = false;
   state: PlatformProxyState;
 
   constructor(family: 'chromium' | 'firefox' = 'chromium') {
@@ -61,6 +76,7 @@ class FakeProxyDriver implements BrowserProxyDriver {
 
   async installPac(snapshot: PacRuntimeSnapshot): Promise<void> {
     this.installCount += 1;
+    if (this.failInstall) throw new Error('PAC install failed for test');
     this.installed = structuredClone(snapshot);
     this.state = {
       family: this.family,
@@ -105,6 +121,40 @@ class FakeProxyDriver implements BrowserProxyDriver {
 
   async clearControl(): Promise<void> {
     this.installed = undefined;
+  }
+}
+
+class FakeAuthenticationCoordinator implements ProfileWorkflowAuthenticationCoordinator {
+  readonly preparedBindings: ProxyAuthenticationBinding[][] = [];
+  commitCount = 0;
+  rollbackCount = 0;
+  failure?: Extract<ProxyAuthenticationPreparationResult, { ok: false }>;
+  rollbackError?: Error;
+
+  async prepare(
+    bindings: readonly ProxyAuthenticationBinding[],
+  ): Promise<ProxyAuthenticationPreparationResult> {
+    this.preparedBindings.push(structuredClone([...bindings]));
+    if (this.failure) return this.failure;
+    let settled = false;
+    return {
+      ok: true,
+      preparation: {
+        status: 'prepared',
+        runtimeStatus: bindings.length === 0 ? 'not-configured' : 'registered',
+        commit: () => {
+          if (settled) return;
+          settled = true;
+          this.commitCount += 1;
+        },
+        rollback: async () => {
+          if (settled) return;
+          settled = true;
+          this.rollbackCount += 1;
+          if (this.rollbackError) throw this.rollbackError;
+        },
+      },
+    };
   }
 }
 
@@ -211,5 +261,107 @@ describe('ProfileSpec PAC activation driver', () => {
     await expect(driver.inspectRuntime()).resolves.toMatchObject({
       activeRoute: { kind: 'direct' },
     });
+  });
+
+  it('prepares reachable HTTP credentials before PAC activation and commits them', async () => {
+    const proxy = new FakeProxyDriver();
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+      now: () => new Date('2026-07-25T09:05:00.000Z'),
+    });
+
+    await driver.activate(authenticatedSpec());
+
+    expect(authentication.preparedBindings).toEqual([
+      [
+        {
+          endpointId: 'endpoint-default-proxy',
+          protocol: 'http',
+          host: '127.0.0.1',
+          port: 7890,
+          username: 'proxy-user',
+          passwordSecretRef: 'secret-proxy-password',
+        },
+      ],
+    ]);
+    expect(authentication.commitCount).toBe(1);
+    expect(authentication.rollbackCount).toBe(0);
+    expect(proxy.installCount).toBe(1);
+  });
+
+  it('does not switch browser proxy state when authentication preparation fails', async () => {
+    const proxy = new FakeProxyDriver();
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    authentication.failure = {
+      ok: false,
+      status: 'permissions-required',
+      message: 'permissions are missing',
+    };
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+    });
+
+    await expect(driver.activate(authenticatedSpec())).rejects.toThrow(
+      'proxy authentication preparation failed: permissions are missing',
+    );
+    expect(proxy.installCount).toBe(0);
+    expect(authentication.commitCount).toBe(0);
+    expect(authentication.rollbackCount).toBe(0);
+  });
+
+  it('rolls authentication state back when browser proxy installation fails', async () => {
+    const proxy = new FakeProxyDriver();
+    proxy.failInstall = true;
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+      now: () => new Date('2026-07-25T09:06:00.000Z'),
+    });
+
+    await expect(driver.activate(authenticatedSpec())).rejects.toThrow(
+      'browser proxy activation failed at install',
+    );
+    expect(authentication.commitCount).toBe(0);
+    expect(authentication.rollbackCount).toBe(1);
+  });
+
+  it('prepares an empty authentication plan when switching to Direct', async () => {
+    const proxy = new FakeProxyDriver();
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+      now: () => new Date('2026-07-25T09:07:00.000Z'),
+    });
+
+    await driver.activate(authenticatedSpec(), { kind: 'direct' });
+
+    expect(authentication.preparedBindings).toEqual([[]]);
+    expect(authentication.commitCount).toBe(1);
+    expect(proxy.state.value).toEqual({ mode: 'direct' });
+  });
+
+  it('rejects browser-only SOCKS credentials before authentication or proxy changes', async () => {
+    const proxy = new FakeProxyDriver();
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+    });
+
+    await expect(driver.activate(authenticatedSpec('socks5'))).rejects.toThrow(
+      'browser-only proxy authentication does not support SOCKS credentials',
+    );
+    expect(authentication.preparedBindings).toEqual([]);
+    expect(proxy.installCount).toBe(0);
   });
 });
