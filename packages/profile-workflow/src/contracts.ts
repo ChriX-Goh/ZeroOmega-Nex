@@ -1,4 +1,4 @@
-import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
+import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 
 export const PROFILE_WORKFLOW_SCHEMA_VERSION = 1 as const;
 
@@ -27,6 +27,20 @@ export type ProfileWorkflowApplyRecord =
       readonly rollbackSucceeded?: boolean;
     };
 
+export interface ProfileWorkflowRuntimeFailure {
+  readonly stage: 'preflight' | 'install' | 'confirm' | 'rollback' | 'recovery';
+  readonly message: string;
+  readonly occurredAt: string;
+  readonly rollbackSucceeded?: boolean;
+}
+
+export interface ProfileWorkflowRuntimeView {
+  readonly activeSnapshotId?: string;
+  readonly lastKnownGoodSnapshotId?: string;
+  readonly activeRoute?: ProfileRouteTarget;
+  readonly lastFailure?: ProfileWorkflowRuntimeFailure;
+}
+
 export interface ProfileWorkflowState {
   readonly workflowSchemaVersion: typeof PROFILE_WORKFLOW_SCHEMA_VERSION;
   readonly generation: number;
@@ -50,8 +64,12 @@ export interface ProfileWorkflowActivationResult {
 }
 
 export interface ProfileWorkflowActivationDriver {
-  activate(candidate: ProfileSpec): Promise<ProfileWorkflowActivationResult>;
+  activate(
+    candidate: ProfileSpec,
+    startRoute?: ProfileRouteTarget,
+  ): Promise<ProfileWorkflowActivationResult>;
   rollback(previousApplied: ProfileSpec): Promise<void>;
+  inspectRuntime?(): Promise<ProfileWorkflowRuntimeView>;
 }
 
 export interface ProfileWorkflowApplyContext {
