@@ -250,11 +250,7 @@ describe('restart recovery', () => {
     await repository.putSnapshot(previous);
     const driver = new FakeDriver();
 
-    const result = await recoverPendingActivation(
-      repository,
-      driver,
-      '2026-07-25T08:11:00.000Z',
-    );
+    const result = await recoverPendingActivation(repository, driver, '2026-07-25T08:11:00.000Z');
     expect(result).toEqual({
       status: 'recovered',
       activeSnapshotId: 'previous',
@@ -279,11 +275,7 @@ describe('restart recovery', () => {
       value: { mode: 'pac_script' },
     };
 
-    const result = await recoverPendingActivation(
-      repository,
-      driver,
-      '2026-07-25T08:13:00.000Z',
-    );
+    const result = await recoverPendingActivation(repository, driver, '2026-07-25T08:13:00.000Z');
     expect(result).toEqual({ status: 'recovered', restoredPlatformBaseline: true });
     expect(driver.currentState).toEqual(baseline);
   });

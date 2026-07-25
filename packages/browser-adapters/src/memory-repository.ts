@@ -1,9 +1,6 @@
 import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 
-import type {
-  SnapshotActivationRepository,
-  SnapshotActivationState,
-} from './contracts.js';
+import type { SnapshotActivationRepository, SnapshotActivationState } from './contracts.js';
 
 function clone<T>(value: T): T {
   return structuredClone(value);
