@@ -1,90 +1,90 @@
-# Milestone 8 Status — Familiar UI and Profile Workflow
+# Milestone 8 Status — Original-Compatible UI and Profile Workflow
 
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft pending repository-owner installation and manual QC  
-**Frozen implementation head:** `335229f762e6353ec14e57b5cc2695b6395d175c`  
-**Full CI:** run `30170265014` passed on 2026-07-25  
-**Browser E2E:** run `30170265029` passed for Chromium and Firefox  
-**Installable artifact:** `browser-builds`, artifact `8622723587`, SHA-256 `914428216f5fd3c8b9aaf5db4c7dd898b14868efc2c1e2d344a0adf96622b126`
+**Frozen implementation head:** `90955b49223772a7d7df14317cd011073647055e`  
+**Full CI:** run `30174300115` passed on 2026-07-26  
+**Browser E2E:** run `30174300078` passed for Chromium and Firefox  
+**Installable artifact:** `browser-builds`, artifact `8623785399`, SHA-256 `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
+
+The earlier candidate at `335229f762e6353ec14e57b5cc2695b6395d175c` and artifact `8622723587` failed repository-owner QC on 2026-07-26 because the layout diverged from original ZeroOmega, global settings were mixed into profile pages, the Options surface felt cramped, and user-visible bugs remained. That candidate and artifact are obsolete and must not be used for acceptance.
 
 This file is the durable execution context for Milestone 8. Repository contributors must use it together with `docs/milestone-8-ui-contract.md`, `docs/MILESTONE_8_RELEASE_CANDIDATE.md`, `docs/DELIVERY_PLAN.md`, and `docs/DECISIONS.md`; chat history is not a source of truth.
 
 ## Non-negotiable invariants
 
-1. The UI never calls browser proxy APIs or persistent secret storage directly.
-2. UI components submit typed commands to the background control plane.
-3. Draft, candidate, applied revision, verified snapshot, installed state, and browser-confirmed active state remain distinct.
-4. Import never activates automatically.
-5. Popup switching uses the Applied revision only; unsaved Draft data cannot affect traffic.
-6. PAC/profile activation, Direct/System transitions, authentication preparation, confirmation, state commit, and rollback form one recoverable control-plane operation.
-7. Secret values never enter ProfileSpec, ordinary exports, migration reports, logs, command responses, or rendered UI.
-8. Normal routing never uses an extension-side global proxy decision callback.
+1. The Options experience follows the original ZeroOmega/SwitchyOmega information architecture closely enough that an existing user does not need to relearn where settings and profiles live.
+2. Options opens as a complete browser tab, with persistent left navigation and a separate right-hand page for the selected settings area or profile.
+3. Global settings never appear inside a profile editor merely to save implementation effort.
+4. The UI never calls browser proxy APIs or persistent secret storage directly; components submit typed commands to the background control plane.
+5. Draft, candidate, applied revision, verified snapshot, installed state, and browser-confirmed active state remain distinct internally.
+6. Selecting a backup file never changes traffic by itself. Explicit `Import and use now` performs import and normal verified Apply as one user action.
+7. Popup switching uses the Applied revision only; unsaved Draft data cannot affect traffic.
+8. Secret values never enter ProfileSpec, ordinary exports, migration reports, logs, command responses, or rendered UI.
 9. Temporary CI workflows or patch scripts must be removed after their product change is committed.
-10. Every implementation slice is committed to GitHub and its resulting Head CI must pass before the next slice is treated as complete.
+10. Every implementation slice is committed to GitHub and its resulting Head CI must pass before the slice is treated as complete.
 
 ## Delivered and verified
 
-### Working-copy and Apply model
+### Original-compatible Options architecture
 
-- Dedicated `@zeroomega-nex/profile-workflow` package.
-- Applied, Draft, candidate, pending Apply, last-result, selection, and generation state.
-- Compare-and-swap persistence, dirty detection, Revert, immutable child revisions, restart and corruption handling.
-- Atomic candidate validation, PAC compilation, browser-safe runtime verification, browser installation, confirmation, applied-state commit, and rollback.
-- Node/CI differential PAC execution remains separate from extension runtime reference-safety verification because MV3 CSP forbids dynamic code execution.
+- Options declares `manifest.open_in_tab=true` and opens as a complete browser tab rather than a constrained embedded dialog.
+- Persistent left navigation restores the original three-group model: Settings, Profiles, and Actions.
+- Settings contains independent Interface, General, Import / Export, Theme, and Snapshot History pages.
+- Profiles contains Built-in Profiles, one entry per user profile, and one `New profile…` entry.
+- Actions contains persistent Apply changes and Discard changes controls plus Draft status.
+- The right-hand editor renders only the selected page. Startup and Quick Switch settings no longer appear inside every profile.
+- Fixed, Switch, Rule List, PAC, and Auto Detect profiles retain dedicated profile editors.
+- Built-in Direct and System colors have their own page instead of appearing as fake user profiles.
+- Product identity is updated to Milestone 8.
 
-### Profile management and editors
+### Appearance
 
-- Familiar profile navigation, colors, selection, rename, independent duplication, deletion, orphan-resource cleanup, and route-reference repair.
-- Fixed, Switch, Rule List, PAC, and Auto Detect editors and creation flows.
-- Ordered Switch rules covering every supported condition kind, enable/disable, note, duplicate, delete, and move operations.
-- Startup route, release-control restoration, ordered Quick Switch routes, and popup enable/refresh preferences.
+- Theme choices are Automatic, Light, and Dark.
+- Automatic is the default and follows `prefers-color-scheme` immediately.
+- Explicit Light or Dark selection is stored as a device-local UI preference and does not modify ProfileSpec or routing state.
+- Light and dark palettes share the same original-style layout and interaction model.
 
-### Popup and browser activation
+### Original backup migration
 
-- Popup reads Applied configuration only, checks revision freshness, and displays browser-confirmed active state.
-- Verified profile-route activation through PAC.
-- Native Direct/System activation with confirmation, rollback, crash recovery, restart restoration, and persisted active mode.
-- Route-scoped HTTP/HTTPS authentication planning and transactional listener/binding preparation.
-- Reachable authenticated SOCKS routes are rejected explicitly in browser-only mode.
-- Direct/System transitions and startup restoration coordinate authentication and proxy state transactionally.
+- File-first restore accepts original ZeroOmega/SwitchyOmega `.bak`, `.json`, and `.txt` exports, plus pasted JSON or base64 backup text.
+- Schema-version-2 profiles, settings, Quick Switch order, startup route, built-in colors, conditions, rule lists, PAC definitions, and supported credentials are mapped through the existing deterministic importer.
+- Compatibility totals and technical migration details are shown before activation.
+- `Import and use now` accepts the imported configuration and immediately runs the normal verified Apply transaction.
+- `Import without activating` remains available for cautious review.
+- File selection and analysis alone never modify Draft or active traffic.
+- Imported secret values are extracted into background-owned secret storage and excluded from ProfileSpec, reports, responses, and UI.
 
-### Legacy import
+### Verified control plane
 
-- ZeroOmega/SwitchyOmega schema-version-2 JSON and base64 analysis.
-- Deterministic compatibility totals and migration-detail review.
-- Candidate remains inactive until accepted into Draft and later Applied separately.
-- Import acceptance uses a typed background command with expected-generation compare-and-swap semantics.
-- Imported document identity is normalized to the current workflow document and applied revision.
-- Secret values are persisted only by the background transaction and restored after conflicts or storage failures.
-- Options components do not access persistent secret storage, and responses/UI exclude secret values.
+- Compare-and-swap working-copy persistence, immutable revisions, dirty detection, Revert, restart recovery, and corruption rejection.
+- Atomic validation, PAC compilation, browser-safe runtime verification, browser installation, confirmation, applied-state commit, authentication preparation, and compensating rollback.
+- Applied-only Popup quick switching with browser-confirmed active state.
+- Redacted revision and PAC snapshot history with active/last-known-good markers and two-step rollback.
+- Route-scoped HTTP/HTTPS authentication preparation; reachable authenticated SOCKS routes are rejected explicitly in browser-only mode.
 
-### Snapshot and revision history
+### Automated acceptance
 
-- Immutable ProfileSpec revision archive with legacy active-revision fallback and corruption rejection.
-- Verified PAC snapshot index with legacy active/last-known-good fallback and corruption rejection.
-- Read-only redacted history returns source revision, route, target, compiler, hashes, statistics, warnings, active markers, and verification mode without PAC source or secrets.
-- History explicitly distinguishes Node differential execution, extension reference-safety plus browser confirmation, and legacy verification records.
-- Two-step snapshot rollback restores the exact archived revision, PAC snapshot, authentication bindings, and browser proxy state through one compensating transaction.
-- Missing revisions, cross-document records, incompatible browser targets, dirty Draft state, activation failure, and compare-and-swap conflict are rejected or rolled back.
-
-### Acceptance hardening
-
-- Architecture guard prevents Options/Popup direct access to browser proxy, authentication, messaging bypass, and persistent storage APIs.
-- Visible keyboard focus and narrow-screen single-column layouts are enforced by permanent UI guards.
-- Svelte server-render component tests cover Popup, Switch editor, Rule List editor, import review, and history/rollback surfaces.
-- Options surfaces background failures globally instead of hiding initialization errors behind profile-selection branches.
-- ProfileSpec validation is generated at build time; final browser bundles are inspected for MV3-forbidden dynamic code execution.
-- Permanent Browser E2E workflow tests real unpacked Chromium and temporary-installed Firefox extensions.
-- Chromium and Firefox both completed profile edit, Apply, history inspection, Popup open, and Direct switch on the frozen implementation head.
-- Firefox runtime identifiers are normalized before entering ProfileSpec metadata, and Firefox E2E grants private-window access explicitly through WebDriver BiDi.
+- Permanent UI guard enforces original navigation groups, independent settings/profile pages, full-tab Options, file-first one-step migration, system theme support, responsive layout, keyboard focus, rollback confirmation, and global error visibility.
+- Svelte checks report zero errors and zero warnings.
+- Root suite passes 274 unit/integration tests and 6 Svelte component-rendering tests.
+- Chromium and Firefox production builds, manifests, MV3 CSP inspection, architecture guards, formatting, lint, packaging, and all workspace checks pass.
+- Chromium real-browser E2E verifies Automatic and Dark theme behavior, profile edit and Apply, snapshot history, Popup Direct switching, upload of the original schema-v2 fixture, and `Import and use now` activation.
+- Firefox real-browser E2E verifies profile edit and Apply, history navigation under the restored layout, Popup Direct switching, normalized runtime identity, and required private-window access.
 
 ## Remaining closure
 
-Automated Milestone 8 implementation and acceptance checks are complete. The only remaining closure gate is repository-owner installation and manual QC of the consolidated artifact documented in `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
+This is a replacement release candidate after the first manual QC failure. Automated checks are green, but automated success does not override the repository owner’s usability judgment or prove that every real exported backup and editor path is bug-free.
 
-The PR remains Draft until that QC is recorded. A QC failure requires a new implementation head, complete CI and Browser E2E rerun, and a newly frozen artifact digest.
+The PR remains Draft until the repository owner confirms:
+
+- the layout is sufficiently faithful to original ZeroOmega,
+- detailed configuration pages are comfortable in a full browser tab,
+- a real personal ZeroOmega export imports and works without rebuilding profiles,
+- Automatic, Light, and Dark appearance behave correctly,
+- the previously observed bugs are either fixed or recorded precisely for the next slice.
 
 ## Current next action
 
-Install the frozen Chromium and Firefox packages from artifact `8622723587` and execute the repository-owner checklist in `docs/MILESTONE_8_RELEASE_CANDIDATE.md`. Do not mark PR #11 ready for review until both browser checks pass or an explicit scoped exception is documented.
+Install artifact `8623785399` and execute the revised checklist in `docs/MILESTONE_8_RELEASE_CANDIDATE.md`. Do not mark PR #11 ready for review until both browser checks pass. A failure keeps the PR Draft and requires a new implementation head, complete CI/E2E rerun, and newly frozen artifact digest.
