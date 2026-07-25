@@ -1,0 +1,32 @@
+name: M6 lock test dependency
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  lock:
+    if: github.head_ref == 'feat/m6-pac-compiler'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m6-pac-compiler
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: corepack enable && corepack prepare pnpm@11.4.0 --activate
+      - name: Update lockfile and remove workflow
+        run: |
+          pnpm install --lockfile-only --no-frozen-lockfile
+          pnpm exec prettier --write packages/pac-compiler/package.json pnpm-lock.yaml
+          rm .github/workflows/m6-lock-test-dependency.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/pac-compiler/package.json pnpm-lock.yaml .github/workflows/m6-lock-test-dependency.yml
+          git commit -m "build(pac): lock fixture importer dependency"
+          git push origin HEAD:feat/m6-pac-compiler
