@@ -16,7 +16,7 @@ function validateRevision(spec: ProfileSpec, documentId: string): void {
   if (!Number.isFinite(Date.parse(spec.revision.createdAt))) {
     throw new TypeError(`revision ${spec.revision.id} has an invalid creation time`);
   }
-  if (spec.revision.parentRevisionId === spec.revision.id) {
+  if (spec.revision.parentId === spec.revision.id) {
     throw new TypeError(`revision ${spec.revision.id} cannot be its own parent`);
   }
 }
@@ -36,9 +36,9 @@ export async function listProfileWorkflowRevisionHistory(
     return {
       documentId: spec.documentId,
       revisionId: spec.revision.id,
-      ...(spec.revision.parentRevisionId === undefined
+      ...(spec.revision.parentId === undefined
         ? {}
-        : { parentRevisionId: spec.revision.parentRevisionId }),
+        : { parentRevisionId: spec.revision.parentId }),
       createdAt: spec.revision.createdAt,
       ...(spec.revision.deviceId === undefined ? {} : { deviceId: spec.revision.deviceId }),
       profileCount: spec.profiles.length,
