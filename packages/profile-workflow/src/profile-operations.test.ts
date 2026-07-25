@@ -1,4 +1,8 @@
-import { validateProfileSpec } from '@zeroomega-nex/profile-spec';
+import {
+  validateProfileSpec,
+  type FixedProfile,
+  type SwitchProfile,
+} from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -46,7 +50,8 @@ describe('profile draft operations', () => {
   it('duplicates a fixed profile with independent endpoint and bypass IDs', () => {
     const result = duplicateProfileDraft(workflowFixture(), 'profile-primary', deterministicIds());
     const duplicate = result.draft.profiles.find(
-      (candidate) => candidate.id === result.profileId && candidate.kind === 'fixed',
+      (candidate): candidate is FixedProfile =>
+        candidate.id === result.profileId && candidate.kind === 'fixed',
     );
 
     expect(duplicate).toMatchObject({
@@ -99,7 +104,8 @@ describe('profile draft operations', () => {
 
     const draft = deleteProfileDraft(spec, 'profile-primary');
     const switchProfile = draft.profiles.find(
-      (profile) => profile.id === 'profile-switch' && profile.kind === 'switch',
+      (profile): profile is SwitchProfile =>
+        profile.id === 'profile-switch' && profile.kind === 'switch',
     );
 
     expect(draft.settings.startup.route).toEqual({ kind: 'direct' });
