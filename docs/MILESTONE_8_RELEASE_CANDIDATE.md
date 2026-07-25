@@ -15,7 +15,7 @@ The earlier implementation head `335229f762e6353ec14e57b5cc2695b6395d175c` and a
 - **Artifact SHA-256:** `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
 - **Artifact expiry:** 2026-10-23
 
-The artifact ZIP contains `browser-builds.tar.gz`. That archive contains complete unpacked extension directories for both `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/`.
+The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract that archive to obtain complete unpacked extension directories at `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/`.
 
 ## What changed after the failed QC
 
@@ -86,29 +86,31 @@ Use only the frozen artifact above. Do not reuse the rejected artifact and do no
 
 ### Chromium — original-layout and migration gate
 
-1. Extract `browser-builds.tar.gz`, enable developer mode, and load `browser-builds/chrome-mv3/` unpacked.
-2. Open Options from the extension and confirm it opens in a complete browser tab.
-3. Compare against original ZeroOmega: confirm the fixed left sidebar has Settings, Profiles, and Actions; profile selection changes only the right-hand page.
-4. Confirm Interface, General, Import / Export, Theme, Snapshot History, Built-in Profiles, New Profile, and each user profile are independent pages.
-5. Confirm Startup and Quick Switch appear only under General, not underneath profile details.
-6. Open Theme. Verify Automatic is selected by default, follows the system appearance, and Light/Dark overrides persist after reopening Options.
-7. Export a real configuration from the original ZeroOmega/SwitchyOmega installation and select that file under Import / Export.
-8. Review migration totals, then click `Import and use now`. Confirm profiles, colors, startup selection, Quick Switch order, switching rules, rule lists, PAC definitions, bypass entries, and supported credentials appear without manual rebuilding.
-9. Open several imported Fixed, Switch, Rule List, PAC, and Auto Detect profiles. Check field values and ordering against the original extension.
-10. Confirm Popup immediately uses the imported Applied configuration and active marker.
-11. Edit a profile, confirm the Draft becomes dirty without changing traffic, then Apply and verify history records the snapshot.
-12. Create a second snapshot and use two-step rollback to restore the earlier one.
-13. Exercise Direct and System switching from Popup.
-14. Exercise an authenticated HTTP/HTTPS route first without optional permission, then after granting it; confirm no partial state remains after failure.
-15. Restart the browser and confirm the last committed active route and chosen theme are restored.
-16. Judge the primary requirement explicitly: an experienced original ZeroOmega user should not need to relearn the navigation or reconstruct an exported configuration.
+1. Extract the downloaded ZIP, then extract `browser-builds.tar.gz`.
+2. Enable developer mode and load `browser-builds/chrome-mv3/` unpacked.
+3. Open Options from the extension and confirm it opens in a complete browser tab.
+4. Compare against original ZeroOmega: confirm the fixed left sidebar has Settings, Profiles, and Actions; profile selection changes only the right-hand page.
+5. Confirm Interface, General, Import / Export, Theme, Snapshot History, Built-in Profiles, New Profile, and each user profile are independent pages.
+6. Confirm Startup and Quick Switch appear only under General, not underneath profile details.
+7. Open Theme. Verify Automatic is selected by default, follows the system appearance, and Light/Dark overrides persist after reopening Options.
+8. Export a real configuration from the original ZeroOmega/SwitchyOmega installation and select that file under Import / Export.
+9. Review migration totals, then click `Import and use now`. Confirm profiles, colors, startup selection, Quick Switch order, switching rules, rule lists, PAC definitions, bypass entries, and supported credentials appear without manual rebuilding.
+10. Open several imported Fixed, Switch, Rule List, PAC, and Auto Detect profiles. Check field values and ordering against the original extension.
+11. Confirm Popup immediately uses the imported Applied configuration and active marker.
+12. Edit a profile, confirm the Draft becomes dirty without changing traffic, then Apply and verify history records the snapshot.
+13. Create a second snapshot and use two-step rollback to restore the earlier one.
+14. Exercise Direct and System switching from Popup.
+15. Exercise an authenticated HTTP/HTTPS route first without optional permission, then after granting it; confirm no partial state remains after failure.
+16. Restart the browser and confirm the last committed active route and chosen theme are restored.
+17. Judge the primary requirement explicitly: an experienced original ZeroOmega user should not need to relearn the navigation or reconstruct an exported configuration.
 
 ### Firefox
 
-1. Temporarily install `browser-builds/firefox-mv3/`.
-2. Grant permission for the extension to run in private windows before testing proxy activation.
-3. Repeat the full-tab layout, independent pages, themes, real backup import, profile comparison, Apply, history, rollback, Popup, authentication, and restart checks above.
-4. Revoke private-window permission and confirm Apply fails visibly without partially changing committed workflow state.
+1. Extract the downloaded ZIP, then extract `browser-builds.tar.gz`.
+2. Temporarily install `browser-builds/firefox-mv3/`.
+3. Grant permission for the extension to run in private windows before testing proxy activation.
+4. Repeat the full-tab layout, independent pages, themes, real backup import, profile comparison, Apply, history, rollback, Popup, authentication, and restart checks above.
+5. Revoke private-window permission and confirm Apply fails visibly without partially changing committed workflow state.
 
 ## Bug-report format for this QC
 
