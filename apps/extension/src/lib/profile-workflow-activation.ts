@@ -1,7 +1,9 @@
 import {
   activateBuiltInMode,
   activatePacSnapshot,
+  createProxyAuthenticationPlan,
   type BrowserProxyDriver,
+  type ProxyAuthenticationBinding,
   type SnapshotActivationRepository,
 } from '@zeroomega-nex/browser-adapters';
 import {
@@ -24,6 +26,7 @@ import type {
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
+import type { ProxyAuthenticationPreparationResult } from './proxy-auth-runtime';
 
 const WEEKDAY_INDEX: Readonly<Record<Weekday, number>> = {
   sun: 0,
@@ -41,9 +44,16 @@ export interface ProfileWorkflowProxyRuntime {
   dispose(): void;
 }
 
+export interface ProfileWorkflowAuthenticationCoordinator {
+  prepare(
+    bindings: readonly ProxyAuthenticationBinding[],
+  ): Promise<ProxyAuthenticationPreparationResult>;
+}
+
 export interface ProfileWorkflowPacActivationOptions {
   readonly createRuntime?: () => ProfileWorkflowProxyRuntime;
   readonly now?: () => Date;
+  readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
 }
 
 function targetFor(driver: BrowserProxyDriver): PacTarget {
@@ -265,6 +275,10 @@ export function buildProfileWorkflowVerificationVectors(
   }));
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function snapshotFailureMessage(
   result: Exclude<Awaited<ReturnType<typeof createVerifiedPacSnapshot>>, { ok: true }>,
 ): string {
@@ -283,10 +297,12 @@ function snapshotFailureMessage(
 export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowActivationDriver {
   readonly #createRuntime: () => ProfileWorkflowProxyRuntime;
   readonly #now: () => Date;
+  readonly #authentication: ProfileWorkflowAuthenticationCoordinator | undefined;
 
   constructor(options: ProfileWorkflowPacActivationOptions = {}) {
     this.#createRuntime = options.createRuntime ?? currentBrowserProxyRuntime;
     this.#now = options.now ?? (() => new Date());
+    this.#authentication = options.authentication;
   }
 
   async activate(
@@ -342,11 +358,36 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
     spec: ProfileSpec,
     startRoute?: ProfileRouteTarget,
   ): Promise<ProfileWorkflowActivationResult> {
-    const runtime = this.#createRuntime();
+    const route: ProfileRouteTarget = startRoute ??
+      spec.settings.startup.route ?? { kind: 'direct' };
+    const authenticationPlan = createProxyAuthenticationPlan(spec, route);
+    if (authenticationPlan.unsupported.length > 0) {
+      const endpoints = authenticationPlan.unsupported
+        .map((endpoint) => `${endpoint.endpointId} (${endpoint.protocol})`)
+        .join(', ');
+      throw new Error(
+        `browser-only proxy authentication does not support SOCKS credentials: ${endpoints}`,
+      );
+    }
+
+    let authenticationPreparation:
+      | Extract<ProxyAuthenticationPreparationResult, { ok: true }>['preparation']
+      | undefined;
+    if (this.#authentication) {
+      const prepared = await this.#authentication.prepare(authenticationPlan.bindings);
+      if (!prepared.ok) {
+        throw new Error(`proxy authentication preparation failed: ${prepared.message}`);
+      }
+      authenticationPreparation = prepared.preparation;
+    } else if (authenticationPlan.bindings.length > 0) {
+      throw new Error('proxy authentication runtime is unavailable');
+    }
+
+    let runtime: ProfileWorkflowProxyRuntime | undefined;
     try {
+      runtime = this.#createRuntime();
       const startedAt = this.#now().toISOString();
-      const route: ProfileRouteTarget = startRoute ??
-        spec.settings.startup.route ?? { kind: 'direct' };
+      let result: ProfileWorkflowActivationResult;
       if (route.kind === 'direct' || route.kind === 'system') {
         const activated = await activateBuiltInMode(
           runtime.repository,
@@ -362,36 +403,49 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
             `browser proxy activation failed at ${activated.stage}: ${activated.message}`,
           );
         }
-        return { snapshotId: `built-in-${activated.activeBuiltInMode}` };
-      }
-
-      const snapshot = await createVerifiedPacSnapshot(
-        spec,
-        route,
-        buildProfileWorkflowVerificationVectors(spec),
-        { createdAt: startedAt },
-        { target: targetFor(runtime.driver) },
-      );
-      if (!snapshot.ok) {
-        throw new Error(
-          `${snapshot.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(snapshot)}`,
+        result = { snapshotId: `built-in-${activated.activeBuiltInMode}` };
+      } else {
+        const snapshot = await createVerifiedPacSnapshot(
+          spec,
+          route,
+          buildProfileWorkflowVerificationVectors(spec),
+          { createdAt: startedAt },
+          { target: targetFor(runtime.driver) },
         );
-      }
+        if (!snapshot.ok) {
+          throw new Error(
+            `${snapshot.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(snapshot)}`,
+          );
+        }
 
-      const activated = await activatePacSnapshot(
-        runtime.repository,
-        runtime.driver,
-        snapshot.snapshot,
-        { startedAt, failedAt: this.#now().toISOString() },
-      );
-      if (!activated.ok) {
-        throw new Error(
-          `browser proxy activation failed at ${activated.stage}: ${activated.message}`,
+        const activated = await activatePacSnapshot(
+          runtime.repository,
+          runtime.driver,
+          snapshot.snapshot,
+          { startedAt, failedAt: this.#now().toISOString() },
         );
+        if (!activated.ok) {
+          throw new Error(
+            `browser proxy activation failed at ${activated.stage}: ${activated.message}`,
+          );
+        }
+        result = { snapshotId: activated.activeSnapshotId };
       }
-      return { snapshotId: activated.activeSnapshotId };
+      authenticationPreparation?.commit();
+      return result;
+    } catch (error) {
+      if (authenticationPreparation) {
+        try {
+          await authenticationPreparation.rollback();
+        } catch (rollbackError) {
+          throw new Error(
+            `${errorMessage(error)}; proxy authentication rollback failed: ${errorMessage(rollbackError)}`,
+          );
+        }
+      }
+      throw error;
     } finally {
-      runtime.dispose();
+      runtime?.dispose();
     }
   }
 }
