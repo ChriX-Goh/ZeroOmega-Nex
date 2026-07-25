@@ -134,37 +134,37 @@ function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot |
 }
 
 export class BrowserStorageSnapshotActivationRepository implements SnapshotActivationRepository {
-  readonly #storage: BrowserStorageArea;
+  readonly #area: BrowserStorageArea;
   readonly #stateKey: string;
   readonly #snapshotPrefix: string;
 
-  constructor(storage: BrowserStorageArea, options: BrowserStorageRepositoryOptions = {}) {
-    this.#storage = storage;
+  constructor(area: BrowserStorageArea, options: BrowserStorageRepositoryOptions = {}) {
+    this.#area = area;
     const namespace = options.namespace ?? 'zeroomega-nex/browser-proxy/v1';
     this.#stateKey = `${namespace}/state`;
     this.#snapshotPrefix = `${namespace}/snapshot/`;
   }
 
   async getState(): Promise<SnapshotActivationState> {
-    const values = await this.#storage.get(this.#stateKey);
+    const values = await this.#area.get(this.#stateKey);
     return parseState(values[this.#stateKey]);
   }
 
   async setState(state: SnapshotActivationState): Promise<void> {
-    await this.#storage.set({ [this.#stateKey]: state });
+    await this.#area.set({ [this.#stateKey]: state });
   }
 
   async putSnapshot(snapshot: PacRuntimeSnapshot): Promise<void> {
-    await this.#storage.set({ [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: snapshot });
+    await this.#area.set({ [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: snapshot });
   }
 
   async getSnapshot(snapshotId: string): Promise<PacRuntimeSnapshot | undefined> {
     const key = `${this.#snapshotPrefix}${snapshotId}`;
-    const values = await this.#storage.get(key);
+    const values = await this.#area.get(key);
     return parseSnapshot(values[key], snapshotId);
   }
 
   async removeSnapshot(snapshotId: string): Promise<void> {
-    await this.#storage.remove(`${this.#snapshotPrefix}${snapshotId}`);
+    await this.#area.remove(`${this.#snapshotPrefix}${snapshotId}`);
   }
 }
