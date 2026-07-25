@@ -31,18 +31,20 @@ const binding = {
   passwordSecretRef: 'secret/password',
 };
 
+const secretValue = 'actual-proxy-secret-value';
+
 describe('proxy authentication storage repository', () => {
   it('keeps endpoint bindings and secret values in separate records', async () => {
     const area = new MemoryArea();
     const repository = new BrowserStorageProxyAuthenticationRepository(area);
     await repository.putBindings([binding]);
-    await repository.putSecret(binding.passwordSecretRef, 'password');
+    await repository.putSecret(binding.passwordSecretRef, secretValue);
     await expect(repository.getBindings()).resolves.toEqual([binding]);
-    await expect(repository.getSecret(binding.passwordSecretRef)).resolves.toBe('password');
+    await expect(repository.getSecret(binding.passwordSecretRef)).resolves.toBe(secretValue);
     const serializedBindings = JSON.stringify(
       area.values.get('zeroomega-nex/proxy-auth/v1/bindings'),
     );
-    expect(serializedBindings).not.toContain('password"');
+    expect(serializedBindings).not.toContain(secretValue);
   });
 
   it('rejects duplicate endpoints and invalid records', async () => {
@@ -61,7 +63,7 @@ describe('proxy authentication storage repository', () => {
     const area = new MemoryArea();
     const repository = new BrowserStorageProxyAuthenticationRepository(area);
     await repository.putBindings([binding]);
-    await repository.putSecret(binding.passwordSecretRef, 'password');
+    await repository.putSecret(binding.passwordSecretRef, secretValue);
     await repository.removeSecret(binding.passwordSecretRef);
     await expect(repository.getSecret(binding.passwordSecretRef)).resolves.toBeUndefined();
     await expect(repository.getBindings()).resolves.toEqual([binding]);
