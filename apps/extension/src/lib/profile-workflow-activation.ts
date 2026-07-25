@@ -358,8 +358,8 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
     spec: ProfileSpec,
     startRoute?: ProfileRouteTarget,
   ): Promise<ProfileWorkflowActivationResult> {
-    const route: ProfileRouteTarget = startRoute ??
-      spec.settings.startup.route ?? { kind: 'direct' };
+    const route: ProfileRouteTarget =
+      startRoute ?? spec.settings.startup.route ?? { kind: 'direct' };
     const authenticationPlan = createProxyAuthenticationPlan(spec, route);
     if (authenticationPlan.unsupported.length > 0) {
       const endpoints = authenticationPlan.unsupported
@@ -440,6 +440,7 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
         } catch (rollbackError) {
           throw new Error(
             `${errorMessage(error)}; proxy authentication rollback failed: ${errorMessage(rollbackError)}`,
+            { cause: error },
           );
         }
       }
