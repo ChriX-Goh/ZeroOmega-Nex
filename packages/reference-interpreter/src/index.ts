@@ -1,3 +1,14 @@
+export {
+  evaluateDifferentialVector,
+  serializeDifferentialDecisionRecord,
+  toDifferentialDecisionRecord,
+} from './differential.js';
+export type {
+  DifferentialDecisionRecord,
+  DifferentialDecisionVector,
+  DifferentialResolvedRoute,
+  DifferentialTraceEntry,
+} from './differential.js';
 export { evaluateSwitchProfile } from './evaluate.js';
 export { evaluateProfileGraph } from './graph.js';
 export { ipMatchesPrefix, isIpLiteral, parseIpLiteral } from './ip.js';
