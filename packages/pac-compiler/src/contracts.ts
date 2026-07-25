@@ -34,3 +34,52 @@ export interface PacCapabilityAnalysis {
   readonly issues: readonly PacCapabilityIssue[];
   readonly summary: PacCapabilitySummary;
 }
+
+export interface PacCompilerBudgets {
+  readonly maxScriptBytes: number;
+  readonly maxProfiles: number;
+  readonly maxRules: number;
+}
+
+export interface PacCompileOptions {
+  readonly target?: PacTarget;
+  readonly allowTargetDependent?: boolean;
+  readonly budgets?: Partial<PacCompilerBudgets>;
+}
+
+export interface PacCompilationStats {
+  readonly scriptBytes: number;
+  readonly profileCount: number;
+  readonly endpointCount: number;
+  readonly conditionCount: number;
+  readonly ruleListRuleCount: number;
+}
+
+export interface CompiledPacArtifact {
+  readonly artifactSchemaVersion: 1;
+  readonly compilerVersion: typeof PAC_COMPILER_VERSION;
+  readonly target: PacTarget;
+  readonly capability: Exclude<PacCapability, 'unsupported'>;
+  readonly functionName: 'FindProxyForURL';
+  readonly script: string;
+  readonly stats: PacCompilationStats;
+  readonly warnings: readonly PacCapabilityIssue[];
+}
+
+export type PacCompilationResult =
+  | {
+      readonly ok: true;
+      readonly artifact: CompiledPacArtifact;
+      readonly analysis: PacCapabilityAnalysis;
+    }
+  | {
+      readonly ok: false;
+      readonly analysis: PacCapabilityAnalysis;
+      readonly issues: readonly PacCapabilityIssue[];
+    };
+
+export const DEFAULT_PAC_COMPILER_BUDGETS: PacCompilerBudgets = {
+  maxScriptBytes: 1_000_000,
+  maxProfiles: 10_000,
+  maxRules: 100_000,
+};
