@@ -34,6 +34,9 @@ importers:
 
   apps/extension:
     dependencies:
+      '@zeroomega-nex/browser-adapters':
+        specifier: workspace:*
+        version: link:../../packages/browser-adapters
       '@zeroomega-nex/core-contracts':
         specifier: workspace:*
         version: link:../../packages/core-contracts

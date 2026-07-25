@@ -1,7 +1,4 @@
-import {
-  recoverPendingActivation,
-  restoreActiveSnapshot,
-} from '@zeroomega-nex/browser-adapters';
+import { recoverPendingActivation, restoreActiveSnapshot } from '@zeroomega-nex/browser-adapters';
 import { productIdentity } from '@zeroomega-nex/core-contracts';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
@@ -20,7 +17,10 @@ async function restoreProxyRuntime(): Promise<void> {
 
   const restored = await restoreActiveSnapshot(runtime.repository, runtime.driver);
   if (restored.status === 'failed') {
-    console.error(`[${productIdentity.name}] active proxy snapshot restore failed:`, restored.message);
+    console.error(
+      `[${productIdentity.name}] active proxy snapshot restore failed:`,
+      restored.message,
+    );
     return;
   }
   console.info(`[${productIdentity.name}] proxy runtime state: ${restored.status}.`);

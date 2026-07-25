@@ -41,9 +41,7 @@ for (const file of manifestFiles) {
     ? manifest.optional_permissions
     : [];
   const allPermissions = [...permissions, ...optionalPermissions, ...hostPermissions];
-  const violations = allPermissions.filter((permission) =>
-    forbiddenPermissions.has(permission),
-  );
+  const violations = allPermissions.filter((permission) => forbiddenPermissions.has(permission));
 
   if (violations.length > 0) {
     throw new Error(
