@@ -54,7 +54,7 @@ describe('backend-neutral differential records', () => {
     const spec = await importedFixture('credentials-and-headers.redacted.json');
     const record = evaluateDifferentialVector(spec, {
       id: 'credential-redaction',
-      startRoute: routeForProfile(spec, 'proxy-auth'),
+      startRoute: routeForProfile(spec, 'authenticated-proxy'),
       request: {
         url: 'http://example.invalid/',
         host: 'example.invalid',
