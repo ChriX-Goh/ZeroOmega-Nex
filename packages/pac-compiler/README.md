@@ -12,4 +12,6 @@ Unsupported or target-dependent behavior is never silently rewritten as `DIRECT`
 
 The generator emits one deterministic function per reachable profile. Switch and rule-list conditions are expanded at compile time, while a self-contained PAC runtime implements wildcard, regular-expression, bypass, IPv4/IPv6 prefix, weekday, and local-hour matching. The artifact enforces configurable profile, condition, and script-size budgets and can be executed by the isolated test harness before browser installation.
 
+Generated PAC uses conservative function/`var` syntax and carries no module imports, browser-extension APIs, ProfileSpec JSON, credentials, or request-header values.
+
 Compiler tests execute generated PAC from imported ZeroOmega switch, fixed, authenticated-proxy, and inline AutoProxy fixtures. Download-backed rule sources remain blocked until their content has been fetched and verified into the candidate snapshot.
