@@ -1,18 +1,24 @@
 <script lang="ts">
-  import { BrowserStorageProxyAuthenticationRepository } from '@zeroomega-nex/browser-adapters';
   import {
     importZeroOmegaBackup,
     type LegacyImportResult,
     type LegacyImportStatus,
   } from '@zeroomega-nex/legacy-zeroomega';
   import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
-  import { browser } from 'wxt/browser';
+  import type { ProfileWorkflowSecretMaterial } from '@zeroomega-nex/profile-workflow';
 
   export let disabled = false;
-  export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let generation: number;
+  export let deviceId: string;
+  export let onAcceptImport: (
+    expectedGeneration: number,
+    candidate: ProfileSpec,
+    secretMaterials: readonly ProfileWorkflowSecretMaterial[],
+  ) => Promise<boolean>;
 
   let backupText = '';
   let result: LegacyImportResult | undefined;
+  let analyzedGeneration: number | undefined;
   let analyzing = false;
   let accepting = false;
   let errorMessage = '';
@@ -63,35 +69,30 @@
         createdAt,
         documentId: `document-${crypto.randomUUID()}`,
         revisionId: `revision-${crypto.randomUUID()}`,
-        deviceId: browser.runtime.id,
+        deviceId,
       });
+      analyzedGeneration = generation;
     } catch (error) {
       result = undefined;
+      analyzedGeneration = undefined;
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
       analyzing = false;
     }
   }
 
-  async function persistSecrets(importResult: Extract<LegacyImportResult, { ok: true }>) {
-    const repository = new BrowserStorageProxyAuthenticationRepository(
-      browser.storage.local as unknown as ConstructorParameters<
-        typeof BrowserStorageProxyAuthenticationRepository
-      >[0],
-    );
-    for (const secret of importResult.secretMaterials) {
-      await repository.putSecret(secret.ref, secret.value);
-    }
-  }
-
   async function acceptCandidate(): Promise<void> {
-    if (!result?.ok || accepting || disabled) return;
+    if (!result?.ok || analyzedGeneration === undefined || accepting || disabled) return;
     accepting = true;
     accepted = false;
     errorMessage = '';
     try {
-      await persistSecrets(result);
-      if (!(await onReplaceDraft(result.candidate))) {
+      const acceptedImport = await onAcceptImport(
+        analyzedGeneration,
+        result.candidate,
+        result.secretMaterials.map((secret) => ({ ref: secret.ref, value: secret.value })),
+      );
+      if (!acceptedImport) {
         throw new Error('The imported candidate could not replace the current Draft.');
       }
       accepted = true;
@@ -118,6 +119,7 @@
     on:input={(event) => {
       backupText = valueFrom(event);
       result = undefined;
+      analyzedGeneration = undefined;
       accepted = false;
     }}></textarea>
   <button
