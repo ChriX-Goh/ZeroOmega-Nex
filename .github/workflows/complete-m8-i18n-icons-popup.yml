@@ -36,6 +36,19 @@ jobs:
       - name: Apply localization icon and Popup slice
         run: python .github/scripts/complete-m8-i18n-icons-popup.py
 
+      - name: Complete localized accessibility labels
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/extension/src/lib/i18n.ts')
+          text = path.read_text()
+          anchor = "  'Backup file': { 'zh-CN': '备份文件', 'zh-TW': '備份檔案' },\n"
+          addition = anchor + "  'Legacy backup file': { 'zh-CN': '原版备份文件', 'zh-TW': '原版備份檔案' },\n  'Legacy backup': { 'zh-CN': '原版备份', 'zh-TW': '原版備份' },\n  'Options theme': { 'zh-CN': '选项主题', 'zh-TW': '選項佈景主題' },\n  'Paste the complete ZeroOmega / SwitchyOmega backup': { 'zh-CN': '粘贴完整的 ZeroOmega / SwitchyOmega 备份', 'zh-TW': '貼上完整的 ZeroOmega / SwitchyOmega 備份' },\n"
+          if text.count(anchor) != 1:
+              raise SystemExit('accessibility locale anchor missing')
+          path.write_text(text.replace(anchor, addition, 1))
+          PY
+
       - name: Format changed text files
         run: |
           pnpm exec prettier --write \
