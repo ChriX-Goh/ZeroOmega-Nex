@@ -82,14 +82,9 @@ try {
   await profileName.press('Tab');
   const apply = options.getByRole('button', { name: '应用选项' });
   await apply.waitFor({ state: 'visible' });
-  await assertEventually(
-    async () => !(await apply.isDisabled()),
-    'Apply button remained disabled',
-  );
+  await assertEventually(async () => !(await apply.isDisabled()), 'Apply button remained disabled');
   await apply.click();
-  await options
-    .getByText('当前设置已全部应用。')
-    .waitFor({ state: 'visible', timeout: 20_000 });
+  await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
 
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>
@@ -106,9 +101,7 @@ try {
 
   await options.getByRole('button', { name: '配置历史' }).click();
   await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
-  await options
-    .getByRole('heading', { name: '已验证的 PAC 快照', exact: true })
-    .waitFor();
+  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
   await options.locator('article.settings-section').first().waitFor({ timeout: 20_000 });
 
   await popup.bringToFront();
