@@ -40,6 +40,7 @@ jobs:
           {
             python .github/scripts/patch-m8-route-settings.py
             python .github/scripts/fix-m8-route-diagnostics.py
+            python .github/scripts/fix-m8-route-test.py
           } > m8-route-patch.log 2>&1
           status=$?
           cat m8-route-patch.log
@@ -49,6 +50,7 @@ jobs:
         run: |
           pnpm exec prettier --write \
             apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/lib/profile-workflow-activation.test.ts \
             apps/extension/package.json \
             packages/profile-workflow/src/profile-operations.ts \
             pnpm-lock.yaml
@@ -77,6 +79,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
             apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/lib/profile-workflow-activation.test.ts \
             apps/extension/package.json \
             packages/profile-workflow/src/profile-operations.ts \
             pnpm-lock.yaml
