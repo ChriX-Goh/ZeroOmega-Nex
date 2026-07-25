@@ -1,5 +1,12 @@
 import type { ProxyEndpoint } from '@zeroomega-nex/profile-spec';
 
+function isAscii(value: string): boolean {
+  for (const character of value) {
+    if (character.codePointAt(0)! > 0x7f) return false;
+  }
+  return true;
+}
+
 export function pacStringLiteral(value: string): string {
   const encoded = JSON.stringify(value);
   if (encoded === undefined) throw new TypeError('PAC string value cannot be encoded');
@@ -17,7 +24,7 @@ export function normalizePacProxyHost(host: string): string {
   if (unbracketed.includes(':')) return `[${unbracketed}]`;
 
   const normalized = new URL(`http://${unbracketed}/`).hostname;
-  if (!normalized || /[^\x00-\x7f]/.test(normalized)) {
+  if (!normalized || !isAscii(normalized)) {
     throw new TypeError(`PAC proxy host is not ASCII ${JSON.stringify(host)}`);
   }
   return normalized;
