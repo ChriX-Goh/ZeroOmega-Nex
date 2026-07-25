@@ -11,6 +11,7 @@ export {
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommand,
   type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowHistoryService,
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
 } from './commands.js';
@@ -25,6 +26,8 @@ export {
   type ProfileWorkflowRepository,
   type ProfileWorkflowRuntimeFailure,
   type ProfileWorkflowRuntimeView,
+  type ProfileWorkflowSnapshotHistoryEntry,
+  type ProfileWorkflowSnapshotWarning,
   type ProfileWorkflowState,
   type ProfileWorkflowView,
 } from './contracts.js';

@@ -6,6 +6,7 @@ import type {
   ProfileWorkflowApplyContext,
   ProfileWorkflowRepository,
   ProfileWorkflowRuntimeView,
+  ProfileWorkflowSnapshotHistoryEntry,
   ProfileWorkflowState,
   ProfileWorkflowView,
 } from './contracts.js';
@@ -28,6 +29,10 @@ export type ProfileWorkflowCommand =
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'get';
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'get-snapshot-history';
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
@@ -67,6 +72,7 @@ export type ProfileWorkflowCommandResponse =
       readonly view: ProfileWorkflowView;
       readonly appliedSnapshotId?: string;
       readonly runtime?: ProfileWorkflowRuntimeView;
+      readonly snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[];
     }
   | {
       readonly ok: false;
@@ -95,6 +101,10 @@ export interface ProfileWorkflowImportService {
   readonly secretStore: ProfileWorkflowSecretStore;
 }
 
+export interface ProfileWorkflowHistoryService {
+  listSnapshots(): Promise<readonly ProfileWorkflowSnapshotHistoryEntry[]>;
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -103,6 +113,7 @@ function response(
   state: ProfileWorkflowState,
   appliedSnapshotId?: string,
   runtime?: ProfileWorkflowRuntimeView,
+  snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[],
 ): ProfileWorkflowCommandResponse {
   return {
     ok: true,
@@ -110,6 +121,7 @@ function response(
     view: inspectProfileWorkflow(state),
     ...(appliedSnapshotId === undefined ? {} : { appliedSnapshotId }),
     ...(runtime === undefined ? {} : { runtime }),
+    ...(snapshotHistory === undefined ? {} : { snapshotHistory }),
   };
 }
 
@@ -212,6 +224,7 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
   if (record.channel !== PROFILE_WORKFLOW_MESSAGE_CHANNEL) return false;
   switch (record.action) {
     case 'get':
+    case 'get-snapshot-history':
       return true;
     case 'replace-draft':
       return validGeneration(record.expectedGeneration) && record.draft !== undefined;
@@ -246,6 +259,7 @@ export async function executeProfileWorkflowCommand(
   command: ProfileWorkflowCommand,
   applyService?: ProfileWorkflowApplyService,
   importService?: ProfileWorkflowImportService,
+  historyService?: ProfileWorkflowHistoryService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let state: ProfileWorkflowState;
   try {
@@ -256,6 +270,22 @@ export async function executeProfileWorkflowCommand(
 
   if (command.action === 'get') {
     return response(state, undefined, await runtimeView(applyService));
+  }
+
+  if (command.action === 'get-snapshot-history') {
+    if (!historyService) {
+      return failure('invalid', 'profile workflow history service is unavailable', state);
+    }
+    try {
+      return response(
+        state,
+        undefined,
+        await runtimeView(applyService),
+        await historyService.listSnapshots(),
+      );
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
   }
 
   if (command.action === 'activate-route') {

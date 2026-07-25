@@ -1,5 +1,6 @@
 import {
   BrowserStorageProxyAuthenticationRepository,
+  listPacSnapshotHistory,
   type BrowserStorageArea,
 } from '@zeroomega-nex/browser-adapters';
 import {
@@ -10,11 +11,13 @@ import {
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowHistoryService,
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
 
+import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 import { BrowserProfileWorkflowActivationDriver } from './profile-workflow-activation';
 
 interface ProfileWorkflowMessageEvent {
@@ -85,6 +88,19 @@ function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImp
   };
 }
 
+function createHistoryService(): ProfileWorkflowHistoryService {
+  return {
+    async listSnapshots() {
+      const runtime = currentBrowserProxyRuntime();
+      try {
+        return await listPacSnapshotHistory(runtime.repository);
+      } finally {
+        runtime.dispose();
+      }
+    },
+  };
+}
+
 export function registerProfileWorkflowRuntime(
   api: ProfileWorkflowRuntimeApi,
   options: ProfileWorkflowRuntimeOptions = {},
@@ -96,6 +112,7 @@ export function registerProfileWorkflowRuntime(
     options.activationDriver ?? new BrowserProfileWorkflowActivationDriver(),
   );
   const importService = createImportService(api);
+  const historyService = createHistoryService();
   const listener = async (
     message: unknown,
   ): Promise<ProfileWorkflowCommandResponse | undefined> => {
@@ -106,6 +123,7 @@ export function registerProfileWorkflowRuntime(
       message,
       applyService,
       importService,
+      historyService,
     );
   };
   api.runtime.onMessage.addListener(listener);
