@@ -1,4 +1,5 @@
 export {
+  activateBuiltInMode,
   activatePacSnapshot,
   recoverPendingActivation,
   restoreActiveSnapshot,
@@ -39,6 +40,8 @@ export type {
   BrowserFamily,
   BrowserProxyCapabilities,
   BrowserProxyDriver,
+  BuiltInModeActivationResult,
+  BuiltInProxyMode,
   PacInstallConfirmation,
   PendingActivation,
   PlatformProxyState,
