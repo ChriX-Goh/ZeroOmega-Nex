@@ -20,4 +20,4 @@ Apply uses a single-writer compare-and-swap transaction:
 5. Roll the browser back to the previous applied revision if the persistent commit fails.
 6. Persist `rollback-required` if both commit and rollback fail.
 
-The browser-storage repository is deliberately a single-writer primitive. Options and popup components do not mutate it directly; the extension background will serialize workflow commands through a typed message boundary in the next slice.
+The browser-storage repository is deliberately a single-writer primitive. Options and popup components send versioned `get`, `replace-draft`, `select-profile`, and `revert` commands to the extension background. Every mutating command carries the expected generation and receives the current state on conflict so the UI can reload instead of overwriting another edit.
