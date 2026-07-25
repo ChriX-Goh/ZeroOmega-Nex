@@ -40,31 +40,25 @@ jobs:
           from pathlib import Path
           path = Path('packages/profile-workflow/src/commands.test.ts')
           text = path.read_text()
-          old = '''    expect(failed).toMatchObject({
-              ok: false,
-              code: 'apply-failed',
-              message: 'PAC verification failed',
-              view: { dirty: true, busy: false },
-              state: {
-                applied: { revision: { id: 'revision-applied' } },
-                draft: { profiles: [{ name: 'Failed Apply Edit' }] },
-              },
-            });'''
-          new = '''    expect(failed).toMatchObject({
-              ok: false,
-              code: 'apply-failed',
-              message: 'PAC verification failed',
-              view: { dirty: true, busy: false },
-              state: {
-                applied: { revision: { id: 'revision-applied' } },
-              },
+          start = text.index("  it('returns an apply failure with the recoverable dirty state'")
+          end = text.index("  it('rejects Apply when the background activation service is unavailable'", start)
+          segment = text[start:end]
+          stale = "        draft: { profiles: [{ name: 'Failed Apply Edit' }] },\n"
+          if segment.count(stale) != 1:
+              raise SystemExit(f'expected one stale draft assertion, found {segment.count(stale)}')
+          segment = segment.replace(stale, '', 1)
+          closing = "    });\n  });\n\n"
+          replacement = """    });
+              if (failed.ok || !failed.state) throw new Error('expected recoverable failed state');
+              expect(failed.state.draft.profiles[0]?.name).toBe('Failed Apply Edit');
+              expect(failed.state.draft.profiles[1]?.name).toBe('Backup Proxy');
             });
-            if (failed.ok || !failed.state) throw new Error('expected recoverable failed state');
-            expect(failed.state.draft.profiles[0]?.name).toBe('Failed Apply Edit');
-            expect(failed.state.draft.profiles[1]?.name).toBe('Backup Proxy');'''
-          if text.count(old) != 1:
-              raise SystemExit(f'expected one stale assertion, found {text.count(old)}')
-          path.write_text(text.replace(old, new, 1))
+
+          """
+          if segment.count(closing) != 1:
+              raise SystemExit(f'expected one test closing anchor, found {segment.count(closing)}')
+          segment = segment.replace(closing, replacement, 1)
+          path.write_text(text[:start] + segment + text[end:])
           PY
           pnpm exec prettier --write packages/profile-workflow/src/commands.test.ts
 
