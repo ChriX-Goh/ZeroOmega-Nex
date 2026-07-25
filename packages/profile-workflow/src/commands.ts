@@ -1,6 +1,9 @@
 import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 
+import { applyProfileWorkflow } from './apply.js';
 import type {
+  ProfileWorkflowActivationDriver,
+  ProfileWorkflowApplyContext,
   ProfileWorkflowRepository,
   ProfileWorkflowState,
   ProfileWorkflowView,
@@ -34,7 +37,7 @@ export type ProfileWorkflowCommand =
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
-      readonly action: 'revert';
+      readonly action: 'revert' | 'apply';
       readonly expectedGeneration: number;
     };
 
@@ -43,10 +46,16 @@ export type ProfileWorkflowCommandResponse =
       readonly ok: true;
       readonly state: ProfileWorkflowState;
       readonly view: ProfileWorkflowView;
+      readonly appliedSnapshotId?: string;
     }
   | {
       readonly ok: false;
-      readonly code: 'conflict' | 'invalid' | 'busy' | 'storage-failure';
+      readonly code:
+        | 'conflict'
+        | 'invalid'
+        | 'busy'
+        | 'storage-failure'
+        | 'apply-failed';
       readonly message: string;
       readonly state?: ProfileWorkflowState;
       readonly view?: ProfileWorkflowView;
@@ -56,12 +65,25 @@ export interface ProfileWorkflowInitializer {
   createInitialProfileSpec(): ProfileSpec;
 }
 
+export interface ProfileWorkflowApplyService {
+  readonly driver: ProfileWorkflowActivationDriver;
+  createContext(state: ProfileWorkflowState): ProfileWorkflowApplyContext;
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function response(state: ProfileWorkflowState): ProfileWorkflowCommandResponse {
-  return { ok: true, state, view: inspectProfileWorkflow(state) };
+function response(
+  state: ProfileWorkflowState,
+  appliedSnapshotId?: string,
+): ProfileWorkflowCommandResponse {
+  return {
+    ok: true,
+    state,
+    view: inspectProfileWorkflow(state),
+    ...(appliedSnapshotId === undefined ? {} : { appliedSnapshotId }),
+  };
 }
 
 function failure(
@@ -114,6 +136,7 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         (record.profileId === undefined || typeof record.profileId === 'string')
       );
     case 'revert':
+    case 'apply':
       return validGeneration(record.expectedGeneration);
     default:
       return false;
@@ -124,6 +147,7 @@ export async function executeProfileWorkflowCommand(
   repository: ProfileWorkflowRepository,
   initializer: ProfileWorkflowInitializer,
   command: ProfileWorkflowCommand,
+  applyService?: ProfileWorkflowApplyService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let state: ProfileWorkflowState;
   try {
@@ -142,6 +166,31 @@ export async function executeProfileWorkflowCommand(
   }
   if (state.pendingApply) {
     return failure('busy', 'profile workflow is busy applying another revision', state);
+  }
+
+  if (command.action === 'apply') {
+    if (!applyService) {
+      return failure('invalid', 'profile workflow Apply service is unavailable', state);
+    }
+    const result = await applyProfileWorkflow(
+      repository,
+      applyService.driver,
+      applyService.createContext(state),
+    );
+    if (result.status === 'applied') {
+      return response(result.state, result.snapshotId);
+    }
+    return failure(
+      result.status === 'busy'
+        ? 'busy'
+        : result.status === 'conflict'
+          ? 'conflict'
+          : result.status === 'failed'
+            ? 'apply-failed'
+            : 'invalid',
+      result.message,
+      result.state,
+    );
   }
 
   let next: ProfileWorkflowState;
@@ -163,10 +212,11 @@ export async function executeProfileWorkflowCommand(
 
   try {
     if (!(await repository.compareAndSwap(state.generation, next))) {
+      const current = await repository.read();
       return failure(
         'conflict',
         'profile workflow changed before the command could be persisted',
-        await repository.read(),
+        current,
       );
     }
   } catch (error) {
