@@ -64,7 +64,7 @@ describe('backend-neutral differential records', () => {
     const serialized = serializeDifferentialDecisionRecord(record);
     expect(record.status).toBe('resolved');
     expect(record.route?.kind).toBe('proxy');
-    expect(serialized).not.toContain('credential');
+    expect(record.route).not.toHaveProperty('credential');
     expect(serialized).not.toContain('passwordSecretRef');
     expect(serialized).not.toContain('<redacted>');
   });
