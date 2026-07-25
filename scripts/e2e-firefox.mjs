@@ -36,6 +36,33 @@ try {
     console.error(
       `[Firefox Options body] ${await driver.executeScript('return document.body?.innerText ?? "";')}`,
     );
+    const runtimeDiagnostics = await driver.executeAsyncScript(`
+      const done = arguments[0];
+      (async () => {
+        const result = {
+          manifest: browser.runtime.getManifest(),
+          storage: await browser.storage.local.get(null),
+        };
+        try {
+          result.response = await browser.runtime.sendMessage({
+            channel: 'zeroomega-nex/profile-workflow/v1',
+            action: 'get',
+          });
+        } catch (sendError) {
+          result.sendError = {
+            message: sendError instanceof Error ? sendError.message : String(sendError),
+            stack: sendError instanceof Error ? sendError.stack : undefined,
+          };
+        }
+        result.storageAfterMessage = await browser.storage.local.get(null);
+        done(result);
+      })().catch((diagnosticError) => done({
+        diagnosticError: diagnosticError instanceof Error
+          ? { message: diagnosticError.message, stack: diagnosticError.stack }
+          : String(diagnosticError),
+      }));
+    `);
+    console.error(`[Firefox runtime diagnostics] ${JSON.stringify(runtimeDiagnostics)}`);
     console.error(`[Firefox Options source] ${(await driver.getPageSource()).slice(0, 20_000)}`);
     try {
       const browserLogs = await driver.manage().logs().get('browser');
