@@ -110,9 +110,7 @@ describe('proxy authentication runtime manager', () => {
     });
     if (!result.ok) throw new Error('expected successful preparation');
     expect(created.authEvent.listeners.size).toBe(1);
-    await expect(storedBindings(created.storage)).resolves.toEqual([
-      binding('endpoint-primary'),
-    ]);
+    await expect(storedBindings(created.storage)).resolves.toEqual([binding('endpoint-primary')]);
     result.preparation.commit();
     expect(manager.status).toBe('registered');
   });
@@ -143,15 +141,11 @@ describe('proxy authentication runtime manager', () => {
 
     const result = await manager.prepare([binding('endpoint-secondary')]);
     if (!result.ok) throw new Error('expected successful preparation');
-    await expect(storedBindings(created.storage)).resolves.toEqual([
-      binding('endpoint-secondary'),
-    ]);
+    await expect(storedBindings(created.storage)).resolves.toEqual([binding('endpoint-secondary')]);
 
     await result.preparation.rollback();
 
-    await expect(storedBindings(created.storage)).resolves.toEqual([
-      binding('endpoint-primary'),
-    ]);
+    await expect(storedBindings(created.storage)).resolves.toEqual([binding('endpoint-primary')]);
     expect(created.authEvent.listeners.size).toBe(1);
     expect(manager.status).toBe('registered');
   });
