@@ -25,23 +25,41 @@ if (manifestFiles.length < 2) {
   throw new Error(`Expected Chromium and Firefox manifests, found ${manifestFiles.length}.`);
 }
 
-const forbiddenPermissions = new Set(['proxy', 'webRequest', 'webRequestBlocking', '<all_urls>']);
+const forbiddenPermissions = new Set(['webRequest', 'webRequestBlocking', '<all_urls>']);
+const requiredPermissions = ['proxy', 'storage'];
 
 for (const file of manifestFiles) {
   const manifest = JSON.parse(await readFile(file, 'utf8'));
-  const permissions = [
-    ...(Array.isArray(manifest.permissions) ? manifest.permissions : []),
+  const permissions = Array.isArray(manifest.permissions) ? manifest.permissions : [];
+  const hostPermissions = [
     ...(Array.isArray(manifest.host_permissions) ? manifest.host_permissions : []),
-    ...(Array.isArray(manifest.optional_permissions) ? manifest.optional_permissions : []),
     ...(Array.isArray(manifest.optional_host_permissions)
       ? manifest.optional_host_permissions
       : []),
   ];
-  const violations = permissions.filter((permission) => forbiddenPermissions.has(permission));
+  const optionalPermissions = Array.isArray(manifest.optional_permissions)
+    ? manifest.optional_permissions
+    : [];
+  const allPermissions = [...permissions, ...optionalPermissions, ...hostPermissions];
+  const violations = allPermissions.filter((permission) =>
+    forbiddenPermissions.has(permission),
+  );
 
   if (violations.length > 0) {
     throw new Error(
-      `${relative(repositoryRoot.pathname, file)} contains forbidden Milestone 1 permissions: ${violations.join(', ')}`,
+      `${relative(repositoryRoot.pathname, file)} contains forbidden permissions: ${violations.join(', ')}`,
+    );
+  }
+  for (const permission of requiredPermissions) {
+    if (!permissions.includes(permission)) {
+      throw new Error(
+        `${relative(repositoryRoot.pathname, file)} is missing required permission ${permission}.`,
+      );
+    }
+  }
+  if (hostPermissions.length > 0) {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} must not request host permissions: ${hostPermissions.join(', ')}`,
     );
   }
   if (!manifest.action?.default_popup) {
@@ -53,7 +71,14 @@ for (const file of manifestFiles) {
     );
   }
 
+  const gecko = manifest.browser_specific_settings?.gecko;
+  if (gecko && gecko.strict_min_version !== '91.1.0') {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} must pin Firefox proxy API minimum 91.1.0.`,
+    );
+  }
+
   console.log(
-    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, no proxy or all-URL permissions.`,
+    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage only, no host access.`,
   );
 }
