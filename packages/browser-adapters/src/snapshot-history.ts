@@ -45,10 +45,7 @@ function assertHistorySnapshot(snapshot: PacRuntimeSnapshot): void {
 export async function listPacSnapshotHistory(
   repository: SnapshotHistoryRepository,
 ): Promise<readonly PacSnapshotHistoryEntry[]> {
-  const [state, snapshots] = await Promise.all([
-    repository.getState(),
-    repository.listSnapshots(),
-  ]);
+  const [state, snapshots] = await Promise.all([repository.getState(), repository.listSnapshots()]);
   const ids = new Set<string>();
   const entries = snapshots.map((snapshot) => {
     assertHistorySnapshot(snapshot);

@@ -49,6 +49,9 @@ describe('PAC snapshot history', () => {
             code: 'TARGET_DEPENDENT',
             message: 'Target-dependent behavior',
             path: '$.profiles[0]',
+            capability: 'target-dependent',
+            severity: 'warning',
+            blocking: false,
           },
         ],
       }),
@@ -85,16 +88,16 @@ describe('PAC snapshot history', () => {
     ]);
   });
 
-  it('rejects unverified snapshots', async () => {
+  it('rejects snapshots with incomplete compiler identity', async () => {
     const repository = new MemorySnapshotActivationRepository();
     await repository.putSnapshot(
-      snapshot('snapshot-unverified', '2026-07-25T11:00:00.000Z', {
-        verification: { passed: false, vectorCount: 3, matchedCount: 2 },
+      snapshot('snapshot-incomplete', '2026-07-25T11:00:00.000Z', {
+        scriptSha256: '',
       }),
     );
 
     await expect(listPacSnapshotHistory(repository)).rejects.toThrow(
-      'snapshot snapshot-unverified is not verified',
+      'snapshot snapshot-incomplete has incomplete compiler identity',
     );
   });
 
