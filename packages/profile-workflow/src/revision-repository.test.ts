@@ -30,7 +30,7 @@ function nextApplied(parent: ProfileSpec, revisionId: string): ProfileSpec {
   const spec = cloneProfileSpec(parent);
   spec.revision = {
     id: revisionId,
-    parentRevisionId: parent.revision.id,
+    parentId: parent.revision.id,
     createdAt: '2026-07-25T16:30:00.000Z',
     deviceId: 'device-revision-test',
   };
