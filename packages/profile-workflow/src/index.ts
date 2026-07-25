@@ -3,6 +3,7 @@ export {
   PROFILE_WORKFLOW_MESSAGE_CHANNEL,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,
+  type ProfileWorkflowApplyService,
   type ProfileWorkflowCommand,
   type ProfileWorkflowCommandResponse,
   type ProfileWorkflowInitializer,
