@@ -50,6 +50,7 @@ function profileSpec(): ProfileSpec {
     proxyEndpoints: [
       {
         id: 'endpoint-primary',
+        name: 'Primary endpoint',
         protocol: 'http',
         host: 'primary.example.invalid',
         port: 8080,
@@ -60,6 +61,7 @@ function profileSpec(): ProfileSpec {
       },
       {
         id: 'endpoint-secondary',
+        name: 'Secondary endpoint',
         protocol: 'https',
         host: 'secondary.example.invalid',
         port: 8443,
@@ -69,6 +71,7 @@ function profileSpec(): ProfileSpec {
       },
       {
         id: 'endpoint-unreachable',
+        name: 'Unreachable endpoint',
         protocol: 'http',
         host: 'unreachable.example.invalid',
         port: 8888,
@@ -159,6 +162,7 @@ describe('proxy authentication planning', () => {
     const spec = profileSpec();
     spec.proxyEndpoints[0] = {
       id: 'endpoint-primary',
+      name: 'SOCKS endpoint',
       protocol: 'socks5',
       host: 'socks.example.invalid',
       port: 1080,
