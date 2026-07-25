@@ -26,18 +26,8 @@ export interface ProxyAuthenticationRequiredEvent {
   removeListener(listener: (...arguments_: never[]) => unknown): void;
 }
 
-export interface ProxyAuthenticationCompletionEvent {
-  addListener(
-    listener: (details: { readonly requestId: string }) => void,
-    filter: { readonly urls: readonly string[] },
-  ): void;
-  removeListener(listener: (...arguments_: never[]) => unknown): void;
-}
-
 export interface ProxyAuthenticationEvents {
   readonly onAuthRequired: ProxyAuthenticationRequiredEvent;
-  readonly onCompleted?: ProxyAuthenticationCompletionEvent;
-  readonly onErrorOccurred?: ProxyAuthenticationCompletionEvent;
 }
 
 export interface ProxyAuthenticationListenerRegistration {
@@ -75,10 +65,6 @@ export async function registerProxyAuthenticationListener(
   }
 
   const filter = { urls: requiredOrigins };
-  const completed = (details: { readonly requestId: string }): void => {
-    handler.forgetRequest(details.requestId);
-  };
-
   let authListener: (...arguments_: never[]) => unknown;
   if (family === 'chromium') {
     const chromiumListener = (
@@ -101,21 +87,12 @@ export async function registerProxyAuthenticationListener(
     events.onAuthRequired.addListener(firefoxListener, filter, ['blocking']);
   }
 
-  events.onCompleted?.addListener(completed, filter);
-  events.onErrorOccurred?.addListener(completed, filter);
-
   return {
     status: 'registered',
     requiredPermissions,
     requiredOrigins,
     dispose: () => {
       events.onAuthRequired.removeListener(authListener);
-      events.onCompleted?.removeListener(
-        completed as unknown as (...arguments_: never[]) => unknown,
-      );
-      events.onErrorOccurred?.removeListener(
-        completed as unknown as (...arguments_: never[]) => unknown,
-      );
       handler.clear();
     },
   };
