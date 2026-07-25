@@ -20,4 +20,4 @@ Apply uses a single-writer compare-and-swap transaction:
 5. Roll the browser back to the previous applied revision if the persistent commit fails.
 6. Persist `rollback-required` if both commit and rollback fail.
 
-Options and popup components do not call browser proxy APIs directly. The extension background will remain the single writer and will expose workflow commands through a typed message boundary in the next slice.
+The browser-storage repository is deliberately a single-writer primitive. Options and popup components do not mutate it directly; the extension background will serialize workflow commands through a typed message boundary in the next slice.
