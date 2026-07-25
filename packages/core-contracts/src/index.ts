@@ -1,13 +1,13 @@
 export const productIdentity = {
   name: 'ZeroOmega Nex',
-  milestone: 'Milestone 1',
+  milestone: 'Milestone 7',
   architecture: 'compile-first',
 } as const;
 
 export type ProductIdentity = typeof productIdentity;
 
 export const foundationGuards = {
-  proxyPermissionEnabled: false,
+  proxyPermissionEnabled: true,
   globalRequestListenerEnabled: false,
-  productionPolicyEngineEnabled: false,
+  productionPolicyEngineEnabled: true,
 } as const;

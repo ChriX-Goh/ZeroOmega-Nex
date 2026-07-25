@@ -2,7 +2,7 @@
 
 ## Repository baseline
 
-`main` contains the completed and verified foundation plus Milestones 1, 2, 3, 4, and 5.
+`main` contains the completed and verified foundation plus Milestones 1 through 6.
 
 The pre-normalization main commit is preserved at `archive/main-before-stack-normalization`.
 
@@ -126,10 +126,7 @@ Acceptance evidence:
 - Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
 - PR #8 merged into `main` at `c428ad9`.
 
-## Completed in branch — Milestone 6
-
-Branch: `feat/m6-pac-compiler`  
-Pull request: #9
+## Completed — Milestone 6
 
 Delivered:
 
@@ -155,12 +152,48 @@ Acceptance evidence:
 - Deterministic generator Head `5ab912b` passed CI run `30145972662`.
 - Differential and verified snapshot Head `acf569f` passed CI run `30146430909`.
 - Large policy Head `2252c57` passed CI run `30146482543`.
+- Final documentation Head `4a643e6` passed CI run `30146582195`.
 - The complete suite contains 108 tests, including all immutable Milestone 2 decision vectors, PAC/reference differential checks, snapshot hashing, and the large representative policy.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed on the exact implementation Heads.
-- Final documentation Head must pass the same complete read-only pipeline before PR #9 merges.
+- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
+- PR #9 merged into `main` at `843433a`.
+
+## Completed in branch — Milestone 7
+
+Branch: `feat/m7-browser-adapters`  
+Pull request: #10
+
+Delivered:
+
+- Browser-neutral Chromium and Firefox proxy capability and control-state contracts.
+- Atomic candidate persistence, install, confirmation, active-state commit, and rollback.
+- Previous verified snapshot and captured browser-baseline restoration.
+- Conflict detection for uncontrollable and other-extension-controlled proxy settings.
+- Restart recovery for interrupted activation and lost effective settings.
+- Chromium regular-scope mandatory inline PAC installation and exact read-back confirmation.
+- Firefox autoConfig data-URL installation, private-window preflight, and PAC runtime error confirmation failure.
+- Versioned persistent activation state and verified snapshot storage with corruption checks.
+- Extension background recovery before active-state restoration.
+- Required extension permissions limited to `proxy` and `storage`.
+- Default-disabled HTTP/HTTPS proxy authentication with browser-specific optional permissions.
+- Separate endpoint binding and secret records, no password values in PAC or binding records.
+- `isProxy`-only Basic/Digest challenge handling, bounded retries, ambiguity rejection, and no SOCKS impersonation.
+- No `proxy.onRequest`, `<all_urls>`, request-completion monitoring, request-error monitoring, or startup permission prompts.
+- Updated architecture and generated-manifest audits for the production proxy boundary.
+
+Acceptance evidence:
+
+- Atomic state-machine Head `82aca61` passed CI run `30147612373`.
+- Chromium and Firefox platform-driver Head `aff8b91` passed CI run `30147933438`.
+- Persistent activation repository Head `277ed33` passed CI run `30148190150`.
+- Extension background and proxy-permission Head `7fb0430` passed CI run `30148414347`.
+- Optional authentication integration Head `be2f339` passed CI run `30149000776`.
+- The complete suite contains 142 tests covering activation, rollback, restart recovery, platform mappings, persistent state, authentication matching, permission gating, retry limits, and secret separation.
+- Generated Chromium and Firefox MV3 packages contain no required host permissions or `<all_urls>`.
+- Generated background bundles contain `onAuthRequired` only when configured at runtime and contain no completion/error monitoring or permission-request calls.
+- Final status and documentation Head must pass the complete read-only pipeline before PR #10 merges.
 
 ## Active development direction
 
-After Milestone 6 merges, implementation continues with Firefox and Chromium browser adapters, atomic snapshot installation and rollback, then the full UI workflow, packaging, migration, and performance hardening.
+After Milestone 7 merges, implementation continues with the familiar ZeroOmega-like profile workflow, import review, Apply/Revert state, popup switching, and snapshot history in Milestone 8.
 
 Intermediate work is verified internally and through GitHub CI. The repository owner is not asked to repeatedly inspect partial slices. Owner QC is reserved for a consolidated, installable release candidate unless an irreducible product decision requires direct input.

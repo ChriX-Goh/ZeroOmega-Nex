@@ -12,6 +12,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@zeroomega-nex/browser-adapters": "workspace:*",
     "@zeroomega-nex/core-contracts": "workspace:*"
   },
   "devDependencies": {

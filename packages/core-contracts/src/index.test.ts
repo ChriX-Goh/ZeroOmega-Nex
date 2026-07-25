@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { foundationGuards, productIdentity } from './index';
 
-describe('foundation contracts', () => {
+describe('runtime contracts', () => {
   it('identifies the product and active milestone', () => {
     expect(productIdentity).toEqual({
       name: 'ZeroOmega Nex',
-      milestone: 'Milestone 1',
+      milestone: 'Milestone 7',
       architecture: 'compile-first',
     });
   });
 
-  it('keeps request-time proxy behavior disabled in the tooling milestone', () => {
+  it('enables verified PAC installation without a global request-time routing listener', () => {
     expect(foundationGuards).toEqual({
-      proxyPermissionEnabled: false,
+      proxyPermissionEnabled: true,
       globalRequestListenerEnabled: false,
-      productionPolicyEngineEnabled: false,
+      productionPolicyEngineEnabled: true,
     });
   });
 });

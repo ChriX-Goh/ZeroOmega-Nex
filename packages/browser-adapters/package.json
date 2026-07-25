@@ -1,0 +1,19 @@
+{
+  "name": "@zeroomega-nex/browser-adapters",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@zeroomega-nex/pac-compiler": "workspace:*",
+    "@zeroomega-nex/profile-spec": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

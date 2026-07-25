@@ -34,6 +34,9 @@ importers:
 
   apps/extension:
     dependencies:
+      '@zeroomega-nex/browser-adapters':
+        specifier: workspace:*
+        version: link:../../packages/browser-adapters
       '@zeroomega-nex/core-contracts':
         specifier: workspace:*
         version: link:../../packages/core-contracts
@@ -62,6 +65,19 @@ importers:
       wxt:
         specifier: 0.20.27
         version: 0.20.27(@types/node@26.1.1)(eslint@10.4.0(jiti@2.7.0))(jiti@2.7.0)(rolldown@1.1.5)
+
+  packages/browser-adapters:
+    dependencies:
+      '@zeroomega-nex/pac-compiler':
+        specifier: workspace:*
+        version: link:../pac-compiler
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../profile-spec
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
   packages/core-contracts:
     devDependencies:

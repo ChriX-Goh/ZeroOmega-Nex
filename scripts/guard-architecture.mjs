@@ -2,24 +2,28 @@ import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
-const guardedPaths = ['apps/extension/src', 'apps/extension/wxt.config.ts'];
+const guardedPaths = [
+  'apps/extension/src',
+  'apps/extension/wxt.config.ts',
+  'packages/browser-adapters/src/authentication-listener.ts',
+];
 const sourceExtensions = new Set(['.ts', '.js', '.mjs', '.svelte']);
 const forbidden = [
   {
     expression: /proxy\.onRequest\.addListener/u,
-    reason: 'global request-time proxy decisions are prohibited in the foundation architecture',
+    reason: 'global request-time proxy decisions are prohibited by the PAC-first architecture',
   },
   {
-    expression: /webRequest\.[A-Za-z]+\.addListener/u,
-    reason: 'per-request monitoring is not allowed in Milestone 1',
+    expression: /webRequest\.(?!onAuthRequired\b)[A-Za-z]+\.addListener/u,
+    reason: 'only the opt-in proxy authentication challenge listener may use WebRequest',
+  },
+  {
+    expression: /on(?:Completed|ErrorOccurred)\??\.addListener/u,
+    reason: 'proxy authentication must not add persistent request completion monitoring',
   },
   {
     expression: /["']<all_urls>["']/u,
-    reason: 'Milestone 1 must not request or register all-URL access',
-  },
-  {
-    expression: /permissions\s*:\s*\[[^\]]*["']proxy["']/su,
-    reason: 'proxy permission is introduced only with the reviewed browser-adapter milestone',
+    reason: 'the extension must not request or register all-URL access',
   },
 ];
 
