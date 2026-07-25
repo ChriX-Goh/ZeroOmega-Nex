@@ -8,6 +8,7 @@
     "./schema": "./schema/profile-spec-v1.schema.json"
   },
   "scripts": {
+    "generate:validator": "node scripts/generate-validator.mjs",
     "check": "tsc --project tsconfig.json"
   },
   "dependencies": {
