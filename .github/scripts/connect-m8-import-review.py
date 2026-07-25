@@ -44,12 +44,12 @@ patch(
         ),
         (
             '    importLegacyZeroOmega,',
-            '    importLegacyZeroOmegaV2,',
+            '    importZeroOmegaBackup,',
             'legacy import function import',
         ),
         (
             '      result = importLegacyZeroOmega(backupText, {',
-            '      result = importLegacyZeroOmegaV2(backupText, {',
+            '      result = importZeroOmegaBackup(backupText, {',
             'legacy import function call',
         ),
         (
