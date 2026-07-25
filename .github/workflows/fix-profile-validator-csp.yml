@@ -12,7 +12,7 @@ jobs:
   fix:
     if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 14
 
     steps:
       - name: Checkout branch
@@ -36,24 +36,31 @@ jobs:
       - name: Generate standalone ProfileSpec validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
 
-      - name: Connect standalone validator
+      - name: Connect CSP-safe validation paths
         run: python .github/scripts/connect-profile-validator-standalone.py
 
-      - name: Format CSP validator slice
+      - name: Format CSP-safe validation slice
         run: |
           pnpm exec prettier --write \
+            apps/extension/src/lib/profile-workflow-activation.ts \
+            packages/pac-compiler/src/browser-snapshot.ts \
+            packages/pac-compiler/src/index.ts \
+            packages/pac-compiler/src/reference-safety.ts \
+            packages/pac-compiler/src/snapshot.ts \
             packages/profile-spec/package.json \
             packages/profile-spec/scripts/generate-validator.mjs \
             packages/profile-spec/src/profile-spec-validator.generated.ts \
             packages/profile-spec/src/validation.ts \
             scripts/inspect-manifests.mjs
 
-      - name: Verify CSP validator slice
+      - name: Verify CSP-safe validation slice
         shell: bash
         run: |
           set -o pipefail
           {
             pnpm --filter @zeroomega-nex/profile-spec check
+            pnpm --filter @zeroomega-nex/pac-compiler check
+            pnpm --filter @zeroomega-nex/extension check
             pnpm test
             pnpm build
             pnpm inspect:manifests
@@ -71,16 +78,21 @@ jobs:
             packages/profile-spec/src/profile-spec-validator.generated.ts
           if-no-files-found: warn
 
-      - name: Commit CSP-safe validator
+      - name: Commit CSP-safe validation
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add \
+            apps/extension/src/lib/profile-workflow-activation.ts \
+            packages/pac-compiler/src/browser-snapshot.ts \
+            packages/pac-compiler/src/index.ts \
+            packages/pac-compiler/src/reference-safety.ts \
+            packages/pac-compiler/src/snapshot.ts \
             packages/profile-spec/package.json \
             packages/profile-spec/scripts/generate-validator.mjs \
             packages/profile-spec/src/profile-spec-validator.generated.ts \
             packages/profile-spec/src/validation.ts \
             scripts/inspect-manifests.mjs
-          git commit -m 'fix: precompile ProfileSpec validation for extension CSP'
+          git commit -m 'fix: precompile extension validation for MV3 CSP'
           git push origin HEAD:feat/m8-profile-workflow
