@@ -63,6 +63,17 @@ jobs:
           )
           theme = Path('apps/extension/src/entrypoints/options/ThemePanel.svelte')
           theme.write_text(theme.read_text().replace('export type ThemeMode', 'type ThemeMode'))
+          components = Path('apps/extension/src/component-rendering.component.spec.ts')
+          component_text = components.read_text()
+          component_text = component_text.replace(
+              "expect(body).toContain('Import ZeroOmega / SwitchyOmega backup');",
+              "expect(body).toContain('Restore original ZeroOmega / SwitchyOmega backup');",
+          )
+          component_text = component_text.replace(
+              "expect(body).toContain('Import and use now');",
+              "expect(body).toContain('Paste backup text instead');",
+          )
+          components.write_text(component_text)
           PY
 
       - name: Format rebuilt slice
