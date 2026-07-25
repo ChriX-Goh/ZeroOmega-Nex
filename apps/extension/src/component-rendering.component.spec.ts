@@ -40,7 +40,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('aria-label="ZeroOmega Nex profile switcher"');
     expect(body).toContain('Loading applied profiles');
     expect(body).toContain('popup-footer');
-    expect(body).toContain('Open Options');
+    expect(body).toContain('aria-label="Open ZeroOmega Nex options"');
+    expect(body).toContain('<span>Options</span>');
   });
 
   it('renders an empty ordered Switch Profile editor with disabled controls', () => {
