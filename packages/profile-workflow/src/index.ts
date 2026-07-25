@@ -1,5 +1,13 @@
 export { applyProfileWorkflow } from './apply.js';
 export {
+  PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+  executeProfileWorkflowCommand,
+  isProfileWorkflowCommand,
+  type ProfileWorkflowCommand,
+  type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowInitializer,
+} from './commands.js';
+export {
   PROFILE_WORKFLOW_SCHEMA_VERSION,
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowActivationResult,
@@ -11,6 +19,12 @@ export {
   type ProfileWorkflowState,
   type ProfileWorkflowView,
 } from './contracts.js';
+export {
+  DEFAULT_FIXED_PROFILE_ID,
+  DEFAULT_PROXY_ENDPOINT_ID,
+  createDefaultProfileSpec,
+  type DefaultProfileSpecOptions,
+} from './defaults.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
   createProfileWorkflowCandidate,
