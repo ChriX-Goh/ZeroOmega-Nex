@@ -12,9 +12,7 @@ import {
   serializeProfileSpec,
   type ProfileSpec,
 } from '@zeroomega-nex/profile-spec';
-import type {
-  ProfileWorkflowRevisionRepository,
-} from '@zeroomega-nex/profile-workflow';
+import type { ProfileWorkflowRevisionRepository } from '@zeroomega-nex/profile-workflow';
 import { createDefaultProfileSpec } from '@zeroomega-nex/profile-workflow';
 import { describe, expect, it } from 'vitest';
 
@@ -25,7 +23,7 @@ import { BrowserSnapshotRollbackService } from './snapshot-rollback-runtime';
 class FakeProxyDriver implements BrowserProxyDriver {
   readonly family: 'chromium' | 'firefox';
   state: PlatformProxyState;
-  installed?: PacRuntimeSnapshot;
+  installed: PacRuntimeSnapshot | undefined;
   failInstallFor?: string;
   restoreCount = 0;
 
@@ -172,7 +170,7 @@ async function snapshotFor(
     sourceDocumentId: spec.documentId,
     sourceRevisionId: spec.revision.id,
     sourceProfileSpecSha256: await sha256Hex(serializeProfileSpec(spec)),
-    startRoute: structuredClone(spec.settings.startup.route),
+    startRoute: structuredClone(spec.settings.startup.route ?? { kind: 'direct' }),
     target,
     compilerVersion: '0.1.0',
     scriptSha256: await sha256Hex(script),
@@ -207,10 +205,7 @@ class RevisionRepository implements ProfileWorkflowRevisionRepository {
   }
 }
 
-function runtime(
-  repository: MemorySnapshotActivationRepository,
-  driver: FakeProxyDriver,
-) {
+function runtime(repository: MemorySnapshotActivationRepository, driver: FakeProxyDriver) {
   let disposed = false;
   return {
     createRuntime: () => ({

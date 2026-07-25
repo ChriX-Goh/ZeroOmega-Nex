@@ -115,12 +115,10 @@ async function restorePreviousActivation(
   }
   if (previousState.activeBuiltInMode) {
     const startedAt = now().toISOString();
-    const result = await activateBuiltInMode(
-      repository,
-      driver,
-      previousState.activeBuiltInMode,
-      { startedAt, failedAt: now().toISOString() },
-    );
+    const result = await activateBuiltInMode(repository, driver, previousState.activeBuiltInMode, {
+      startedAt,
+      failedAt: now().toISOString(),
+    });
     if (!result.ok) {
       throw new Error(`built-in restore failed at ${result.stage}: ${result.message}`);
     }
@@ -166,10 +164,7 @@ export class BrowserSnapshotRollbackService implements ProfileWorkflowSnapshotRo
       await validateSnapshot(snapshot, targetRevision, currentApplied, runtime.driver);
       if (!targetRevision) throw new Error(`revision ${snapshot.sourceRevisionId} is unavailable`);
 
-      const authenticationPlan = createProxyAuthenticationPlan(
-        targetRevision,
-        snapshot.startRoute,
-      );
+      const authenticationPlan = createProxyAuthenticationPlan(targetRevision, snapshot.startRoute);
       if (authenticationPlan.unsupported.length > 0) {
         const endpoints = authenticationPlan.unsupported
           .map((endpoint) => `${endpoint.endpointId} (${endpoint.protocol})`)
@@ -184,12 +179,7 @@ export class BrowserSnapshotRollbackService implements ProfileWorkflowSnapshotRo
       }
 
       try {
-        await activateSnapshotOrThrow(
-          runtime.repository,
-          runtime.driver,
-          snapshot,
-          this.#now,
-        );
+        await activateSnapshotOrThrow(runtime.repository, runtime.driver, snapshot, this.#now);
       } catch (error) {
         try {
           await authentication.preparation.rollback();
