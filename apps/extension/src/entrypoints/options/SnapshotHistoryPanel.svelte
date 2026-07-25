@@ -94,12 +94,27 @@
             </header>
             <dl>
               {#if revision.parentRevisionId}
-                <div><dt>Parent</dt><dd>{revision.parentRevisionId}</dd></div>
+                <div>
+                  <dt>Parent</dt>
+                  <dd>{revision.parentRevisionId}</dd>
+                </div>
               {/if}
-              {#if revision.deviceId}<div><dt>Device</dt><dd>{revision.deviceId}</dd></div>{/if}
-              <div><dt>Profiles</dt><dd>{revision.profileCount}</dd></div>
-              <div><dt>Endpoints</dt><dd>{revision.endpointCount}</dd></div>
-              <div><dt>Rule sources</dt><dd>{revision.ruleSourceCount}</dd></div>
+              {#if revision.deviceId}<div>
+                  <dt>Device</dt>
+                  <dd>{revision.deviceId}</dd>
+                </div>{/if}
+              <div>
+                <dt>Profiles</dt>
+                <dd>{revision.profileCount}</dd>
+              </div>
+              <div>
+                <dt>Endpoints</dt>
+                <dd>{revision.endpointCount}</dd>
+              </div>
+              <div>
+                <dt>Rule sources</dt>
+                <dd>{revision.ruleSourceCount}</dd>
+              </div>
             </dl>
           </li>
         {/each}
@@ -131,21 +146,56 @@
       </header>
 
       <dl>
-        <div><dt>Source revision</dt><dd>{entry.sourceRevisionId}</dd></div>
-        <div><dt>Start route</dt><dd>{routeLabel(entry)}</dd></div>
-        <div><dt>Browser target</dt><dd>{entry.target}</dd></div>
-        <div><dt>Capability</dt><dd>{entry.capability}</dd></div>
-        <div><dt>Compiler</dt><dd>{entry.compilerVersion}</dd></div>
-        <div><dt>PAC hash</dt><dd>{entry.scriptSha256Prefix}…</dd></div>
-        <div><dt>ProfileSpec hash</dt><dd>{entry.sourceProfileSpecSha256Prefix}…</dd></div>
+        <div>
+          <dt>Source revision</dt>
+          <dd>{entry.sourceRevisionId}</dd>
+        </div>
+        <div>
+          <dt>Start route</dt>
+          <dd>{routeLabel(entry)}</dd>
+        </div>
+        <div>
+          <dt>Browser target</dt>
+          <dd>{entry.target}</dd>
+        </div>
+        <div>
+          <dt>Capability</dt>
+          <dd>{entry.capability}</dd>
+        </div>
+        <div>
+          <dt>Compiler</dt>
+          <dd>{entry.compilerVersion}</dd>
+        </div>
+        <div>
+          <dt>PAC hash</dt>
+          <dd>{entry.scriptSha256Prefix}…</dd>
+        </div>
+        <div>
+          <dt>ProfileSpec hash</dt>
+          <dd>{entry.sourceProfileSpecSha256Prefix}…</dd>
+        </div>
         <div>
           <dt>Verification</dt>
-          <dd>{entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched</dd>
+          <dd>
+            {entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched
+          </dd>
         </div>
-        <div><dt>PAC size</dt><dd>{entry.stats.scriptBytes} bytes</dd></div>
-        <div><dt>Profiles</dt><dd>{entry.stats.profileCount}</dd></div>
-        <div><dt>Endpoints</dt><dd>{entry.stats.endpointCount}</dd></div>
-        <div><dt>Conditions</dt><dd>{entry.stats.conditionCount}</dd></div>
+        <div>
+          <dt>PAC size</dt>
+          <dd>{entry.stats.scriptBytes} bytes</dd>
+        </div>
+        <div>
+          <dt>Profiles</dt>
+          <dd>{entry.stats.profileCount}</dd>
+        </div>
+        <div>
+          <dt>Endpoints</dt>
+          <dd>{entry.stats.endpointCount}</dd>
+        </div>
+        <div>
+          <dt>Conditions</dt>
+          <dd>{entry.stats.conditionCount}</dd>
+        </div>
       </dl>
 
       {#if entry.warnings.length > 0}

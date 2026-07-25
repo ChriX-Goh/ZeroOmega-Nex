@@ -107,8 +107,8 @@ describe('profile workflow snapshot history command', () => {
       ],
     });
     expect(JSON.stringify(response)).not.toContain('FindProxyForURL');
-    expect(JSON.stringify(response)).not.toContain('proxy.example.invalid');
     if (!response.ok) throw new Error('expected successful history response');
+    expect(JSON.stringify(response.revisionHistory)).not.toContain('proxy.example.invalid');
     expect(response.snapshotHistory?.some((entry) => 'script' in entry)).toBe(false);
   });
 

@@ -6,6 +6,7 @@ import {
 import {
   BrowserStorageProfileWorkflowRepository,
   createDefaultProfileSpec,
+  listProfileWorkflowRevisionHistory,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,
   type ProfileWorkflowActivationDriver,
@@ -88,7 +89,9 @@ function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImp
   };
 }
 
-function createHistoryService(): ProfileWorkflowHistoryService {
+function createHistoryService(
+  repository: BrowserStorageProfileWorkflowRepository,
+): ProfileWorkflowHistoryService {
   return {
     async listSnapshots() {
       const runtime = currentBrowserProxyRuntime();
@@ -98,6 +101,7 @@ function createHistoryService(): ProfileWorkflowHistoryService {
         runtime.dispose();
       }
     },
+    listRevisions: (state) => listProfileWorkflowRevisionHistory(repository, state),
   };
 }
 
@@ -112,7 +116,7 @@ export function registerProfileWorkflowRuntime(
     options.activationDriver ?? new BrowserProfileWorkflowActivationDriver(),
   );
   const importService = createImportService(api);
-  const historyService = createHistoryService();
+  const historyService = createHistoryService(repository);
   const listener = async (
     message: unknown,
   ): Promise<ProfileWorkflowCommandResponse | undefined> => {

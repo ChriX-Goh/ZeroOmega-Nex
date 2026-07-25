@@ -5,6 +5,7 @@ import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
   ProfileWorkflowRepository,
+  ProfileWorkflowRevisionHistoryEntry,
   ProfileWorkflowRuntimeView,
   ProfileWorkflowSnapshotHistoryEntry,
   ProfileWorkflowState,
@@ -73,6 +74,7 @@ export type ProfileWorkflowCommandResponse =
       readonly appliedSnapshotId?: string;
       readonly runtime?: ProfileWorkflowRuntimeView;
       readonly snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[];
+      readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];
     }
   | {
       readonly ok: false;
@@ -103,6 +105,9 @@ export interface ProfileWorkflowImportService {
 
 export interface ProfileWorkflowHistoryService {
   listSnapshots(): Promise<readonly ProfileWorkflowSnapshotHistoryEntry[]>;
+  listRevisions(
+    state: ProfileWorkflowState,
+  ): Promise<readonly ProfileWorkflowRevisionHistoryEntry[]>;
 }
 
 function errorMessage(error: unknown): string {
@@ -114,6 +119,7 @@ function response(
   appliedSnapshotId?: string,
   runtime?: ProfileWorkflowRuntimeView,
   snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[],
+  revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[],
 ): ProfileWorkflowCommandResponse {
   return {
     ok: true,
@@ -122,6 +128,7 @@ function response(
     ...(appliedSnapshotId === undefined ? {} : { appliedSnapshotId }),
     ...(runtime === undefined ? {} : { runtime }),
     ...(snapshotHistory === undefined ? {} : { snapshotHistory }),
+    ...(revisionHistory === undefined ? {} : { revisionHistory }),
   };
 }
 
@@ -282,6 +289,7 @@ export async function executeProfileWorkflowCommand(
         undefined,
         await runtimeView(applyService),
         await historyService.listSnapshots(),
+        await historyService.listRevisions(state),
       );
     } catch (error) {
       return failure('storage-failure', errorMessage(error), state);
