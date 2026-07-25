@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'feat/m8-profile-workflow'
+  workflow_dispatch:
 
 permissions:
   contents: write
