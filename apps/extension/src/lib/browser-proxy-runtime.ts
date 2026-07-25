@@ -10,6 +10,7 @@ import {
   type FirefoxProxyErrorEvent,
   type FirefoxProxySettingsApi,
   type SnapshotActivationRepository,
+  type SnapshotHistoryRepository,
 } from '@zeroomega-nex/browser-adapters';
 
 interface RuntimeBrowserApi {
@@ -28,7 +29,7 @@ interface RuntimeBrowserApi {
 
 export interface BrowserProxyRuntime {
   readonly driver: BrowserProxyDriver;
-  readonly repository: SnapshotActivationRepository;
+  readonly repository: SnapshotActivationRepository & SnapshotHistoryRepository;
   dispose(): void;
 }
 
