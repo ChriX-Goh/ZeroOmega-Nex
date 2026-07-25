@@ -11,6 +11,7 @@ import AdvancedProfileEditor from './entrypoints/options/AdvancedProfileEditor.s
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
 import SnapshotHistoryPanel from './entrypoints/options/SnapshotHistoryPanel.svelte';
 import SwitchProfileEditor from './entrypoints/options/SwitchProfileEditor.svelte';
+import ThemePanel from './entrypoints/options/ThemePanel.svelte';
 import PopupApp from './entrypoints/popup/App.svelte';
 
 function baseSpec() {
@@ -88,14 +89,26 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         generation: 0,
         deviceId: 'device-component-test',
         onAcceptImport: async () => true,
+        onImportAndApply: async () => true,
       },
     });
 
-    expect(body).toContain('Import ZeroOmega / SwitchyOmega backup');
-    expect(body).toContain('aria-label="Legacy backup"');
-    expect(body).toContain('Analyze backup');
+    expect(body).toContain('Restore original ZeroOmega / SwitchyOmega backup');
+    expect(body).toContain('aria-label="Legacy backup file"');
+    expect(body).toContain('Paste backup text instead');
     expect(body).not.toContain('passwordSecretRef');
     expect(body).not.toContain('secretMaterials');
+  });
+
+  it('renders Automatic, Light, and Dark theme choices', () => {
+    const { body } = render(ThemePanel, {
+      props: { mode: 'auto', onChange: () => undefined },
+    });
+
+    expect(body).toContain('Automatic');
+    expect(body).toContain('Light');
+    expect(body).toContain('Dark');
+    expect(body).toContain('aria-checked="true"');
   });
 
   it('renders history loading and dirty-Draft rollback protection', () => {

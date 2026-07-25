@@ -5,13 +5,28 @@ const popupStylePath = 'apps/extension/src/entrypoints/popup/style.css';
 const optionsAppPath = 'apps/extension/src/entrypoints/options/App.svelte';
 const optionsStylePath = 'apps/extension/src/entrypoints/options/style.css';
 const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
+const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte';
+const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
+const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 
-const [popupApp, popupStyle, optionsApp, optionsStyle, snapshotHistory] = await Promise.all([
+const [
+  popupApp,
+  popupStyle,
+  optionsApp,
+  optionsStyle,
+  snapshotHistory,
+  legacyImport,
+  themePanel,
+  optionsHtml,
+] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
   readFile(optionsAppPath, 'utf8'),
   readFile(optionsStylePath, 'utf8'),
   readFile(snapshotHistoryPath, 'utf8'),
+  readFile(legacyImportPath, 'utf8'),
+  readFile(themePanelPath, 'utf8'),
+  readFile(optionsHtmlPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -47,7 +62,34 @@ const requirements = [
     'Popup route controls must expose visible keyboard focus.',
   ],
   [optionsApp.includes('class="sidebar"'), 'Options must retain familiar left profile navigation.'],
-  [optionsApp.includes('class="actions"'), 'Options must retain top Apply/Revert actions.'],
+  [
+    optionsApp.includes('class="nav-group actions"'),
+    'Options must retain original sidebar Apply/Discard actions.',
+  ],
+  [
+    optionsHtml.includes('name="manifest.open_in_tab" content="true"'),
+    'Options must open as a complete browser tab instead of an embedded extension dialog.',
+  ],
+  [
+    ['Settings', 'Profiles', 'Actions', 'Built-in Profiles', 'New profile…'].every((label) =>
+      optionsApp.includes(label),
+    ),
+    'Options must preserve the original ZeroOmega navigation groups and profile workflow.',
+  ],
+  [
+    optionsApp.includes("activeSection === 'general'") &&
+      optionsApp.includes("activeSection === 'profile'"),
+    'General settings and profile details must be independent routed pages.',
+  ],
+  [
+    legacyImport.includes('aria-label="Legacy backup file"') &&
+      legacyImport.includes('Import and use now'),
+    'Original ZeroOmega backups must support file-first one-step import and activation.',
+  ],
+  [
+    ['Automatic', 'Light', 'Dark'].every((label) => themePanel.includes(label)),
+    'Options must provide Automatic, Light, and Dark appearance modes.',
+  ],
   [
     optionsApp.includes('class="settings-section"'),
     'Options profile pages must use familiar flat settings sections.',
@@ -65,7 +107,8 @@ const requirements = [
     'Options interactive controls must expose visible keyboard focus.',
   ],
   [
-    optionsStyle.includes('@media (max-width: 760px)'),
+    optionsStyle.includes('@media (max-width: 760px)') &&
+      optionsStyle.includes('@media (prefers-color-scheme: dark)'),
     'Options must provide a narrow-screen single-column layout.',
   ],
   [
@@ -99,5 +142,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  'UI compatibility guard passed: classic workflow, fixed typography, keyboard focus, responsive layout, and rollback confirmation are present.',
+  'UI compatibility guard passed: original navigation, full-tab pages, direct legacy import, automatic theme, keyboard focus, responsive layout, and rollback confirmation are present.',
 );

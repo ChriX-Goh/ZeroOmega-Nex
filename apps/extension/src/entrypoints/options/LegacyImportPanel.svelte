@@ -15,23 +15,29 @@
     candidate: ProfileSpec,
     secretMaterials: readonly ProfileWorkflowSecretMaterial[],
   ) => Promise<boolean>;
+  export let onImportAndApply: (
+    expectedGeneration: number,
+    candidate: ProfileSpec,
+    secretMaterials: readonly ProfileWorkflowSecretMaterial[],
+  ) => Promise<boolean>;
 
   let backupText = '';
+  let selectedFileName = '';
   let result: LegacyImportResult | undefined;
   let analyzedGeneration: number | undefined;
   let analyzing = false;
   let accepting = false;
   let errorMessage = '';
-  let accepted = false;
+  let acceptedMessage = '';
 
   const statuses: readonly { status: LegacyImportStatus; label: string }[] = [
     { status: 'exact', label: 'Exact' },
     { status: 'target-dependent', label: 'Target-dependent' },
     { status: 'downgraded', label: 'Downgraded' },
     { status: 'preserved', label: 'Preserved' },
-    { status: 'ignored-generated', label: 'Ignored generated data' },
-    { status: 'ignored-runtime', label: 'Ignored runtime state' },
-    { status: 'rejected', label: 'Rejected' },
+    { status: 'ignored-generated', label: 'Regenerated automatically' },
+    { status: 'ignored-runtime', label: 'Runtime state ignored' },
+    { status: 'rejected', label: 'Unsupported' },
   ];
 
   function valueFrom(event: Event): string {
@@ -61,12 +67,11 @@
   async function analyze(): Promise<void> {
     if (analyzing || disabled) return;
     analyzing = true;
-    accepted = false;
+    acceptedMessage = '';
     errorMessage = '';
     try {
-      const createdAt = new Date().toISOString();
       result = importZeroOmegaBackup(backupText, {
-        createdAt,
+        createdAt: new Date().toISOString(),
         documentId: `document-${crypto.randomUUID()}`,
         revisionId: `revision-${crypto.randomUUID()}`,
         deviceId,
@@ -81,21 +86,39 @@
     }
   }
 
-  async function acceptCandidate(): Promise<void> {
+  async function chooseFile(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    selectedFileName = file.name;
+    backupText = await file.text();
+    result = undefined;
+    analyzedGeneration = undefined;
+    await analyze();
+  }
+
+  async function importCandidate(activate: boolean): Promise<void> {
     if (!result?.ok || analyzedGeneration === undefined || accepting || disabled) return;
     accepting = true;
-    accepted = false;
+    acceptedMessage = '';
     errorMessage = '';
     try {
-      const acceptedImport = await onAcceptImport(
-        analyzedGeneration,
-        result.candidate,
-        result.secretMaterials.map((secret) => ({ ref: secret.ref, value: secret.value })),
-      );
-      if (!acceptedImport) {
-        throw new Error('The imported candidate could not replace the current Draft.');
-      }
-      accepted = true;
+      const secretMaterials = result.secretMaterials.map((secret) => ({
+        ref: secret.ref,
+        value: secret.value,
+      }));
+      const accepted = activate
+        ? await onImportAndApply(analyzedGeneration, result.candidate, secretMaterials)
+        : await onAcceptImport(analyzedGeneration, result.candidate, secretMaterials);
+      if (!accepted)
+        throw new Error(
+          activate
+            ? 'The imported configuration could not be activated.'
+            : 'The imported configuration could not be saved.',
+        );
+      acceptedMessage = activate
+        ? 'Import completed. The original configuration is now active.'
+        : 'Import completed without changing the active proxy. Use Apply changes when ready.';
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
@@ -104,35 +127,50 @@
   }
 </script>
 
-<section class="settings-section">
-  <h2>Import ZeroOmega / SwitchyOmega backup</h2>
+<section class="settings-section import-source">
+  <h2>Restore original ZeroOmega / SwitchyOmega backup</h2>
   <p class="section-help">
-    Paste schema-version-2 JSON or base64 JSON. Analysis never changes the active browser proxy
-    state. Accepting imports an inactive Draft candidate; Apply remains a separate verified action.
+    Select the backup file exported by the original extension. JSON, base64 backup text, and common
+    .bak/.txt files are accepted.
   </p>
-  <textarea
-    aria-label="Legacy backup"
-    rows="14"
-    placeholder="Paste schema-version-2 JSON or base64 JSON"
-    value={backupText}
-    disabled={disabled || analyzing || accepting}
-    on:input={(event) => {
-      backupText = valueFrom(event);
-      result = undefined;
-      analyzedGeneration = undefined;
-      accepted = false;
-    }}></textarea>
-  <button
-    type="button"
-    disabled={disabled || analyzing || accepting || backupText.trim().length === 0}
-    on:click={analyze}>{analyzing ? 'Analyzing…' : 'Analyze backup'}</button
-  >
+  <label class="file-picker">
+    <span>Backup file</span>
+    <input
+      aria-label="Legacy backup file"
+      type="file"
+      accept=".bak,.json,.txt,application/json,text/plain"
+      disabled={disabled || analyzing || accepting}
+      on:change={chooseFile}
+    />
+    {#if selectedFileName}<strong>{selectedFileName}</strong>{/if}
+  </label>
+  <details>
+    <summary>Paste backup text instead</summary>
+    <textarea
+      aria-label="Legacy backup"
+      rows="12"
+      placeholder="Paste the complete ZeroOmega / SwitchyOmega backup"
+      value={backupText}
+      disabled={disabled || analyzing || accepting}
+      on:input={(event) => {
+        backupText = valueFrom(event);
+        selectedFileName = '';
+        result = undefined;
+        analyzedGeneration = undefined;
+        acceptedMessage = '';
+      }}></textarea>
+    <button
+      type="button"
+      disabled={disabled || analyzing || accepting || backupText.trim().length === 0}
+      on:click={analyze}>{analyzing ? 'Reading backup…' : 'Read backup'}</button
+    >
+  </details>
 </section>
 
 {#if result}
   <section class="settings-section">
-    <h2>Compatibility report</h2>
-    <dl>
+    <h2>Compatibility check</h2>
+    <dl class="compatibility-summary">
       <div>
         <dt>Encoding</dt>
         <dd>{result.report.encoding}</dd>
@@ -150,63 +188,50 @@
         <dd>{result.report.ruleSourceCount}</dd>
       </div>
       <div>
-        <dt>Contains secrets</dt>
-        <dd>{result.report.containsSecrets ? 'Yes' : 'No'}</dd>
+        <dt>Credentials</dt>
+        <dd>{result.report.containsSecrets ? 'Will be migrated securely' : 'None'}</dd>
       </div>
     </dl>
-
-    <ul aria-label="Import status totals">
-      {#each statuses as entry (entry.status)}
-        <li>{entry.label}: {summaryCount(result, entry.status)}</li>
-      {/each}
+    <ul class="compatibility-counts" aria-label="Import status totals">
+      {#each statuses as entry (entry.status)}<li>
+          <span>{entry.label}</span><strong>{summaryCount(result, entry.status)}</strong>
+        </li>{/each}
     </ul>
-
     <details open={!result.ok || result.report.summary.rejected > 0}>
-      <summary>Migration details ({result.report.items.length})</summary>
+      <summary>Technical migration details ({result.report.items.length})</summary>
       <ol>
-        {#each result.report.items as item, index (`${item.code}:${item.sourcePath}:${index}`)}
-          <li>
+        {#each result.report.items as item, index (`${item.code}:${item.sourcePath}:${index}`)}<li>
             <strong>{item.status}</strong> — {item.message}
             <div>{item.sourcePath}{item.targetPath ? ` → ${item.targetPath}` : ''}</div>
-          </li>
-        {/each}
+          </li>{/each}
       </ol>
     </details>
-
-    {#if result.ok && result.secretMaterials.length > 0}
-      <details>
-        <summary>Extracted secret destinations ({result.secretMaterials.length})</summary>
-        <ul>
-          {#each result.secretMaterials as secret (secret.ref)}
-            <li>
-              <strong>{secret.kind}</strong> — {secret.sourcePath}
-              {#if secret.username}<span> · username: {secret.username}</span>{/if}
-              {#if secret.headerName}<span> · header: {secret.headerName}</span>{/if}
-              <div>Secret reference: {secret.ref}</div>
-            </li>
-          {/each}
-        </ul>
-        <p>Secret values are stored separately and are never rendered here.</p>
-      </details>
-    {/if}
-
     {#if result.ok}
-      <button type="button" disabled={disabled || accepting} on:click={acceptCandidate}
-        >{accepting ? 'Importing…' : 'Accept as Draft candidate'}</button
-      >
-      {#if accepted}
-        <p role="status">
-          Imported into Draft. Review profiles, then use Apply changes separately.
-        </p>
-      {/if}
+      <div class="import-actions">
+        <button
+          type="button"
+          class="primary"
+          disabled={disabled || accepting}
+          on:click={() => importCandidate(true)}
+          >{accepting ? 'Importing…' : 'Import and use now'}</button
+        >
+        <button
+          type="button"
+          disabled={disabled || accepting}
+          on:click={() => importCandidate(false)}>Import without activating</button
+        >
+      </div>
     {:else}
-      <p role="alert">The backup cannot produce an activatable candidate.</p>
+      <p role="alert">
+        This backup contains unsupported or invalid entries. Open the technical details above.
+      </p>
     {/if}
   </section>
 {/if}
 
-{#if errorMessage}
-  <section class="settings-section">
+{#if acceptedMessage}<section class="settings-section">
+    <p role="status">{acceptedMessage}</p>
+  </section>{/if}
+{#if errorMessage}<section class="settings-section">
     <p role="alert">{errorMessage}</p>
-  </section>
-{/if}
+  </section>{/if}
