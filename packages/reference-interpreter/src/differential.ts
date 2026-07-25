@@ -117,8 +117,6 @@ export function evaluateDifferentialVector(
   );
 }
 
-export function serializeDifferentialDecisionRecord(
-  record: DifferentialDecisionRecord,
-): string {
+export function serializeDifferentialDecisionRecord(record: DifferentialDecisionRecord): string {
   return JSON.stringify(record);
 }

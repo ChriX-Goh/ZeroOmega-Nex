@@ -56,9 +56,7 @@ describe('reference interpreter semantic properties', () => {
           url: matching
             ? `https://node-${index}.example.invalid/path`
             : `https://node-${index}.unrelated.invalid/path`,
-          host: matching
-            ? `node-${index}.example.invalid`
-            : `node-${index}.unrelated.invalid`,
+          host: matching ? `node-${index}.example.invalid` : `node-${index}.unrelated.invalid`,
           scheme: 'https',
         },
       });

@@ -4,10 +4,7 @@ import { importZeroOmegaBackup } from '@zeroomega-nex/legacy-zeroomega';
 import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
-import {
-  evaluateDifferentialVector,
-  serializeDifferentialDecisionRecord,
-} from './differential.js';
+import { evaluateDifferentialVector, serializeDifferentialDecisionRecord } from './differential.js';
 
 const ROOT = new URL('../../../fixtures/zeroomega-v2/', import.meta.url);
 const context = {
