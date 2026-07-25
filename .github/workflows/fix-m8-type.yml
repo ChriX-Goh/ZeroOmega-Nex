@@ -1,0 +1,58 @@
+name: Fix Milestone 8 Type Error
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fix and format activation transaction
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/browser-adapters/src/activation.ts')
+          text = path.read_text()
+          old = '  let platformBefore: PlatformProxyState;\n  try {\n    platformBefore = await driver.readState();\n    await setBuiltInMode(driver, mode);'
+          new = '  let platformBefore: PlatformProxyState | undefined;\n  try {\n    platformBefore = await driver.readState();\n    await setBuiltInMode(driver, mode);'
+          if text.count(old) != 1:
+              raise SystemExit('expected activation block was not found exactly once')
+          path.write_text(text.replace(old, new))
+          PY
+          pnpm exec prettier --write packages/browser-adapters/src/activation.ts
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages/browser-adapters/src/activation.ts
+          git commit -m 'fix: initialize built-in activation rollback state'
+          git push origin HEAD:feat/m8-profile-workflow
