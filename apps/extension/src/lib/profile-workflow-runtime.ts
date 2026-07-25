@@ -6,7 +6,6 @@ import {
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
   type ProfileWorkflowInitializer,
-  type ProfileWorkflowState,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
 
@@ -54,7 +53,7 @@ class RuntimeInitializer implements ProfileWorkflowInitializer {
 function createApplyService(deviceId: string): ProfileWorkflowApplyService {
   return {
     driver: new BrowserProfileWorkflowActivationDriver(),
-    createContext(_state: ProfileWorkflowState) {
+    createContext() {
       const now = new Date().toISOString();
       return {
         applyId: `apply-${crypto.randomUUID()}`,
