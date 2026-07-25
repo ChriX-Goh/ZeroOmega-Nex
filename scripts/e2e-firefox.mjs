@@ -9,6 +9,7 @@ const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000008';
 const options = new firefox.Options()
   .addArguments('-headless')
+  .setPreference('extensions.allowPrivateBrowsingByDefault', true)
   .setPreference(
     'extensions.webextensions.uuids',
     JSON.stringify({ [addonId]: extensionUuid }),
