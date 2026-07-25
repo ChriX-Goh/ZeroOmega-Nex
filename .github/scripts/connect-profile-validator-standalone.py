@@ -1,24 +1,30 @@
 from pathlib import Path
 
-path = Path('packages/profile-spec/src/validation.ts')
-text = path.read_text()
-old = '''import Ajv2020 from 'ajv/dist/2020.js';
+validation_path = Path('packages/profile-spec/src/validation.ts')
+validation_text = validation_path.read_text()
+validation_import_old = '''import Ajv2020 from 'ajv/dist/2020.js';
 import type { ErrorObject } from 'ajv';
 
 import { profileSpecJsonSchema } from './schema.js';
 
 import type {
 '''
-new = '''import type { ErrorObject } from 'ajv';
+validation_import_new = '''import type { ErrorObject } from 'ajv';
 
 import generatedValidateStructure from './profile-spec-validator.generated.js';
 
 import type {
 '''
-if text.count(old) != 1:
-    raise SystemExit(f'validation import anchor count: {text.count(old)}')
-text = text.replace(old, new, 1)
-old_compile = '''const ajv = new Ajv2020({
+if validation_text.count(validation_import_old) != 1:
+    raise SystemExit(
+        f'validation import anchor count: {validation_text.count(validation_import_old)}'
+    )
+validation_text = validation_text.replace(
+    validation_import_old,
+    validation_import_new,
+    1,
+)
+validation_compile_old = '''const ajv = new Ajv2020({
   allErrors: true,
   allowUnionTypes: true,
   strict: true,
@@ -27,13 +33,45 @@ old_compile = '''const ajv = new Ajv2020({
 
 const validateStructure = ajv.compile<ProfileSpec>(profileSpecJsonSchema);
 '''
-new_compile = '''type ProfileSpecStructureValidator = ((input: unknown) => input is ProfileSpec) & {
+validation_compile_new = '''type ProfileSpecStructureValidator = ((input: unknown) => input is ProfileSpec) & {
   errors?: readonly ErrorObject[] | null;
 };
 
 const validateStructure = generatedValidateStructure as unknown as ProfileSpecStructureValidator;
 '''
-if text.count(old_compile) != 1:
-    raise SystemExit(f'validation compiler anchor count: {text.count(old_compile)}')
-text = text.replace(old_compile, new_compile, 1)
-path.write_text(text)
+if validation_text.count(validation_compile_old) != 1:
+    raise SystemExit(
+        f'validation compiler anchor count: {validation_text.count(validation_compile_old)}'
+    )
+validation_text = validation_text.replace(
+    validation_compile_old,
+    validation_compile_new,
+    1,
+)
+validation_path.write_text(validation_text)
+
+activation_path = Path('apps/extension/src/lib/profile-workflow-activation.ts')
+activation_text = activation_path.read_text()
+activation_replacements = [
+    (
+        '  createVerifiedPacSnapshot,',
+        '  createBrowserSafePacSnapshot,',
+        'browser snapshot import',
+    ),
+    (
+        'ReturnType<typeof createVerifiedPacSnapshot>',
+        'ReturnType<typeof createBrowserSafePacSnapshot>',
+        'browser snapshot failure type',
+    ),
+    (
+        'const snapshot = await createVerifiedPacSnapshot(',
+        'const snapshot = await createBrowserSafePacSnapshot(',
+        'browser snapshot activation call',
+    ),
+]
+for old, new, label in activation_replacements:
+    count = activation_text.count(old)
+    if count != 1:
+        raise SystemExit(f'{label}: expected one anchor, found {count}')
+    activation_text = activation_text.replace(old, new, 1)
+activation_path.write_text(activation_text)
