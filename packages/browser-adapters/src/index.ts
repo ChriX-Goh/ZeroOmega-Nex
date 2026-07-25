@@ -6,7 +6,6 @@ export {
 export {
   PROXY_AUTH_URL_FILTERS,
   registerProxyAuthenticationListener,
-  type ProxyAuthenticationCompletionEvent,
   type ProxyAuthenticationEvents,
   type ProxyAuthenticationListenerRegistration,
   type ProxyAuthenticationPermissionApi,
