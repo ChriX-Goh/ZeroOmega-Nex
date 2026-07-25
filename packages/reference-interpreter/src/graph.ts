@@ -7,6 +7,7 @@ import type {
 
 import { evaluateSwitchProfile } from './evaluate.js';
 import { matchCondition } from './match.js';
+import { evaluateRuleListProfile } from './rule-list.js';
 import type {
   GraphDecision,
   GraphEvaluationOptions,
@@ -87,6 +88,7 @@ export function evaluateProfileGraph(
 ): GraphDecision {
   const profileById = new Map(spec.profiles.map((profile) => [profile.id, profile]));
   const endpointById = new Map(spec.proxyEndpoints.map((endpoint) => [endpoint.id, endpoint]));
+  const sourceById = new Map(spec.ruleSources.map((source) => [source.id, source]));
   const maxProfileDepth = options.maxProfileDepth ?? DEFAULT_MAX_PROFILE_DEPTH;
 
   const resolve = (
@@ -273,20 +275,61 @@ export function evaluateProfileGraph(
         };
       }
 
-      case 'rule-list':
-        return indeterminate(
-          support,
-          enteredTrace,
-          `rule-list profile ${profile.id} requires the rule-list interpreter`,
-          {
-            action: 'rule-list',
-            profileId: profile.id,
-            profileName: profile.name,
-            profileKind: profile.kind,
+      case 'rule-list': {
+        const source = sourceById.get(profile.sourceId);
+        if (!source) {
+          return invalid(
             support,
-            reason: 'rule-list evaluation is not implemented in this slice',
-          },
-        );
+            enteredTrace,
+            `rule source ${profile.sourceId} does not exist`,
+            profile,
+          );
+        }
+
+        const decision = evaluateRuleListProfile(spec, profile, source, request);
+        const nextSupport = combineSupport(support, decision.support);
+        const ruleTrace: GraphTraceEntry[] = decision.trace.map((entry) => ({
+          action: 'rule-list-rule',
+          profileId: profile.id,
+          profileName: profile.name,
+          profileKind: profile.kind,
+          ruleId: entry.ruleId,
+          sourceLine: entry.sourceLine,
+          priorityGroup: entry.priorityGroup,
+          matched: entry.status === 'matched',
+          support: entry.support,
+          ...(entry.reason === undefined ? {} : { reason: entry.reason }),
+        }));
+
+        if (decision.status === 'invalid') {
+          return invalid(nextSupport, [...enteredTrace, ...ruleTrace], decision.reason, profile);
+        }
+        if (decision.status === 'indeterminate') {
+          return {
+            status: 'indeterminate',
+            support: nextSupport,
+            trace: [...enteredTrace, ...ruleTrace],
+            reason: decision.reason,
+          };
+        }
+
+        const selectedTrace: GraphTraceEntry[] = [
+          ...enteredTrace,
+          ...ruleTrace,
+          ...(decision.matchedRuleId === undefined
+            ? [
+                {
+                  action: 'rule-list-default' as const,
+                  profileId: profile.id,
+                  profileName: profile.name,
+                  profileKind: profile.kind,
+                  support: nextSupport,
+                },
+              ]
+            : []),
+        ];
+        return resolve(decision.route, nextSupport, selectedTrace, nextStack);
+      }
 
       case 'pac':
         return indeterminate(
