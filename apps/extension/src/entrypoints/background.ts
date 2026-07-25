@@ -3,12 +3,18 @@ import { productIdentity } from '@zeroomega-nex/core-contracts';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
 import {
+  currentProfileWorkflowRuntimeApi,
+  registerProfileWorkflowRuntime,
+  type RegisteredProfileWorkflowRuntime,
+} from '../lib/profile-workflow-runtime';
+import {
   currentProxyAuthenticationApi,
   registerStoredProxyAuthentication,
   type ProxyAuthenticationRuntime,
 } from '../lib/proxy-auth-runtime';
 
 let authenticationRuntime: ProxyAuthenticationRuntime | undefined;
+let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 
 async function restoreProxyRuntime(): Promise<void> {
   const runtime = currentBrowserProxyRuntime();
@@ -43,6 +49,8 @@ export default defineBackground(() => {
   console.info(
     `[${productIdentity.name}] background initialized for ${productIdentity.milestone}.`,
   );
+  profileWorkflowRuntime?.dispose();
+  profileWorkflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi());
   void restoreProxyRuntime().catch((error: unknown) => {
     console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
   });
