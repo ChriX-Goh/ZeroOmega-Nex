@@ -38,10 +38,30 @@ patch(
     'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
     [
         (
+            "    BrowserStorageProxyAuthenticationRepository,\n    type ProxyAuthenticationStorageArea,",
+            '    BrowserStorageProxyAuthenticationRepository,',
+            'storage type import',
+        ),
+        (
+            '    importLegacyZeroOmega,',
+            '    importLegacyZeroOmegaV2,',
+            'legacy import function import',
+        ),
+        (
+            '      result = importLegacyZeroOmega(backupText, {',
+            '      result = importLegacyZeroOmegaV2(backupText, {',
+            'legacy import function call',
+        ),
+        (
+            "      browser.storage.local as unknown as ProxyAuthenticationStorageArea,",
+            "      browser.storage.local as unknown as ConstructorParameters<\n        typeof BrowserStorageProxyAuthenticationRepository\n      >[0],",
+            'storage constructor parameter type',
+        ),
+        (
             "    placeholder='{\"schemaVersion\":2,...}'",
             '    placeholder="Paste schema-version-2 JSON or base64 JSON"',
             'Svelte-safe backup placeholder',
-        )
+        ),
     ],
 )
 
