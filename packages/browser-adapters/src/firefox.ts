@@ -111,7 +111,9 @@ export function createFirefoxProxyDriver(
 
     async installPac(snapshot: PacRuntimeSnapshot): Promise<void> {
       if (!supportsSnapshot(snapshot)) {
-        throw new TypeError(`PAC snapshot target ${snapshot.target} cannot be installed on Firefox`);
+        throw new TypeError(
+          `PAC snapshot target ${snapshot.target} cannot be installed on Firefox`,
+        );
       }
       if (!(await extension.isAllowedIncognitoAccess())) {
         throw new Error('Firefox private browsing access is required before installing PAC');

@@ -23,7 +23,8 @@ export function jsonValue(value: unknown, path = 'value'): JsonValue {
     if (!Number.isFinite(value)) throw new TypeError(`${path} contains a non-finite number`);
     return value;
   }
-  if (Array.isArray(value)) return value.map((entry, index) => jsonValue(entry, `${path}/${index}`));
+  if (Array.isArray(value))
+    return value.map((entry, index) => jsonValue(entry, `${path}/${index}`));
   if (typeof value !== 'object') throw new TypeError(`${path} is not JSON-compatible`);
 
   const result: Record<string, JsonValue> = {};

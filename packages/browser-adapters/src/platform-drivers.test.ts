@@ -1,10 +1,7 @@
 import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 import { describe, expect, it } from 'vitest';
 
-import {
-  createChromiumProxyDriver,
-  type ChromiumProxySettingsApi,
-} from './chromium.js';
+import { createChromiumProxyDriver, type ChromiumProxySettingsApi } from './chromium.js';
 import {
   createFirefoxProxyDriver,
   firefoxPacDataUrl,
@@ -159,7 +156,9 @@ describe('Firefox proxy settings driver', () => {
       requiresPrivateBrowsingAccess: true,
       privateBrowsingAllowed: false,
     });
-    await expect(driver.installPac(snapshot)).rejects.toThrow('private browsing access is required');
+    await expect(driver.installPac(snapshot)).rejects.toThrow(
+      'private browsing access is required',
+    );
   });
 
   it('installs an autoConfig data URL and confirms it without PAC errors', async () => {

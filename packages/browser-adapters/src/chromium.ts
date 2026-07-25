@@ -40,9 +40,7 @@ function installedPacScript(value: unknown): string | undefined {
   return stringProperty(pacScript, 'data');
 }
 
-export function createChromiumProxyDriver(
-  settings: ChromiumProxySettingsApi,
-): BrowserProxyDriver {
+export function createChromiumProxyDriver(settings: ChromiumProxySettingsApi): BrowserProxyDriver {
   const read = async (): Promise<ChromiumProxySettingResult> => settings.get({ incognito: false });
 
   return {
@@ -80,7 +78,9 @@ export function createChromiumProxyDriver(
 
     async installPac(snapshot: PacRuntimeSnapshot): Promise<void> {
       if (!supportsSnapshot(snapshot)) {
-        throw new TypeError(`PAC snapshot target ${snapshot.target} cannot be installed on Chromium`);
+        throw new TypeError(
+          `PAC snapshot target ${snapshot.target} cannot be installed on Chromium`,
+        );
       }
       await settings.set({ value: pacConfig(snapshot), scope: 'regular' });
     },
@@ -119,7 +119,8 @@ export function createChromiumProxyDriver(
     },
 
     async restoreState(state: PlatformProxyState): Promise<void> {
-      if (state.family !== 'chromium') throw new TypeError('cannot restore non-Chromium proxy state');
+      if (state.family !== 'chromium')
+        throw new TypeError('cannot restore non-Chromium proxy state');
       if (state.controlLevel !== 'controlled-by-this-extension') {
         await settings.clear({ scope: 'regular' });
         return;
