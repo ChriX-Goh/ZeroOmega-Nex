@@ -82,9 +82,14 @@ try {
   await profileName.press('Tab');
   const apply = options.getByRole('button', { name: '应用选项' });
   await apply.waitFor({ state: 'visible' });
-  await assertEventually(async () => !(await apply.isDisabled()), 'Apply button remained disabled');
+  await assertEventually(
+    async () => !(await apply.isDisabled()),
+    'Apply button remained disabled',
+  );
   await apply.click();
-  await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
+  await options
+    .getByText('当前设置已全部应用。')
+    .waitFor({ state: 'visible', timeout: 20_000 });
 
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>
@@ -94,11 +99,16 @@ try {
   const customProfile = popup.getByRole('button', { name: /Chromium E2E Proxy/u });
   await customProfile.waitFor();
   await customProfile.click();
-  await assertEventually(async () => customProfile.isDisabled(), 'Custom profile did not become active');
+  await assertEventually(
+    async () => customProfile.isDisabled(),
+    'Custom profile did not become active',
+  );
 
   await options.getByRole('button', { name: '配置历史' }).click();
   await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
-  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
+  await options
+    .getByRole('heading', { name: '已验证的 PAC 快照', exact: true })
+    .waitFor();
   await options.locator('article.settings-section').first().waitFor({ timeout: 20_000 });
 
   await popup.bringToFront();
@@ -110,7 +120,10 @@ try {
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   await options.getByLabel('原版备份文件').setInputFiles(legacyBackupPath);
   await options.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();
-  const importAndUse = options.getByRole('button', { name: '导入并立即使用', exact: true });
+  const importAndUse = options.getByRole('button', {
+    name: '导入并立即使用',
+    exact: true,
+  });
   await importAndUse.click();
   await options
     .getByText('导入完成，原版配置现已启用。')
@@ -126,7 +139,7 @@ try {
 
 async function assertEventually(check, message, timeout = 15_000) {
   const deadline = Date.now() + timeout;
-  while (Date.now() < timeout + deadline - timeout) {
+  while (Date.now() < deadline) {
     if (await check()) return;
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
   }
