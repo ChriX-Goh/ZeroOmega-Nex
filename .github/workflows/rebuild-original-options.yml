@@ -43,11 +43,11 @@ jobs:
           text = path.read_text()
           text = text.replace(
               """optionsApp.includes("activeSection === 'general'")""",
-              """optionsApp.includes(\"activeSection === 'general'\")""",
+              r"""optionsApp.includes(\"activeSection === 'general'\")""",
           )
           text = text.replace(
               """optionsApp.includes("activeSection === 'profile'")""",
-              """optionsApp.includes(\"activeSection === 'profile'\")""",
+              r"""optionsApp.includes(\"activeSection === 'profile'\")""",
           )
           path.write_text(text)
           PY
