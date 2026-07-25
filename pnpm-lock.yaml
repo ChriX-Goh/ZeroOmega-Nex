@@ -89,6 +89,19 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/reference-interpreter:
+    dependencies:
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../profile-spec
+    devDependencies:
+      '@zeroomega-nex/legacy-zeroomega':
+        specifier: workspace:*
+        version: link:../legacy-zeroomega
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
 packages:
   '@1natsu/wait-element@4.2.0':
     resolution:

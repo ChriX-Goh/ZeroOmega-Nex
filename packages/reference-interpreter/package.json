@@ -1,0 +1,19 @@
+{
+  "name": "@zeroomega-nex/reference-interpreter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@zeroomega-nex/profile-spec": "workspace:*"
+  },
+  "devDependencies": {
+    "@zeroomega-nex/legacy-zeroomega": "workspace:*",
+    "typescript": "5.9.3"
+  }
+}

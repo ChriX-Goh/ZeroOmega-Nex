@@ -2,7 +2,7 @@
 
 ## Repository baseline
 
-`main` contains the completed and verified foundation plus Milestones 1, 2, and 3.
+`main` contains the completed and verified foundation plus Milestones 1, 2, 3, and 4.
 
 The pre-normalization main commit is preserved at `archive/main-before-stack-normalization`.
 
@@ -69,10 +69,7 @@ Acceptance evidence:
 - Final documentation Head `dec72f5` passed CI run `30113191066`.
 - PR #6 merged into `main` at `26dbcc0`.
 
-## Completed in branch — Milestone 4
-
-Branch: `feat/m4-zeroomega-importer`  
-Pull request: #7
+## Completed — Milestone 4
 
 Delivered:
 
@@ -94,11 +91,45 @@ Acceptance evidence:
 
 - Full importer Head `257d57d` passed CI run `30116627450`.
 - Final secret-isolation and full base64-pipeline Head `fd989f7` passed CI run `30142477022`.
+- Final documentation Head `00404b9` passed CI run `30142533822`.
 - The complete suite includes 53 tests covering positive fixtures, unsafe fixtures, real secret extraction, IDN and IPv4/IPv6 edges, deterministic output, 36 profiles, and 1,024 ordered rules.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed on the exact verified Head.
+- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
+- PR #7 merged into `main` at `692b6e5`.
+
+## Completed in branch — Milestone 5
+
+Branch: `feat/m5-reference-interpreter`  
+Pull request: #8
+
+Delivered:
+
+- Pure request and support contracts independent from browser APIs.
+- All twelve ProfileSpec condition families.
+- IPv4, IPv6, CIDR, host wildcard, and URL wildcard execution.
+- Ordered SwitchProfile first-match and default behavior.
+- Recursive profile graph resolution with deterministic traces.
+- FixedProfile bypass, scheme-specific endpoint, fallback, and unmapped-direct behavior.
+- Missing profile, endpoint, disabled profile, cycle, and maximum-depth protection.
+- SwitchyOmega modern and legacy rule-list parsing.
+- AutoProxy normal and exclusive rule parsing and priority.
+- Execution of all committed condition and rule-list oracle vectors.
+- Explicit indeterminate boundaries for arbitrary PAC and browser auto-detect behavior.
+- Backend-neutral differential records with sanitized terminal routes, profile paths, matched rules, and normalized traces.
+- Credential and secret-reference exclusion from differential records.
+- Deterministic, immutability, domain-suffix, IPv4 subnet, and source-preservation property tests.
+
+Acceptance evidence:
+
+- Condition interpreter Head `12c3d0b` passed CI run `30142970294`.
+- Recursive profile graph Head `bbd14a8` passed CI run `30144021927`.
+- Rule-list interpreter Head `50681fe` passed CI run `30144346169`.
+- Complete implementation Head `5ea9eaf` passed CI run `30144651695`.
+- The complete suite contains 77 tests, including all immutable Milestone 2 decision vectors.
+- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed on the exact implementation Head.
+- Final status and documentation Head must pass the same complete read-only pipeline before PR #8 merges.
 
 ## Active development direction
 
-After Milestone 4 merges, implementation continues with the reference policy interpreter and differential decision vectors, followed by the PAC compiler, browser adapters, full UI workflow, packaging, migration, and performance hardening.
+After Milestone 5 merges, implementation continues with the PAC compiler and differential verifier, followed by browser adapters, full UI workflow, packaging, migration, and performance hardening.
 
 Intermediate work is verified internally and through GitHub CI. The repository owner is not asked to repeatedly inspect partial slices. Owner QC is reserved for a consolidated, installable release candidate unless an irreducible product decision requires direct input.
