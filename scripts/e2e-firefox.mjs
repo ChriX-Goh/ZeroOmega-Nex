@@ -9,7 +9,7 @@ const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000008';
 const options = new firefox.Options()
   .addArguments('-headless')
-  .setPreference('extensions.allowPrivateBrowsingByDefault', true)
+  .enableBidi()
   .setPreference(
     'extensions.webextensions.uuids',
     JSON.stringify({ [addonId]: extensionUuid }),
@@ -18,6 +18,48 @@ const driver = await new Builder()
   .forBrowser(Browser.FIREFOX)
   .setFirefoxOptions(options)
   .build();
+
+async function bidiCommand(method, params) {
+  const capabilities = await driver.getCapabilities();
+  const webSocketUrl = capabilities.get('webSocketUrl');
+  assert.equal(typeof webSocketUrl, 'string', 'Firefox did not expose a BiDi WebSocket URL');
+  const socket = new WebSocket(webSocketUrl);
+  await new Promise((resolveOpen, rejectOpen) => {
+    socket.addEventListener('open', resolveOpen, { once: true });
+    socket.addEventListener(
+      'error',
+      () => rejectOpen(new Error(`Could not connect to Firefox BiDi at ${webSocketUrl}`)),
+      { once: true },
+    );
+  });
+  try {
+    const id = 1;
+    const response = await new Promise((resolveResponse, rejectResponse) => {
+      const timeout = setTimeout(
+        () => rejectResponse(new Error(`Firefox BiDi command ${method} timed out`)),
+        20_000,
+      );
+      socket.addEventListener('message', (event) => {
+        const message = JSON.parse(String(event.data));
+        if (message.id !== id) return;
+        clearTimeout(timeout);
+        if (message.type === 'error' || message.error) {
+          rejectResponse(
+            new Error(
+              `Firefox BiDi ${method} failed: ${message.error ?? 'unknown'} ${message.message ?? ''}`,
+            ),
+          );
+          return;
+        }
+        resolveResponse(message.result);
+      });
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+    return response;
+  } finally {
+    socket.close();
+  }
+}
 
 async function runtimeDiagnostics() {
   return driver.executeAsyncScript(`
@@ -60,7 +102,11 @@ async function logDiagnostics(stage) {
 }
 
 try {
-  const installedId = await driver.installAddon(extensionPath, true);
+  const installResult = await bidiCommand('webExtension.install', {
+    extensionData: { type: 'path', path: extensionPath },
+    'moz:allowPrivateBrowsing': true,
+  });
+  const installedId = installResult?.extension;
   assert.equal(installedId, addonId, 'Firefox returned an unexpected add-on ID');
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
@@ -77,6 +123,14 @@ try {
     throw error;
   }
   assert.equal(await profileName.getAttribute('value'), 'Proxy');
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.extension.isAllowedIncognitoAccess().then(done, (error) => done(String(error)));
+    `),
+    true,
+    'Firefox BiDi installation did not grant private browsing access',
+  );
 
   await driver.executeScript(
     `
