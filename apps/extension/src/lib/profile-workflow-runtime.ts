@@ -52,7 +52,9 @@ export function registerProfileWorkflowRuntime(
 ): RegisteredProfileWorkflowRuntime {
   const repository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
   const initializer = new RuntimeInitializer(api.runtime.id);
-  const listener = async (message: unknown): Promise<ProfileWorkflowCommandResponse | undefined> => {
+  const listener = async (
+    message: unknown,
+  ): Promise<ProfileWorkflowCommandResponse | undefined> => {
     if (!isProfileWorkflowCommand(message)) return undefined;
     return executeProfileWorkflowCommand(repository, initializer, message);
   };

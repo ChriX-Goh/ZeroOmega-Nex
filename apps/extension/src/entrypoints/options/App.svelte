@@ -233,9 +233,7 @@
           disabled={saving}
           on:click={() => selectProfile(profile.id)}
         >
-          <span
-            class="profile-marker"
-            style={`--profile-color: ${profile.color ?? '#90a4ae'}`}
+          <span class="profile-marker" style={`--profile-color: ${profile.color ?? '#90a4ae'}`}
           ></span>
           <span class="profile-copy">
             <strong>{profile.name}</strong>
@@ -284,7 +282,9 @@
 
       <section class="settings-section">
         <h2>Profile</h2>
-        <p class="section-help">Changes are saved to the Draft working copy, not applied immediately.</p>
+        <p class="section-help">
+          Changes are saved to the Draft working copy, not applied immediately.
+        </p>
         <input
           aria-label="Profile name"
           value={selectedProfile.name}
@@ -344,8 +344,7 @@
             rows="7"
             value={bypassText}
             disabled={saving || view?.busy}
-            on:change={(event) => updateBypassList(valueFrom(event))}
-          ></textarea>
+            on:change={(event) => updateBypassList(valueFrom(event))}></textarea>
         </section>
       {:else}
         <section class="settings-section">

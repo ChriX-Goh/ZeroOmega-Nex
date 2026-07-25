@@ -21,9 +21,7 @@ function isResponse(value: unknown): value is ProfileWorkflowCommandResponse {
   const record = value as Record<string, unknown>;
   if (record.ok === true) return record.state !== undefined && record.view !== undefined;
   return (
-    record.ok === false &&
-    typeof record.code === 'string' &&
-    typeof record.message === 'string'
+    record.ok === false && typeof record.code === 'string' && typeof record.message === 'string'
   );
 }
 

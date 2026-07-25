@@ -40,6 +40,12 @@ importers:
       '@zeroomega-nex/core-contracts':
         specifier: workspace:*
         version: link:../../packages/core-contracts
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../../packages/profile-spec
+      '@zeroomega-nex/profile-workflow':
+        specifier: workspace:*
+        version: link:../../packages/profile-workflow
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.2.0
