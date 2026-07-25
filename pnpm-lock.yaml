@@ -79,6 +79,19 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/pac-compiler:
+    dependencies:
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../profile-spec
+      '@zeroomega-nex/reference-interpreter':
+        specifier: workspace:*
+        version: link:../reference-interpreter
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/profile-spec:
     dependencies:
       ajv:

@@ -48,7 +48,8 @@ function conditionPathCapability(
       capability: 'target-dependent',
       severity: 'warning',
       blocking: true,
-      message: 'Unicode host representation can differ between PAC engines and requires target verification.',
+      message:
+        'Unicode host representation can differ between PAC engines and requires target verification.',
     });
   }
 
@@ -59,7 +60,8 @@ function conditionPathCapability(
       capability: 'target-dependent',
       severity: 'warning',
       blocking: true,
-      message: 'HTTPS PAC inputs normally omit path and query components, so full URL regex semantics are target-dependent.',
+      message:
+        'HTTPS PAC inputs normally omit path and query components, so full URL regex semantics are target-dependent.',
     });
     return;
   }
@@ -79,7 +81,8 @@ function conditionPathCapability(
         capability: 'target-dependent',
         severity: 'warning',
         blocking: true,
-        message: 'URL wildcard semantics can depend on HTTPS path stripping in the target PAC engine.',
+        message:
+          'URL wildcard semantics can depend on HTTPS path stripping in the target PAC engine.',
       });
     }
   }
@@ -97,7 +100,8 @@ function endpointCapability(
       capability: 'target-dependent',
       severity: 'warning',
       blocking: true,
-      message: 'PAC proxy endpoints require an ASCII hostname; IDN conversion must be verified before compilation.',
+      message:
+        'PAC proxy endpoints require an ASCII hostname; IDN conversion must be verified before compilation.',
     });
   }
 
@@ -108,7 +112,8 @@ function endpointCapability(
       capability: 'exact',
       severity: 'info',
       blocking: false,
-      message: 'PAC selects this endpoint, while proxy authentication is handled by the browser adapter.',
+      message:
+        'PAC selects this endpoint, while proxy authentication is handled by the browser adapter.',
     });
   }
 }
@@ -155,7 +160,8 @@ export function analyzePacCompatibility(
         capability: 'unsupported',
         severity: 'error',
         blocking: true,
-        message: 'PAC return values cannot delegate a single request to the operating-system proxy configuration.',
+        message:
+          'PAC return values cannot delegate a single request to the operating-system proxy configuration.',
       });
       return;
     }
@@ -178,7 +184,11 @@ export function analyzePacCompatibility(
       return;
     }
     reachableEndpointIds.push(endpointId);
-    endpointCapability(endpoint, `/proxyEndpoints/${spec.proxyEndpoints.indexOf(endpoint)}`, addIssue);
+    endpointCapability(
+      endpoint,
+      `/proxyEndpoints/${spec.proxyEndpoints.indexOf(endpoint)}`,
+      addIssue,
+    );
   };
 
   const visitProfile = (profileId: string, referencePath: string): void => {
@@ -233,7 +243,8 @@ export function analyzePacCompatibility(
     switch (profile.kind) {
       case 'fixed':
         for (const [slot, endpointId] of Object.entries(profile.proxyByScheme)) {
-          if (endpointId !== undefined) visitEndpoint(endpointId, `${profilePath}/proxyByScheme/${slot}`);
+          if (endpointId !== undefined)
+            visitEndpoint(endpointId, `${profilePath}/proxyByScheme/${slot}`);
         }
         for (const [index, bypass] of profile.bypass.entries()) {
           conditionPathCapability(
@@ -246,7 +257,11 @@ export function analyzePacCompatibility(
 
       case 'switch':
         for (const [index, rule] of profile.rules.entries()) {
-          conditionPathCapability(rule.condition, `${profilePath}/rules/${index}/condition`, addIssue);
+          conditionPathCapability(
+            rule.condition,
+            `${profilePath}/rules/${index}/condition`,
+            addIssue,
+          );
           visitRoute(rule.route, `${profilePath}/rules/${index}/route`);
         }
         visitRoute(profile.defaultRoute, `${profilePath}/defaultRoute`);
@@ -290,7 +305,10 @@ export function analyzePacCompatibility(
                 `/ruleSources/${spec.ruleSources.indexOf(source)}/rules/${index}/condition`,
                 addIssue,
               );
-              visitRoute(rule.route, `/ruleSources/${spec.ruleSources.indexOf(source)}/rules/${index}/route`);
+              visitRoute(
+                rule.route,
+                `/ruleSources/${spec.ruleSources.indexOf(source)}/rules/${index}/route`,
+              );
             }
           }
         }
@@ -306,7 +324,8 @@ export function analyzePacCompatibility(
           capability: 'unsupported',
           severity: 'error',
           blocking: true,
-          message: 'An arbitrary PAC profile cannot be safely composed into the generated PAC policy.',
+          message:
+            'An arbitrary PAC profile cannot be safely composed into the generated PAC policy.',
         });
         return;
 
@@ -317,7 +336,8 @@ export function analyzePacCompatibility(
           capability: 'unsupported',
           severity: 'error',
           blocking: true,
-          message: 'Browser auto-detection cannot be represented as a per-request PAC return value.',
+          message:
+            'Browser auto-detection cannot be represented as a per-request PAC return value.',
         });
         return;
     }
@@ -338,9 +358,7 @@ export function analyzePacCompatibility(
     target,
     startRoute,
     capability,
-    canCompileExact: !issues.some(
-      (issue) => issue.blocking && issue.capability !== 'exact',
-    ),
+    canCompileExact: !issues.some((issue) => issue.blocking && issue.capability !== 'exact'),
     canCompileWithTargetDependentSemantics: !issues.some(
       (issue) => issue.blocking && issue.capability === 'unsupported',
     ),

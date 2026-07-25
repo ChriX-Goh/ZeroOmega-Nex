@@ -170,9 +170,7 @@ describe('PAC capability analysis', () => {
     });
     expect(remote.capability).toBe('unsupported');
     expect(remote.canCompileWithTargetDependentSemantics).toBe(false);
-    expect(remote.issues.map((issue) => issue.code)).toContain(
-      'rule-source.content-unavailable',
-    );
+    expect(remote.issues.map((issue) => issue.code)).toContain('rule-source.content-unavailable');
   });
 
   it('blocks System, arbitrary PAC, and auto-detect routes', () => {
