@@ -14,10 +14,11 @@ function wildcardExpression(pattern: string): RegExp {
 
 export function normalizeHost(input: string): string {
   const trimmed = input.trim();
-  const unbracketed = trimmed.startsWith('[') && trimmed.endsWith(']')
-    ? trimmed.slice(1, -1)
-    : trimmed;
-  return unbracketed.endsWith('.') ? unbracketed.slice(0, -1).toLowerCase() : unbracketed.toLowerCase();
+  const unbracketed =
+    trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
+  return unbracketed.endsWith('.')
+    ? unbracketed.slice(0, -1).toLowerCase()
+    : unbracketed.toLowerCase();
 }
 
 export function containsNonAscii(input: string): boolean {

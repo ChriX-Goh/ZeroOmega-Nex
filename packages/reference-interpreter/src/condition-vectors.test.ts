@@ -89,9 +89,7 @@ describe('reference condition interpreter', () => {
       if (decision.status !== 'selected') continue;
 
       expect(decision.matchedRuleId !== undefined, vector.id).toBe(vector.expected.matched);
-      expect(routeName(spec, decision.route), vector.id).toBe(
-        vector.expected.selectedProfileName,
-      );
+      expect(routeName(spec, decision.route), vector.id).toBe(vector.expected.selectedProfileName);
       expect(decision.support, vector.id).toBe(vector.support);
     }
   });

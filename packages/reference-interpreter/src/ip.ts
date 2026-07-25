@@ -5,9 +5,8 @@ export interface ParsedIpLiteral {
 
 function normalizeIpText(input: string): string {
   const trimmed = input.trim();
-  const unbracketed = trimmed.startsWith('[') && trimmed.endsWith(']')
-    ? trimmed.slice(1, -1)
-    : trimmed;
+  const unbracketed =
+    trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
   const zoneIndex = unbracketed.indexOf('%');
   return zoneIndex === -1 ? unbracketed : unbracketed.slice(0, zoneIndex);
 }

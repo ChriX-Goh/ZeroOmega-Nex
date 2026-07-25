@@ -115,7 +115,9 @@ function matchesCidr(pattern: string, host: string): boolean | undefined {
 function matchesBypassPattern(pattern: string, request: ReferenceRequest): boolean {
   const normalizedHost = normalizeHost(request.host);
   if (pattern.trim().toLowerCase() === '<local>') {
-    return !normalizedHost.includes('.') && !normalizedHost.includes(':') && !isIpLiteral(normalizedHost);
+    return (
+      !normalizedHost.includes('.') && !normalizedHost.includes(':') && !isIpLiteral(normalizedHost)
+    );
   }
 
   const target = parseBypassTarget(pattern.trim());

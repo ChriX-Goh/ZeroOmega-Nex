@@ -8,10 +8,7 @@ import type {
   SwitchDecision,
 } from './types.js';
 
-function combineSupport(
-  current: ReferenceSupport,
-  next: ReferenceSupport,
-): ReferenceSupport {
+function combineSupport(current: ReferenceSupport, next: ReferenceSupport): ReferenceSupport {
   return current === 'target-dependent' || next === 'target-dependent'
     ? 'target-dependent'
     : 'exact';
