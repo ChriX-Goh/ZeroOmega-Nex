@@ -3,7 +3,14 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/.wxt/**', '**/.output/**', '**/coverage/**', '**/*.svelte'],
+    ignores: [
+      '**/node_modules/**',
+      '**/.wxt/**',
+      '**/.output/**',
+      '**/coverage/**',
+      '**/*.svelte',
+      'packages/profile-spec/src/profile-spec-validator.generated.ts',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
