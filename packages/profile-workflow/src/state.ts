@@ -38,7 +38,7 @@ function normalizeDraft(applied: ProfileSpec, draft: ProfileSpec): ProfileSpec {
     throw new TypeError('draft and applied ProfileSpec must use the same documentId');
   }
   const normalized = cloneProfileSpec(draft);
-  normalized.revision = cloneProfileSpec(applied).revision;
+  normalized.revision = structuredClone(applied.revision);
   assertValidSpec(normalized, 'draft');
   return normalized;
 }
@@ -58,17 +58,14 @@ export function createProfileWorkflowState(
 ): ProfileWorkflowState {
   assertValidSpec(applied, 'applied');
   const appliedCopy = cloneProfileSpec(applied);
-  return {
+  const selected = normalizeSelectedProfileId(appliedCopy, selectedProfileId);
+  const state: ProfileWorkflowState = {
     workflowSchemaVersion: PROFILE_WORKFLOW_SCHEMA_VERSION,
     generation: 0,
     applied: appliedCopy,
     draft: cloneProfileSpec(appliedCopy),
-    ...(normalizeSelectedProfileId(appliedCopy, selectedProfileId) === undefined
-      ? {}
-      : {
-          selectedProfileId: normalizeSelectedProfileId(appliedCopy, selectedProfileId),
-        }),
   };
+  return selected === undefined ? state : { ...state, selectedProfileId: selected };
 }
 
 export function replaceProfileWorkflowDraft(
@@ -77,13 +74,14 @@ export function replaceProfileWorkflowDraft(
 ): ProfileWorkflowState {
   if (state.pendingApply) throw new Error('cannot replace draft while Apply is in progress');
   const normalized = normalizeDraft(state.applied, draft);
-  const selectedProfileId = normalizeSelectedProfileId(normalized, state.selectedProfileId);
-  return {
-    ...state,
+  const selected = normalizeSelectedProfileId(normalized, state.selectedProfileId);
+  const { selectedProfileId: _selectedProfileId, ...base } = state;
+  const next: ProfileWorkflowState = {
+    ...base,
     generation: state.generation + 1,
     draft: normalized,
-    ...(selectedProfileId === undefined ? { selectedProfileId: undefined } : { selectedProfileId }),
   };
+  return selected === undefined ? next : { ...next, selectedProfileId: selected };
 }
 
 export function updateProfileWorkflowDraft(
@@ -103,37 +101,39 @@ export function selectProfileWorkflowProfile(
     throw new RangeError(`profile ${profileId} does not exist in the draft`);
   }
   if (state.selectedProfileId === profileId) return state;
-  return {
-    ...state,
+  const { selectedProfileId: _selectedProfileId, ...base } = state;
+  const next: ProfileWorkflowState = {
+    ...base,
     generation: state.generation + 1,
-    ...(profileId === undefined ? { selectedProfileId: undefined } : { selectedProfileId: profileId }),
   };
+  return profileId === undefined ? next : { ...next, selectedProfileId: profileId };
 }
 
 export function revertProfileWorkflowDraft(state: ProfileWorkflowState): ProfileWorkflowState {
   if (state.pendingApply) throw new Error('cannot revert draft while Apply is in progress');
   const draft = cloneProfileSpec(state.applied);
-  const selectedProfileId = normalizeSelectedProfileId(draft, state.selectedProfileId);
-  return {
-    ...state,
+  const selected = normalizeSelectedProfileId(draft, state.selectedProfileId);
+  const { selectedProfileId: _selectedProfileId, ...base } = state;
+  const next: ProfileWorkflowState = {
+    ...base,
     generation: state.generation + 1,
     draft,
-    ...(selectedProfileId === undefined ? { selectedProfileId: undefined } : { selectedProfileId }),
   };
+  return selected === undefined ? next : { ...next, selectedProfileId: selected };
 }
 
 export function inspectProfileWorkflow(state: ProfileWorkflowState): ProfileWorkflowView {
   const selectedProfileId = normalizeSelectedProfileId(state.draft, state.selectedProfileId);
-  return {
+  const view: ProfileWorkflowView = {
     dirty: userContent(state.applied) !== userContent(state.draft),
     busy: state.pendingApply !== undefined,
     appliedRevisionId: state.applied.revision.id,
     draftRevisionId: state.draft.revision.id,
-    ...(selectedProfileId === undefined ? {} : { selectedProfileId }),
     selectedProfileExists:
       selectedProfileId !== undefined &&
       state.draft.profiles.some((profile) => profile.id === selectedProfileId),
   };
+  return selectedProfileId === undefined ? view : { ...view, selectedProfileId };
 }
 
 export function createProfileWorkflowCandidate(
