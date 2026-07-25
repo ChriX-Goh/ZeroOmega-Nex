@@ -122,6 +122,15 @@ patch(
             "    expect(JSON.stringify(response)).not.toContain('proxy.example.invalid');",
             "    expect(JSON.stringify(response.revisionHistory)).not.toContain('proxy.example.invalid');",
             'revision metadata redaction assertion',
-        )
+        ),
+        (
+            '''    expect(JSON.stringify(response)).not.toContain('FindProxyForURL');
+    expect(JSON.stringify(response.revisionHistory)).not.toContain('proxy.example.invalid');
+    if (!response.ok) throw new Error('expected successful history response');''',
+            '''    expect(JSON.stringify(response)).not.toContain('FindProxyForURL');
+    if (!response.ok) throw new Error('expected successful history response');
+    expect(JSON.stringify(response.revisionHistory)).not.toContain('proxy.example.invalid');''',
+            'successful response narrowing before revision assertion',
+        ),
     ],
 )
