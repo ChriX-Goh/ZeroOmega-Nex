@@ -4,6 +4,31 @@ export {
   restoreActiveSnapshot,
 } from './activation.js';
 export {
+  PROXY_AUTH_URL_FILTERS,
+  registerProxyAuthenticationListener,
+  type ProxyAuthenticationCompletionEvent,
+  type ProxyAuthenticationEvents,
+  type ProxyAuthenticationListenerRegistration,
+  type ProxyAuthenticationPermissionApi,
+  type ProxyAuthenticationRequiredEvent,
+} from './authentication-listener.js';
+export {
+  BrowserStorageProxyAuthenticationRepository,
+  type ProxyAuthenticationStorageOptions,
+} from './authentication-storage.js';
+export {
+  ProxyAuthenticationHandler,
+  type ProxyAuthenticationBinding,
+  type ProxyAuthenticationBindingProvider,
+  type ProxyAuthenticationChallenge,
+  type ProxyAuthenticationChallenger,
+  type ProxyAuthenticationCredentials,
+  type ProxyAuthenticationHandlerOptions,
+  type ProxyAuthenticationProxyInfo,
+  type ProxyAuthenticationResponse,
+  type ProxyAuthenticationSecretProvider,
+} from './authentication.js';
+export {
   createChromiumProxyDriver,
   type ChromiumProxySettingResult,
   type ChromiumProxySettingsApi,
