@@ -13,10 +13,7 @@ try {
   context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
     headless: true,
-    args: [
-      `--disable-extensions-except=${extensionPath}`,
-      `--load-extension=${extensionPath}`,
-    ],
+    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   });
 
   let [worker] = context.serviceWorkers();
@@ -64,7 +61,10 @@ try {
     .getByRole('heading', { name: 'Configuration History', exact: true, level: 1 })
     .waitFor();
   await options.getByRole('heading', { name: 'Verified PAC snapshots', exact: true }).waitFor();
-  await options.getByText(/^Snapshot pac-/u).first().waitFor({ timeout: 20_000 });
+  await options
+    .getByText(/^Snapshot pac-/u)
+    .first()
+    .waitFor({ timeout: 20_000 });
 
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>

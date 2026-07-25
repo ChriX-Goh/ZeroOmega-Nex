@@ -10,14 +10,8 @@ const extensionUuid = '00000000-0000-4000-8000-000000000008';
 const options = new firefox.Options()
   .addArguments('-headless')
   .enableBidi()
-  .setPreference(
-    'extensions.webextensions.uuids',
-    JSON.stringify({ [addonId]: extensionUuid }),
-  );
-const driver = await new Builder()
-  .forBrowser(Browser.FIREFOX)
-  .setFirefoxOptions(options)
-  .build();
+  .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
+const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
 
 async function bidiCommand(method, params) {
   const capabilities = await driver.getCapabilities();
@@ -144,14 +138,19 @@ try {
     profileName,
     'Firefox E2E Proxy',
   );
-  await driver.wait(async () => (await profileName.getAttribute('value')) === 'Firefox E2E Proxy', 5_000);
+  await driver.wait(
+    async () => (await profileName.getAttribute('value')) === 'Firefox E2E Proxy',
+    5_000,
+  );
   const apply = await driver.wait(until.elementLocated(By.css('.actions button.primary')), 15_000);
   await driver.wait(until.elementIsEnabled(apply), 15_000);
   await apply.click();
   try {
     await driver.wait(
       until.elementLocated(
-        By.xpath("//*[contains(normalize-space(.), 'Draft matches the currently applied revision.') ]"),
+        By.xpath(
+          "//*[contains(normalize-space(.), 'Draft matches the currently applied revision.') ]",
+        ),
       ),
       20_000,
     );
