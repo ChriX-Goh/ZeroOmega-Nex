@@ -295,7 +295,7 @@ export async function activateBuiltInMode(
     };
   }
 
-  let platformBefore: PlatformProxyState;
+  let platformBefore: PlatformProxyState | undefined;
   try {
     platformBefore = await driver.readState();
     await setBuiltInMode(driver, mode);
