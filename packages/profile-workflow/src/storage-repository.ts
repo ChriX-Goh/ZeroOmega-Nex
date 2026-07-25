@@ -5,6 +5,7 @@ import {
   type ProfileWorkflowApplyRecord,
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
+  type ProfileWorkflowRevisionRepository,
   type ProfileWorkflowState,
 } from './contracts.js';
 
@@ -38,6 +39,30 @@ function parseProfileSpec(value: unknown, label: string): ProfileSpec {
   } catch {
     throw new TypeError(`${label} must be a valid ProfileSpec`);
   }
+}
+
+function parseArchivedRevision(value: unknown, revisionId: string): ProfileSpec | undefined {
+  if (value === undefined) return undefined;
+  const spec = parseProfileSpec(value, `revision ${revisionId}`);
+  if (spec.revision.id !== revisionId) {
+    throw new TypeError(`revision ${revisionId} has a mismatched revision ID`);
+  }
+  return spec;
+}
+
+function parseRevisionIndex(value: unknown): readonly string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string' || !entry)) {
+    throw new TypeError('revision index must be an array of non-empty strings');
+  }
+  if (new Set(value).size !== value.length) {
+    throw new TypeError('revision index contains duplicate IDs');
+  }
+  return value;
+}
+
+function sameSpec(left: ProfileSpec, right: ProfileSpec): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function parsePending(value: unknown): ProfileWorkflowPendingApply {
@@ -125,13 +150,20 @@ export function parseProfileWorkflowState(value: unknown): ProfileWorkflowState 
   return parsed;
 }
 
-export class BrowserStorageProfileWorkflowRepository implements ProfileWorkflowRepository {
+export class BrowserStorageProfileWorkflowRepository
+  implements ProfileWorkflowRepository, ProfileWorkflowRevisionRepository
+{
   readonly #area: ProfileWorkflowStorageArea;
   readonly #stateKey: string;
+  readonly #revisionPrefix: string;
+  readonly #revisionIndexKey: string;
 
   constructor(area: ProfileWorkflowStorageArea, options: ProfileWorkflowStorageOptions = {}) {
     this.#area = area;
-    this.#stateKey = `${options.namespace ?? 'zeroomega-nex/profile-workflow/v1'}/state`;
+    const namespace = options.namespace ?? 'zeroomega-nex/profile-workflow/v1';
+    this.#stateKey = `${namespace}/state`;
+    this.#revisionPrefix = `${namespace}/revision/`;
+    this.#revisionIndexKey = `${namespace}/revision-index`;
   }
 
   async read(): Promise<ProfileWorkflowState | undefined> {
@@ -153,7 +185,60 @@ export class BrowserStorageProfileWorkflowRepository implements ProfileWorkflowR
       );
     }
     const normalized = parseProfileWorkflowState(next);
-    await this.#area.set({ [this.#stateKey]: normalized });
+    const revisions = new Map<string, ProfileSpec>();
+    if (current) revisions.set(current.applied.revision.id, current.applied);
+    revisions.set(normalized.applied.revision.id, normalized.applied);
+
+    const revisionKeys = [...revisions].map(
+      ([revisionId]) => `${this.#revisionPrefix}${revisionId}`,
+    );
+    const stored = await this.#area.get([this.#revisionIndexKey, ...revisionKeys]);
+    const index = [...parseRevisionIndex(stored[this.#revisionIndexKey])];
+    const writes: Record<string, unknown> = { [this.#stateKey]: normalized };
+
+    for (const [revisionId, spec] of revisions) {
+      const key = `${this.#revisionPrefix}${revisionId}`;
+      const existing = parseArchivedRevision(stored[key], revisionId);
+      if (existing && !sameSpec(existing, spec)) {
+        throw new TypeError(`immutable revision ${revisionId} differs from its archived value`);
+      }
+      if (!existing) writes[key] = cloneProfileSpec(spec);
+      if (!index.includes(revisionId)) index.push(revisionId);
+    }
+    writes[this.#revisionIndexKey] = index;
+    await this.#area.set(writes);
     return true;
+  }
+
+  async getRevision(revisionId: string): Promise<ProfileSpec | undefined> {
+    const key = `${this.#revisionPrefix}${revisionId}`;
+    const values = await this.#area.get([this.#stateKey, key]);
+    const archived = parseArchivedRevision(values[key], revisionId);
+    if (archived) return archived;
+    const stateValue = values[this.#stateKey];
+    if (stateValue === undefined) return undefined;
+    const state = parseProfileWorkflowState(stateValue);
+    return state.applied.revision.id === revisionId ? cloneProfileSpec(state.applied) : undefined;
+  }
+
+  async listRevisions(): Promise<readonly ProfileSpec[]> {
+    const metadata = await this.#area.get([this.#stateKey, this.#revisionIndexKey]);
+    const state =
+      metadata[this.#stateKey] === undefined
+        ? undefined
+        : parseProfileWorkflowState(metadata[this.#stateKey]);
+    const revisionIds = new Set(parseRevisionIndex(metadata[this.#revisionIndexKey]));
+    if (state) revisionIds.add(state.applied.revision.id);
+    if (revisionIds.size === 0) return [];
+
+    const ids = [...revisionIds];
+    const keys = ids.map((revisionId) => `${this.#revisionPrefix}${revisionId}`);
+    const values = await this.#area.get(keys);
+    return ids.map((revisionId, index) => {
+      const archived = parseArchivedRevision(values[keys[index]!], revisionId);
+      if (archived) return archived;
+      if (state?.applied.revision.id === revisionId) return cloneProfileSpec(state.applied);
+      throw new Error(`revision ${revisionId} is indexed but unavailable`);
+    });
   }
 }
