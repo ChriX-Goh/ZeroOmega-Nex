@@ -35,11 +35,17 @@ class MemoryStorageArea implements BrowserStorageArea {
 
   async get(keys: string | readonly string[]): Promise<Record<string, unknown>> {
     const selected = typeof keys === 'string' ? [keys] : keys;
-    return Object.fromEntries(selected.flatMap((key) => (this.values.has(key) ? [[key, this.values.get(key)]] : [])));
+    return Object.fromEntries(
+      selected.flatMap((key) =>
+        this.values.has(key) ? [[key, this.values.get(key)]] : [],
+      ),
+    );
   }
 
   async set(items: Record<string, unknown>): Promise<void> {
-    for (const [key, value] of Object.entries(items)) this.values.set(key, structuredClone(value));
+    for (const [key, value] of Object.entries(items)) {
+      this.values.set(key, structuredClone(value));
+    }
   }
 
   async remove(keys: string | readonly string[]): Promise<void> {
@@ -89,7 +95,10 @@ describe('browser storage activation repository', () => {
       },
     });
     await expect(repository.getState()).resolves.toMatchObject({
-      pending: { snapshotId: snapshot.snapshotId, previousActiveSnapshotId: 'pac-previous' },
+      pending: {
+        snapshotId: snapshot.snapshotId,
+        previousActiveSnapshotId: 'pac-previous',
+      },
       lastFailure: { stage: 'confirm', rollbackSucceeded: true },
     });
   });
@@ -99,7 +108,9 @@ describe('browser storage activation repository', () => {
     const namespace = 'test/browser-proxy';
     const repository = new BrowserStorageSnapshotActivationRepository(storage, { namespace });
     storage.values.set(`${namespace}/state`, { activeSnapshotId: 42 });
-    await expect(repository.getState()).rejects.toThrow('activeSnapshotId must be a string');
+    await expect(repository.getState()).rejects.toThrow(
+      'activeSnapshotId must be a string',
+    );
 
     storage.values.set(`${namespace}/snapshot/${snapshot.snapshotId}`, {
       ...snapshot,
@@ -110,8 +121,12 @@ describe('browser storage activation repository', () => {
 
   it('separates namespaces and removes snapshots explicitly', async () => {
     const storage = new MemoryStorageArea();
-    const first = new BrowserStorageSnapshotActivationRepository(storage, { namespace: 'first' });
-    const second = new BrowserStorageSnapshotActivationRepository(storage, { namespace: 'second' });
+    const first = new BrowserStorageSnapshotActivationRepository(storage, {
+      namespace: 'first',
+    });
+    const second = new BrowserStorageSnapshotActivationRepository(storage, {
+      namespace: 'second',
+    });
     await first.putSnapshot(snapshot);
     await expect(second.getSnapshot(snapshot.snapshotId)).resolves.toBeUndefined();
     await first.removeSnapshot(snapshot.snapshotId);
