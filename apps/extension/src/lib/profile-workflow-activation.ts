@@ -440,7 +440,7 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
         } catch (rollbackError) {
           throw new Error(
             `${errorMessage(error)}; proxy authentication rollback failed: ${errorMessage(rollbackError)}`,
-            { cause: error },
+            { cause: rollbackError },
           );
         }
       }
