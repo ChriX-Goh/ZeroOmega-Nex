@@ -52,6 +52,15 @@ jobs:
           path.write_text(text)
           PY
           python .github/scripts/rebuild-original-options.py 2>&1 | tee original-options-patch.log
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/validate-ui-compatibility.mjs')
+          text = path.read_text().replace(
+              "optionsApp.includes('class=\"actions\"')",
+              "optionsApp.includes('class=\"nav-group actions\"')",
+          )
+          path.write_text(text)
+          PY
 
       - name: Format rebuilt slice
         run: |
