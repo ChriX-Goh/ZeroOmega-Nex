@@ -1,16 +1,16 @@
 name: Run Milestone 8 Route Settings Patch
 
 on:
-  push:
+  pull_request:
     branches:
-      - 'feat/m8-profile-workflow'
+      - main
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
