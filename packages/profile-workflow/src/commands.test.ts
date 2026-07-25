@@ -51,15 +51,13 @@ describe('typed profile workflow command service', () => {
       expectedGeneration: initial.state.generation,
       draft,
     });
-    expect(result).toMatchObject({
-      ok: true,
-      state: {
-        generation: 1,
-        applied: { revision: { id: 'revision-applied' } },
-        draft: { profiles: [{ name: 'Edited through command' }] },
-      },
-      view: { dirty: true },
-    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.message);
+    expect(result.state.generation).toBe(1);
+    expect(result.state.applied.revision.id).toBe('revision-applied');
+    expect(result.state.draft.profiles[0]!.name).toBe('Edited through command');
+    expect(result.state.draft.profiles[1]!.name).toBe('Backup Proxy');
+    expect(result.view.dirty).toBe(true);
   });
 
   it('rejects stale commands and returns the current state for reload', async () => {
