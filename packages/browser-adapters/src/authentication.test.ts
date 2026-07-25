@@ -107,17 +107,15 @@ describe('bounded proxy authentication handler', () => {
     const secrets = new SecretProvider();
     secrets.values.set(binding.passwordSecretRef, 'password');
     await expect(
-      new ProxyAuthenticationHandler(
-        new BindingProvider([binding, duplicate]),
-        secrets,
-      ).handle(challenge()),
+      new ProxyAuthenticationHandler(new BindingProvider([binding, duplicate]), secrets).handle(
+        challenge(),
+      ),
     ).resolves.toBeUndefined();
 
     await expect(
-      new ProxyAuthenticationHandler(
-        new BindingProvider([binding]),
-        new SecretProvider(),
-      ).handle(challenge()),
+      new ProxyAuthenticationHandler(new BindingProvider([binding]), new SecretProvider()).handle(
+        challenge(),
+      ),
     ).resolves.toBeUndefined();
   });
 
@@ -134,16 +132,12 @@ describe('bounded proxy authentication handler', () => {
   it('bounds remembered request identifiers', async () => {
     const secrets = new SecretProvider();
     secrets.values.set(binding.passwordSecretRef, 'password');
-    const handler = new ProxyAuthenticationHandler(
-      new BindingProvider([binding]),
-      secrets,
-      { maxTrackedRequests: 2 },
-    );
+    const handler = new ProxyAuthenticationHandler(new BindingProvider([binding]), secrets, {
+      maxTrackedRequests: 2,
+    });
     await handler.handle(challenge({ requestId: 'request-1' }));
     await handler.handle(challenge({ requestId: 'request-2' }));
     await handler.handle(challenge({ requestId: 'request-3' }));
-    await expect(
-      handler.handle(challenge({ requestId: 'request-1' })),
-    ).resolves.toBeDefined();
+    await expect(handler.handle(challenge({ requestId: 'request-1' }))).resolves.toBeDefined();
   });
 });

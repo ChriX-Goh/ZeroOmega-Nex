@@ -39,7 +39,9 @@ describe('proxy authentication storage repository', () => {
     await repository.putSecret(binding.passwordSecretRef, 'password');
     await expect(repository.getBindings()).resolves.toEqual([binding]);
     await expect(repository.getSecret(binding.passwordSecretRef)).resolves.toBe('password');
-    const serializedBindings = JSON.stringify(area.values.get('zeroomega-nex/proxy-auth/v1/bindings'));
+    const serializedBindings = JSON.stringify(
+      area.values.get('zeroomega-nex/proxy-auth/v1/bindings'),
+    );
     expect(serializedBindings).not.toContain('password"');
   });
 
@@ -47,7 +49,9 @@ describe('proxy authentication storage repository', () => {
     const area = new MemoryArea();
     const repository = new BrowserStorageProxyAuthenticationRepository(area);
     await repository.putBindings([binding, { ...binding }]);
-    await expect(repository.getBindings()).rejects.toThrow('duplicate proxy authentication endpoint');
+    await expect(repository.getBindings()).rejects.toThrow(
+      'duplicate proxy authentication endpoint',
+    );
 
     area.values.set('zeroomega-nex/proxy-auth/v1/bindings', [{ ...binding, port: 70_000 }]);
     await expect(repository.getBindings()).rejects.toThrow('is invalid');

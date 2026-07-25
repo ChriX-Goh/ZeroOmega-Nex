@@ -50,9 +50,7 @@ export interface ProxyAuthenticationHandlerOptions {
 
 function normalizeProxyHost(host: string): string {
   const trimmed = host.trim().toLowerCase();
-  return trimmed.startsWith('[') && trimmed.endsWith(']')
-    ? trimmed.slice(1, -1)
-    : trimmed;
+  return trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
 }
 
 function protocolMatches(

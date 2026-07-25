@@ -71,7 +71,8 @@ export class BrowserStorageProxyAuthenticationRepository
     const values = await this.#area.get(key);
     const secret = values[key];
     if (secret === undefined) return undefined;
-    if (typeof secret !== 'string') throw new TypeError(`proxy secret ${secretRef} must be a string`);
+    if (typeof secret !== 'string')
+      throw new TypeError(`proxy secret ${secretRef} must be a string`);
     return secret;
   }
 

@@ -53,9 +53,7 @@ class CompletionEvent implements ProxyAuthenticationCompletionEvent {
   listener?: (details: { readonly requestId: string }) => void;
   removed = false;
 
-  addListener(
-    listener: (details: { readonly requestId: string }) => void,
-  ): void {
+  addListener(listener: (details: { readonly requestId: string }) => void): void {
     this.listener = listener;
   }
 
@@ -143,10 +141,7 @@ describe('proxy authentication listener registration', () => {
       { onAuthRequired: required },
       handler(),
     );
-    expect(permissions.lastRequest?.permissions).toEqual([
-      'webRequest',
-      'webRequestBlocking',
-    ]);
+    expect(permissions.lastRequest?.permissions).toEqual(['webRequest', 'webRequestBlocking']);
     expect(required.extra).toEqual(['blocking']);
     expect(required.filter?.urls).toEqual(['http://*/*', 'https://*/*']);
     const result = required.listener?.(challenge);
