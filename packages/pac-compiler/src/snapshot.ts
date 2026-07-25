@@ -111,7 +111,8 @@ export async function createVerifiedPacSnapshot(
     compiled.artifact.target,
     compiled.artifact.compilerVersion,
   ].join('\n');
-  const snapshotId = context.snapshotId ?? `pac-${(await sha256Hex(snapshotIdentity)).slice(0, 32)}`;
+  const snapshotId =
+    context.snapshotId ?? `pac-${(await sha256Hex(snapshotIdentity)).slice(0, 32)}`;
 
   return {
     ok: true,

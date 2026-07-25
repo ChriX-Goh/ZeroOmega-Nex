@@ -60,9 +60,7 @@ describe('verified PAC runtime snapshots', () => {
     if (!first.ok || !second.ok) throw new Error('expected successful snapshots');
 
     expect(first.snapshot.snapshotId).toBe(second.snapshot.snapshotId);
-    expect(first.snapshot.sourceProfileSpecSha256).toBe(
-      second.snapshot.sourceProfileSpecSha256,
-    );
+    expect(first.snapshot.sourceProfileSpecSha256).toBe(second.snapshot.sourceProfileSpecSha256);
     expect(first.snapshot.scriptSha256).toBe(second.snapshot.scriptSha256);
     expect(first.snapshot.createdAt).not.toBe(second.snapshot.createdAt);
     expect(first.snapshot.scriptSha256).toBe(await sha256Hex(first.snapshot.script));
@@ -103,12 +101,9 @@ describe('verified PAC runtime snapshots', () => {
 
   it('does not create a snapshot when compilation is unsupported', async () => {
     const spec = await importedFixture('minimal-profile-types.json');
-    const result = await createVerifiedPacSnapshot(
-      spec,
-      { kind: 'system' },
-      [],
-      { createdAt: '2026-07-25T07:04:00.000Z' },
-    );
+    const result = await createVerifiedPacSnapshot(spec, { kind: 'system' }, [], {
+      createdAt: '2026-07-25T07:04:00.000Z',
+    });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected compile failure');
     expect(result.stage).toBe('compile');
@@ -142,15 +137,10 @@ describe('verified PAC runtime snapshots', () => {
 
   it('supports a caller-supplied immutable snapshot ID', async () => {
     const spec = await importedFixture('minimal-profile-types.json');
-    const result = await createVerifiedPacSnapshot(
-      spec,
-      profileRoute(spec, 'switch'),
-      vectors,
-      {
-        snapshotId: 'snapshot-release-candidate-001',
-        createdAt: '2026-07-25T07:06:00.000Z',
-      },
-    );
+    const result = await createVerifiedPacSnapshot(spec, profileRoute(spec, 'switch'), vectors, {
+      snapshotId: 'snapshot-release-candidate-001',
+      createdAt: '2026-07-25T07:06:00.000Z',
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected snapshot');
     expect(result.snapshot.snapshotId).toBe('snapshot-release-candidate-001');
