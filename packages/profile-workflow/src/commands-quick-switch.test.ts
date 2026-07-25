@@ -28,8 +28,9 @@ class QuickSwitchDriver implements ProfileWorkflowActivationDriver {
       ...(route === undefined ? {} : { route }),
     });
     if (this.error) throw this.error;
+    const activeRoute = route ?? spec.settings.startup.route;
     this.runtime = {
-      activeRoute: route ?? spec.settings.startup.route,
+      ...(activeRoute === undefined ? {} : { activeRoute }),
       activeSnapshotId: 'snapshot-quick-switch',
     };
     return { snapshotId: 'snapshot-quick-switch' };
