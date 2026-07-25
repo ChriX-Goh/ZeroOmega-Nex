@@ -40,10 +40,29 @@ jobs:
             packages/browser-adapters/src/authentication-plan.test.ts \
             packages/browser-adapters/src/index.ts
 
-      - name: Verify authentication plan slice
+      - name: Type-check authentication plan slice
+        shell: bash
         run: |
-          pnpm --filter @zeroomega-nex/browser-adapters check
-          pnpm exec vitest run packages/browser-adapters/src/authentication-plan.test.ts
+          set -o pipefail
+          pnpm --filter @zeroomega-nex/browser-adapters check 2>&1 | tee m8-auth-plan-typecheck.log
+
+      - name: Test authentication plan slice
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec vitest run packages/browser-adapters/src/authentication-plan.test.ts 2>&1 | tee m8-auth-plan-test.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-auth-plan-diagnostics
+          path: |
+            m8-auth-plan-typecheck.log
+            m8-auth-plan-test.log
+            packages/browser-adapters/src/authentication-plan.ts
+            packages/browser-adapters/src/authentication-plan.test.ts
+          if-no-files-found: warn
 
       - name: Commit formatting
         shell: bash
