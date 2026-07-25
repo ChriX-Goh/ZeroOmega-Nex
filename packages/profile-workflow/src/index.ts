@@ -1,3 +1,8 @@
+export {
+  createAutoDetectProfileDraft,
+  createPacProfileDraft,
+  createRuleListProfileDraft,
+} from './advanced-profile-operations.js';
 export { applyProfileWorkflow } from './apply.js';
 export {
   PROFILE_WORKFLOW_MESSAGE_CHANNEL,

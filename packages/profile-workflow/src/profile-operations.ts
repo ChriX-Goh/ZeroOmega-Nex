@@ -9,7 +9,7 @@ import {
 
 const PROFILE_COLORS = ['#64b5f6', '#8bc34a', '#ffb74d', '#9575cd', '#4db6ac', '#e57373'] as const;
 
-export type ProfileWorkflowIdKind = 'profile' | 'endpoint' | 'bypass' | 'rule';
+export type ProfileWorkflowIdKind = 'profile' | 'endpoint' | 'bypass' | 'rule' | 'source';
 export type ProfileWorkflowIdFactory = (kind: ProfileWorkflowIdKind) => string;
 
 export interface ProfileWorkflowProfileMutation {

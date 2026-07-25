@@ -10,7 +10,10 @@
     UserProfile,
   } from '@zeroomega-nex/profile-spec';
   import {
+    createAutoDetectProfileDraft,
     createFixedProfileDraft,
+    createPacProfileDraft,
+    createRuleListProfileDraft,
     createSwitchProfileDraft,
     deleteProfileDraft,
     duplicateProfileDraft,
@@ -25,6 +28,7 @@
   import { onMount } from 'svelte';
 
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
+  import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
 
   let state: ProfileWorkflowState | undefined;
@@ -202,6 +206,33 @@
     if (!state) return;
     try {
       await replaceDraftAndSelect(createSwitchProfileDraft(state.draft, createWorkflowId));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function createRuleListProfile(): Promise<void> {
+    if (!state) return;
+    try {
+      await replaceDraftAndSelect(createRuleListProfileDraft(state.draft, createWorkflowId));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function createPacProfile(): Promise<void> {
+    if (!state) return;
+    try {
+      await replaceDraftAndSelect(createPacProfileDraft(state.draft, createWorkflowId));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function createAutoDetectProfile(): Promise<void> {
+    if (!state) return;
+    try {
+      await replaceDraftAndSelect(createAutoDetectProfileDraft(state.draft, createWorkflowId));
     } catch (error) {
       errorMessage = messageFrom(error);
     }
@@ -439,6 +470,33 @@
       <span aria-hidden="true">＋</span>
       <span>New switch profile</span>
     </button>
+    <button
+      type="button"
+      class="add-profile"
+      disabled={!state || view?.busy || saving}
+      on:click={createRuleListProfile}
+    >
+      <span aria-hidden="true">＋</span>
+      <span>New rule list</span>
+    </button>
+    <button
+      type="button"
+      class="add-profile"
+      disabled={!state || view?.busy || saving}
+      on:click={createPacProfile}
+    >
+      <span aria-hidden="true">＋</span>
+      <span>New PAC profile</span>
+    </button>
+    <button
+      type="button"
+      class="add-profile"
+      disabled={!state || view?.busy || saving}
+      on:click={createAutoDetectProfile}
+    >
+      <span aria-hidden="true">＋</span>
+      <span>New auto-detect profile</span>
+    </button>
 
     <div class="settings-links" aria-label="Settings sections">
       <button type="button" disabled>General</button>
@@ -553,13 +611,13 @@
           idFactory={createWorkflowId}
           onReplaceDraft={replaceDraft}
         />
-      {:else}
-        <section class="settings-section">
-          <h2>{profileType(selectedProfile)} editor</h2>
-          <p class="section-help">
-            This ProfileSpec is real and selectable. Its specialized editor is not implemented yet.
-          </p>
-        </section>
+      {:else if selectedProfile.kind === 'rule-list' || selectedProfile.kind === 'pac' || selectedProfile.kind === 'auto-detect'}
+        <AdvancedProfileEditor
+          spec={state.draft}
+          profileId={selectedProfile.id}
+          disabled={saving || view?.busy === true}
+          onReplaceDraft={replaceDraft}
+        />
       {/if}
 
       <section class="settings-section">

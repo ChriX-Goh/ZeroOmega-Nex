@@ -36,7 +36,8 @@
   $: routeProfiles = spec.profiles.filter((candidate) => candidate.id !== profileId);
 
   function valueFrom(event: Event): string {
-    return (event.currentTarget as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value;
+    return (event.currentTarget as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)
+      .value;
   }
 
   function routeValue(route: ProfileRouteTarget | undefined): string {
@@ -234,7 +235,7 @@
       Source name
       <input
         value={ruleSource.name}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRuleSourceName(valueFrom(event))}
       />
     </label>
@@ -242,7 +243,7 @@
       Format
       <select
         value={ruleSource.format}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRuleSourceFormat(valueFrom(event) as RuleListFormat)}
       >
         <option value="autoproxy">AutoProxy</option>
@@ -253,9 +254,8 @@
       Location
       <select
         value={ruleSource.location.kind}
-        disabled={disabled}
-        on:change={(event) =>
-          updateRuleSourceKind(valueFrom(event) as 'inline' | 'url')}
+        {disabled}
+        on:change={(event) => updateRuleSourceKind(valueFrom(event) as 'inline' | 'url')}
       >
         <option value="inline">Inline</option>
         <option value="url">URL</option>
@@ -266,13 +266,13 @@
         aria-label="Inline rule source"
         rows="10"
         value={ruleSource.location.content}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRuleSourceLocation(valueFrom(event))}></textarea>
     {:else}
       <input
         aria-label="Rule source URL"
         value={ruleSource.location.url}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRuleSourceLocation(valueFrom(event))}
       />
     {/if}
@@ -282,7 +282,7 @@
         type="number"
         min="1"
         value={ruleSource.updateIntervalMinutes ?? spec.settings.ruleSourceUpdateIntervalMinutes}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRuleSourceInterval(valueFrom(event))}
       />
     </label>
@@ -294,7 +294,7 @@
       Matching rules use
       <select
         value={routeValue(profile.matchRoute)}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRoute('matchRoute', valueFrom(event))}
       >
         <option value="direct">Direct</option>
@@ -308,7 +308,7 @@
       Default route
       <select
         value={routeValue(profile.defaultRoute)}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRoute('defaultRoute', valueFrom(event))}
       >
         <option value="direct">Direct</option>
@@ -330,7 +330,7 @@
       Source
       <select
         value={profile.source.kind}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updatePacSourceKind(valueFrom(event) as 'inline' | 'url')}
       >
         <option value="inline">Inline</option>
@@ -342,13 +342,13 @@
         aria-label="Inline PAC script"
         rows="12"
         value={profile.source.script}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updatePacSource(valueFrom(event))}></textarea>
     {:else}
       <input
         aria-label="PAC URL"
         value={profile.source.url}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updatePacSource(valueFrom(event))}
       />
     {/if}
@@ -356,7 +356,7 @@
       Fallback route
       <select
         value={routeValue(profile.fallbackRoute)}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRoute('fallbackRoute', valueFrom(event))}
       >
         <option value="">No fallback</option>
@@ -379,7 +379,7 @@
       Fallback route
       <select
         value={routeValue(profile.fallbackRoute)}
-        disabled={disabled}
+        {disabled}
         on:change={(event) => updateRoute('fallbackRoute', valueFrom(event))}
       >
         <option value="">No fallback</option>
@@ -404,15 +404,14 @@
         <input
           aria-label={`Header ${index + 1} name`}
           value={header.name}
-          disabled={disabled}
+          {disabled}
           on:change={(event) => updateHeaderName(index, valueFrom(event))}
         />
         <select
           aria-label={`Header ${index + 1} value type`}
           value={header.value.kind}
-          disabled={disabled}
-          on:change={(event) =>
-            updateHeaderKind(index, valueFrom(event) as 'literal' | 'secret')}
+          {disabled}
+          on:change={(event) => updateHeaderKind(index, valueFrom(event) as 'literal' | 'secret')}
         >
           <option value="literal">Literal</option>
           <option value="secret">Secret reference</option>
@@ -420,12 +419,12 @@
         <input
           aria-label={`Header ${index + 1} ${header.value.kind === 'literal' ? 'value' : 'secret reference'}`}
           value={header.value.kind === 'literal' ? header.value.value : header.value.secretRef}
-          disabled={disabled}
+          {disabled}
           on:change={(event) => updateHeaderValue(index, valueFrom(event))}
         />
-        <button type="button" disabled={disabled} on:click={() => removeHeader(index)}>Remove</button>
+        <button type="button" {disabled} on:click={() => removeHeader(index)}>Remove</button>
       </div>
     {/each}
-    <button type="button" disabled={disabled} on:click={addHeader}>Add header</button>
+    <button type="button" {disabled} on:click={addHeader}>Add header</button>
   </section>
 {/if}
