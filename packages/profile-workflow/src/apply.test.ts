@@ -145,13 +145,16 @@ describe('atomic profile Apply transaction', () => {
       status: 'clean',
     });
 
-    const busyState = dirtyState();
-    busyState.pendingApply = {
-      applyId: 'existing-apply',
-      candidate: workflowFixture(),
-      previousAppliedRevisionId: 'revision-applied',
-      startedAt: context.startedAt,
-      phase: 'activating',
+    const dirty = dirtyState();
+    const busyState = {
+      ...dirty,
+      pendingApply: {
+        applyId: 'existing-apply',
+        candidate: workflowFixture(),
+        previousAppliedRevisionId: 'revision-applied',
+        startedAt: context.startedAt,
+        phase: 'activating' as const,
+      },
     };
     const busy = new MemoryProfileWorkflowRepository(busyState);
     await expect(applyProfileWorkflow(busy, driver, context)).resolves.toMatchObject({
