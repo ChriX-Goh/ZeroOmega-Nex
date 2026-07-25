@@ -34,7 +34,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Rebuild original-compatible Options UI
-        run: python .github/scripts/rebuild-original-options.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python .github/scripts/rebuild-original-options.py 2>&1 | tee original-options-patch.log
 
       - name: Format rebuilt slice
         run: |
@@ -63,7 +66,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: original-options-rebuild-diagnostics
-          path: original-options-rebuild.log
+          path: |
+            original-options-patch.log
+            original-options-rebuild.log
           if-no-files-found: warn
 
       - name: Commit rebuilt Options workflow
