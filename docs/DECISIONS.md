@@ -134,6 +134,18 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Consequences:** Chromium and Firefox use separate permission manifests. Chromium MV3 uses `webRequestAuthProvider` without ordinary `webRequestBlocking`; Firefox may require `webRequestBlocking`, especially for system-request proxy authorization. The shared response path uses `asyncBlocking`. SOCKS authentication remains unsupported in browser-only mode. Retry state must survive background suspension without storing secrets and must not be cleaned through all-request listeners. The architecture guard may later allow this exact adapter boundary only; this ADR does not add permissions or listeners during Milestone 2.
 
+## ADR-014 — Import acceptance and authentication preparation are background transactions
+
+**Status:** Accepted
+
+**Decision:** Legacy import analysis may run as a pure UI operation, but accepting an imported candidate, persisting extracted secrets, deriving proxy-authentication bindings, preparing the authentication listener, and replacing the Draft must execute behind typed background commands. UI components must not write persistent secret storage or browser proxy/authentication state directly.
+
+**Reason:** Import acceptance changes multiple durable security-sensitive stores. A component-originated sequence can leave orphaned or overwritten secrets after a Draft generation conflict, and it bypasses the control-plane boundary required for deterministic rollback and testing. Authenticated proxy activation can also fail on the first request unless bindings and the bounded `onAuthRequired` listener are prepared before browser proxy installation.
+
+**Alternatives considered:** Direct Options-page storage writes were rejected because an adapter import does not change the fact that the browser API call originates in UI code. Persisting secrets during analysis was rejected because analysis must remain non-mutating. Registering authentication only at extension startup was rejected because the first imported authenticated proxy would require a restart. Treating secret persistence as best-effort was rejected because partial import state is not recoverable or auditable.
+
+**Consequences:** Import acceptance uses compare-and-swap Draft semantics and restores prior secret values when persistence fails. Activation synchronizes HTTP/HTTPS authentication bindings before installing a route that can require them and restores prior bindings/listener state on activation or commit failure. Permission-required status is surfaced before traffic switches. Command responses never contain secret values. SOCKS authentication remains unsupported in browser-only mode.
+
 ## ADR template
 
 ```markdown
