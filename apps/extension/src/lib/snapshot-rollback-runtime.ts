@@ -7,11 +7,8 @@ import {
   type SnapshotActivationRepository,
   type SnapshotActivationState,
 } from '@zeroomega-nex/browser-adapters';
-import { serializeProfileSpec } from '@zeroomega-nex/profile-spec';
-import {
-  sha256Hex,
-  type PacRuntimeSnapshot,
-} from '@zeroomega-nex/pac-compiler';
+import { sha256Hex, type PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
+import { serializeProfileSpec, type ProfileSpec } from '@zeroomega-nex/profile-spec';
 import type {
   ProfileWorkflowRevisionRepository,
   ProfileWorkflowSnapshotRollbackPreparation,
@@ -44,11 +41,17 @@ function compatibleTarget(snapshot: PacRuntimeSnapshot, driver: BrowserProxyDriv
 
 async function validateSnapshot(
   snapshot: PacRuntimeSnapshot,
-  targetRevision: Awaited<ReturnType<ProfileWorkflowRevisionRepository['getRevision']>>,
+  targetRevision: ProfileSpec | undefined,
+  currentApplied: ProfileSpec,
   driver: BrowserProxyDriver,
 ): Promise<void> {
   if (!targetRevision) {
     throw new Error(`revision ${snapshot.sourceRevisionId} is unavailable`);
+  }
+  if (targetRevision.documentId !== currentApplied.documentId) {
+    throw new Error(
+      `revision ${snapshot.sourceRevisionId} belongs to document ${targetRevision.documentId}, expected ${currentApplied.documentId}`,
+    );
   }
   if (targetRevision.documentId !== snapshot.sourceDocumentId) {
     throw new Error(
@@ -142,6 +145,7 @@ export class BrowserSnapshotRollbackService implements ProfileWorkflowSnapshotRo
 
   async prepare(
     snapshotId: string,
+    currentApplied: ProfileSpec,
   ): Promise<ProfileWorkflowSnapshotRollbackPreparation> {
     const runtime = this.#createRuntime();
     let disposed = false;
@@ -159,7 +163,7 @@ export class BrowserSnapshotRollbackService implements ProfileWorkflowSnapshotRo
       ]);
       if (!snapshot) throw new Error(`snapshot ${snapshotId} is unavailable`);
       const targetRevision = await this.#revisions.getRevision(snapshot.sourceRevisionId);
-      await validateSnapshot(snapshot, targetRevision, runtime.driver);
+      await validateSnapshot(snapshot, targetRevision, currentApplied, runtime.driver);
       if (!targetRevision) throw new Error(`revision ${snapshot.sourceRevisionId} is unavailable`);
 
       const authenticationPlan = createProxyAuthenticationPlan(
