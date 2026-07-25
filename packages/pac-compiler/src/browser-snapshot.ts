@@ -5,21 +5,11 @@ import {
 } from '@zeroomega-nex/profile-spec';
 
 import { compilePac } from './compiler.js';
-import type {
-  PacCapabilityAnalysis,
-  PacCapabilityIssue,
-  PacCompileOptions,
-} from './contracts.js';
+import type { PacCapabilityAnalysis, PacCapabilityIssue, PacCompileOptions } from './contracts.js';
 import { sha256Hex } from './hash.js';
 import { verifyPacReferenceSafety } from './reference-safety.js';
-import type {
-  PacRuntimeSnapshot,
-  PacSnapshotContext,
-} from './snapshot.js';
-import type {
-  PacVerificationMismatch,
-  PacVerificationVector,
-} from './verify.js';
+import type { PacRuntimeSnapshot, PacSnapshotContext } from './snapshot.js';
+import type { PacVerificationMismatch, PacVerificationVector } from './verify.js';
 
 export type BrowserSafePacSnapshotResult =
   | {

@@ -1,7 +1,6 @@
-import Ajv2020 from 'ajv/dist/2020.js';
 import type { ErrorObject } from 'ajv';
 
-import { profileSpecJsonSchema } from './schema.js';
+import generatedValidateStructure from './profile-spec-validator.generated.js';
 
 import type {
   Condition,
@@ -27,14 +26,11 @@ export interface ProfileSpecValidationResult {
   value?: ProfileSpec;
 }
 
-const ajv = new Ajv2020({
-  allErrors: true,
-  allowUnionTypes: true,
-  strict: true,
-  validateFormats: false,
-});
+type ProfileSpecStructureValidator = ((input: unknown) => input is ProfileSpec) & {
+  errors?: readonly ErrorObject[] | null;
+};
 
-const validateStructure = ajv.compile<ProfileSpec>(profileSpecJsonSchema);
+const validateStructure = generatedValidateStructure as unknown as ProfileSpecStructureValidator;
 
 const SENSITIVE_HEADER_NAME =
   /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|x-auth-token)$/i;

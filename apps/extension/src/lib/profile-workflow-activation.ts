@@ -7,7 +7,7 @@ import {
   type SnapshotActivationRepository,
 } from '@zeroomega-nex/browser-adapters';
 import {
-  createVerifiedPacSnapshot,
+  createBrowserSafePacSnapshot,
   type PacTarget,
   type PacVerificationVector,
 } from '@zeroomega-nex/pac-compiler';
@@ -280,7 +280,7 @@ function errorMessage(error: unknown): string {
 }
 
 function snapshotFailureMessage(
-  result: Exclude<Awaited<ReturnType<typeof createVerifiedPacSnapshot>>, { ok: true }>,
+  result: Exclude<Awaited<ReturnType<typeof createBrowserSafePacSnapshot>>, { ok: true }>,
 ): string {
   if (result.stage === 'compile') {
     return result.issues
@@ -405,7 +405,7 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
         }
         result = { snapshotId: `built-in-${activated.activeBuiltInMode}` };
       } else {
-        const snapshot = await createVerifiedPacSnapshot(
+        const snapshot = await createBrowserSafePacSnapshot(
           spec,
           route,
           buildProfileWorkflowVerificationVectors(spec),

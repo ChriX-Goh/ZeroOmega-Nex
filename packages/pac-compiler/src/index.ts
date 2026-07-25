@@ -1,4 +1,7 @@
-export { createBrowserSafePacSnapshot, type BrowserSafePacSnapshotResult } from './browser-snapshot.js';
+export {
+  createBrowserSafePacSnapshot,
+  type BrowserSafePacSnapshotResult,
+} from './browser-snapshot.js';
 export { analyzePacCompatibility } from './capabilities.js';
 export { compilePac } from './compiler.js';
 export {

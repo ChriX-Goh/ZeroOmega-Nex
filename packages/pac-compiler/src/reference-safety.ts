@@ -25,7 +25,8 @@ function comparableReferenceResult(decision: GraphDecision): { reason?: string }
     return {};
   } catch (error) {
     return {
-      reason: error instanceof Error ? error.message : 'reference endpoint is not PAC-representable',
+      reason:
+        error instanceof Error ? error.message : 'reference endpoint is not PAC-representable',
     };
   }
 }
