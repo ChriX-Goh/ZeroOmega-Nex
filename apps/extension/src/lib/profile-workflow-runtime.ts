@@ -61,12 +61,14 @@ class RuntimeInitializer implements ProfileWorkflowInitializer {
 
   createInitialProfileSpec() {
     const now = new Date().toISOString();
-    return createDefaultProfileSpec({
+    const initial = createDefaultProfileSpec({
       documentId: `document-${crypto.randomUUID()}`,
       revisionId: `revision-${crypto.randomUUID()}`,
       createdAt: now,
       deviceId: this.#deviceId,
     });
+    initial.settings.startup.route = { kind: 'direct' };
+    return initial;
   }
 }
 

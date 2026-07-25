@@ -8,7 +8,7 @@ import {
 } from './defaults.js';
 
 describe('initial editable ProfileSpec', () => {
-  it('creates a valid familiar fixed proxy profile while starting in Direct mode', () => {
+  it('creates a valid familiar fixed proxy profile with original Popup ordering', () => {
     const spec = createDefaultProfileSpec({
       documentId: 'document-default',
       revisionId: 'revision-default',
@@ -32,7 +32,10 @@ describe('initial editable ProfileSpec', () => {
         port: 7890,
       }),
     ]);
-    expect(spec.settings.startup.route).toEqual({ kind: 'direct' });
+    expect(spec.settings.startup.route).toEqual({
+      kind: 'profile',
+      profileId: DEFAULT_FIXED_PROFILE_ID,
+    });
     expect(spec.settings.quickSwitch.routes).toEqual([
       { kind: 'direct' },
       { kind: 'system' },

@@ -9,6 +9,7 @@ const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000008';
 const options = new firefox.Options()
   .addArguments('-headless')
+  .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
@@ -107,7 +108,7 @@ try {
   let profileName;
   try {
     profileName = await driver.wait(
-      until.elementLocated(By.css('input[aria-label="Profile name"]')),
+      until.elementLocated(By.css('input[aria-label="情景模式名稱"]')),
       15_000,
     );
     await driver.wait(until.elementIsVisible(profileName), 15_000);
@@ -147,11 +148,7 @@ try {
   await apply.click();
   try {
     await driver.wait(
-      until.elementLocated(
-        By.xpath(
-          "//*[contains(normalize-space(.), 'Draft matches the currently applied revision.') ]",
-        ),
-      ),
+      until.elementLocated(By.xpath("//*[contains(normalize-space(.), '目前設定已全部套用。') ]")),
       20_000,
     );
   } catch (error) {
@@ -163,10 +160,7 @@ try {
     By.xpath("//button[.//span[normalize-space(.)='Snapshot History']]"),
   );
   await historyButton.click();
-  await driver.wait(
-    until.elementLocated(By.xpath("//h1[normalize-space(.)='Configuration History']")),
-    15_000,
-  );
+  await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
   await driver.wait(
     until.elementLocated(By.xpath("//*[starts-with(normalize-space(.), 'Snapshot pac-')]")),
     20_000,
@@ -177,7 +171,7 @@ try {
     until.elementLocated(By.xpath("//button[contains(., 'Firefox E2E Proxy')]")),
     15_000,
   );
-  const direct = await driver.findElement(By.xpath("//button[contains(., 'Direct')]"));
+  const direct = await driver.findElement(By.xpath("//button[contains(., '直接連線')]"));
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
 

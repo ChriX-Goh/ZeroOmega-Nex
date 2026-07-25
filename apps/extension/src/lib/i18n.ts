@@ -20,10 +20,19 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Apply changes': { 'zh-CN': '应用选项', 'zh-TW': '套用選項' },
   'Discard changes': { 'zh-CN': '撤销更改', 'zh-TW': '復原變更' },
   'Working…': { 'zh-CN': '处理中…', 'zh-TW': '處理中…' },
-  'Draft contains unapplied changes.': { 'zh-CN': '有尚未应用的更改。', 'zh-TW': '有尚未套用的變更。' },
-  'Draft matches the currently applied revision.': { 'zh-CN': '当前设置已全部应用。', 'zh-TW': '目前設定已全部套用。' },
+  'Draft contains unapplied changes.': {
+    'zh-CN': '有尚未应用的更改。',
+    'zh-TW': '有尚未套用的變更。',
+  },
+  'Draft matches the currently applied revision.': {
+    'zh-CN': '当前设置已全部应用。',
+    'zh-TW': '目前設定已全部套用。',
+  },
   'Loading profiles': { 'zh-CN': '正在加载情景模式', 'zh-TW': '正在載入情景模式' },
-  'Reading the saved ZeroOmega configuration.': { 'zh-CN': '正在读取已保存的 ZeroOmega 配置。', 'zh-TW': '正在讀取已儲存的 ZeroOmega 設定。' },
+  'Reading the saved ZeroOmega configuration.': {
+    'zh-CN': '正在读取已保存的 ZeroOmega 配置。',
+    'zh-TW': '正在讀取已儲存的 ZeroOmega 設定。',
+  },
   'Operation failed': { 'zh-CN': '操作失败', 'zh-TW': '操作失敗' },
   Direct: { 'zh-CN': '直接连接', 'zh-TW': '直接連線' },
   'System Proxy': { 'zh-CN': '系统代理', 'zh-TW': '系統代理' },
@@ -31,41 +40,105 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   Options: { 'zh-CN': '选项', 'zh-TW': '選項' },
   'Opening…': { 'zh-CN': '正在打开…', 'zh-TW': '正在開啟…' },
   'Switching…': { 'zh-CN': '正在切换…', 'zh-TW': '正在切換…' },
-  'Loading applied profiles…': { 'zh-CN': '正在加载已应用的情景模式…', 'zh-TW': '正在載入已套用的情景模式…' },
-  'Quick switching is disabled in Options.': { 'zh-CN': '快速切换已在选项中关闭。', 'zh-TW': '快速切換已在選項中關閉。' },
-  'No quick-switch routes are configured.': { 'zh-CN': '尚未配置快速切换情景模式。', 'zh-TW': '尚未設定快速切換情景模式。' },
+  'Loading applied profiles…': {
+    'zh-CN': '正在加载已应用的情景模式…',
+    'zh-TW': '正在載入已套用的情景模式…',
+  },
+  'Quick switching is disabled in Options.': {
+    'zh-CN': '快速切换已在选项中关闭。',
+    'zh-TW': '快速切換已在選項中關閉。',
+  },
+  'No quick-switch routes are configured.': {
+    'zh-CN': '尚未配置快速切换情景模式。',
+    'zh-TW': '尚未設定快速切換情景模式。',
+  },
   'Startup profile': { 'zh-CN': '启动情景模式', 'zh-TW': '啟動情景模式' },
-  'Profile used when the extension starts': { 'zh-CN': '扩展启动时使用的情景模式', 'zh-TW': '擴充功能啟動時使用的情景模式' },
+  'Profile used when the extension starts': {
+    'zh-CN': '扩展启动时使用的情景模式',
+    'zh-TW': '擴充功能啟動時使用的情景模式',
+  },
   'Keep current browser setting': { 'zh-CN': '保持浏览器当前设置', 'zh-TW': '保留瀏覽器目前設定' },
-  'Revert proxy changes when ZeroOmega releases control': { 'zh-CN': 'ZeroOmega 释放控制时恢复原代理设置', 'zh-TW': 'ZeroOmega 釋放控制時還原原代理設定' },
+  'Revert proxy changes when ZeroOmega releases control': {
+    'zh-CN': 'ZeroOmega 释放控制时恢复原代理设置',
+    'zh-TW': 'ZeroOmega 釋放控制時還原原代理設定',
+  },
   'Quick Switch': { 'zh-CN': '快速切换', 'zh-TW': '快速切換' },
-  'Enable quick switching in the popup': { 'zh-CN': '在左键菜单中启用快速切换', 'zh-TW': '在左鍵選單中啟用快速切換' },
-  'Refresh active tabs after switching': { 'zh-CN': '切换后刷新活动标签页', 'zh-TW': '切換後重新整理作用中分頁' },
+  'Enable quick switching in the popup': {
+    'zh-CN': '在左键菜单中启用快速切换',
+    'zh-TW': '在左鍵選單中啟用快速切換',
+  },
+  'Refresh active tabs after switching': {
+    'zh-CN': '切换后刷新活动标签页',
+    'zh-TW': '切換後重新整理作用中分頁',
+  },
   Up: { 'zh-CN': '上移', 'zh-TW': '上移' },
   Down: { 'zh-CN': '下移', 'zh-TW': '下移' },
   Remove: { 'zh-CN': '移除', 'zh-TW': '移除' },
   'Add profile…': { 'zh-CN': '添加情景模式…', 'zh-TW': '加入情景模式…' },
-  'Startup and quick-switch behavior.': { 'zh-CN': '启动及快速切换行为。', 'zh-TW': '啟動及快速切換行為。' },
+  'Startup and quick-switch behavior.': {
+    'zh-CN': '启动及快速切换行为。',
+    'zh-TW': '啟動及快速切換行為。',
+  },
   'Confirmation and editing': { 'zh-CN': '确认与编辑', 'zh-TW': '確認與編輯' },
-  'Confirm before deleting a profile': { 'zh-CN': '删除情景模式前确认', 'zh-TW': '刪除情景模式前確認' },
-  'Add new switching conditions to the bottom': { 'zh-CN': '将新的切换条件添加到末尾', 'zh-TW': '將新的切換條件新增到末尾' },
+  'Confirm before deleting a profile': {
+    'zh-CN': '删除情景模式前确认',
+    'zh-TW': '刪除情景模式前確認',
+  },
+  'Add new switching conditions to the bottom': {
+    'zh-CN': '将新的切换条件添加到末尾',
+    'zh-TW': '將新的切換條件新增到末尾',
+  },
   'Show advanced condition types': { 'zh-CN': '显示高级条件类型', 'zh-TW': '顯示進階條件類型' },
   'Menus and status': { 'zh-CN': '菜单与状态', 'zh-TW': '選單與狀態' },
   'Show inspect menu': { 'zh-CN': '显示检查菜单', 'zh-TW': '顯示檢查選單' },
-  'Show result profile on the toolbar badge': { 'zh-CN': '在工具栏徽章显示结果情景模式', 'zh-TW': '在工具列徽章顯示結果情景模式' },
-  'Show profiles controlled by other extensions': { 'zh-CN': '显示由其他扩展控制的情景模式', 'zh-TW': '顯示由其他擴充功能控制的情景模式' },
-  'Export legacy rule-list format when requested': { 'zh-CN': '按需导出旧版规则列表格式', 'zh-TW': '依需求匯出舊版規則清單格式' },
+  'Show result profile on the toolbar badge': {
+    'zh-CN': '在工具栏徽章显示结果情景模式',
+    'zh-TW': '在工具列徽章顯示結果情景模式',
+  },
+  'Show profiles controlled by other extensions': {
+    'zh-CN': '显示由其他扩展控制的情景模式',
+    'zh-TW': '顯示由其他擴充功能控制的情景模式',
+  },
+  'Export legacy rule-list format when requested': {
+    'zh-CN': '按需导出旧版规则列表格式',
+    'zh-TW': '依需求匯出舊版規則清單格式',
+  },
   Appearance: { 'zh-CN': '外观', 'zh-TW': '外觀' },
   Automatic: { 'zh-CN': '自动', 'zh-TW': '自動' },
   Light: { 'zh-CN': '浅色', 'zh-TW': '淺色' },
   Dark: { 'zh-CN': '深色', 'zh-TW': '深色' },
-  'Follow the operating-system light or dark appearance.': { 'zh-CN': '跟随操作系统的浅色或深色外观。', 'zh-TW': '跟隨作業系統的淺色或深色外觀。' },
-  'Always use the original light options appearance.': { 'zh-CN': '始终使用浅色选项界面。', 'zh-TW': '一律使用淺色選項介面。' },
-  'Always use the dark options appearance.': { 'zh-CN': '始终使用深色选项界面。', 'zh-TW': '一律使用深色選項介面。' },
-  'Automatic is the default and changes immediately when the system appearance changes.': { 'zh-CN': '默认使用自动模式，并会随系统外观即时变化。', 'zh-TW': '預設使用自動模式，並會隨系統外觀即時變更。' },
-  'Default: follow the operating-system appearance.': { 'zh-CN': '默认：跟随操作系统外观。', 'zh-TW': '預設：跟隨作業系統外觀。' },
-  'Restore original ZeroOmega / SwitchyOmega backup': { 'zh-CN': '恢复原版 ZeroOmega / SwitchyOmega 备份', 'zh-TW': '還原原版 ZeroOmega / SwitchyOmega 備份' },
+  'Follow the operating-system light or dark appearance.': {
+    'zh-CN': '跟随操作系统的浅色或深色外观。',
+    'zh-TW': '跟隨作業系統的淺色或深色外觀。',
+  },
+  'Always use the original light options appearance.': {
+    'zh-CN': '始终使用浅色选项界面。',
+    'zh-TW': '一律使用淺色選項介面。',
+  },
+  'Always use the dark options appearance.': {
+    'zh-CN': '始终使用深色选项界面。',
+    'zh-TW': '一律使用深色選項介面。',
+  },
+  'Automatic is the default and changes immediately when the system appearance changes.': {
+    'zh-CN': '默认使用自动模式，并会随系统外观即时变化。',
+    'zh-TW': '預設使用自動模式，並會隨系統外觀即時變更。',
+  },
+  'Default: follow the operating-system appearance.': {
+    'zh-CN': '默认：跟随操作系统外观。',
+    'zh-TW': '預設：跟隨作業系統外觀。',
+  },
+  'Restore original ZeroOmega / SwitchyOmega backup': {
+    'zh-CN': '恢复原版 ZeroOmega / SwitchyOmega 备份',
+    'zh-TW': '還原原版 ZeroOmega / SwitchyOmega 備份',
+  },
   'Backup file': { 'zh-CN': '备份文件', 'zh-TW': '備份檔案' },
+  'Legacy backup file': { 'zh-CN': '原版备份文件', 'zh-TW': '原版備份檔案' },
+  'Legacy backup': { 'zh-CN': '原版备份', 'zh-TW': '原版備份' },
+  'Options theme': { 'zh-CN': '选项主题', 'zh-TW': '選項佈景主題' },
+  'Paste the complete ZeroOmega / SwitchyOmega backup': {
+    'zh-CN': '粘贴完整的 ZeroOmega / SwitchyOmega 备份',
+    'zh-TW': '貼上完整的 ZeroOmega / SwitchyOmega 備份',
+  },
   'Paste backup text instead': { 'zh-CN': '改为粘贴备份文本', 'zh-TW': '改為貼上備份文字' },
   'Read backup': { 'zh-CN': '读取备份', 'zh-TW': '讀取備份' },
   'Reading backup…': { 'zh-CN': '正在读取备份…', 'zh-TW': '正在讀取備份…' },
@@ -87,8 +160,14 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Import without activating': { 'zh-CN': '只导入，暂不启用', 'zh-TW': '僅匯入，暫不啟用' },
   'Importing…': { 'zh-CN': '正在导入…', 'zh-TW': '正在匯入…' },
   'Technical migration details': { 'zh-CN': '技术迁移详情', 'zh-TW': '技術移轉詳情' },
-  'Import completed. The original configuration is now active.': { 'zh-CN': '导入完成，原版配置现已启用。', 'zh-TW': '匯入完成，原版設定現已啟用。' },
-  'Import completed without changing the active proxy. Use Apply changes when ready.': { 'zh-CN': '导入完成，但未改变当前代理。确认后请点击“应用选项”。', 'zh-TW': '匯入完成，但未變更目前代理。確認後請按「套用選項」。' },
+  'Import completed. The original configuration is now active.': {
+    'zh-CN': '导入完成，原版配置现已启用。',
+    'zh-TW': '匯入完成，原版設定現已啟用。',
+  },
+  'Import completed without changing the active proxy. Use Apply changes when ready.': {
+    'zh-CN': '导入完成，但未改变当前代理。确认后请点击“应用选项”。',
+    'zh-TW': '匯入完成，但未變更目前代理。確認後請按「套用選項」。',
+  },
   'Configuration History': { 'zh-CN': '配置历史', 'zh-TW': '設定歷史' },
   'Verified PAC snapshots': { 'zh-CN': '已验证的 PAC 快照', 'zh-TW': '已驗證的 PAC 快照' },
   'Profile name': { 'zh-CN': '情景模式名称', 'zh-TW': '情景模式名稱' },
@@ -109,10 +188,16 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Auto Detect Profile': { 'zh-CN': '自动检测情景模式', 'zh-TW': '自動偵測情景模式' },
   'No user profiles': { 'zh-CN': '没有用户情景模式', 'zh-TW': '沒有使用者情景模式' },
   'Connect without a proxy.': { 'zh-CN': '不通过代理直接连接。', 'zh-TW': '不透過代理直接連線。' },
-  'Use the browser or operating-system proxy.': { 'zh-CN': '使用浏览器或操作系统代理。', 'zh-TW': '使用瀏覽器或作業系統代理。' },
+  'Use the browser or operating-system proxy.': {
+    'zh-CN': '使用浏览器或操作系统代理。',
+    'zh-TW': '使用瀏覽器或作業系統代理。',
+  },
   'Direct profile color': { 'zh-CN': '直接连接颜色', 'zh-TW': '直接連線顏色' },
   'System profile color': { 'zh-CN': '系统代理颜色', 'zh-TW': '系統代理顏色' },
-  'Open ZeroOmega Nex options': { 'zh-CN': '打开 ZeroOmega Nex 选项', 'zh-TW': '開啟 ZeroOmega Nex 選項' },
+  'Open ZeroOmega Nex options': {
+    'zh-CN': '打开 ZeroOmega Nex 选项',
+    'zh-TW': '開啟 ZeroOmega Nex 選項',
+  },
   'Current profile': { 'zh-CN': '当前情景模式', 'zh-TW': '目前情景模式' },
 };
 
@@ -122,8 +207,7 @@ const dynamicTranslations: readonly {
 }[] = [
   {
     pattern: /^Activate (.+)$/u,
-    replace: (match, locale) =>
-      locale === 'zh-CN' ? `切换到 ${match[1]}` : `切換到 ${match[1]}`,
+    replace: (match, locale) => (locale === 'zh-CN' ? `切换到 ${match[1]}` : `切換到 ${match[1]}`),
   },
   {
     pattern: /^(.+) is active$/u,

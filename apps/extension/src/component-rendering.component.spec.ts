@@ -12,6 +12,7 @@ import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
 import SnapshotHistoryPanel from './entrypoints/options/SnapshotHistoryPanel.svelte';
 import SwitchProfileEditor from './entrypoints/options/SwitchProfileEditor.svelte';
 import ThemePanel from './entrypoints/options/ThemePanel.svelte';
+import ProfileIcon from './components/ProfileIcon.svelte';
 import PopupApp from './entrypoints/popup/App.svelte';
 
 function baseSpec() {
@@ -35,6 +36,22 @@ function idFactory(): ProfileWorkflowIdFactory {
 const replaceDraft = async () => true;
 
 describe('Milestone 8 Svelte component rendering contracts', () => {
+  it('renders distinct colored profile type icons', () => {
+    for (const kind of [
+      'direct',
+      'system',
+      'fixed',
+      'switch',
+      'rule-list',
+      'pac',
+      'auto-detect',
+    ] as const) {
+      const { body } = render(ProfileIcon, { props: { kind, color: '#123456', size: 24 } });
+      expect(body).toContain(`data-profile-kind="${kind}"`);
+      expect(body).toContain('--profile-icon-color: #123456');
+    }
+  });
+
   it('renders the Popup loading state and familiar settings footer', () => {
     const { body } = render(PopupApp);
 

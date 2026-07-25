@@ -1,4 +1,8 @@
-import { cloneProfileSpec, type ProfileSpec } from '@zeroomega-nex/profile-spec';
+import {
+  cloneProfileSpec,
+  type ProfileRouteTarget,
+  type ProfileSpec,
+} from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -24,10 +28,15 @@ class Initializer implements ProfileWorkflowInitializer {
 class ApplyDriver implements ProfileWorkflowActivationDriver {
   readonly activated: ProfileSpec[] = [];
   readonly rolledBack: ProfileSpec[] = [];
+  readonly routes: ProfileRouteTarget[] = [];
   activateError?: Error;
 
-  async activate(candidate: ProfileSpec): Promise<{ snapshotId: string }> {
+  async activate(
+    candidate: ProfileSpec,
+    route: ProfileRouteTarget,
+  ): Promise<{ snapshotId: string }> {
     this.activated.push(cloneProfileSpec(candidate));
+    this.routes.push(structuredClone(route));
     if (this.activateError) throw this.activateError;
     return { snapshotId: 'snapshot-command-apply' };
   }
@@ -64,6 +73,22 @@ describe('typed profile workflow command service', () => {
     });
     expect(second).toEqual(first);
     expect(initializer.calls).toBe(1);
+  });
+
+  it('activates Direct when a fresh workflow is first opened', async () => {
+    const repository = new MemoryProfileWorkflowRepository();
+    const initializer = new Initializer();
+    const driver = new ApplyDriver();
+    const result = await executeProfileWorkflowCommand(
+      repository,
+      initializer,
+      { channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL, action: 'get' },
+      applyService(driver),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(driver.routes).toEqual([{ kind: 'direct' }]);
+    expect(driver.activated).toHaveLength(1);
   });
 
   it('persists a replacement draft with optimistic generation checking', async () => {

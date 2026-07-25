@@ -67,10 +67,11 @@ describe('profile draft operations', () => {
       }),
     );
     expect(duplicate?.proxyByScheme.fallback).not.toBe('endpoint-primary');
-    expect(result.draft.settings.quickSwitch.routes.slice(0, 2)).toEqual([
-      { kind: 'profile', profileId: 'profile-primary' },
-      { kind: 'profile', profileId: result.profileId },
-    ]);
+    expect(result.draft.profiles.at(-1)?.id).toBe(result.profileId);
+    expect(result.draft.settings.quickSwitch.routes.at(-1)).toEqual({
+      kind: 'profile',
+      profileId: result.profileId,
+    });
     expect(validateProfileSpec(result.draft).valid).toBe(true);
   });
 

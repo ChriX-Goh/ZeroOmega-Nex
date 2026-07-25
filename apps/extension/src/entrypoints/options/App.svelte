@@ -28,7 +28,14 @@
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
 
+  import ProfileIcon from '../../components/ProfileIcon.svelte';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
+  import {
+    applyThemeMode,
+    readThemeMode,
+    storeThemeMode,
+    type ThemeMode,
+  } from '../../lib/ui-theme';
   import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
@@ -45,7 +52,6 @@
     | 'new-profile'
     | 'profile'
     | 'about';
-  type ThemeMode = 'auto' | 'light' | 'dark';
   type InterfaceFlag =
     | 'confirmDeletion'
     | 'showInspectMenu'
@@ -55,7 +61,6 @@
     | 'showAdvancedConditions'
     | 'exportLegacyRuleList';
 
-  const THEME_STORAGE_KEY = 'zeroomega-nex/theme-mode';
   let activeSection: OptionsSection = 'profile';
   let themeMode: ThemeMode = 'auto';
   let state: ProfileWorkflowState | undefined;
@@ -340,6 +345,15 @@
     });
   }
 
+  async function updateProfileColor(color: string): Promise<void> {
+    if (!selectedProfile) return;
+    const profileId = selectedProfile.id;
+    await mutateDraft((draft) => {
+      const profile = draft.profiles.find((candidate) => candidate.id === profileId);
+      if (profile) profile.color = color;
+    });
+  }
+
   async function updateEndpoint(
     field: 'protocol' | 'host' | 'port',
     rawValue: string,
@@ -511,23 +525,9 @@
     }
   }
 
-  function readThemeMode(): ThemeMode {
-    if (typeof window === 'undefined') return 'auto';
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === 'light' || stored === 'dark' ? stored : 'auto';
-  }
-
-  function applyThemeMode(mode: ThemeMode): void {
-    if (typeof document === 'undefined') return;
-    document.documentElement.dataset.themeMode = mode;
-    if (mode === 'auto') delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = mode;
-  }
-
   function updateThemeMode(mode: ThemeMode): void {
     themeMode = mode;
-    if (typeof window !== 'undefined') window.localStorage.setItem(THEME_STORAGE_KEY, mode);
-    applyThemeMode(mode);
+    storeThemeMode(mode);
   }
 
   async function revertDraft(): Promise<void> {
@@ -641,8 +641,7 @@
             disabled={saving}
             on:click={() => selectProfile(profile.id)}
           >
-            <span class="profile-marker" style={`--profile-color: ${profile.color ?? '#90a4ae'}`}
-            ></span>
+            <ProfileIcon kind={profile.kind} color={profile.color ?? '#90a4ae'} size={22} />
             <span>{profile.name}</span>
           </button>
         {/each}
@@ -772,7 +771,10 @@
                 >
                 <button
                   type="button"
-                  disabled={saving || view?.busy}
+                  disabled={saving ||
+                    view?.busy ||
+                    route.kind === 'direct' ||
+                    route.kind === 'system'}
                   on:click={() => removeQuickSwitchRoute(index)}>Remove</button
                 >
               </span>
@@ -906,7 +908,11 @@
       </header>
       <section class="settings-section builtin-grid">
         <label class="builtin-card"
-          ><strong>Direct</strong><span>Connect without a proxy.</span><input
+          ><ProfileIcon
+            kind="direct"
+            color={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
+            size={28}
+          /><strong>Direct</strong><span>Connect without a proxy.</span><input
             aria-label="Direct profile color"
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
@@ -915,7 +921,11 @@
           /></label
         >
         <label class="builtin-card"
-          ><strong>System Proxy</strong><span>Use the browser or operating-system proxy.</span
+          ><ProfileIcon
+            kind="system"
+            color={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
+            size={28}
+          /><strong>System Proxy</strong><span>Use the browser or operating-system proxy.</span
           ><input
             aria-label="System profile color"
             type="color"
@@ -937,7 +947,7 @@
           type="button"
           disabled={!state || view?.busy || saving}
           on:click={createFixedProfile}
-          ><strong>Proxy Profile</strong><span
+          ><ProfileIcon kind="fixed" color="#64b5f6" size={30} /><strong>Proxy Profile</strong><span
             >Fixed HTTP, HTTPS, SOCKS4, or SOCKS5 server settings.</span
           ></button
         >
@@ -945,27 +955,29 @@
           type="button"
           disabled={!state || view?.busy || saving}
           on:click={createSwitchProfile}
-          ><strong>Switch Profile</strong><span
-            >Choose routes by URL, host, IP, weekday, or time rules.</span
-          ></button
+          ><ProfileIcon kind="switch" color="#8bc34a" size={30} /><strong>Switch Profile</strong
+          ><span>Choose routes by URL, host, IP, weekday, or time rules.</span></button
         >
         <button
           type="button"
           disabled={!state || view?.busy || saving}
           on:click={createRuleListProfile}
-          ><strong>Rule List Profile</strong><span>Use an AutoProxy or Switchy rule list.</span
-          ></button
+          ><ProfileIcon kind="rule-list" color="#4db6ac" size={30} /><strong
+            >Rule List Profile</strong
+          ><span>Use an AutoProxy or Switchy rule list.</span></button
         >
         <button type="button" disabled={!state || view?.busy || saving} on:click={createPacProfile}
-          ><strong>PAC Profile</strong><span>Use a PAC URL or inline PAC script.</span></button
+          ><ProfileIcon kind="pac" color="#ffb74d" size={30} /><strong>PAC Profile</strong><span
+            >Use a PAC URL or inline PAC script.</span
+          ></button
         >
         <button
           type="button"
           disabled={!state || view?.busy || saving}
           on:click={createAutoDetectProfile}
-          ><strong>Auto Detect Profile</strong><span
-            >Use browser proxy auto-detection when supported.</span
-          ></button
+          ><ProfileIcon kind="auto-detect" color="#90a4ae" size={30} /><strong
+            >Auto Detect Profile</strong
+          ><span>Use browser proxy auto-detection when supported.</span></button
         >
       </section>
     {:else if activeSection === 'about'}
@@ -985,10 +997,11 @@
     {:else if selectedProfile && state}
       <header class="editor-heading">
         <div class="profile-title">
-          <span
-            class="large-profile-marker"
-            style={`background: ${selectedProfile.color ?? '#90a4ae'}`}
-          ></span>
+          <ProfileIcon
+            kind={selectedProfile.kind}
+            color={selectedProfile.color ?? '#90a4ae'}
+            size={30}
+          />
           <div>
             <h1>{selectedProfile.name}</h1>
             <p>{profileType(selectedProfile)}</p>
@@ -1005,14 +1018,26 @@
           >
         </div>
       </header>
-      <section class="settings-section">
-        <h2>Profile name</h2>
-        <input
-          aria-label="Profile name"
-          value={selectedProfile.name}
-          disabled={saving || view?.busy}
-          on:change={(event) => updateProfileName(valueFrom(event))}
-        />
+      <section class="settings-section profile-identity-editor">
+        <label>
+          <span>Profile name</span>
+          <input
+            aria-label="Profile name"
+            value={selectedProfile.name}
+            disabled={saving || view?.busy}
+            on:change={(event) => updateProfileName(valueFrom(event))}
+          />
+        </label>
+        <label class="profile-color-field">
+          <span>Profile color</span>
+          <input
+            aria-label="Profile color"
+            type="color"
+            value={selectedProfile.color ?? '#90a4ae'}
+            disabled={saving || view?.busy}
+            on:change={(event) => updateProfileColor(valueFrom(event))}
+          />
+        </label>
       </section>
       {#if fixedProfile && endpoint}
         <section class="settings-section">

@@ -23,7 +23,9 @@
   <svg viewBox="0 0 24 24" focusable="false">
     {#if kind === 'direct'}
       <circle cx="12" cy="12" r="8.25" />
-      <path d="M4.2 12h15.6M12 3.8c2.2 2.2 3.4 5 3.4 8.2S14.2 18 12 20.2C9.8 18 8.6 15.2 8.6 12S9.8 6 12 3.8Z" />
+      <path
+        d="M4.2 12h15.6M12 3.8c2.2 2.2 3.4 5 3.4 8.2S14.2 18 12 20.2C9.8 18 8.6 15.2 8.6 12S9.8 6 12 3.8Z"
+      />
     {:else if kind === 'system'}
       <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.8" />
       <path d="M8 20h8M10 16v4M14 16v4" />

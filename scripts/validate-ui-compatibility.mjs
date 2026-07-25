@@ -8,6 +8,10 @@ const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHist
 const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte';
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
+const i18nPath = 'apps/extension/src/lib/i18n.ts';
+const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
+const manifestPath = 'apps/extension/wxt.config.ts';
+const defaultsPath = 'packages/profile-workflow/src/defaults.ts';
 
 const [
   popupApp,
@@ -18,6 +22,10 @@ const [
   legacyImport,
   themePanel,
   optionsHtml,
+  i18n,
+  profileIcon,
+  manifest,
+  defaults,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -27,6 +35,10 @@ const [
   readFile(legacyImportPath, 'utf8'),
   readFile(themePanelPath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
+  readFile(i18nPath, 'utf8'),
+  readFile(profileIconPath, 'utf8'),
+  readFile(manifestPath, 'utf8'),
+  readFile(defaultsPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -56,10 +68,37 @@ const requirements = [
   ],
   [popupStyle.includes('font-size: 13px'), 'Popup base type size must remain explicitly fixed.'],
   [popupStyle.includes('line-height: 1.35'), 'Popup line height must remain explicitly fixed.'],
-  [popupStyle.includes('width: 300px'), 'Popup width must remain deterministic across browsers.'],
+  [
+    popupStyle.includes('width: 320px'),
+    'Popup width must remain deterministic and provide room for larger icons.',
+  ],
   [
     popupStyle.includes('.profile-list button:focus-visible'),
     'Popup route controls must expose visible keyboard focus.',
+  ],
+  [
+    ['zh-CN', 'zh-TW', "return 'en'"].every((entry) => i18n.includes(entry)),
+    'Options and Popup must auto-select Simplified Chinese, Traditional Chinese, or English fallback.',
+  ],
+  [
+    manifest.includes("default_locale: 'en'") &&
+      manifest.includes('default_icon: icons') &&
+      ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)),
+    'The browser manifest must expose localized metadata and toolbar icons at all standard sizes.',
+  ],
+  [
+    popupApp.includes('import ProfileIcon') &&
+      popupApp.includes('normalizedRoutes') &&
+      popupApp.includes('applyThemeMode(readThemeMode())'),
+    'Popup must show type icons, retain built-in ordering, and share the selected theme.',
+  ],
+  [
+    profileIcon.includes("kind === 'fixed'") && profileIcon.includes("kind === 'switch'"),
+    'Profile rows must use distinct type icons instead of plain color blocks.',
+  ],
+  [
+    defaults.indexOf("{ kind: 'direct' }") < defaults.indexOf("{ kind: 'system' }"),
+    'Default Popup order must list Direct before System Proxy.',
   ],
   [optionsApp.includes('class="sidebar"'), 'Options must retain familiar left profile navigation.'],
   [

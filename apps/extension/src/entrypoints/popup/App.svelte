@@ -127,7 +127,8 @@
   }
 
   async function activateRoute(item: QuickSwitchItem): Promise<void> {
-    if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route)) return;
+    if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route))
+      return;
     switching = true;
     errorMessage = '';
     try {
@@ -165,7 +166,11 @@
   });
 </script>
 
-<main class="popup-shell" aria-label="ZeroOmega Nex profile switcher" aria-busy={loading || switching}>
+<main
+  class="popup-shell"
+  aria-label="ZeroOmega Nex profile switcher"
+  aria-busy={loading || switching}
+>
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
       <p class="settings-error" role="status">Loading applied profiles…</p>
@@ -207,7 +212,9 @@
       aria-label="Open ZeroOmega Nex options"
     >
       <svg viewBox="0 0 20 20" aria-hidden="true">
-        <path d="M8.8 2.2h2.4l.5 1.8c.5.2 1 .5 1.4.8l1.8-.5 1.2 2.1-1.3 1.3c.1.5.1 1.1 0 1.6l1.3 1.3-1.2 2.1-1.8-.5c-.4.4-.9.6-1.4.8l-.5 1.8H8.8L8.3 13a5 5 0 0 1-1.4-.8l-1.8.5-1.2-2.1 1.3-1.3a6 6 0 0 1 0-1.6L3.9 6.4l1.2-2.1 1.8.5c.4-.3.9-.6 1.4-.8l.5-1.8Z" />
+        <path
+          d="M8.8 2.2h2.4l.5 1.8c.5.2 1 .5 1.4.8l1.8-.5 1.2 2.1-1.3 1.3c.1.5.1 1.1 0 1.6l1.3 1.3-1.2 2.1-1.8-.5c-.4.4-.9.6-1.4.8l-.5 1.8H8.8L8.3 13a5 5 0 0 1-1.4-.8l-1.8.5-1.2-2.1 1.3-1.3a6 6 0 0 1 0-1.6L3.9 6.4l1.2-2.1 1.8.5c.4-.3.9-.6 1.4-.8l.5-1.8Z"
+        />
         <circle cx="10" cy="8.5" r="2.2" />
       </svg>
       <span>{openingSettings ? 'Opening…' : 'Options'}</span>

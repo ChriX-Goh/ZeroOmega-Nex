@@ -45,7 +45,7 @@ export function createDefaultProfileSpec(options: DefaultProfileSpecOptions): Pr
     ruleSources: [],
     settings: {
       startup: {
-        route: { kind: 'direct' },
+        route: { kind: 'profile', profileId: DEFAULT_FIXED_PROFILE_ID },
         revertProxyChanges: true,
       },
       quickSwitch: {

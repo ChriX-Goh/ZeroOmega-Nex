@@ -7,7 +7,10 @@ export function readThemeMode(storage: Pick<Storage, 'getItem'> = localStorage):
   return stored === 'light' || stored === 'dark' ? stored : 'auto';
 }
 
-export function applyThemeMode(mode: ThemeMode, root: HTMLElement = document.documentElement): void {
+export function applyThemeMode(
+  mode: ThemeMode,
+  root: HTMLElement = document.documentElement,
+): void {
   root.dataset.themeMode = mode;
   if (mode === 'auto') delete root.dataset.theme;
   else root.dataset.theme = mode;

@@ -172,17 +172,22 @@ async function runtimeView(
   }
 }
 
+interface EnsuredProfileWorkflowState {
+  readonly state: ProfileWorkflowState;
+  readonly created: boolean;
+}
+
 async function ensureState(
   repository: ProfileWorkflowRepository,
   initializer: ProfileWorkflowInitializer,
-): Promise<ProfileWorkflowState> {
+): Promise<EnsuredProfileWorkflowState> {
   const current = await repository.read();
-  if (current) return current;
+  if (current) return { state: current, created: false };
   const initial = createProfileWorkflowState(initializer.createInitialProfileSpec());
-  if (await repository.compareAndSwap(undefined, initial)) return initial;
+  if (await repository.compareAndSwap(undefined, initial)) return { state: initial, created: true };
   const raced = await repository.read();
   if (!raced) throw new Error('profile workflow initialization lost without persisted state');
-  return raced;
+  return { state: raced, created: false };
 }
 
 function validGeneration(value: unknown): value is number {
@@ -286,14 +291,23 @@ export async function executeProfileWorkflowCommand(
   historyService?: ProfileWorkflowHistoryService,
   rollbackService?: ProfileWorkflowSnapshotRollbackService,
 ): Promise<ProfileWorkflowCommandResponse> {
-  let state: ProfileWorkflowState;
+  let ensured: EnsuredProfileWorkflowState;
   try {
-    state = await ensureState(repository, initializer);
+    ensured = await ensureState(repository, initializer);
   } catch (error) {
     return failure('storage-failure', errorMessage(error));
   }
+  const { state, created } = ensured;
 
   if (command.action === 'get') {
+    if (created && applyService) {
+      try {
+        const activated = await applyService.driver.activate(state.applied, { kind: 'direct' });
+        return response(state, activated.snapshotId, await runtimeView(applyService));
+      } catch (error) {
+        return failure('activation-failed', errorMessage(error), state);
+      }
+    }
     return response(state, undefined, await runtimeView(applyService));
   }
 

@@ -62,20 +62,6 @@ function appendQuickSwitchRoute(spec: ProfileSpec, profileId: string): void {
   spec.settings.quickSwitch.routes.push({ kind: 'profile', profileId });
 }
 
-function insertQuickSwitchRouteAfter(
-  spec: ProfileSpec,
-  sourceProfileId: string,
-  profileId: string,
-): void {
-  const routes = spec.settings.quickSwitch.routes;
-  const sourceIndex = routes.findIndex(
-    (route) => route.kind === 'profile' && route.profileId === sourceProfileId,
-  );
-  const route: ProfileRouteTarget = { kind: 'profile', profileId };
-  if (sourceIndex === -1) routes.push(route);
-  else routes.splice(sourceIndex + 1, 0, route);
-}
-
 function duplicateFixedProfileResources(
   spec: ProfileSpec,
   profile: FixedProfile,
@@ -169,8 +155,8 @@ export function duplicateProfileDraft(
 
   duplicate.id = profileId;
   duplicate.name = uniqueProfileName(draft, `${source.name} copy`);
-  draft.profiles.splice(sourceIndex + 1, 0, duplicate);
-  insertQuickSwitchRouteAfter(draft, sourceProfileId, profileId);
+  draft.profiles.push(duplicate);
+  appendQuickSwitchRoute(draft, profileId);
   assertValidDraft(draft);
   return { draft, profileId };
 }
