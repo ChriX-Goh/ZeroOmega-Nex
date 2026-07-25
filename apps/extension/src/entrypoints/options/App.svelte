@@ -1,17 +1,24 @@
 <script lang="ts">
   import { productIdentity } from '@zeroomega-nex/core-contracts';
+  import { cloneProfileSpec } from '@zeroomega-nex/profile-spec';
   import type {
     FixedProfile,
     ProfileSpec,
     ProxyEndpoint,
     UserProfile,
   } from '@zeroomega-nex/profile-spec';
+  import {
+    createFixedProfileDraft,
+    deleteProfileDraft,
+    duplicateProfileDraft,
+  } from '@zeroomega-nex/profile-workflow';
   import type {
     ProfileWorkflowCommandResponse,
+    ProfileWorkflowIdFactory,
+    ProfileWorkflowProfileMutation,
     ProfileWorkflowState,
     ProfileWorkflowView,
   } from '@zeroomega-nex/profile-workflow';
-  import { cloneProfileSpec } from '@zeroomega-nex/profile-spec';
   import { onMount } from 'svelte';
 
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
@@ -21,6 +28,7 @@
   let loading = true;
   let saving = false;
   let errorMessage = '';
+  let lastAppliedSnapshotId = '';
 
   let profiles: readonly UserProfile[] = [];
   let selectedProfile: UserProfile | undefined;
@@ -33,6 +41,9 @@
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
   $: endpoint = fixedProfile && state ? findEndpoint(state.draft, fixedProfile) : undefined;
   $: bypassText = fixedProfile?.bypass.map((entry) => entry.pattern).join('\n') ?? '';
+
+  const createWorkflowId: ProfileWorkflowIdFactory = (kind) =>
+    `${kind}-${crypto.randomUUID()}`;
 
   function profileType(profile: UserProfile): string {
     switch (profile.kind) {
@@ -70,16 +81,24 @@
       .value;
   }
 
-  function acceptResponse(response: ProfileWorkflowCommandResponse): void {
+  function messageFrom(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
+
+  function acceptResponse(response: ProfileWorkflowCommandResponse): boolean {
     if (response.ok) {
       state = response.state;
       view = response.view;
+      if (response.appliedSnapshotId !== undefined) {
+        lastAppliedSnapshotId = response.appliedSnapshotId;
+      }
       errorMessage = '';
-      return;
+      return true;
     }
     errorMessage = response.message;
     if (response.state) state = response.state;
     if (response.view) view = response.view;
+    return false;
   }
 
   async function loadWorkflow(): Promise<void> {
@@ -87,7 +106,7 @@
     try {
       acceptResponse(await sendProfileWorkflowCommand({ action: 'get' }));
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+      errorMessage = messageFrom(error);
     } finally {
       loading = false;
     }
@@ -95,13 +114,14 @@
 
   async function runCommand(
     command: Parameters<typeof sendProfileWorkflowCommand>[0],
-  ): Promise<void> {
-    if (saving) return;
+  ): Promise<boolean> {
+    if (saving) return false;
     saving = true;
     try {
-      acceptResponse(await sendProfileWorkflowCommand(command));
+      return acceptResponse(await sendProfileWorkflowCommand(command));
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+      errorMessage = messageFrom(error);
+      return false;
     } finally {
       saving = false;
     }
@@ -116,21 +136,72 @@
     });
   }
 
-  async function mutateDraft(update: (draft: ProfileSpec) => void): Promise<void> {
-    if (!state) return;
-    const draft = cloneProfileSpec(state.draft);
-    update(draft);
-    await runCommand({
+  async function replaceDraft(draft: ProfileSpec): Promise<boolean> {
+    if (!state) return false;
+    return runCommand({
       action: 'replace-draft',
       expectedGeneration: state.generation,
       draft,
     });
   }
 
+  async function replaceDraftAndSelect(
+    mutation: ProfileWorkflowProfileMutation,
+  ): Promise<void> {
+    if (!(await replaceDraft(mutation.draft))) return;
+    if (state?.draft.profiles.some((profile) => profile.id === mutation.profileId)) {
+      await selectProfile(mutation.profileId);
+    }
+  }
+
+  async function mutateDraft(update: (draft: ProfileSpec) => void): Promise<void> {
+    if (!state) return;
+    const draft = cloneProfileSpec(state.draft);
+    update(draft);
+    await replaceDraft(draft);
+  }
+
+  async function createProfile(): Promise<void> {
+    if (!state) return;
+    try {
+      await replaceDraftAndSelect(createFixedProfileDraft(state.draft, createWorkflowId));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function duplicateSelectedProfile(): Promise<void> {
+    if (!state || !selectedProfile) return;
+    try {
+      await replaceDraftAndSelect(
+        duplicateProfileDraft(state.draft, selectedProfile.id, createWorkflowId),
+      );
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function deleteSelectedProfile(): Promise<void> {
+    if (!state || !selectedProfile) return;
+    const shouldConfirm = state.draft.settings.interface.confirmDeletion;
+    if (
+      shouldConfirm &&
+      !globalThis.confirm(`Delete profile “${selectedProfile.name}”? This changes only the Draft.`)
+    ) {
+      return;
+    }
+    try {
+      await replaceDraft(deleteProfileDraft(state.draft, selectedProfile.id));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
   async function updateProfileName(name: string): Promise<void> {
     if (!selectedProfile) return;
+    const profileId = selectedProfile.id;
     await mutateDraft((draft) => {
-      const profile = draft.profiles.find((candidate) => candidate.id === selectedProfile?.id);
+      const profile = draft.profiles.find((candidate) => candidate.id === profileId);
       if (profile) profile.name = name.trim();
     });
   }
@@ -181,7 +252,7 @@
       );
       if (!profile) return;
       profile.bypass = patterns.map((pattern, index) => ({
-        id: profile.bypass[index]?.id ?? `bypass-${profile.id}-${index + 1}`,
+        id: profile.bypass[index]?.id ?? `bypass-${crypto.randomUUID()}`,
         pattern,
       }));
     });
@@ -193,6 +264,23 @@
       action: 'revert',
       expectedGeneration: state.generation,
     });
+  }
+
+  async function applyDraft(): Promise<void> {
+    if (!state || !view?.dirty) return;
+    await runCommand({
+      action: 'apply',
+      expectedGeneration: state.generation,
+    });
+  }
+
+  function applyStatus(): string {
+    const record = state?.lastApply;
+    if (!record) return 'No Apply attempt recorded.';
+    if (record.status === 'succeeded') {
+      return `Active snapshot ${record.snapshotId} from revision ${record.revisionId}.`;
+    }
+    return `Failed at ${record.stage}: ${record.message}`;
   }
 
   onMount(() => {
@@ -216,9 +304,9 @@
       <button
         type="button"
         class="primary"
-        disabled
-        title="Browser activation will be connected in the next verified slice."
-        >Apply changes</button
+        disabled={!view?.dirty || view.busy || saving}
+        on:click={applyDraft}
+        >{saving ? 'Working…' : 'Apply changes'}</button
       >
     </div>
   </header>
@@ -243,7 +331,12 @@
       {/each}
     </nav>
 
-    <button type="button" class="add-profile" disabled>
+    <button
+      type="button"
+      class="add-profile"
+      disabled={!state || view?.busy || saving}
+      on:click={createProfile}
+    >
       <span aria-hidden="true">＋</span>
       <span>New profile</span>
     </button>
@@ -275,8 +368,17 @@
           </div>
         </div>
         <div class="profile-actions">
-          <button type="button" disabled>Duplicate</button>
-          <button type="button" class="danger" disabled>Delete</button>
+          <button
+            type="button"
+            disabled={view?.busy || saving}
+            on:click={duplicateSelectedProfile}>Duplicate</button
+          >
+          <button
+            type="button"
+            class="danger"
+            disabled={view?.busy || saving}
+            on:click={deleteSelectedProfile}>Delete</button
+          >
         </div>
       </header>
 
@@ -360,6 +462,8 @@
         <h2>Working copy</h2>
         {#if errorMessage}
           <p role="alert">{errorMessage}</p>
+        {:else if view?.busy}
+          <p>Apply is in progress: {state?.pendingApply?.phase ?? 'preparing'}.</p>
         {:else}
           <p>
             {view?.dirty
@@ -377,6 +481,14 @@
             <dd>{state?.generation ?? 0}</dd>
           </div>
           <div>
+            <dt>Last Apply</dt>
+            <dd>{applyStatus()}</dd>
+          </div>
+          <div>
+            <dt>Latest snapshot</dt>
+            <dd>{lastAppliedSnapshotId || 'Unavailable'}</dd>
+          </div>
+          <div>
             <dt>Global request listener</dt>
             <dd>Absent</dd>
           </div>
@@ -385,7 +497,7 @@
     {:else}
       <section class="settings-section shell-status">
         <h2>No user profiles</h2>
-        <p>The Draft contains no editable user profile.</p>
+        <p>The Draft contains no editable user profile. Create a new Fixed Profile from the sidebar.</p>
       </section>
     {/if}
   </main>
