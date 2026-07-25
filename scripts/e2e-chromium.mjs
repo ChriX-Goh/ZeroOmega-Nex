@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 
 const extensionPath = resolve('dist/chrome-mv3');
+const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
 let context;
 
@@ -46,6 +47,26 @@ try {
   }
   assert.equal(await profileName.inputValue(), 'Proxy');
 
+  await options.getByRole('button', { name: 'Theme', exact: true }).click();
+  await options.getByRole('heading', { name: 'Theme', exact: true, level: 1 }).waitFor();
+  const automaticTheme = options.getByRole('radio', { name: /^Automatic/u });
+  const darkTheme = options.getByRole('radio', { name: /^Dark/u });
+  assert.equal(await automaticTheme.getAttribute('aria-checked'), 'true');
+  await darkTheme.click();
+  assert.equal(await options.locator('html').getAttribute('data-theme'), 'dark');
+  assert.equal(
+    await options.evaluate(() => localStorage.getItem('zeroomega-nex/theme-mode')),
+    'dark',
+  );
+  await automaticTheme.click();
+  assert.equal(await options.locator('html').getAttribute('data-theme'), null);
+  assert.equal(
+    await options.evaluate(() => localStorage.getItem('zeroomega-nex/theme-mode')),
+    'auto',
+  );
+
+  await options.getByRole('button', { name: 'Proxy', exact: true }).click();
+  await profileName.waitFor({ state: 'visible' });
   await profileName.fill('Chromium E2E Proxy');
   await profileName.press('Tab');
   const apply = options.getByRole('button', { name: 'Apply changes' });
@@ -75,6 +96,18 @@ try {
   const direct = popup.getByRole('button', { name: /Direct/u });
   await direct.click();
   await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
+
+  await options.bringToFront();
+  await options.getByRole('button', { name: 'Import / Export', exact: true }).click();
+  await options.getByLabel('Legacy backup file').setInputFiles(legacyBackupPath);
+  await options.getByRole('heading', { name: 'Compatibility check', exact: true }).waitFor();
+  const importAndUse = options.getByRole('button', { name: 'Import and use now', exact: true });
+  await importAndUse.click();
+  await options
+    .getByText('Import completed. The original configuration is now active.')
+    .waitFor({ state: 'visible', timeout: 20_000 });
+  await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
+  await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
