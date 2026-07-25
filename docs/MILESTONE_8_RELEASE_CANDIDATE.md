@@ -15,7 +15,7 @@ The earlier implementation head `335229f762e6353ec14e57b5cc2695b6395d175c` and a
 - **Artifact SHA-256:** `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
 - **Artifact expiry:** 2026-10-23
 
-The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract that archive to obtain complete unpacked extension directories at `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/`.
+The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract the ZIP first, then extract the TAR.GZ to obtain complete unpacked extension directories at `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/`.
 
 ## What changed after the failed QC
 
