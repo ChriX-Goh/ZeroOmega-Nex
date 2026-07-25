@@ -33,6 +33,13 @@ export {
   createDefaultProfileSpec,
   type DefaultProfileSpecOptions,
 } from './defaults.js';
+export {
+  acceptProfileWorkflowImport,
+  normalizeImportedProfileWorkflowDraft,
+  type ProfileWorkflowImportAcceptanceResult,
+  type ProfileWorkflowSecretMaterial,
+  type ProfileWorkflowSecretStore,
+} from './import-acceptance.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
   createFixedProfileDraft,
