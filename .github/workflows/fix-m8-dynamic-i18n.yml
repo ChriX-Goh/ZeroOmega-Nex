@@ -1,0 +1,57 @@
+name: Fix M8 Dynamic Localization
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Observe dynamic Svelte text updates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('apps/extension/src/lib/i18n.ts')
+          text = path.read_text()
+          old = "      if (record.type === 'attributes') {\n        translateElement(record.target as Element, locale);\n        continue;\n      }\n      for (const node of record.addedNodes) translateNode(node, locale);"
+          new = "      if (record.type === 'attributes') {\n        translateElement(record.target as Element, locale);\n        continue;\n      }\n      if (record.type === 'characterData') {\n        translateTextNode(record.target as Text, locale);\n        continue;\n      }\n      for (const node of record.addedNodes) translateNode(node, locale);"
+          if text.count(old) != 1:
+              raise SystemExit('dynamic text observer anchor missing')
+          text = text.replace(old, new, 1)
+          old = "    childList: true,\n    attributes: true,"
+          new = "    childList: true,\n    characterData: true,\n    attributes: true,"
+          if text.count(old) != 1:
+              raise SystemExit('observer options anchor missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          pnpm exec prettier --write apps/extension/src/lib/i18n.ts
+      - name: Verify dynamic localization fix
+        run: |
+          pnpm --filter @zeroomega-nex/extension check
+          pnpm test
+          pnpm verify
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/extension/src/lib/i18n.ts
+          git commit -m 'fix: localize dynamic Svelte text updates'
+          git push origin HEAD:feat/m8-profile-workflow
