@@ -28,9 +28,7 @@ function profileRoutes(profile: UserProfile): readonly ProfileRouteTarget[] {
     case 'switch':
       return [
         profile.defaultRoute,
-        ...profile.rules
-          .filter((rule) => rule.enabled !== false)
-          .map((rule) => rule.route),
+        ...profile.rules.filter((rule) => rule.enabled !== false).map((rule) => rule.route),
       ];
     case 'rule-list':
       return [profile.matchRoute, profile.defaultRoute];
