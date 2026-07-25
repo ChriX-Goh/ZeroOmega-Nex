@@ -169,12 +169,9 @@ describe('profile workflow import acceptance', () => {
     const state = createProfileWorkflowState(workflowFixture());
     const repository = new MemoryProfileWorkflowRepository(state);
 
-    const result = await acceptProfileWorkflowImport(
-      repository,
-      state,
-      importedCandidate(),
-      [{ ref: 'secret-import', value: 'secret-value' }],
-    );
+    const result = await acceptProfileWorkflowImport(repository, state, importedCandidate(), [
+      { ref: 'secret-import', value: 'secret-value' },
+    ]);
 
     expect(result).toMatchObject({
       status: 'invalid',
