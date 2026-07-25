@@ -1,0 +1,19 @@
+{
+  "name": "@zeroomega-nex/pac-compiler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@zeroomega-nex/profile-spec": "workspace:*",
+    "@zeroomega-nex/reference-interpreter": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
