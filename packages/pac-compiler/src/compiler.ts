@@ -89,7 +89,9 @@ function compileCondition(condition: Condition, count: () => void): string {
 }
 
 function endpointExpression(endpoint: ProxyEndpoint | undefined): string {
-  return endpoint === undefined ? pacStringLiteral('DIRECT') : pacStringLiteral(pacDirective(endpoint));
+  return endpoint === undefined
+    ? pacStringLiteral('DIRECT')
+    : pacStringLiteral(pacDirective(endpoint));
 }
 
 export function compilePac(
@@ -218,7 +220,8 @@ export function compilePac(
   try {
     profileFunctions = analysis.reachableProfileIds.map((profileId) => {
       const profile = profileById.get(profileId);
-      if (!profile) throw new Error(`Profile ${profileId} passed capability analysis but is missing`);
+      if (!profile)
+        throw new Error(`Profile ${profileId} passed capability analysis but is missing`);
       return compileProfile(profile);
     });
   } catch (error) {
