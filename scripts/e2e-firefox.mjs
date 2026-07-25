@@ -161,10 +161,7 @@ try {
   );
   await historyButton.click();
   await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
-  await driver.wait(
-    until.elementLocated(By.xpath("//*[starts-with(normalize-space(.), 'Snapshot pac-')]")),
-    20_000,
-  );
+  await driver.wait(until.elementLocated(By.css('article.settings-section')), 20_000);
 
   await driver.get(`moz-extension://${extensionUuid}/popup.html`);
   await driver.wait(
