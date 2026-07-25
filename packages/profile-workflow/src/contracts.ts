@@ -41,6 +41,43 @@ export interface ProfileWorkflowRuntimeView {
   readonly lastFailure?: ProfileWorkflowRuntimeFailure;
 }
 
+export interface ProfileWorkflowSnapshotWarning {
+  readonly code: string;
+  readonly path: string;
+  readonly capability: 'exact' | 'target-dependent' | 'unsupported';
+  readonly severity: 'info' | 'warning' | 'error';
+  readonly blocking: boolean;
+  readonly message: string;
+}
+
+export interface ProfileWorkflowSnapshotHistoryEntry {
+  readonly snapshotId: string;
+  readonly createdAt: string;
+  readonly sourceDocumentId: string;
+  readonly sourceRevisionId: string;
+  readonly startRoute: ProfileRouteTarget;
+  readonly target: 'cross-browser' | 'chromium' | 'firefox';
+  readonly compilerVersion: string;
+  readonly capability: 'exact' | 'target-dependent';
+  readonly scriptSha256Prefix: string;
+  readonly sourceProfileSpecSha256Prefix: string;
+  readonly verification: {
+    readonly passed: true;
+    readonly vectorCount: number;
+    readonly matchedCount: number;
+  };
+  readonly stats: {
+    readonly scriptBytes: number;
+    readonly profileCount: number;
+    readonly endpointCount: number;
+    readonly conditionCount: number;
+    readonly ruleListRuleCount: number;
+  };
+  readonly warnings: readonly ProfileWorkflowSnapshotWarning[];
+  readonly active: boolean;
+  readonly lastKnownGood: boolean;
+}
+
 export interface ProfileWorkflowState {
   readonly workflowSchemaVersion: typeof PROFILE_WORKFLOW_SCHEMA_VERSION;
   readonly generation: number;
