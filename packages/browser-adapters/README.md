@@ -15,4 +15,6 @@ The browser-neutral activation state machine is tested through injected drivers 
 
 Chromium uses a regular-scope `pac_script` configuration with an inline script and `mandatory: true`. Firefox uses `proxyType: autoConfig` with a generated data URL, requires private-window access before installation, and treats reported PAC runtime errors as failed confirmation.
 
+The persistent repository stores activation state and verified snapshots under a versioned `storage.local` namespace. It validates records on every read, rejects corrupted or mismatched snapshot identities, and preserves pending rollback context across service-worker restarts.
+
 A conflicting extension or browser policy is reported explicitly. The package never claims a candidate is active after a failed confirmation or rollback, and it never moves per-request routing into extension JavaScript.
