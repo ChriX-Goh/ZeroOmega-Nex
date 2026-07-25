@@ -114,7 +114,7 @@ replace_once(
         <SwitchProfileEditor
           spec={state.draft}
           profileId={switchProfile.id}
-          disabled={saving || view?.busy}
+          disabled={saving || view?.busy === true}
           idFactory={createWorkflowId}
           onReplaceDraft={replaceDraft}
         />
