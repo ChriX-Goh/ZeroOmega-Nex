@@ -23,11 +23,30 @@ try {
   assert.equal(installedId, addonId, 'Firefox returned an unexpected add-on ID');
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
-  const profileName = await driver.wait(
-    until.elementLocated(By.css('input[aria-label="Profile name"]')),
-    15_000,
-  );
-  await driver.wait(until.elementIsVisible(profileName), 15_000);
+  let profileName;
+  try {
+    profileName = await driver.wait(
+      until.elementLocated(By.css('input[aria-label="Profile name"]')),
+      15_000,
+    );
+    await driver.wait(until.elementIsVisible(profileName), 15_000);
+  } catch (error) {
+    console.error(`[Firefox Options URL] ${await driver.getCurrentUrl()}`);
+    console.error(`[Firefox Options title] ${await driver.getTitle()}`);
+    console.error(
+      `[Firefox Options body] ${await driver.executeScript('return document.body?.innerText ?? "";')}`,
+    );
+    console.error(`[Firefox Options source] ${(await driver.getPageSource()).slice(0, 20_000)}`);
+    try {
+      const browserLogs = await driver.manage().logs().get('browser');
+      console.error(`[Firefox browser logs] ${JSON.stringify(browserLogs)}`);
+    } catch (logError) {
+      console.error(
+        `[Firefox browser logs unavailable] ${logError instanceof Error ? logError.message : String(logError)}`,
+      );
+    }
+    throw error;
+  }
   assert.equal(await profileName.getAttribute('value'), 'Proxy');
 
   await profileName.clear();
