@@ -114,3 +114,14 @@ patch(
         ),
     ],
 )
+
+patch(
+    'packages/profile-workflow/src/commands-history.test.ts',
+    [
+        (
+            "    expect(JSON.stringify(response)).not.toContain('proxy.example.invalid');",
+            "    expect(JSON.stringify(response.revisionHistory)).not.toContain('proxy.example.invalid');",
+            'revision metadata redaction assertion',
+        )
+    ],
+)
