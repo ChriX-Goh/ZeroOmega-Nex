@@ -1,0 +1,83 @@
+name: Fix Milestone 8 Command Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Patch stale fixture assertion
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/profile-workflow/src/commands.test.ts')
+          text = path.read_text()
+          old = '''    expect(failed).toMatchObject({
+              ok: false,
+              code: 'apply-failed',
+              message: 'PAC verification failed',
+              view: { dirty: true, busy: false },
+              state: {
+                applied: { revision: { id: 'revision-applied' } },
+                draft: { profiles: [{ name: 'Failed Apply Edit' }] },
+              },
+            });'''
+          new = '''    expect(failed).toMatchObject({
+              ok: false,
+              code: 'apply-failed',
+              message: 'PAC verification failed',
+              view: { dirty: true, busy: false },
+              state: {
+                applied: { revision: { id: 'revision-applied' } },
+              },
+            });
+            if (failed.ok || !failed.state) throw new Error('expected recoverable failed state');
+            expect(failed.state.draft.profiles[0]?.name).toBe('Failed Apply Edit');
+            expect(failed.state.draft.profiles[1]?.name).toBe('Backup Proxy');'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one stale assertion, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          pnpm exec prettier --write packages/profile-workflow/src/commands.test.ts
+
+      - name: Verify corrected command tests
+        run: |
+          pnpm --filter @zeroomega-nex/profile-workflow check
+          pnpm exec vitest run packages/profile-workflow/src/commands.test.ts
+
+      - name: Commit corrected assertion
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages/profile-workflow/src/commands.test.ts
+          git commit -m 'test: preserve multi-profile draft on Apply failure'
+          git push origin HEAD:feat/m8-profile-workflow
