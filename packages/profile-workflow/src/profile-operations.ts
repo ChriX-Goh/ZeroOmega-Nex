@@ -117,10 +117,11 @@ export function createFixedProfileDraft(
   const draft = cloneProfileSpec(spec);
   const profileId = idFactory('profile');
   const endpointId = idFactory('endpoint');
+  const color = PROFILE_COLORS[draft.profiles.length % PROFILE_COLORS.length] ?? PROFILE_COLORS[0];
   const profile: FixedProfile = {
     id: profileId,
     name: uniqueProfileName(draft, 'New profile'),
-    color: PROFILE_COLORS[draft.profiles.length % PROFILE_COLORS.length],
+    color,
     kind: 'fixed',
     proxyByScheme: { fallback: endpointId },
     bypass: [

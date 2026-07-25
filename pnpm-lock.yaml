@@ -40,6 +40,9 @@ importers:
       '@zeroomega-nex/core-contracts':
         specifier: workspace:*
         version: link:../../packages/core-contracts
+      '@zeroomega-nex/pac-compiler':
+        specifier: workspace:*
+        version: link:../../packages/pac-compiler
       '@zeroomega-nex/profile-spec':
         specifier: workspace:*
         version: link:../../packages/profile-spec

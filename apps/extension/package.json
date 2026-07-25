@@ -14,6 +14,7 @@
   "dependencies": {
     "@zeroomega-nex/browser-adapters": "workspace:*",
     "@zeroomega-nex/core-contracts": "workspace:*",
+    "@zeroomega-nex/pac-compiler": "workspace:*",
     "@zeroomega-nex/profile-spec": "workspace:*",
     "@zeroomega-nex/profile-workflow": "workspace:*"
   },

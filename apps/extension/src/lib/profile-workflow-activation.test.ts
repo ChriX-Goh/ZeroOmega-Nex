@@ -27,7 +27,7 @@ function defaultSpec() {
 
 class FakeProxyDriver implements BrowserProxyDriver {
   readonly family: 'chromium' | 'firefox';
-  installed?: PacRuntimeSnapshot;
+  installed: PacRuntimeSnapshot | undefined;
   installCount = 0;
   state: PlatformProxyState;
 
