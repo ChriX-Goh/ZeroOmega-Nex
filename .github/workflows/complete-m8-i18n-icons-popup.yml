@@ -36,10 +36,11 @@ jobs:
       - name: Apply localization icon and Popup slice
         run: python .github/scripts/complete-m8-i18n-icons-popup.py
 
-      - name: Complete localized accessibility labels
+      - name: Complete generated source contracts
         run: |
           python - <<'PY'
           from pathlib import Path
+
           path = Path('apps/extension/src/lib/i18n.ts')
           text = path.read_text()
           anchor = "  'Backup file': { 'zh-CN': '备份文件', 'zh-TW': '備份檔案' },\n"
@@ -47,6 +48,14 @@ jobs:
           if text.count(anchor) != 1:
               raise SystemExit('accessibility locale anchor missing')
           path.write_text(text.replace(anchor, addition, 1))
+
+          path = Path('packages/profile-workflow/src/commands.ts')
+          text = path.read_text()
+          old = "  let state: ProfileWorkflowState;\n  let created = false;\n  try {\n    const ensured = await ensureState(repository, initializer);\n    state = ensured.state;\n    created = ensured.created;\n  } catch (error) {\n    return failure('storage-failure', errorMessage(error));\n  }"
+          new = "  let ensured: EnsuredProfileWorkflowState;\n  try {\n    ensured = await ensureState(repository, initializer);\n  } catch (error) {\n    return failure('storage-failure', errorMessage(error));\n  }\n  const { state, created } = ensured;"
+          if text.count(old) != 1:
+              raise SystemExit('command initialization lint anchor missing')
+          path.write_text(text.replace(old, new, 1))
           PY
 
       - name: Format changed text files
