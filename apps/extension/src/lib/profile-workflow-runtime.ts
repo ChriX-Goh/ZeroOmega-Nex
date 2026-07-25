@@ -1,4 +1,7 @@
-import { BrowserStorageProxyAuthenticationRepository } from '@zeroomega-nex/browser-adapters';
+import {
+  BrowserStorageProxyAuthenticationRepository,
+  type BrowserStorageArea,
+} from '@zeroomega-nex/browser-adapters';
 import {
   BrowserStorageProfileWorkflowRepository,
   createDefaultProfileSpec,
@@ -26,7 +29,7 @@ interface ProfileWorkflowRuntimeApi {
     readonly onMessage: ProfileWorkflowMessageEvent;
   };
   readonly storage: {
-    readonly local: ProfileWorkflowStorageArea;
+    readonly local: ProfileWorkflowStorageArea & BrowserStorageArea;
   };
 }
 
