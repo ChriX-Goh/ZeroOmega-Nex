@@ -13,6 +13,11 @@ export {
   type ProxyAuthenticationRequiredEvent,
 } from './authentication-listener.js';
 export {
+  createProxyAuthenticationPlan,
+  type ProxyAuthenticationPlan,
+  type UnsupportedProxyAuthenticationEndpoint,
+} from './authentication-plan.js';
+export {
   BrowserStorageProxyAuthenticationRepository,
   type ProxyAuthenticationStorageOptions,
 } from './authentication-storage.js';
