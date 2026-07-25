@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { basename, join, relative } from 'node:path';
+import { basename, extname, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
 const outputRoot = new URL('../dist/', import.meta.url);
@@ -96,3 +96,25 @@ for (const file of manifestFiles) {
     `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage required, auth optional, no global host access.`,
   );
 }
+
+const javascriptFiles = files.filter((file) => extname(file) === '.js');
+const cspViolations = [];
+for (const file of javascriptFiles) {
+  const source = await readFile(file, 'utf8');
+  if (/\bFunction\s*\(/u.test(source) || /\bnew\s+Function\s*\(/u.test(source)) {
+    cspViolations.push(
+      `${relative(repositoryRoot.pathname, file)} contains dynamic Function construction`,
+    );
+  }
+  if (source.includes('Error compiling schema, function code:')) {
+    cspViolations.push(
+      `${relative(repositoryRoot.pathname, file)} contains the Ajv runtime schema compiler`,
+    );
+  }
+}
+if (cspViolations.length > 0) {
+  throw new Error(
+    `Built extension violates MV3 script CSP:\n${cspViolations.map((entry) => `- ${entry}`).join('\n')}`,
+  );
+}
+console.log(`CSP audit passed for ${javascriptFiles.length} built JavaScript files.`);
