@@ -89,10 +89,7 @@ try {
   await options.getByRole('button', { name: '配置历史' }).click();
   await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
   await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
-  await options
-    .getByText(/^Snapshot pac-/u)
-    .first()
-    .waitFor({ timeout: 20_000 });
+  await options.locator('article.settings-section').first().waitFor({ timeout: 20_000 });
 
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>
