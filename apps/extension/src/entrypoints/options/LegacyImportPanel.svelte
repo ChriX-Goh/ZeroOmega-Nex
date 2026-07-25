@@ -1,10 +1,7 @@
 <script lang="ts">
+  import { BrowserStorageProxyAuthenticationRepository } from '@zeroomega-nex/browser-adapters';
   import {
-    BrowserStorageProxyAuthenticationRepository,
-    type ProxyAuthenticationStorageArea,
-  } from '@zeroomega-nex/browser-adapters';
-  import {
-    importLegacyZeroOmega,
+    importZeroOmegaBackup,
     type LegacyImportResult,
     type LegacyImportStatus,
   } from '@zeroomega-nex/legacy-zeroomega';
@@ -62,7 +59,7 @@
     errorMessage = '';
     try {
       const createdAt = new Date().toISOString();
-      result = importLegacyZeroOmega(backupText, {
+      result = importZeroOmegaBackup(backupText, {
         createdAt,
         documentId: `document-${crypto.randomUUID()}`,
         revisionId: `revision-${crypto.randomUUID()}`,
@@ -78,7 +75,9 @@
 
   async function persistSecrets(importResult: Extract<LegacyImportResult, { ok: true }>) {
     const repository = new BrowserStorageProxyAuthenticationRepository(
-      browser.storage.local as unknown as ProxyAuthenticationStorageArea,
+      browser.storage.local as unknown as ConstructorParameters<
+        typeof BrowserStorageProxyAuthenticationRepository
+      >[0],
     );
     for (const secret of importResult.secretMaterials) {
       await repository.putSecret(secret.ref, secret.value);
@@ -113,7 +112,7 @@
   <textarea
     aria-label="Legacy backup"
     rows="14"
-    placeholder='{"schemaVersion":2,...}'
+    placeholder="Paste schema-version-2 JSON or base64 JSON"
     value={backupText}
     disabled={disabled || analyzing || accepting}
     on:input={(event) => {
@@ -132,11 +131,26 @@
   <section class="settings-section">
     <h2>Compatibility report</h2>
     <dl>
-      <div><dt>Encoding</dt><dd>{result.report.encoding}</dd></div>
-      <div><dt>Profiles</dt><dd>{result.report.profileCount}</dd></div>
-      <div><dt>Proxy endpoints</dt><dd>{result.report.endpointCount}</dd></div>
-      <div><dt>Rule sources</dt><dd>{result.report.ruleSourceCount}</dd></div>
-      <div><dt>Contains secrets</dt><dd>{result.report.containsSecrets ? 'Yes' : 'No'}</dd></div>
+      <div>
+        <dt>Encoding</dt>
+        <dd>{result.report.encoding}</dd>
+      </div>
+      <div>
+        <dt>Profiles</dt>
+        <dd>{result.report.profileCount}</dd>
+      </div>
+      <div>
+        <dt>Proxy endpoints</dt>
+        <dd>{result.report.endpointCount}</dd>
+      </div>
+      <div>
+        <dt>Rule sources</dt>
+        <dd>{result.report.ruleSourceCount}</dd>
+      </div>
+      <div>
+        <dt>Contains secrets</dt>
+        <dd>{result.report.containsSecrets ? 'Yes' : 'No'}</dd>
+      </div>
     </dl>
 
     <ul aria-label="Import status totals">
@@ -179,7 +193,9 @@
         >{accepting ? 'Importing…' : 'Accept as Draft candidate'}</button
       >
       {#if accepted}
-        <p role="status">Imported into Draft. Review profiles, then use Apply changes separately.</p>
+        <p role="status">
+          Imported into Draft. Review profiles, then use Apply changes separately.
+        </p>
       {/if}
     {:else}
       <p role="alert">The backup cannot produce an activatable candidate.</p>

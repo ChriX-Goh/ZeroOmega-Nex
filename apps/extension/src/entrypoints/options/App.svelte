@@ -29,8 +29,12 @@
 
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
+  import LegacyImportPanel from './LegacyImportPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
 
+  type OptionsSection = 'profiles' | 'import';
+
+  let activeSection: OptionsSection = 'profiles';
   let state: ProfileWorkflowState | undefined;
   let view: ProfileWorkflowView | undefined;
   let loading = true;
@@ -162,6 +166,7 @@
   }
 
   async function selectProfile(profileId: string): Promise<void> {
+    activeSection = 'profiles';
     if (!state || state.selectedProfileId === profileId) return;
     await runCommand({
       action: 'select-profile',
@@ -500,7 +505,12 @@
 
     <div class="settings-links" aria-label="Settings sections">
       <button type="button" disabled>General</button>
-      <button type="button" disabled>Import / Export</button>
+      <button
+        type="button"
+        class:active={activeSection === 'import'}
+        disabled={!state || saving || view?.busy}
+        on:click={() => (activeSection = 'import')}>Import / Export</button
+      >
       <button type="button" disabled>Interface</button>
       <button type="button" disabled>About</button>
     </div>
@@ -512,6 +522,16 @@
         <h2>Loading profiles</h2>
         <p>Reading the persisted ProfileSpec working copy from the extension background.</p>
       </section>
+    {:else if activeSection === 'import' && state}
+      <header class="editor-heading">
+        <div class="profile-title">
+          <div>
+            <h1>Import / Export</h1>
+            <p>Review legacy backups before they enter the Draft working copy.</p>
+          </div>
+        </div>
+      </header>
+      <LegacyImportPanel disabled={saving || view?.busy === true} onReplaceDraft={replaceDraft} />
     {:else if selectedProfile && state}
       <header class="editor-heading">
         <div class="profile-title">
