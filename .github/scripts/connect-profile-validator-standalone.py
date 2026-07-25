@@ -75,3 +75,24 @@ for old, new, label in activation_replacements:
         raise SystemExit(f'{label}: expected one anchor, found {count}')
     activation_text = activation_text.replace(old, new, 1)
 activation_path.write_text(activation_text)
+
+snapshot_test_path = Path('packages/pac-compiler/src/snapshot.test.ts')
+snapshot_test_text = snapshot_test_path.read_text()
+snapshot_expectation_old = '''    expect(first.snapshot.verification).toEqual({
+      passed: true,
+      vectorCount: 2,
+      matchedCount: 2,
+    });'''
+snapshot_expectation_new = '''    expect(first.snapshot.verification).toEqual({
+      passed: true,
+      mode: 'differential',
+      vectorCount: 2,
+      matchedCount: 2,
+    });'''
+if snapshot_test_text.count(snapshot_expectation_old) != 1:
+    raise SystemExit(
+        f'snapshot verification expectation count: {snapshot_test_text.count(snapshot_expectation_old)}'
+    )
+snapshot_test_path.write_text(
+    snapshot_test_text.replace(snapshot_expectation_old, snapshot_expectation_new, 1)
+)
