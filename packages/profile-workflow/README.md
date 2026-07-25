@@ -21,3 +21,5 @@ Apply uses a single-writer compare-and-swap transaction:
 6. Persist `rollback-required` if both commit and rollback fail.
 
 The browser-storage repository is deliberately a single-writer primitive. Options and popup components send versioned `get`, `replace-draft`, `select-profile`, and `revert` commands to the extension background. Every mutating command carries the expected generation and receives the current state on conflict so the UI can reload instead of overwriting another edit.
+
+The Options page now reads the persisted Draft through that command boundary. Its profile list, selection, profile name, fallback proxy endpoint, bypass patterns, dirty indicator, and Revert action are backed by real ProfileSpec data. Apply remains disabled until the compile, verify, snapshot, and browser-activation transaction is connected in the next slice.
