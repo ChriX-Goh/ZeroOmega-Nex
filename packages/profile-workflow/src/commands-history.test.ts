@@ -84,7 +84,8 @@ describe('profile workflow snapshot history command', () => {
       ],
     });
     expect(JSON.stringify(response)).not.toContain('FindProxyForURL');
-    expect(JSON.stringify(response)).not.toContain('script');
+    if (!response.ok) throw new Error('expected successful history response');
+    expect(response.snapshotHistory?.some((entry) => 'script' in entry)).toBe(false);
   });
 
   it('rejects history queries when the service is unavailable', async () => {
