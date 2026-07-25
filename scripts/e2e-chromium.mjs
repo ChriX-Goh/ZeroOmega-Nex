@@ -25,9 +25,28 @@ try {
   assert.match(extensionId, /^[a-p]{32}$/u, 'Chromium extension ID was not resolved');
 
   const options = await context.newPage();
+  options.on('console', (message) =>
+    console.log(`[Chromium Options console:${message.type()}] ${message.text()}`),
+  );
+  options.on('pageerror', (error) =>
+    console.error(`[Chromium Options pageerror] ${error.stack ?? error.message}`),
+  );
   await options.goto(`chrome-extension://${extensionId}/options.html`);
+  await options.waitForLoadState('domcontentloaded');
   const profileName = options.getByLabel('Profile name');
-  await profileName.waitFor({ state: 'visible' });
+  try {
+    await profileName.waitFor({ state: 'visible', timeout: 15_000 });
+  } catch (error) {
+    const diagnostics = await worker.evaluate(async () => ({
+      location: globalThis.location.href,
+      storage: await chrome.storage.local.get(null),
+    }));
+    console.error(`[Chromium Options URL] ${options.url()}`);
+    console.error(`[Chromium Options title] ${await options.title()}`);
+    console.error(`[Chromium Options body] ${await options.locator('body').innerText()}`);
+    console.error(`[Chromium worker] ${JSON.stringify(diagnostics)}`);
+    throw error;
+  }
   assert.equal(await profileName.inputValue(), 'Proxy');
 
   await profileName.fill('Chromium E2E Proxy');
@@ -46,6 +65,9 @@ try {
   await options.getByText(/^Snapshot pac-/u).first().waitFor({ timeout: 20_000 });
 
   const popup = await context.newPage();
+  popup.on('pageerror', (error) =>
+    console.error(`[Chromium Popup pageerror] ${error.stack ?? error.message}`),
+  );
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
   await popup.getByRole('button', { name: /Chromium E2E Proxy/u }).waitFor();
   const direct = popup.getByRole('button', { name: /Direct/u });
