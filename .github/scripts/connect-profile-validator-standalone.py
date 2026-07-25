@@ -31,7 +31,7 @@ new_compile = '''type ProfileSpecStructureValidator = ((input: unknown) => input
   errors?: readonly ErrorObject[] | null;
 };
 
-const validateStructure = generatedValidateStructure as ProfileSpecStructureValidator;
+const validateStructure = generatedValidateStructure as unknown as ProfileSpecStructureValidator;
 '''
 if text.count(old_compile) != 1:
     raise SystemExit(f'validation compiler anchor count: {text.count(old_compile)}')
