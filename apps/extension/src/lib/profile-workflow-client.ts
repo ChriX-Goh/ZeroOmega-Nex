@@ -4,6 +4,12 @@ import {
   type ProfileWorkflowCommandResponse,
 } from '@zeroomega-nex/profile-workflow';
 
+export type ProfileWorkflowCommandInput = ProfileWorkflowCommand extends infer Command
+  ? Command extends { readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL }
+    ? Omit<Command, 'channel'>
+    : never
+  : never;
+
 interface ProfileWorkflowClientApi {
   readonly runtime: {
     sendMessage(message: ProfileWorkflowCommand): Promise<unknown>;
@@ -22,7 +28,7 @@ function isResponse(value: unknown): value is ProfileWorkflowCommandResponse {
 }
 
 export async function sendProfileWorkflowCommand(
-  command: Omit<ProfileWorkflowCommand, 'channel'>,
+  command: ProfileWorkflowCommandInput,
   api: ProfileWorkflowClientApi = browser as unknown as ProfileWorkflowClientApi,
 ): Promise<ProfileWorkflowCommandResponse> {
   const response = await api.runtime.sendMessage({
