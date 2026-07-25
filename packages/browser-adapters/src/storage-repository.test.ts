@@ -36,9 +36,7 @@ class MemoryStorageArea implements BrowserStorageArea {
   async get(keys: string | readonly string[]): Promise<Record<string, unknown>> {
     const selected = typeof keys === 'string' ? [keys] : keys;
     return Object.fromEntries(
-      selected.flatMap((key) =>
-        this.values.has(key) ? [[key, this.values.get(key)]] : [],
-      ),
+      selected.flatMap((key) => (this.values.has(key) ? [[key, this.values.get(key)]] : [])),
     );
   }
 
@@ -108,9 +106,7 @@ describe('browser storage activation repository', () => {
     const namespace = 'test/browser-proxy';
     const repository = new BrowserStorageSnapshotActivationRepository(storage, { namespace });
     storage.values.set(`${namespace}/state`, { activeSnapshotId: 42 });
-    await expect(repository.getState()).rejects.toThrow(
-      'activeSnapshotId must be a string',
-    );
+    await expect(repository.getState()).rejects.toThrow('activeSnapshotId must be a string');
 
     storage.values.set(`${namespace}/snapshot/${snapshot.snapshotId}`, {
       ...snapshot,

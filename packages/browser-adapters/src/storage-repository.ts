@@ -19,10 +19,7 @@ export interface BrowserStorageRepositoryOptions {
   readonly namespace?: string;
 }
 
-function optionalString(
-  value: Record<string, unknown>,
-  key: string,
-): string | undefined {
+function optionalString(value: Record<string, unknown>, key: string): string | undefined {
   const candidate = value[key];
   if (candidate === undefined) return undefined;
   if (typeof candidate !== 'string') throw new TypeError(`${key} must be a string`);
@@ -114,16 +111,11 @@ function parseState(value: unknown): SnapshotActivationState {
     ...(activeSnapshotId === undefined ? {} : { activeSnapshotId }),
     ...(lastKnownGoodSnapshotId === undefined ? {} : { lastKnownGoodSnapshotId }),
     ...(record.pending === undefined ? {} : { pending: parsePending(record.pending) }),
-    ...(record.lastFailure === undefined
-      ? {}
-      : { lastFailure: parseFailure(record.lastFailure) }),
+    ...(record.lastFailure === undefined ? {} : { lastFailure: parseFailure(record.lastFailure) }),
   };
 }
 
-function parseSnapshot(
-  value: unknown,
-  expectedId: string,
-): PacRuntimeSnapshot | undefined {
+function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot | undefined {
   if (value === undefined) return undefined;
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`snapshot ${expectedId} must be an object`);
@@ -141,9 +133,7 @@ function parseSnapshot(
   return value as PacRuntimeSnapshot;
 }
 
-export class BrowserStorageSnapshotActivationRepository
-  implements SnapshotActivationRepository
-{
+export class BrowserStorageSnapshotActivationRepository implements SnapshotActivationRepository {
   readonly #storage: BrowserStorageArea;
   readonly #stateKey: string;
   readonly #snapshotPrefix: string;
