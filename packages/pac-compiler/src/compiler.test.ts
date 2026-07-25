@@ -50,9 +50,9 @@ describe('deterministic PAC compiler', () => {
     expect(result.artifact.stats.endpointCount).toBe(4);
   });
 
-  it('compiles imported AutoProxy rules with exclusive priority', async () => {
+  it('compiles imported inline AutoProxy rules with exclusive priority', async () => {
     const spec = await importedFixture('rule-list-formats.json');
-    const result = compilePac(spec, profileRoute(spec, 'autoproxy-plain'));
+    const result = compilePac(spec, profileRoute(spec, 'autoproxy-base64'));
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error(JSON.stringify(result.issues, null, 2));
 
@@ -64,8 +64,8 @@ describe('deterministic PAC compiler', () => {
     ).toBe('DIRECT');
     expect(
       evaluatePacScript(result.artifact.script, {
-        url: 'https://api.example.invalid/',
-        host: 'api.example.invalid',
+        url: 'https://api.base64.example.invalid/',
+        host: 'api.base64.example.invalid',
       }),
     ).toBe('PROXY proxy.example.invalid:8080');
     expect(result.artifact.stats.ruleListRuleCount).toBe(2);
@@ -85,7 +85,7 @@ describe('deterministic PAC compiler', () => {
 
   it('blocks target-dependent URL rules by default and allows explicit target compilation', async () => {
     const spec = await importedFixture('minimal-condition-types.json');
-    const route = profileRoute(spec, 'conditions');
+    const route = profileRoute(spec, 'condition-matrix');
     const blocked = compilePac(spec, route);
     expect(blocked.ok).toBe(false);
     if (blocked.ok) throw new Error('expected target-dependent block');
@@ -115,7 +115,7 @@ describe('deterministic PAC compiler', () => {
     ).toBe('PROXY proxy.example.invalid:8080');
   });
 
-  it('rejects unsupported System and nested PAC routes before code generation', async () => {
+  it('rejects unsupported System, remote rule content, and nested PAC routes', async () => {
     const spec = await importedFixture('minimal-profile-types.json');
     const system = compilePac(spec, { kind: 'system' });
     expect(system.ok).toBe(false);
@@ -126,6 +126,14 @@ describe('deterministic PAC compiler', () => {
     expect(pac.ok).toBe(false);
     if (pac.ok) throw new Error('expected unsupported PAC nesting');
     expect(pac.issues.map((issue) => issue.code)).toContain('profile.pac-nesting-unsupported');
+
+    const ruleSpec = await importedFixture('rule-list-formats.json');
+    const remote = compilePac(ruleSpec, profileRoute(ruleSpec, 'autoproxy-plain'));
+    expect(remote.ok).toBe(false);
+    if (remote.ok) throw new Error('expected unavailable rule-source block');
+    expect(remote.issues.map((issue) => issue.code)).toContain(
+      'rule-source.content-unavailable',
+    );
   });
 
   it('enforces script, profile, and rule budgets without emitting partial artifacts', async () => {
