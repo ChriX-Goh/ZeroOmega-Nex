@@ -1,5 +1,5 @@
 <script lang="ts">
-  export type ProfileIconKind =
+  type ProfileIconKind =
     | 'direct'
     | 'system'
     | 'fixed'
