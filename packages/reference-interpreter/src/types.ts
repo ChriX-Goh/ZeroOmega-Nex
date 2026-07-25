@@ -1,4 +1,5 @@
 import type {
+  Condition,
   PacSource,
   ProfileRouteTarget,
   ProxyEndpoint,
@@ -45,6 +46,45 @@ export type SwitchDecision =
       readonly reason: string;
     };
 
+export type RuleListPriorityGroup = 'exclusive' | 'normal' | 'ordered';
+
+export interface ParsedRuleListRule {
+  readonly id: string;
+  readonly sourceLine: string;
+  readonly condition: Condition;
+  readonly route: ProfileRouteTarget;
+  readonly priorityGroup: RuleListPriorityGroup;
+  readonly note?: string;
+}
+
+export type RuleListParseResult =
+  | { readonly ok: true; readonly rules: readonly ParsedRuleListRule[] }
+  | { readonly ok: false; readonly issues: readonly string[] };
+
+export interface RuleListTraceEntry {
+  readonly ruleId: string;
+  readonly sourceLine: string;
+  readonly priorityGroup: RuleListPriorityGroup;
+  readonly status: 'matched' | 'not-matched' | 'indeterminate';
+  readonly support: ReferenceSupport;
+  readonly reason?: string;
+}
+
+export type RuleListDecision =
+  | {
+      readonly status: 'selected';
+      readonly route: ProfileRouteTarget;
+      readonly matchedRuleId?: string;
+      readonly support: ReferenceSupport;
+      readonly trace: readonly RuleListTraceEntry[];
+    }
+  | {
+      readonly status: 'indeterminate' | 'invalid';
+      readonly support: ReferenceSupport;
+      readonly trace: readonly RuleListTraceEntry[];
+      readonly reason: string;
+    };
+
 export type ResolvedReferenceRoute =
   | { readonly kind: 'direct' }
   | { readonly kind: 'system' }
@@ -65,6 +105,8 @@ export interface GraphTraceEntry {
     | 'fixed-endpoint'
     | 'fixed-unmapped-direct'
     | 'rule-list'
+    | 'rule-list-rule'
+    | 'rule-list-default'
     | 'pac'
     | 'auto-detect'
     | 'invalid';
@@ -72,6 +114,8 @@ export interface GraphTraceEntry {
   readonly profileName?: string;
   readonly profileKind?: UserProfile['kind'];
   readonly ruleId?: string;
+  readonly sourceLine?: string;
+  readonly priorityGroup?: RuleListPriorityGroup;
   readonly bypassId?: string;
   readonly endpointId?: string;
   readonly matched?: boolean;
