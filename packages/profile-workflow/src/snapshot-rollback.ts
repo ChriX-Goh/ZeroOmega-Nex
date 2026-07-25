@@ -54,13 +54,13 @@ function createRollbackState(
   const applied = cloneProfileSpec(targetRevision);
   const draft = cloneProfileSpec(targetRevision);
   const selected = selectedProfileId(state, targetRevision);
-  const { pendingApply: _pendingApply, ...rest } = state;
   return {
-    ...rest,
+    workflowSchemaVersion: state.workflowSchemaVersion,
     generation: state.generation + 1,
     applied,
     draft,
     ...(selected === undefined ? {} : { selectedProfileId: selected }),
+    ...(state.lastApply === undefined ? {} : { lastApply: state.lastApply }),
   };
 }
 
