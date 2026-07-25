@@ -51,10 +51,7 @@ describe('ProfileSpec revision repositories', () => {
     };
 
     await expect(repository.compareAndSwap(0, next)).resolves.toBe(true);
-    await expect(repository.listRevisions()).resolves.toEqual([
-      initial.applied,
-      applied,
-    ]);
+    await expect(repository.listRevisions()).resolves.toEqual([initial.applied, applied]);
     await expect(repository.getRevision('revision-two')).resolves.toEqual(applied);
   });
 
@@ -93,10 +90,7 @@ describe('ProfileSpec revision repositories', () => {
     ).resolves.toBe(true);
 
     const restarted = new BrowserStorageProfileWorkflowRepository(storage);
-    await expect(restarted.listRevisions()).resolves.toEqual([
-      initial.applied,
-      applied,
-    ]);
+    await expect(restarted.listRevisions()).resolves.toEqual([initial.applied, applied]);
     await expect(restarted.getRevision(initial.applied.revision.id)).resolves.toEqual(
       initial.applied,
     );

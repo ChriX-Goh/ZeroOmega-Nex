@@ -29,10 +29,7 @@ describe('ProfileSpec revision history', () => {
     const applied = revision('revision-new', '2026-07-25T16:20:00.000Z', 'revision-old');
     const state = createProfileWorkflowState(applied);
     const entries = await listProfileWorkflowRevisionHistory(
-      repository([
-        revision('revision-old', '2026-07-25T15:20:00.000Z'),
-        applied,
-      ]),
+      repository([revision('revision-old', '2026-07-25T15:20:00.000Z'), applied]),
       state,
     );
 
@@ -65,9 +62,9 @@ describe('ProfileSpec revision history', () => {
     const foreign = revision('revision-foreign', '2026-07-25T16:20:00.000Z');
     foreign.documentId = 'document-foreign';
 
-    await expect(
-      listProfileWorkflowRevisionHistory(repository([foreign]), state),
-    ).rejects.toThrow('belongs to document document-foreign');
+    await expect(listProfileWorkflowRevisionHistory(repository([foreign]), state)).rejects.toThrow(
+      'belongs to document document-foreign',
+    );
   });
 
   it('rejects duplicate revision IDs', async () => {
@@ -95,11 +92,7 @@ describe('ProfileSpec revision history', () => {
     await expect(
       listProfileWorkflowRevisionHistory(
         repository([
-          revision(
-            'revision-self-parent',
-            '2026-07-25T16:20:00.000Z',
-            'revision-self-parent',
-          ),
+          revision('revision-self-parent', '2026-07-25T16:20:00.000Z', 'revision-self-parent'),
         ]),
         state,
       ),

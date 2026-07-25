@@ -36,9 +36,7 @@ export async function listProfileWorkflowRevisionHistory(
     return {
       documentId: spec.documentId,
       revisionId: spec.revision.id,
-      ...(spec.revision.parentId === undefined
-        ? {}
-        : { parentRevisionId: spec.revision.parentId }),
+      ...(spec.revision.parentId === undefined ? {} : { parentRevisionId: spec.revision.parentId }),
       createdAt: spec.revision.createdAt,
       ...(spec.revision.deviceId === undefined ? {} : { deviceId: spec.revision.deviceId }),
       profileCount: spec.profiles.length,

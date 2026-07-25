@@ -24,6 +24,8 @@ export {
   type ProfileWorkflowApplyResult,
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
+  type ProfileWorkflowRevisionHistoryEntry,
+  type ProfileWorkflowRevisionRepository,
   type ProfileWorkflowRuntimeFailure,
   type ProfileWorkflowRuntimeView,
   type ProfileWorkflowSnapshotHistoryEntry,
@@ -53,6 +55,7 @@ export {
   type ProfileWorkflowIdKind,
   type ProfileWorkflowProfileMutation,
 } from './profile-operations.js';
+export { listProfileWorkflowRevisionHistory } from './revision-history.js';
 export {
   createProfileWorkflowCandidate,
   createProfileWorkflowState,

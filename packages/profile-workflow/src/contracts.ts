@@ -78,6 +78,18 @@ export interface ProfileWorkflowSnapshotHistoryEntry {
   readonly lastKnownGood: boolean;
 }
 
+export interface ProfileWorkflowRevisionHistoryEntry {
+  readonly documentId: string;
+  readonly revisionId: string;
+  readonly parentRevisionId?: string;
+  readonly createdAt: string;
+  readonly deviceId?: string;
+  readonly profileCount: number;
+  readonly endpointCount: number;
+  readonly ruleSourceCount: number;
+  readonly applied: boolean;
+}
+
 export interface ProfileWorkflowState {
   readonly workflowSchemaVersion: typeof PROFILE_WORKFLOW_SCHEMA_VERSION;
   readonly generation: number;
@@ -94,6 +106,11 @@ export interface ProfileWorkflowRepository {
     expectedGeneration: number | undefined,
     next: ProfileWorkflowState,
   ): Promise<boolean>;
+}
+
+export interface ProfileWorkflowRevisionRepository {
+  getRevision(revisionId: string): Promise<ProfileSpec | undefined>;
+  listRevisions(): Promise<readonly ProfileSpec[]>;
 }
 
 export interface ProfileWorkflowActivationResult {
