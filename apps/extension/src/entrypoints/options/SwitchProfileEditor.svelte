@@ -240,7 +240,7 @@
     <select
       aria-label="Switch Profile default route"
       value={routeValue(profile.defaultRoute)}
-      disabled={disabled}
+      {disabled}
       on:change={(event) => updateDefaultRoute(valueFrom(event))}
     >
       <option value="direct">Direct</option>
@@ -259,7 +259,7 @@
 
     <select
       aria-label="Add Switch Profile rule"
-      disabled={disabled}
+      {disabled}
       on:change={(event) => addRule(valueFrom(event) as Condition['kind'], event)}
     >
       <option value="">Add rule…</option>
@@ -274,7 +274,7 @@
       <ol aria-label="Ordered Switch Profile rules">
         {#each profile.rules as rule, index (rule.id)}
           <li>
-            <fieldset disabled={disabled}>
+            <fieldset {disabled}>
               <legend>Rule {index + 1}</legend>
               <label>
                 <input
@@ -362,7 +362,8 @@
                     {#each weekdays as day (day.value)}
                       <option
                         value={day.value}
-                        selected={conditionWeekdays(rule.condition).includes(day.value)}>{day.label}</option
+                        selected={conditionWeekdays(rule.condition).includes(day.value)}
+                        >{day.label}</option
                       >
                     {/each}
                   </select>
@@ -425,11 +426,10 @@
                   disabled={disabled || index === profile.rules.length - 1}
                   on:click={() => moveRule(rule.id, 1)}>Move down</button
                 >
-                <button type="button" disabled={disabled} on:click={() => duplicateRule(rule.id)}
+                <button type="button" {disabled} on:click={() => duplicateRule(rule.id)}
                   >Duplicate</button
                 >
-                <button type="button" disabled={disabled} on:click={() => deleteRule(rule.id)}
-                  >Delete</button
+                <button type="button" {disabled} on:click={() => deleteRule(rule.id)}>Delete</button
                 >
               </div>
             </fieldset>

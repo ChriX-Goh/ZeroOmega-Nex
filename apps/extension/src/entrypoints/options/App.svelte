@@ -6,10 +6,12 @@
     ProfileRouteTarget,
     ProfileSpec,
     ProxyEndpoint,
+    SwitchProfile,
     UserProfile,
   } from '@zeroomega-nex/profile-spec';
   import {
     createFixedProfileDraft,
+    createSwitchProfileDraft,
     deleteProfileDraft,
     duplicateProfileDraft,
   } from '@zeroomega-nex/profile-workflow';
@@ -23,6 +25,7 @@
   import { onMount } from 'svelte';
 
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
+  import SwitchProfileEditor from './SwitchProfileEditor.svelte';
 
   let state: ProfileWorkflowState | undefined;
   let view: ProfileWorkflowView | undefined;
@@ -34,12 +37,14 @@
   let profiles: readonly UserProfile[] = [];
   let selectedProfile: UserProfile | undefined;
   let fixedProfile: FixedProfile | undefined;
+  let switchProfile: SwitchProfile | undefined;
   let endpoint: ProxyEndpoint | undefined;
   let bypassText = '';
 
   $: profiles = state?.draft.profiles ?? [];
   $: selectedProfile = profiles.find((profile) => profile.id === state?.selectedProfileId);
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
+  $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
   $: endpoint = fixedProfile && state ? findEndpoint(state.draft, fixedProfile) : undefined;
   $: bypassText = fixedProfile?.bypass.map((entry) => entry.pattern).join('\n') ?? '';
 
@@ -184,10 +189,19 @@
     await replaceDraft(draft);
   }
 
-  async function createProfile(): Promise<void> {
+  async function createFixedProfile(): Promise<void> {
     if (!state) return;
     try {
       await replaceDraftAndSelect(createFixedProfileDraft(state.draft, createWorkflowId));
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function createSwitchProfile(): Promise<void> {
+    if (!state) return;
+    try {
+      await replaceDraftAndSelect(createSwitchProfileDraft(state.draft, createWorkflowId));
     } catch (error) {
       errorMessage = messageFrom(error);
     }
@@ -411,10 +425,19 @@
       type="button"
       class="add-profile"
       disabled={!state || view?.busy || saving}
-      on:click={createProfile}
+      on:click={createFixedProfile}
     >
       <span aria-hidden="true">＋</span>
-      <span>New profile</span>
+      <span>New fixed profile</span>
+    </button>
+    <button
+      type="button"
+      class="add-profile"
+      disabled={!state || view?.busy || saving}
+      on:click={createSwitchProfile}
+    >
+      <span aria-hidden="true">＋</span>
+      <span>New switch profile</span>
     </button>
 
     <div class="settings-links" aria-label="Settings sections">
@@ -522,12 +545,19 @@
             disabled={saving || view?.busy}
             on:change={(event) => updateBypassList(valueFrom(event))}></textarea>
         </section>
+      {:else if switchProfile}
+        <SwitchProfileEditor
+          spec={state.draft}
+          profileId={switchProfile.id}
+          disabled={saving || view?.busy === true}
+          idFactory={createWorkflowId}
+          onReplaceDraft={replaceDraft}
+        />
       {:else}
         <section class="settings-section">
           <h2>{profileType(selectedProfile)} editor</h2>
           <p class="section-help">
-            This ProfileSpec is real and selectable. Its specialized editor follows after the Fixed
-            Profile workflow is verified.
+            This ProfileSpec is real and selectable. Its specialized editor is not implemented yet.
           </p>
         </section>
       {/if}

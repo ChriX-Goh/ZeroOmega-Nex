@@ -227,11 +227,7 @@ describe('built-in proxy activation transactions', () => {
     });
     const driver = new StatefulProxyDriver('direct');
 
-    const result = await recoverPendingActivation(
-      repository,
-      driver,
-      '2026-07-25T13:34:01.000Z',
-    );
+    const result = await recoverPendingActivation(repository, driver, '2026-07-25T13:34:01.000Z');
 
     expect(result).toEqual({
       status: 'recovered',
