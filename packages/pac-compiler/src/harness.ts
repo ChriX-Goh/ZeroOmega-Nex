@@ -28,7 +28,7 @@ function fixedDateConstructor(
     return Reflect.construct(RealDate, args) as Date;
   } as unknown as DateConstructor;
   Object.setPrototypeOf(FixedDate, RealDate);
-  FixedDate.prototype = RealDate.prototype;
+  Object.defineProperty(FixedDate, 'prototype', { value: RealDate.prototype });
   Object.defineProperty(FixedDate, 'now', { value: () => fixed });
   return FixedDate;
 }
