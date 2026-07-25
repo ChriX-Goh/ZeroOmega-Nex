@@ -87,7 +87,7 @@ class FakeProxyDriver implements BrowserProxyDriver {
     this.state = {
       family: this.family,
       controlLevel: 'controlled-by-this-extension',
-      value: { mode: 'direct' },
+      value: this.family === 'chromium' ? { mode: 'direct' } : { proxyType: 'none' },
     };
   }
 
@@ -95,7 +95,7 @@ class FakeProxyDriver implements BrowserProxyDriver {
     this.state = {
       family: this.family,
       controlLevel: 'controlled-by-this-extension',
-      value: { mode: 'system' },
+      value: this.family === 'chromium' ? { mode: 'system' } : { proxyType: 'system' },
     };
   }
 
@@ -181,7 +181,7 @@ describe('ProfileSpec PAC activation driver', () => {
     expect(proxy.installed?.target).toBe('firefox');
   });
 
-  it('rejects an unsupported startup route before touching browser proxy state', async () => {
+  it('activates System without compiling or installing PAC', async () => {
     const spec = cloneProfileSpec(defaultSpec());
     spec.settings.startup.route = { kind: 'system' };
     const proxy = new FakeProxyDriver();
@@ -190,8 +190,31 @@ describe('ProfileSpec PAC activation driver', () => {
       createRuntime: () => created.runtime,
       now: () => new Date('2026-07-25T09:03:00.000Z'),
     });
-    await expect(driver.activate(spec)).rejects.toThrow('PAC compilation failed');
+
+    await expect(driver.activate(spec)).resolves.toEqual({ snapshotId: 'built-in-system' });
     expect(proxy.installCount).toBe(0);
-    expect(created.disposed()).toBe(true);
+    expect(proxy.state.value).toEqual({ mode: 'system' });
+    await expect(created.repository.getState()).resolves.toEqual({
+      activeBuiltInMode: 'system',
+      lastKnownGoodBuiltInMode: 'system',
+    });
+  });
+
+  it('uses an explicit quick-switch route instead of the startup route', async () => {
+    const proxy = new FakeProxyDriver();
+    const created = runtime(proxy);
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      now: () => new Date('2026-07-25T09:04:00.000Z'),
+    });
+
+    await expect(driver.activate(defaultSpec(), { kind: 'direct' })).resolves.toEqual({
+      snapshotId: 'built-in-direct',
+    });
+    expect(proxy.installCount).toBe(0);
+    expect(proxy.state.value).toEqual({ mode: 'direct' });
+    await expect(driver.inspectRuntime()).resolves.toMatchObject({
+      activeRoute: { kind: 'direct' },
+    });
   });
 });
