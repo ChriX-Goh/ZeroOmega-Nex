@@ -64,6 +64,7 @@ describe('browser storage activation repository', () => {
 
     const restarted = new BrowserStorageSnapshotActivationRepository(storage);
     await expect(restarted.getSnapshot(snapshot.snapshotId)).resolves.toEqual(snapshot);
+    await expect(restarted.listSnapshots()).resolves.toEqual([snapshot]);
     await expect(restarted.getState()).resolves.toEqual({
       activeSnapshotId: snapshot.snapshotId,
       lastKnownGoodSnapshotId: snapshot.snapshotId,
@@ -101,6 +102,19 @@ describe('browser storage activation repository', () => {
     });
   });
 
+  it('discovers an active legacy snapshot even when no history index exists', async () => {
+    const storage = new MemoryStorageArea();
+    const namespace = 'legacy/browser-proxy';
+    storage.values.set(`${namespace}/snapshot/${snapshot.snapshotId}`, structuredClone(snapshot));
+    storage.values.set(`${namespace}/state`, {
+      activeSnapshotId: snapshot.snapshotId,
+      lastKnownGoodSnapshotId: snapshot.snapshotId,
+    });
+    const repository = new BrowserStorageSnapshotActivationRepository(storage, { namespace });
+
+    await expect(repository.listSnapshots()).resolves.toEqual([snapshot]);
+  });
+
   it('rejects corrupted state and mismatched snapshot identities', async () => {
     const storage = new MemoryStorageArea();
     const namespace = 'test/browser-proxy';
@@ -115,7 +129,23 @@ describe('browser storage activation repository', () => {
     await expect(repository.getSnapshot(snapshot.snapshotId)).rejects.toThrow('is invalid');
   });
 
-  it('separates namespaces and removes snapshots explicitly', async () => {
+  it('rejects malformed indexes and indexed snapshots that are unavailable', async () => {
+    const storage = new MemoryStorageArea();
+    const namespace = 'history/browser-proxy';
+    const repository = new BrowserStorageSnapshotActivationRepository(storage, { namespace });
+
+    storage.values.set(`${namespace}/snapshot-index`, [snapshot.snapshotId, snapshot.snapshotId]);
+    await expect(repository.listSnapshots()).rejects.toThrow(
+      'snapshot index contains duplicate IDs',
+    );
+
+    storage.values.set(`${namespace}/snapshot-index`, [snapshot.snapshotId]);
+    await expect(repository.listSnapshots()).rejects.toThrow(
+      `snapshot ${snapshot.snapshotId} is indexed but unavailable`,
+    );
+  });
+
+  it('separates namespaces and removes snapshots and their index entries explicitly', async () => {
     const storage = new MemoryStorageArea();
     const first = new BrowserStorageSnapshotActivationRepository(storage, {
       namespace: 'first',
@@ -127,5 +157,6 @@ describe('browser storage activation repository', () => {
     await expect(second.getSnapshot(snapshot.snapshotId)).resolves.toBeUndefined();
     await first.removeSnapshot(snapshot.snapshotId);
     await expect(first.getSnapshot(snapshot.snapshotId)).resolves.toBeUndefined();
+    await expect(first.listSnapshots()).resolves.toEqual([]);
   });
 });
