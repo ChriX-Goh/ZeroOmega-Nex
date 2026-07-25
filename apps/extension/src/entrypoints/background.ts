@@ -33,9 +33,7 @@ async function restoreProxyRuntime(): Promise<void> {
   console.info(`[${productIdentity.name}] proxy runtime state: ${restored.status}.`);
 
   authenticationRuntime?.dispose();
-  authenticationRuntime = await registerStoredProxyAuthentication(
-    currentProxyAuthenticationApi(),
-  );
+  authenticationRuntime = await registerStoredProxyAuthentication(currentProxyAuthenticationApi());
   console.info(
     `[${productIdentity.name}] proxy authentication state: ${authenticationRuntime.status}.`,
   );

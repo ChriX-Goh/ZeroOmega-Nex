@@ -44,9 +44,7 @@ for (const file of manifestFiles) {
   const optionalPermissions = Array.isArray(manifest.optional_permissions)
     ? manifest.optional_permissions
     : [];
-  const hostPermissions = Array.isArray(manifest.host_permissions)
-    ? manifest.host_permissions
-    : [];
+  const hostPermissions = Array.isArray(manifest.host_permissions) ? manifest.host_permissions : [];
   const optionalHostPermissions = Array.isArray(manifest.optional_host_permissions)
     ? manifest.optional_host_permissions
     : [];
@@ -55,9 +53,7 @@ for (const file of manifestFiles) {
   assertExactSet(permissions, ['proxy', 'storage'], 'required permissions', file);
   assertExactSet(
     optionalPermissions,
-    gecko
-      ? ['webRequest', 'webRequestBlocking']
-      : ['webRequest', 'webRequestAuthProvider'],
+    gecko ? ['webRequest', 'webRequestBlocking'] : ['webRequest', 'webRequestAuthProvider'],
     'optional permissions',
     file,
   );
@@ -73,9 +69,12 @@ for (const file of manifestFiles) {
     );
   }
   if (
-    [...permissions, ...optionalPermissions, ...hostPermissions, ...optionalHostPermissions].includes(
-      '<all_urls>',
-    )
+    [
+      ...permissions,
+      ...optionalPermissions,
+      ...hostPermissions,
+      ...optionalHostPermissions,
+    ].includes('<all_urls>')
   ) {
     throw new Error(`${relative(repositoryRoot.pathname, file)} must not request <all_urls>.`);
   }
