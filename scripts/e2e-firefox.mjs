@@ -89,9 +89,7 @@ try {
     'Firefox E2E Proxy',
   );
   await driver.wait(async () => (await profileName.getAttribute('value')) === 'Firefox E2E Proxy', 5_000);
-  const apply = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='Apply changes']"),
-  );
+  const apply = await driver.wait(until.elementLocated(By.css('.actions button.primary')), 15_000);
   await driver.wait(until.elementIsEnabled(apply), 15_000);
   await apply.click();
   await driver.wait(
