@@ -21,4 +21,6 @@ The extension background performs recovery before normal restoration. An interru
 
 Proxy authentication is a separate, default-disabled capability. It registers only after the browser has already granted the optional WebRequest authentication permissions and only when explicit HTTP or HTTPS proxy bindings and separately stored secret values exist. The listener filters only HTTP and HTTPS URLs, ignores ordinary website authentication, limits credential retries per request, and never supports SOCKS authentication by pretending it is HTTP authentication. Full Firefox authentication for browser system requests would require broader `<all_urls>` access and is therefore not enabled by this contract.
 
+The built extension declares the authentication permissions and HTTP(S) origins as optional. Startup checks existing grants but never calls the permission-request API; permission prompts remain an explicit future user action in the profile workflow.
+
 A conflicting extension or browser policy is reported explicitly. The package never claims a candidate is active after a failed confirmation or rollback, and it never moves per-request routing into extension JavaScript.
