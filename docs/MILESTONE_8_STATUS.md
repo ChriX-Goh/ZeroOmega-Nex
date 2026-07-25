@@ -3,9 +3,12 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft pending repository-owner installation and manual QC  
-**Frozen implementation head:** `90955b49223772a7d7df14317cd011073647055e`  
-**Full CI:** run `30174300115` passed on 2026-07-26  
-**Browser E2E:** run `30174300078` passed for Chromium and Firefox  
+**Frozen product implementation head:** `90955b49223772a7d7df14317cd011073647055e`  
+**Final documentation head:** `fb822219a8b69c19e294ba8484243dac83cf1892`  
+**Product full CI:** run `30174300115` passed on 2026-07-26  
+**Product Browser E2E:** run `30174300078` passed for Chromium and Firefox  
+**Final-head full CI:** run `30174571244` passed  
+**Final-head Browser E2E:** run `30174571240` passed for Chromium and Firefox  
 **Installable artifact:** `browser-builds`, artifact `8623785399`, SHA-256 `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
 
 The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract the ZIP first, then extract the TAR.GZ to obtain complete `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/` unpacked extension directories.
