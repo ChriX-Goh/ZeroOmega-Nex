@@ -2,7 +2,7 @@
 
 ## Repository baseline
 
-`main` contains the completed and verified foundation plus Milestones 1, 2, 3, and 4.
+`main` contains the completed and verified foundation plus Milestones 1, 2, 3, 4, and 5.
 
 The pre-normalization main commit is preserved at `archive/main-before-stack-normalization`.
 
@@ -96,10 +96,7 @@ Acceptance evidence:
 - Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
 - PR #7 merged into `main` at `692b6e5`.
 
-## Completed in branch — Milestone 5
-
-Branch: `feat/m5-reference-interpreter`  
-Pull request: #8
+## Completed — Milestone 5
 
 Delivered:
 
@@ -124,12 +121,46 @@ Acceptance evidence:
 - Recursive profile graph Head `bbd14a8` passed CI run `30144021927`.
 - Rule-list interpreter Head `50681fe` passed CI run `30144346169`.
 - Complete implementation Head `5ea9eaf` passed CI run `30144651695`.
+- Final documentation Head `9435e76` passed CI run `30144697164`.
 - The complete suite contains 77 tests, including all immutable Milestone 2 decision vectors.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed on the exact implementation Head.
-- Final status and documentation Head must pass the same complete read-only pipeline before PR #8 merges.
+- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
+- PR #8 merged into `main` at `c428ad9`.
+
+## Completed in branch — Milestone 6
+
+Branch: `feat/m6-pac-compiler`  
+Pull request: #9
+
+Delivered:
+
+- Reachability-based exact, target-dependent, and unsupported PAC capability analysis.
+- Explicit blocking for System routes, arbitrary nested PAC, browser auto-detect, missing references, cycles, disabled profiles, unavailable rule-source content, and unsupported target semantics.
+- Deterministic PAC generation with one stable function per reachable profile.
+- Compile-time expansion of Switchy and AutoProxy RuleList profiles.
+- Self-contained conservative PAC runtime for wildcard, regex, bypass, IPv4/IPv6 prefix, host-level, weekday, and hour matching.
+- `PROXY`, `HTTPS`, `SOCKS4`, and `SOCKS5` endpoint directives.
+- Safe string escaping, IDN endpoint normalization, IPv6 bracketing, and directive-injection rejection.
+- Profile, condition, and script-byte hard budgets plus near-limit warnings.
+- Isolated generated-script Harness with deterministic local weekday/hour injection.
+- Differential verifier against every committed condition and RuleList oracle vector.
+- Structured mismatch detection verified with deliberately corrupted PAC output.
+- Credential, secret-reference, request-header, ProfileSpec JSON, and arbitrary PAC-body exclusion from generated output.
+- SHA-256 hashing and immutable verified RuntimeSnapshot metadata.
+- Deterministic snapshot identity independent from `createdAt`.
+- Large 36-profile / 1,024-rule fixture compilation with reachable graph pruning to 25 profiles, 24 endpoints, and 200 conditions.
+
+Acceptance evidence:
+
+- Capability analyzer Head `a246d87` passed CI run `30145010296`.
+- Deterministic generator Head `5ab912b` passed CI run `30145972662`.
+- Differential and verified snapshot Head `acf569f` passed CI run `30146430909`.
+- Large policy Head `2252c57` passed CI run `30146482543`.
+- The complete suite contains 108 tests, including all immutable Milestone 2 decision vectors, PAC/reference differential checks, snapshot hashing, and the large representative policy.
+- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed on the exact implementation Heads.
+- Final documentation Head must pass the same complete read-only pipeline before PR #9 merges.
 
 ## Active development direction
 
-After Milestone 5 merges, implementation continues with the PAC compiler and differential verifier, followed by browser adapters, full UI workflow, packaging, migration, and performance hardening.
+After Milestone 6 merges, implementation continues with Firefox and Chromium browser adapters, atomic snapshot installation and rollback, then the full UI workflow, packaging, migration, and performance hardening.
 
 Intermediate work is verified internally and through GitHub CI. The repository owner is not asked to repeatedly inspect partial slices. Owner QC is reserved for a consolidated, installable release candidate unless an irreducible product decision requires direct input.
