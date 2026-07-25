@@ -6,16 +6,12 @@ import { listProfileWorkflowRevisionHistory } from './revision-history.js';
 import { createProfileWorkflowState } from './state.js';
 import { workflowFixture } from './test-fixture.js';
 
-function revision(
-  id: string,
-  createdAt: string,
-  parentRevisionId?: string,
-): ProfileSpec {
+function revision(id: string, createdAt: string, parentId?: string): ProfileSpec {
   const spec = cloneProfileSpec(workflowFixture());
   spec.revision = {
     id,
     createdAt,
-    ...(parentRevisionId === undefined ? {} : { parentRevisionId }),
+    ...(parentId === undefined ? {} : { parentId }),
   };
   return spec;
 }
