@@ -14,7 +14,7 @@
     "build": "pnpm build:chromium && pnpm build:firefox",
     "build:chromium": "pnpm --filter @zeroomega-nex/extension build:chromium",
     "build:firefox": "pnpm --filter @zeroomega-nex/extension build:firefox",
-    "check": "pnpm --filter @zeroomega-nex/core-contracts check && pnpm --filter @zeroomega-nex/profile-spec check && pnpm --filter @zeroomega-nex/legacy-zeroomega check && pnpm --filter @zeroomega-nex/reference-interpreter check && pnpm --filter @zeroomega-nex/extension check",
+    "check": "pnpm --filter @zeroomega-nex/core-contracts check && pnpm --filter @zeroomega-nex/profile-spec check && pnpm --filter @zeroomega-nex/legacy-zeroomega check && pnpm --filter @zeroomega-nex/reference-interpreter check && pnpm --filter @zeroomega-nex/pac-compiler check && pnpm --filter @zeroomega-nex/extension check",
     "test": "vitest run",
     "lint": "eslint .",
     "format": "prettier --write .",
