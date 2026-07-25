@@ -19,7 +19,10 @@ export interface BrowserStorageRepositoryOptions {
   readonly namespace?: string;
 }
 
-function optionalString(value: Record<string, unknown>, key: string): string | undefined {
+function optionalString(
+  value: Record<string, unknown>,
+  key: string,
+): string | undefined {
   const candidate = value[key];
   if (candidate === undefined) return undefined;
   if (typeof candidate !== 'string') throw new TypeError(`${key} must be a string`);
@@ -53,7 +56,9 @@ function parsePending(value: unknown): PendingActivation {
   const record = value as Record<string, unknown>;
   const snapshotId = optionalString(record, 'snapshotId');
   const startedAt = optionalString(record, 'startedAt');
-  if (!snapshotId || !startedAt) throw new TypeError('pending snapshotId and startedAt are required');
+  if (!snapshotId || !startedAt) {
+    throw new TypeError('pending snapshotId and startedAt are required');
+  }
   const previousActiveSnapshotId = optionalString(record, 'previousActiveSnapshotId');
   return {
     snapshotId,
@@ -72,7 +77,9 @@ function parseFailure(value: unknown): ActivationFailureRecord {
   const stage = optionalString(record, 'stage');
   const message = optionalString(record, 'message');
   const occurredAt = optionalString(record, 'occurredAt');
-  if (!snapshotId || !message || !occurredAt) throw new TypeError('lastFailure fields are incomplete');
+  if (!snapshotId || !message || !occurredAt) {
+    throw new TypeError('lastFailure fields are incomplete');
+  }
   if (
     stage !== 'preflight' &&
     stage !== 'install' &&
@@ -107,11 +114,16 @@ function parseState(value: unknown): SnapshotActivationState {
     ...(activeSnapshotId === undefined ? {} : { activeSnapshotId }),
     ...(lastKnownGoodSnapshotId === undefined ? {} : { lastKnownGoodSnapshotId }),
     ...(record.pending === undefined ? {} : { pending: parsePending(record.pending) }),
-    ...(record.lastFailure === undefined ? {} : { lastFailure: parseFailure(record.lastFailure) }),
+    ...(record.lastFailure === undefined
+      ? {}
+      : { lastFailure: parseFailure(record.lastFailure) }),
   };
 }
 
-function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot | undefined {
+function parseSnapshot(
+  value: unknown,
+  expectedId: string,
+): PacRuntimeSnapshot | undefined {
   if (value === undefined) return undefined;
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`snapshot ${expectedId} must be an object`);
