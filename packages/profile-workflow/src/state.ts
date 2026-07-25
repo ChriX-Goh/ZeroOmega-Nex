@@ -52,6 +52,12 @@ function userContent(spec: ProfileSpec): string {
   return serializeProfileSpec(normalized, { space: 0, trailingNewline: false });
 }
 
+function withoutSelectedProfile(state: ProfileWorkflowState): ProfileWorkflowState {
+  const next = { ...state };
+  delete next.selectedProfileId;
+  return next;
+}
+
 export function createProfileWorkflowState(
   applied: ProfileSpec,
   selectedProfileId?: string,
@@ -75,9 +81,8 @@ export function replaceProfileWorkflowDraft(
   if (state.pendingApply) throw new Error('cannot replace draft while Apply is in progress');
   const normalized = normalizeDraft(state.applied, draft);
   const selected = normalizeSelectedProfileId(normalized, state.selectedProfileId);
-  const { selectedProfileId: _selectedProfileId, ...base } = state;
   const next: ProfileWorkflowState = {
-    ...base,
+    ...withoutSelectedProfile(state),
     generation: state.generation + 1,
     draft: normalized,
   };
@@ -104,9 +109,8 @@ export function selectProfileWorkflowProfile(
     throw new RangeError(`profile ${profileId} does not exist in the draft`);
   }
   if (state.selectedProfileId === profileId) return state;
-  const { selectedProfileId: _selectedProfileId, ...base } = state;
   const next: ProfileWorkflowState = {
-    ...base,
+    ...withoutSelectedProfile(state),
     generation: state.generation + 1,
   };
   return profileId === undefined ? next : { ...next, selectedProfileId: profileId };
@@ -116,9 +120,8 @@ export function revertProfileWorkflowDraft(state: ProfileWorkflowState): Profile
   if (state.pendingApply) throw new Error('cannot revert draft while Apply is in progress');
   const draft = cloneProfileSpec(state.applied);
   const selected = normalizeSelectedProfileId(draft, state.selectedProfileId);
-  const { selectedProfileId: _selectedProfileId, ...base } = state;
   const next: ProfileWorkflowState = {
-    ...base,
+    ...withoutSelectedProfile(state),
     generation: state.generation + 1,
     draft,
   };
