@@ -57,6 +57,12 @@ export {
 } from './profile-operations.js';
 export { listProfileWorkflowRevisionHistory } from './revision-history.js';
 export {
+  rollbackProfileWorkflowSnapshot,
+  type ProfileWorkflowSnapshotRollbackPreparation,
+  type ProfileWorkflowSnapshotRollbackResult,
+  type ProfileWorkflowSnapshotRollbackService,
+} from './snapshot-rollback.js';
+export {
   createProfileWorkflowCandidate,
   createProfileWorkflowState,
   inspectProfileWorkflow,

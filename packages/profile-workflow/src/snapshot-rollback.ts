@@ -4,10 +4,7 @@ import {
   type ProfileSpec,
 } from '@zeroomega-nex/profile-spec';
 
-import type {
-  ProfileWorkflowRepository,
-  ProfileWorkflowState,
-} from './contracts.js';
+import type { ProfileWorkflowRepository, ProfileWorkflowState } from './contracts.js';
 import { inspectProfileWorkflow } from './state.js';
 
 export interface ProfileWorkflowSnapshotRollbackPreparation {
@@ -40,10 +37,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function selectedProfileId(
-  state: ProfileWorkflowState,
-  target: ProfileSpec,
-): string | undefined {
+function selectedProfileId(state: ProfileWorkflowState, target: ProfileSpec): string | undefined {
   if (
     state.selectedProfileId !== undefined &&
     target.profiles.some((profile) => profile.id === state.selectedProfileId)

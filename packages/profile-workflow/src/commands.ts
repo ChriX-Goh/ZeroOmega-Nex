@@ -17,6 +17,10 @@ import {
   type ProfileWorkflowSecretStore,
 } from './import-acceptance.js';
 import {
+  rollbackProfileWorkflowSnapshot,
+  type ProfileWorkflowSnapshotRollbackService,
+} from './snapshot-rollback.js';
+import {
   createProfileWorkflowState,
   inspectProfileWorkflow,
   replaceProfileWorkflowDraft,
@@ -61,6 +65,12 @@ export type ProfileWorkflowCommand =
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'rollback-snapshot';
+      readonly expectedGeneration: number;
+      readonly snapshotId: string;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'activate-route';
       readonly expectedAppliedRevisionId: string;
       readonly route: ProfileRouteTarget;
@@ -84,7 +94,8 @@ export type ProfileWorkflowCommandResponse =
         | 'busy'
         | 'storage-failure'
         | 'apply-failed'
-        | 'activation-failed';
+        | 'activation-failed'
+        | 'rollback-failed';
       readonly message: string;
       readonly state?: ProfileWorkflowState;
       readonly view?: ProfileWorkflowView;
@@ -249,6 +260,12 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
     case 'revert':
     case 'apply':
       return validGeneration(record.expectedGeneration);
+    case 'rollback-snapshot':
+      return (
+        validGeneration(record.expectedGeneration) &&
+        typeof record.snapshotId === 'string' &&
+        record.snapshotId.length > 0
+      );
     case 'activate-route':
       return (
         typeof record.expectedAppliedRevisionId === 'string' &&
@@ -267,6 +284,7 @@ export async function executeProfileWorkflowCommand(
   applyService?: ProfileWorkflowApplyService,
   importService?: ProfileWorkflowImportService,
   historyService?: ProfileWorkflowHistoryService,
+  rollbackService?: ProfileWorkflowSnapshotRollbackService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let state: ProfileWorkflowState;
   try {
@@ -346,6 +364,34 @@ export async function executeProfileWorkflowCommand(
         : result.status === 'invalid'
           ? 'invalid'
           : 'storage-failure',
+      result.message,
+      result.state,
+    );
+  }
+
+  if (command.action === 'rollback-snapshot') {
+    if (!rollbackService) {
+      return failure('invalid', 'profile workflow snapshot rollback service is unavailable', state);
+    }
+    const result = await rollbackProfileWorkflowSnapshot(
+      repository,
+      state,
+      command.snapshotId,
+      rollbackService,
+    );
+    if (result.status === 'rolled-back') {
+      return response(result.state, result.snapshotId, await runtimeView(applyService));
+    }
+    return failure(
+      result.status === 'busy'
+        ? 'busy'
+        : result.status === 'conflict'
+          ? 'conflict'
+          : result.status === 'invalid'
+            ? 'invalid'
+            : result.status === 'rollback-failed'
+              ? 'rollback-failed'
+              : 'activation-failed',
       result.message,
       result.state,
     );
