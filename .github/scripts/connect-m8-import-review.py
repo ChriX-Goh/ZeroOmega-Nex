@@ -35,6 +35,17 @@ patch(
 )
 
 patch(
+    'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
+    [
+        (
+            "    placeholder='{\"schemaVersion\":2,...}'",
+            '    placeholder="Paste schema-version-2 JSON or base64 JSON"',
+            'Svelte-safe backup placeholder',
+        )
+    ],
+)
+
+patch(
     'apps/extension/src/entrypoints/options/App.svelte',
     [
         (
