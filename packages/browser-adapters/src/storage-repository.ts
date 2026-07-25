@@ -152,6 +152,8 @@ function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot |
   if (
     record.snapshotSchemaVersion !== 1 ||
     record.snapshotId !== expectedId ||
+    typeof record.createdAt !== 'string' ||
+    typeof record.sourceRevisionId !== 'string' ||
     typeof record.script !== 'string' ||
     typeof record.scriptSha256 !== 'string' ||
     typeof record.sourceProfileSpecSha256 !== 'string'
@@ -161,16 +163,29 @@ function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot |
   return value as PacRuntimeSnapshot;
 }
 
+function parseSnapshotIndex(value: unknown): readonly string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string' || !entry)) {
+    throw new TypeError('snapshot index must be an array of non-empty strings');
+  }
+  if (new Set(value).size !== value.length) {
+    throw new TypeError('snapshot index contains duplicate IDs');
+  }
+  return value;
+}
+
 export class BrowserStorageSnapshotActivationRepository implements SnapshotActivationRepository {
   readonly #area: BrowserStorageArea;
   readonly #stateKey: string;
   readonly #snapshotPrefix: string;
+  readonly #snapshotIndexKey: string;
 
   constructor(area: BrowserStorageArea, options: BrowserStorageRepositoryOptions = {}) {
     this.#area = area;
     const namespace = options.namespace ?? 'zeroomega-nex/browser-proxy/v1';
     this.#stateKey = `${namespace}/state`;
     this.#snapshotPrefix = `${namespace}/snapshot/`;
+    this.#snapshotIndexKey = `${namespace}/snapshot-index`;
   }
 
   async getState(): Promise<SnapshotActivationState> {
@@ -184,7 +199,15 @@ export class BrowserStorageSnapshotActivationRepository implements SnapshotActiv
   }
 
   async putSnapshot(snapshot: PacRuntimeSnapshot): Promise<void> {
-    await this.#area.set({ [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: snapshot });
+    const normalized = parseSnapshot(snapshot, snapshot.snapshotId);
+    if (!normalized) throw new TypeError(`snapshot ${snapshot.snapshotId} is required`);
+    const values = await this.#area.get(this.#snapshotIndexKey);
+    const index = [...parseSnapshotIndex(values[this.#snapshotIndexKey])];
+    if (!index.includes(snapshot.snapshotId)) index.push(snapshot.snapshotId);
+    await this.#area.set({
+      [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: normalized,
+      [this.#snapshotIndexKey]: index,
+    });
   }
 
   async getSnapshot(snapshotId: string): Promise<PacRuntimeSnapshot | undefined> {
@@ -193,7 +216,30 @@ export class BrowserStorageSnapshotActivationRepository implements SnapshotActiv
     return parseSnapshot(values[key], snapshotId);
   }
 
+  async listSnapshots(): Promise<readonly PacRuntimeSnapshot[]> {
+    const metadata = await this.#area.get([this.#stateKey, this.#snapshotIndexKey]);
+    const state = parseState(metadata[this.#stateKey]);
+    const snapshotIds = new Set(parseSnapshotIndex(metadata[this.#snapshotIndexKey]));
+    if (state.activeSnapshotId) snapshotIds.add(state.activeSnapshotId);
+    if (state.lastKnownGoodSnapshotId) snapshotIds.add(state.lastKnownGoodSnapshotId);
+    if (snapshotIds.size === 0) return [];
+
+    const ids = [...snapshotIds];
+    const keys = ids.map((snapshotId) => `${this.#snapshotPrefix}${snapshotId}`);
+    const values = await this.#area.get(keys);
+    return ids.map((snapshotId, index) => {
+      const snapshot = parseSnapshot(values[keys[index]!], snapshotId);
+      if (!snapshot) throw new Error(`snapshot ${snapshotId} is indexed but unavailable`);
+      return snapshot;
+    });
+  }
+
   async removeSnapshot(snapshotId: string): Promise<void> {
+    const values = await this.#area.get(this.#snapshotIndexKey);
+    const index = parseSnapshotIndex(values[this.#snapshotIndexKey]).filter(
+      (candidate) => candidate !== snapshotId,
+    );
+    await this.#area.set({ [this.#snapshotIndexKey]: index });
     await this.#area.remove(`${this.#snapshotPrefix}${snapshotId}`);
   }
 }
