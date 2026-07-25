@@ -47,6 +47,15 @@ export {
   updateProfileWorkflowDraft,
 } from './state.js';
 export {
+  addSwitchRuleDraft,
+  createDefaultSwitchCondition,
+  createSwitchProfileDraft,
+  deleteSwitchRuleDraft,
+  duplicateSwitchRuleDraft,
+  moveSwitchRuleDraft,
+  type ProfileWorkflowSwitchRuleMutation,
+} from './switch-operations.js';
+export {
   BrowserStorageProfileWorkflowRepository,
   parseProfileWorkflowState,
   type ProfileWorkflowStorageArea,
