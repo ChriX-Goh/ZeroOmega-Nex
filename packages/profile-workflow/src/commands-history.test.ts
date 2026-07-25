@@ -8,7 +8,10 @@ import {
   type ProfileWorkflowHistoryService,
   type ProfileWorkflowInitializer,
 } from './commands.js';
-import type { ProfileWorkflowSnapshotHistoryEntry } from './contracts.js';
+import type {
+  ProfileWorkflowRevisionHistoryEntry,
+  ProfileWorkflowSnapshotHistoryEntry,
+} from './contracts.js';
 import { MemoryProfileWorkflowRepository } from './memory-repository.js';
 import { workflowFixture } from './test-fixture.js';
 
@@ -18,7 +21,7 @@ class Initializer implements ProfileWorkflowInitializer {
   }
 }
 
-const historyEntry: ProfileWorkflowSnapshotHistoryEntry = {
+const snapshotEntry: ProfileWorkflowSnapshotHistoryEntry = {
   snapshotId: 'snapshot-history-test',
   createdAt: '2026-07-25T16:00:00.000Z',
   sourceDocumentId: 'document-workflow-fixture',
@@ -42,10 +45,24 @@ const historyEntry: ProfileWorkflowSnapshotHistoryEntry = {
   lastKnownGood: true,
 };
 
+const revisionEntry: ProfileWorkflowRevisionHistoryEntry = {
+  documentId: 'document-workflow-fixture',
+  revisionId: 'revision-applied',
+  createdAt: '2026-07-25T15:55:00.000Z',
+  profileCount: 2,
+  endpointCount: 2,
+  ruleSourceCount: 0,
+  applied: true,
+};
+
 function historyService(
-  entries: readonly ProfileWorkflowSnapshotHistoryEntry[] = [historyEntry],
+  snapshots: readonly ProfileWorkflowSnapshotHistoryEntry[] = [snapshotEntry],
+  revisions: readonly ProfileWorkflowRevisionHistoryEntry[] = [revisionEntry],
 ): ProfileWorkflowHistoryService {
-  return { listSnapshots: async () => structuredClone(entries) };
+  return {
+    listSnapshots: async () => structuredClone(snapshots),
+    listRevisions: async () => structuredClone(revisions),
+  };
 }
 
 describe('profile workflow snapshot history command', () => {
@@ -58,7 +75,7 @@ describe('profile workflow snapshot history command', () => {
     ).toBe(true);
   });
 
-  it('returns redacted snapshot metadata with the current workflow state', async () => {
+  it('returns redacted snapshot and revision metadata with the current workflow state', async () => {
     const response = await executeProfileWorkflowCommand(
       new MemoryProfileWorkflowRepository(),
       new Initializer(),
@@ -82,8 +99,15 @@ describe('profile workflow snapshot history command', () => {
           lastKnownGood: true,
         },
       ],
+      revisionHistory: [
+        {
+          revisionId: 'revision-applied',
+          applied: true,
+        },
+      ],
     });
     expect(JSON.stringify(response)).not.toContain('FindProxyForURL');
+    expect(JSON.stringify(response)).not.toContain('proxy.example.invalid');
     if (!response.ok) throw new Error('expected successful history response');
     expect(response.snapshotHistory?.some((entry) => 'script' in entry)).toBe(false);
   });
@@ -110,6 +134,7 @@ describe('profile workflow snapshot history command', () => {
       listSnapshots: async () => {
         throw new Error('snapshot snapshot-missing is indexed but unavailable');
       },
+      listRevisions: async () => [],
     };
     const response = await executeProfileWorkflowCommand(
       new MemoryProfileWorkflowRepository(),
