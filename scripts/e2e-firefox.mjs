@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 
-import { Browser, Builder, By, Key, until } from 'selenium-webdriver';
+import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
 const extensionPath = resolve('dist/firefox-mv3');
@@ -76,8 +76,19 @@ try {
   }
   assert.equal(await profileName.getAttribute('value'), 'Proxy');
 
-  await profileName.clear();
-  await profileName.sendKeys('Firefox E2E Proxy', Key.TAB);
+  await driver.executeScript(
+    `
+      const input = arguments[0];
+      const value = arguments[1];
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      setter.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    `,
+    profileName,
+    'Firefox E2E Proxy',
+  );
+  await driver.wait(async () => (await profileName.getAttribute('value')) === 'Firefox E2E Proxy', 5_000);
   const apply = await driver.findElement(
     By.xpath("//button[normalize-space(.)='Apply changes']"),
   );
