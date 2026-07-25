@@ -1,4 +1,5 @@
 import {
+  activateBuiltInMode,
   activatePacSnapshot,
   type BrowserProxyDriver,
   type SnapshotActivationRepository,
@@ -317,6 +318,10 @@ export class BrowserProfileWorkflowActivationDriver
         state.activeSnapshotId === undefined
           ? undefined
           : await runtime.repository.getSnapshot(state.activeSnapshotId);
+      const activeRoute: ProfileRouteTarget | undefined =
+        state.activeBuiltInMode === undefined
+          ? activeSnapshot?.startRoute
+          : { kind: state.activeBuiltInMode };
       return {
         ...(state.activeSnapshotId === undefined
           ? {}
@@ -324,7 +329,7 @@ export class BrowserProfileWorkflowActivationDriver
         ...(state.lastKnownGoodSnapshotId === undefined
           ? {}
           : { lastKnownGoodSnapshotId: state.lastKnownGoodSnapshotId }),
-        ...(activeSnapshot === undefined ? {} : { activeRoute: activeSnapshot.startRoute }),
+        ...(activeRoute === undefined ? {} : { activeRoute }),
         ...(state.lastFailure === undefined
           ? {}
           : {
@@ -352,6 +357,19 @@ export class BrowserProfileWorkflowActivationDriver
       const startedAt = this.#now().toISOString();
       const route: ProfileRouteTarget =
         startRoute ?? spec.settings.startup.route ?? { kind: 'direct' };
+      if (route.kind === 'direct' || route.kind === 'system') {
+        const activated = await activateBuiltInMode(runtime.repository, runtime.driver, route.kind, {
+          startedAt,
+          failedAt: this.#now().toISOString(),
+        });
+        if (!activated.ok) {
+          throw new Error(
+            `browser proxy activation failed at ${activated.stage}: ${activated.message}`,
+          );
+        }
+        return { snapshotId: `built-in-${activated.activeBuiltInMode}` };
+      }
+
       const snapshot = await createVerifiedPacSnapshot(
         spec,
         route,
