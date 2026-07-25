@@ -31,9 +31,10 @@
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
+  import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
 
-  type OptionsSection = 'profiles' | 'import';
+  type OptionsSection = 'profiles' | 'import' | 'history';
 
   let activeSection: OptionsSection = 'profiles';
   let state: ProfileWorkflowState | undefined;
@@ -525,6 +526,12 @@
         disabled={!state || saving || view?.busy}
         on:click={() => (activeSection = 'import')}>Import / Export</button
       >
+      <button
+        type="button"
+        class:active={activeSection === 'history'}
+        disabled={!state || saving || view?.busy}
+        on:click={() => (activeSection = 'history')}>Snapshot History</button
+      >
       <button type="button" disabled>Interface</button>
       <button type="button" disabled>About</button>
     </div>
@@ -536,6 +543,16 @@
         <h2>Loading profiles</h2>
         <p>Reading the persisted ProfileSpec working copy from the extension background.</p>
       </section>
+    {:else if activeSection === 'history' && state}
+      <header class="editor-heading">
+        <div class="profile-title">
+          <div>
+            <h1>Snapshot History</h1>
+            <p>Inspect verified PAC snapshots without exposing PAC source or secret material.</p>
+          </div>
+        </div>
+      </header>
+      <SnapshotHistoryPanel disabled={saving || view?.busy === true} />
     {:else if activeSection === 'import' && state}
       <header class="editor-heading">
         <div class="profile-title">

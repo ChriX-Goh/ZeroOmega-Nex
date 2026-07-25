@@ -56,8 +56,8 @@
   <div>
     <h2>Verified snapshots</h2>
     <p class="section-help">
-      Read-only compiler and verification metadata. PAC source and secret material are never returned
-      to this page.
+      Read-only compiler and verification metadata. PAC source and secret material are never
+      returned to this page.
     </p>
   </div>
   <button type="button" disabled={disabled || loading} on:click={loadHistory}
@@ -75,7 +75,10 @@
   </section>
 {:else if entries.length === 0}
   <section class="settings-section">
-    <p>No verified PAC snapshots are stored yet. Direct and System activations do not create PAC snapshots.</p>
+    <p>
+      No verified PAC snapshots are stored yet. Direct and System activations do not create PAC
+      snapshots.
+    </p>
   </section>
 {:else}
   {#each entries as entry (entry.snapshotId)}
@@ -92,23 +95,56 @@
       </header>
 
       <dl>
-        <div><dt>Source revision</dt><dd>{entry.sourceRevisionId}</dd></div>
-        <div><dt>Start route</dt><dd>{routeLabel(entry)}</dd></div>
-        <div><dt>Browser target</dt><dd>{entry.target}</dd></div>
-        <div><dt>Capability</dt><dd>{entry.capability}</dd></div>
-        <div><dt>Compiler</dt><dd>{entry.compilerVersion}</dd></div>
-        <div><dt>PAC hash</dt><dd>{entry.scriptSha256Prefix}…</dd></div>
         <div>
-          <dt>ProfileSpec hash</dt><dd>{entry.sourceProfileSpecSha256Prefix}…</dd>
+          <dt>Source revision</dt>
+          <dd>{entry.sourceRevisionId}</dd>
+        </div>
+        <div>
+          <dt>Start route</dt>
+          <dd>{routeLabel(entry)}</dd>
+        </div>
+        <div>
+          <dt>Browser target</dt>
+          <dd>{entry.target}</dd>
+        </div>
+        <div>
+          <dt>Capability</dt>
+          <dd>{entry.capability}</dd>
+        </div>
+        <div>
+          <dt>Compiler</dt>
+          <dd>{entry.compilerVersion}</dd>
+        </div>
+        <div>
+          <dt>PAC hash</dt>
+          <dd>{entry.scriptSha256Prefix}…</dd>
+        </div>
+        <div>
+          <dt>ProfileSpec hash</dt>
+          <dd>{entry.sourceProfileSpecSha256Prefix}…</dd>
         </div>
         <div>
           <dt>Verification</dt>
-          <dd>{entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched</dd>
+          <dd>
+            {entry.verification.matchedCount}/{entry.verification.vectorCount} vectors matched
+          </dd>
         </div>
-        <div><dt>PAC size</dt><dd>{entry.stats.scriptBytes} bytes</dd></div>
-        <div><dt>Profiles</dt><dd>{entry.stats.profileCount}</dd></div>
-        <div><dt>Endpoints</dt><dd>{entry.stats.endpointCount}</dd></div>
-        <div><dt>Conditions</dt><dd>{entry.stats.conditionCount}</dd></div>
+        <div>
+          <dt>PAC size</dt>
+          <dd>{entry.stats.scriptBytes} bytes</dd>
+        </div>
+        <div>
+          <dt>Profiles</dt>
+          <dd>{entry.stats.profileCount}</dd>
+        </div>
+        <div>
+          <dt>Endpoints</dt>
+          <dd>{entry.stats.endpointCount}</dd>
+        </div>
+        <div>
+          <dt>Conditions</dt>
+          <dd>{entry.stats.conditionCount}</dd>
+        </div>
       </dl>
 
       {#if entry.warnings.length > 0}
