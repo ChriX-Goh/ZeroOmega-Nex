@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   PROXY_AUTH_URL_FILTERS,
   registerProxyAuthenticationListener,
-  type ProxyAuthenticationCompletionEvent,
   type ProxyAuthenticationPermissionApi,
   type ProxyAuthenticationRequiredEvent,
 } from './authentication-listener.js';
@@ -42,19 +41,6 @@ class RequiredEvent implements ProxyAuthenticationRequiredEvent {
     this.listener = listener;
     this.filter = filter;
     this.extra = extraInfoSpec;
-  }
-
-  removeListener(): void {
-    this.removed = true;
-  }
-}
-
-class CompletionEvent implements ProxyAuthenticationCompletionEvent {
-  listener?: (details: { readonly requestId: string }) => void;
-  removed = false;
-
-  addListener(listener: (details: { readonly requestId: string }) => void): void {
-    this.listener = listener;
   }
 
   removeListener(): void {
@@ -108,12 +94,10 @@ describe('proxy authentication listener registration', () => {
 
   it('uses asyncBlocking callbacks on Chromium with HTTP(S)-only filters', async () => {
     const required = new RequiredEvent();
-    const completed = new CompletionEvent();
-    const failed = new CompletionEvent();
     const registration = await registerProxyAuthenticationListener(
       'chromium',
       new Permissions(true),
-      { onAuthRequired: required, onCompleted: completed, onErrorOccurred: failed },
+      { onAuthRequired: required },
       handler(),
     );
     expect(registration.status).toBe('registered');
@@ -127,9 +111,8 @@ describe('proxy authentication listener registration', () => {
     expect(response).toEqual({
       authCredentials: { username: 'alice', password: 'password' },
     });
-    completed.listener?.({ requestId: 'request-1' });
     registration.dispose();
-    expect(required.removed && completed.removed && failed.removed).toBe(true);
+    expect(required.removed).toBe(true);
   });
 
   it('uses promise blocking on Firefox and requires no global URL filter', async () => {
