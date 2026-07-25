@@ -10,6 +10,11 @@ import type {
   ProfileWorkflowView,
 } from './contracts.js';
 import {
+  acceptProfileWorkflowImport,
+  type ProfileWorkflowSecretMaterial,
+  type ProfileWorkflowSecretStore,
+} from './import-acceptance.js';
+import {
   createProfileWorkflowState,
   inspectProfileWorkflow,
   replaceProfileWorkflowDraft,
@@ -29,6 +34,13 @@ export type ProfileWorkflowCommand =
       readonly action: 'replace-draft';
       readonly expectedGeneration: number;
       readonly draft: ProfileSpec;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'accept-import';
+      readonly expectedGeneration: number;
+      readonly candidate: ProfileSpec;
+      readonly secretMaterials: readonly ProfileWorkflowSecretMaterial[];
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
@@ -77,6 +89,10 @@ export interface ProfileWorkflowInitializer {
 export interface ProfileWorkflowApplyService {
   readonly driver: ProfileWorkflowActivationDriver;
   createContext(state: ProfileWorkflowState): ProfileWorkflowApplyContext;
+}
+
+export interface ProfileWorkflowImportService {
+  readonly secretStore: ProfileWorkflowSecretStore;
 }
 
 function errorMessage(error: unknown): string {
@@ -152,6 +168,20 @@ function validRoute(value: unknown): value is ProfileRouteTarget {
   );
 }
 
+function validSecretMaterials(value: unknown): value is readonly ProfileWorkflowSecretMaterial[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (material) =>
+        material !== null &&
+        typeof material === 'object' &&
+        !Array.isArray(material) &&
+        typeof (material as Record<string, unknown>).ref === 'string' &&
+        typeof (material as Record<string, unknown>).value === 'string',
+    )
+  );
+}
+
 function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
   if (left.kind !== right.kind) return false;
   return (
@@ -185,6 +215,12 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
       return true;
     case 'replace-draft':
       return validGeneration(record.expectedGeneration) && record.draft !== undefined;
+    case 'accept-import':
+      return (
+        validGeneration(record.expectedGeneration) &&
+        record.candidate !== undefined &&
+        validSecretMaterials(record.secretMaterials)
+      );
     case 'select-profile':
       return (
         validGeneration(record.expectedGeneration) &&
@@ -209,6 +245,7 @@ export async function executeProfileWorkflowCommand(
   initializer: ProfileWorkflowInitializer,
   command: ProfileWorkflowCommand,
   applyService?: ProfileWorkflowApplyService,
+  importService?: ProfileWorkflowImportService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let state: ProfileWorkflowState;
   try {
@@ -254,6 +291,26 @@ export async function executeProfileWorkflowCommand(
   }
   if (state.pendingApply) {
     return failure('busy', 'profile workflow is busy applying another revision', state);
+  }
+
+  if (command.action === 'accept-import') {
+    const result = await acceptProfileWorkflowImport(
+      repository,
+      state,
+      command.candidate,
+      command.secretMaterials,
+      importService?.secretStore,
+    );
+    if (result.status === 'accepted') return response(result.state);
+    return failure(
+      result.status === 'conflict'
+        ? 'conflict'
+        : result.status === 'invalid'
+          ? 'invalid'
+          : 'storage-failure',
+      result.message,
+      result.state,
+    );
   }
 
   if (command.action === 'apply') {
