@@ -22,3 +22,17 @@ export {
   type PacEvaluationRequest,
   type PacEvaluator,
 } from './harness.js';
+export { sha256Hex } from './hash.js';
+export {
+  createVerifiedPacSnapshot,
+  type PacRuntimeSnapshot,
+  type PacSnapshotContext,
+  type PacSnapshotResult,
+  type PacSnapshotVerification,
+} from './snapshot.js';
+export {
+  verifyPacArtifact,
+  type PacVerificationMismatch,
+  type PacVerificationResult,
+  type PacVerificationVector,
+} from './verify.js';
