@@ -1,54 +1,178 @@
 <script lang="ts">
   import { productIdentity } from '@zeroomega-nex/core-contracts';
+  import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
+  import type {
+    ProfileWorkflowCommandResponse,
+    ProfileWorkflowRuntimeView,
+    ProfileWorkflowState,
+  } from '@zeroomega-nex/profile-workflow';
+  import { onMount } from 'svelte';
   import { browser } from 'wxt/browser';
 
-  const profiles = [
-    { name: 'Auto Switch', color: '#8bc34a', active: true },
-    { name: 'Proxy', color: '#64b5f6', active: false },
-    { name: 'Direct', color: '#bdbdbd', active: false },
-    { name: 'System Proxy', color: '#616161', active: false },
-  ] as const;
+  import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
 
+  interface QuickSwitchItem {
+    readonly key: string;
+    readonly route: ProfileRouteTarget;
+    readonly name: string;
+    readonly color: string;
+    readonly available: boolean;
+    readonly reason?: string;
+  }
+
+  let state: ProfileWorkflowState | undefined;
+  let runtime: ProfileWorkflowRuntimeView | undefined;
+  let loading = true;
+  let switching = false;
   let openingSettings = false;
-  let settingsError = '';
+  let errorMessage = '';
+
+  let items: readonly QuickSwitchItem[] = [];
+  $: items = state ? quickSwitchItems(state.applied) : [];
+
+  function sameRoute(left: ProfileRouteTarget | undefined, right: ProfileRouteTarget): boolean {
+    if (left?.kind !== right.kind) return false;
+    return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+  }
+
+  function routeKey(route: ProfileRouteTarget): string {
+    return route.kind === 'profile' ? `profile:${route.profileId}` : route.kind;
+  }
+
+  function quickSwitchItems(spec: ProfileSpec): readonly QuickSwitchItem[] {
+    return spec.settings.quickSwitch.routes.map((route) => {
+      if (route.kind === 'direct') {
+        return {
+          key: routeKey(route),
+          route,
+          name: 'Direct',
+          color: spec.settings.interface.builtInProfiles?.direct?.color ?? '#bdbdbd',
+          available: true,
+        };
+      }
+      if (route.kind === 'system') {
+        return {
+          key: routeKey(route),
+          route,
+          name: 'System Proxy',
+          color: spec.settings.interface.builtInProfiles?.system?.color ?? '#616161',
+          available: true,
+        };
+      }
+      const profile = spec.profiles.find((candidate) => candidate.id === route.profileId);
+      if (!profile) {
+        return {
+          key: routeKey(route),
+          route,
+          name: 'Missing profile',
+          color: '#9e9e9e',
+          available: false,
+          reason: `Profile ${route.profileId} is missing from the applied configuration.`,
+        };
+      }
+      return {
+        key: routeKey(route),
+        route,
+        name: profile.name,
+        color: profile.color ?? '#90a4ae',
+        available: profile.enabled !== false,
+        ...(profile.enabled === false ? { reason: `${profile.name} is disabled.` } : {}),
+      };
+    });
+  }
+
+  function acceptResponse(response: ProfileWorkflowCommandResponse): boolean {
+    if (response.ok) {
+      state = response.state;
+      if (response.runtime !== undefined) runtime = response.runtime;
+      errorMessage = '';
+      return true;
+    }
+    if (response.state !== undefined) state = response.state;
+    errorMessage = response.message;
+    return false;
+  }
+
+  async function loadWorkflow(): Promise<void> {
+    loading = true;
+    try {
+      acceptResponse(await sendProfileWorkflowCommand({ action: 'get' }));
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function activateRoute(item: QuickSwitchItem): Promise<void> {
+    if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route)) return;
+    switching = true;
+    errorMessage = '';
+    try {
+      acceptResponse(
+        await sendProfileWorkflowCommand({
+          action: 'activate-route',
+          expectedAppliedRevisionId: state.applied.revision.id,
+          route: item.route,
+        }),
+      );
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      switching = false;
+    }
+  }
 
   async function openOptions(): Promise<void> {
     if (openingSettings) return;
-
     openingSettings = true;
-    settingsError = '';
+    errorMessage = '';
 
     try {
       await browser.runtime.openOptionsPage();
       window.close();
     } catch (error) {
       console.error('Unable to open the ZeroOmega Nex options page.', error);
-      settingsError = 'Unable to open Options.';
+      errorMessage = 'Unable to open Options.';
       openingSettings = false;
     }
   }
+
+  onMount(() => {
+    void loadWorkflow();
+  });
 </script>
 
-<main class="popup-shell" aria-label="ZeroOmega Nex profile switcher">
+<main class="popup-shell" aria-label="ZeroOmega Nex profile switcher" aria-busy={loading || switching}>
   <section aria-label="Profiles" class="profile-list">
-    {#each profiles as profile}
-      <button
-        class:active={profile.active}
-        type="button"
-        disabled
-        title={profile.active
-          ? `${profile.name} is active`
-          : 'Profile switching is not enabled yet'}
-      >
-        <span class="profile-marker" style={`--profile-color: ${profile.color}`}></span>
-        <span class="profile-name">{profile.name}</span>
-        {#if profile.active}
-          <svg class="current-mark" viewBox="0 0 16 16" aria-label="Current profile">
-            <path d="m3.2 8.3 2.8 2.8 6.8-7" />
-          </svg>
-        {/if}
-      </button>
-    {/each}
+    {#if loading}
+      <p class="settings-error" role="status">Loading applied profiles…</p>
+    {:else if !state?.applied.settings.quickSwitch.enabled}
+      <p class="settings-error" role="status">Quick switching is disabled in Options.</p>
+    {:else if items.length === 0}
+      <p class="settings-error" role="status">No quick-switch routes are configured.</p>
+    {:else}
+      {#each items as item (item.key)}
+        <button
+          class:active={sameRoute(runtime?.activeRoute, item.route)}
+          type="button"
+          disabled={switching || !item.available || sameRoute(runtime?.activeRoute, item.route)}
+          title={item.reason ??
+            (sameRoute(runtime?.activeRoute, item.route)
+              ? `${item.name} is active`
+              : `Activate ${item.name}`)}
+          onclick={() => activateRoute(item)}
+        >
+          <span class="profile-marker" style={`--profile-color: ${item.color}`}></span>
+          <span class="profile-name">{item.name}</span>
+          {#if sameRoute(runtime?.activeRoute, item.route)}
+            <svg class="current-mark" viewBox="0 0 16 16" aria-label="Current profile">
+              <path d="m3.2 8.3 2.8 2.8 6.8-7" />
+            </svg>
+          {/if}
+        </button>
+      {/each}
+    {/if}
   </section>
 
   <footer class="popup-footer">
@@ -67,10 +191,10 @@
       </svg>
       <span>{openingSettings ? 'Opening…' : 'Options'}</span>
     </button>
-    <span class="product-name">{productIdentity.name}</span>
+    <span class="product-name">{switching ? 'Switching…' : productIdentity.name}</span>
   </footer>
 
-  {#if settingsError}
-    <p class="settings-error" role="alert">{settingsError}</p>
+  {#if errorMessage}
+    <p class="settings-error" role="alert">{errorMessage}</p>
   {/if}
 </main>
