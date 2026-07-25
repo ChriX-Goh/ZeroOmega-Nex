@@ -69,6 +69,16 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/legacy-zeroomega:
+    dependencies:
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../profile-spec
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/profile-spec:
     dependencies:
       ajv:

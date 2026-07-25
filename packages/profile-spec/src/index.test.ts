@@ -111,6 +111,12 @@ function validSpec(): ProfileSpec {
           kind: 'inline',
           script: 'function FindProxyForURL() { return "DIRECT"; }',
         },
+        headers: [
+          {
+            name: 'Authorization',
+            value: { kind: 'secret', secretRef: 'secret-pac-authorization' },
+          },
+        ],
         fallbackRoute: { kind: 'direct' },
       },
       {
@@ -155,7 +161,12 @@ function validSpec(): ProfileSpec {
       },
       quickSwitch: {
         enabled: true,
-        profileIds: ['profile-switch', 'profile-fixed'],
+        routes: [
+          { kind: 'profile', profileId: 'profile-switch' },
+          { kind: 'profile', profileId: 'profile-fixed' },
+          { kind: 'direct' },
+          { kind: 'system' },
+        ],
         refreshOnChange: false,
       },
       interface: {
@@ -265,6 +276,19 @@ describe('ProfileSpec v1', () => {
   it('requires sensitive request headers to use secret references', () => {
     const value = validSpec();
     value.ruleSources[0]!.headers = [
+      {
+        name: 'Authorization',
+        value: { kind: 'literal', value: 'Bearer plaintext' },
+      },
+    ];
+    expect(issueCodes(value)).toContain('source.sensitive-literal-header');
+  });
+
+  it('requires sensitive PAC request headers to use secret references', () => {
+    const value = validSpec();
+    const pac = value.profiles[3]!;
+    if (pac.kind !== 'pac') throw new Error('fixture mismatch');
+    pac.headers = [
       {
         name: 'Authorization',
         value: { kind: 'literal', value: 'Bearer plaintext' },

@@ -126,6 +126,7 @@ export type PacSource = { kind: 'inline'; script: string } | { kind: 'url'; url:
 export interface PacProfile extends ProfileBase {
   kind: 'pac';
   source: PacSource;
+  headers?: RuleSourceHeader[];
   fallbackRoute?: ProfileRouteTarget;
 }
 
@@ -236,7 +237,7 @@ export interface StartupSettings {
 
 export interface QuickSwitchSettings {
   enabled: boolean;
-  profileIds: Identifier[];
+  routes: ProfileRouteTarget[];
   refreshOnChange: boolean;
 }
 
