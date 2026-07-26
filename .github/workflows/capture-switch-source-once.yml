@@ -1,0 +1,43 @@
+name: Capture Switch Source Once
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+      - name: Package current clean source
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=dist \
+            --exclude=.output \
+            --exclude=.github/workflows/capture-switch-source-once.yml \
+            --exclude=.github/capture-switch-source-trigger.txt \
+            -czf /tmp/zeroomega-nex-switch-source.tar.gz .
+          mv /tmp/zeroomega-nex-switch-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zeroomega-nex-switch-source
+          path: zeroomega-nex-switch-source.tar.gz
+          if-no-files-found: error
+      - name: Remove source capture executor
+        run: |
+          rm -f .github/workflows/capture-switch-source-once.yml .github/capture-switch-source-trigger.txt zeroomega-nex-switch-source.tar.gz
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A .github/workflows/capture-switch-source-once.yml .github/capture-switch-source-trigger.txt zeroomega-nex-switch-source.tar.gz
+          git commit -m 'chore: remove Switch source capture executor'
+          git push origin HEAD:feat/m8-profile-workflow
