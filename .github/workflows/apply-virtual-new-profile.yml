@@ -50,6 +50,31 @@ jobs:
             git apply /tmp/virtual-new-profile.patch
           } 2>&1 | tee patch-application.log
 
+      - name: Normalize optional route rewrites
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('packages/profile-workflow/src/profile-operations.ts')
+          text = path.read_text()
+          old = """  draft.settings.startup.route = replaceRouteReference(
+            draft.settings.startup.route,
+            fromProfileId,
+            toProfileId,
+          );
+          """
+          new = """  const startupRoute = replaceRouteReference(
+            draft.settings.startup.route,
+            fromProfileId,
+            toProfileId,
+          );
+          if (startupRoute === undefined) delete draft.settings.startup.route;
+          else draft.settings.startup.route = startupRoute;
+          """
+          if text.count(old) != 1:
+              raise SystemExit('startup route rewrite anchor missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
       - name: Generate CSP-safe validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
 
