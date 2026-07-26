@@ -1,4 +1,4 @@
-name: Fix attached header Chromium interaction
+name: Diagnose attached header Chromium interaction
 
 on:
   pull_request:
@@ -8,11 +8,11 @@ on:
       - .github/workflows/fix-attached-header-e2e.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  fix:
-    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+  diagnose:
+    if: github.head_ref == 'feat/m8-profile-workflow'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -30,7 +30,7 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-      - name: Order attached header interaction after expansion
+      - name: Add attached header runtime diagnostics
         run: |
           python <<'PY'
           from pathlib import Path
@@ -58,13 +58,21 @@ jobs:
               'Attached Rule List header button remained disabled after opening request headers',
             );
             await addHeader.click();
+            await options.waitForTimeout(1_000);
+            console.log(
+              `[Attached header row count] ${await attachedHeaders.locator('.header-row').count()}`,
+            );
+            console.log(
+              `[Attached global errors] ${JSON.stringify(await options.locator('.global-error').allTextContents())}`,
+            );
+            const attachedStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
+            console.log(`[Attached storage] ${JSON.stringify(attachedStorage)}`);
           """
           if source.count(old) != 1:
-              raise SystemExit(f'attached header ordering block mismatch: {source.count(old)}')
+              raise SystemExit(f'attached header diagnostic block mismatch: {source.count(old)}')
           path.write_text(source.replace(old, new))
           PY
           pnpm exec prettier --write scripts/e2e-chromium.mjs
-          git diff --check
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Build and run Chromium E2E
@@ -79,15 +87,4 @@ jobs:
         with:
           name: attached-header-e2e
           path: /tmp/attached-header-e2e.log
-          if-no-files-found: warn
-      - name: Clean and commit verified correction
-        run: |
-          rm -rf browser-builds browser-builds.tar.gz
-          git clean -fdX
-          rm -f .github/workflows/fix-attached-header-e2e.yml
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
-          git commit -m 'test: serialize attached header E2E interaction'
-          git pull --rebase origin feat/m8-profile-workflow
-          git push origin HEAD:feat/m8-profile-workflow
+          if-no-files-found: error
