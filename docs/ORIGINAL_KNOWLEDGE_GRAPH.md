@@ -4,14 +4,14 @@
 
 ## 1. 证据基线
 
-| 项目 | 固定值 |
-| --- | --- |
-| 原版仓库 | `zero-peak/ZeroOmega` |
-| 原版基准版本 | `v3.5.0` |
-| 原版 UI 证据工作流 | `Audit Original ZeroOmega UI` run `30181773502` |
-| 原版源码证据 Artifact | `original-zeroomega-ui-evidence-v3.5.0`, ID `8625759489` |
-| Artifact SHA-256 | `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19` |
-| 证据范围 | `omega-web/src`、`omega-target/src`、Chromium target、`en_US/zh_CN/zh_TW/zh_Hant` locale |
+| 项目                  | 固定值                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| 原版仓库              | `zero-peak/ZeroOmega`                                                                    |
+| 原版基准版本          | `v3.5.0`                                                                                 |
+| 原版 UI 证据工作流    | `Audit Original ZeroOmega UI` run `30181773502`                                          |
+| 原版源码证据 Artifact | `original-zeroomega-ui-evidence-v3.5.0`, ID `8625759489`                                 |
+| Artifact SHA-256      | `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19`                       |
+| 证据范围              | `omega-web/src`、`omega-target/src`、Chromium target、`en_US/zh_CN/zh_TW/zh_Hant` locale |
 
 事实优先级：
 
@@ -40,12 +40,12 @@ graph TD
 
 ### 分层边界
 
-| 层 | 原版职责 | Nex 对应原则 |
-| --- | --- | --- |
-| `omega-web` | 页面布局、字段、对话框、帮助、交互 | 可换 Svelte 和视觉皮肤，但信息结构、操作入口和行为必须逐项核对 |
-| `omega-target` | 选项模型、升级、应用、导入、同步、下载 | 必须由类型化状态机替代，不得把示例文字直接写成已生效配置 |
-| `omega-pac` | 情景模式、条件、引用、PAC 生成 | Nex 可采用新 schema，但必须维护可逆的原版语义映射 |
-| 浏览器 target | Proxy API、权限、认证、外部控制状态 | 可按 Chromium/Firefox 能力差异实现，但差异必须显式显示 |
+| 层             | 原版职责                               | Nex 对应原则                                                   |
+| -------------- | -------------------------------------- | -------------------------------------------------------------- |
+| `omega-web`    | 页面布局、字段、对话框、帮助、交互     | 可换 Svelte 和视觉皮肤，但信息结构、操作入口和行为必须逐项核对 |
+| `omega-target` | 选项模型、升级、应用、导入、同步、下载 | 必须由类型化状态机替代，不得把示例文字直接写成已生效配置       |
+| `omega-pac`    | 情景模式、条件、引用、PAC 生成         | Nex 可采用新 schema，但必须维护可逆的原版语义映射              |
+| 浏览器 target  | Proxy API、权限、认证、外部控制状态    | 可按 Chromium/Firefox 能力差异实现，但差异必须显式显示         |
 
 ## 3. 情景模式分类图
 
@@ -285,24 +285,24 @@ graph TD
 
 ## 15. 原版默认值、示例与 placeholder 规则
 
-| 数据 | 原版身份 | Nex 处理原则 |
-| --- | --- | --- |
-| `proxy.example.com:8080` | 初始示例 Proxy 的真实默认内容 | 只在等价初始示例中保留；新建/切换类型时不得无条件注入 |
-| `internal.example.com`、`*.example.com` | 初始 Auto Switch 示例规则 | 只属于初始示例；用户新建 Switch 不应自动带入，除非原版创建函数确实如此 |
-| `127.0.0.1`、`::1`、`localhost` | 默认 bypass | 语义必须保留 |
-| `https://example.invalid/...` | Nex 临时占位写法，不是原版默认 | 必须改为 placeholder 或空值 |
-| `! Add rules here.` | Nex 临时内容 | 不得作为自动保存的默认规则正文 |
-| `User-Agent: ZeroOmega Nex` | Nex 临时 header | 不得在点击“添加请求头”时自动写入有语义的值；应为空白行/placeholder |
+| 数据                                    | 原版身份                       | Nex 处理原则                                                           |
+| --------------------------------------- | ------------------------------ | ---------------------------------------------------------------------- |
+| `proxy.example.com:8080`                | 初始示例 Proxy 的真实默认内容  | 只在等价初始示例中保留；新建/切换类型时不得无条件注入                  |
+| `internal.example.com`、`*.example.com` | 初始 Auto Switch 示例规则      | 只属于初始示例；用户新建 Switch 不应自动带入，除非原版创建函数确实如此 |
+| `127.0.0.1`、`::1`、`localhost`         | 默认 bypass                    | 语义必须保留                                                           |
+| `https://example.invalid/...`           | Nex 临时占位写法，不是原版默认 | 必须改为 placeholder 或空值                                            |
+| `! Add rules here.`                     | Nex 临时内容                   | 不得作为自动保存的默认规则正文                                         |
+| `User-Agent: ZeroOmega Nex`             | Nex 临时 header                | 不得在点击“添加请求头”时自动写入有语义的值；应为空白行/placeholder     |
 
 ## 16. 实现决策分类
 
-| 分类 | 含义 |
-| --- | --- |
-| `MUST_MATCH` | 用户可见的信息结构、入口、数据语义或行为必须和原版一致 |
-| `REFERENCE` | 可参考原版，但允许采用 Nex 主题、图标或现代组件 |
-| `UNCERTAIN` | 原版存在，但范围、安全性或现代浏览器可行性尚未确认 |
-| `INTENTIONAL_DIVERGENCE` | 已记录且有理由的用户可见差异；必须经明确决定 |
-| `NOT_PORTING` | 明确不搬，仅限实现技术或已批准的功能；不得自行添加 |
+| 分类                     | 含义                                                   |
+| ------------------------ | ------------------------------------------------------ |
+| `MUST_MATCH`             | 用户可见的信息结构、入口、数据语义或行为必须和原版一致 |
+| `REFERENCE`              | 可参考原版，但允许采用 Nex 主题、图标或现代组件        |
+| `UNCERTAIN`              | 原版存在，但范围、安全性或现代浏览器可行性尚未确认     |
+| `INTENTIONAL_DIVERGENCE` | 已记录且有理由的用户可见差异；必须经明确决定           |
+| `NOT_PORTING`            | 明确不搬，仅限实现技术或已批准的功能；不得自行添加     |
 
 ## 17. 更新协议
 
@@ -319,6 +319,6 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 ## 18. 修订记录
 
-| 日期 | 变更 | 依据 |
-| --- | --- | --- |
+| 日期       | 变更                                                                            | 依据                           |
+| ---------- | ------------------------------------------------------------------------------- | ------------------------------ |
 | 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱 | 原版源码 Artifact `8625759489` |
