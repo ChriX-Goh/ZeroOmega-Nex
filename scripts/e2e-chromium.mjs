@@ -85,9 +85,7 @@ try {
   const authDialog = options.locator('[data-fixed-auth-dialog]');
   await authDialog.getByRole('heading', { name: '代理登录', exact: true }).waitFor();
   await authDialog.getByLabel('用户名', { exact: true }).fill('chromium-e2e');
-  await authDialog
-    .getByRole('textbox', { name: '密码', exact: true })
-    .fill('not-a-real-secret');
+  await authDialog.getByRole('textbox', { name: '密码', exact: true }).fill('not-a-real-secret');
   await authDialog.locator('[data-auth-action="save"]').click();
   await authDialog.waitFor({ state: 'detached' });
 
