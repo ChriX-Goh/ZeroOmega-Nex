@@ -57,7 +57,7 @@ export function createRuleListProfileDraft(
     format: 'autoproxy',
     location: {
       kind: 'inline',
-      content: '! Add AutoProxy rules here.\n',
+      content: '',
     },
   };
   const profile: RuleListProfile = {

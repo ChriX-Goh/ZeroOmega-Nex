@@ -2,15 +2,13 @@
 
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
-**PR state:** Draft pending repository-owner installation and manual QC  
-**Frozen product implementation head:** `90955b49223772a7d7df14317cd011073647055e`  
-**Product full CI:** run `30174300115` passed on 2026-07-26  
-**Product Browser E2E:** run `30174300078` passed for Chromium and Firefox  
-**Installable artifact:** `browser-builds`, artifact `8623785399`, SHA-256 `810b6818b746312c16089951acbf9b8f7f7b588f2205bf5fd791f6f21611d48d`
+**PR state:** Draft; original-parity implementation continues
+**Last fully verified parity implementation head:** `bb3fa10871e5ee62fd231e79c56998bba2046e76`
+**Verification:** CI `30183999834`, Browser E2E `30183999830`, Parity Documentation `30183999833` passed
+**Installable release candidate:** none; all previously frozen artifacts are obsolete
+**Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
-The downloaded artifact ZIP contains `browser-builds.tar.gz`. Extract the ZIP first, then extract the TAR.GZ to obtain complete `browser-builds/chrome-mv3/` and `browser-builds/firefox-mv3/` unpacked extension directories.
-
-The earlier candidate at `335229f762e6353ec14e57b5cc2695b6395d175c` and artifact `8622723587` failed repository-owner QC on 2026-07-26 because the layout diverged from original ZeroOmega, global settings were mixed into profile pages, the Options surface felt cramped, and user-visible bugs remained. That candidate and artifact are obsolete and must not be used for acceptance.
+All previously frozen Milestone 8 candidates and artifacts failed or were superseded by source-backed parity review. They must not be installed, accepted, or used as evidence of functional completeness.
 
 This file is the durable execution context for Milestone 8. Repository contributors must use it together with `docs/milestone-8-ui-contract.md`, `docs/MILESTONE_8_RELEASE_CANDIDATE.md`, `docs/DELIVERY_PLAN.md`, and `docs/DECISIONS.md`; chat history is not a source of truth.
 
@@ -77,16 +75,17 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 ## Remaining closure
 
-This is a replacement release candidate after the first manual QC failure. Automated checks are green, but automated success does not override the repository owner’s usability judgment or prove that every real exported backup and editor path is bug-free.
+PR #11 is not a replacement release candidate. The original v3.5.0 source-backed audit remains the acceptance authority, and every incomplete `MUST_MATCH` row keeps the PR Draft.
 
-The PR remains Draft until the repository owner confirms:
+Current blockers include:
 
-- the layout is sufficiently faithful to original ZeroOmega,
-- detailed configuration pages are comfortable in a full browser tab,
-- a real personal ZeroOmega export imports and works without rebuilding profiles,
-- Automatic, Light, and Dark appearance behave correctly,
-- the previously observed bugs are either fixed or recorded precisely for the next slice.
+- original per-scheme Fixed editor and authentication layout,
+- original compact Switch table, source mode, and attached Rule List workflow,
+- dedicated Rule List and PAC download/update semantics,
+- full Options `.bak` export and a real original backup round-trip,
+- complete Simplified/Traditional Chinese coverage,
+- Popup result-profile, current-site, temporary-rule, external-ownership, and bounded diagnostic functions.
 
 ## Current next action
 
-Install artifact `8623785399` and execute the revised checklist in `docs/MILESTONE_8_RELEASE_CANDIDATE.md`. Do not mark PR #11 ready for review until both browser checks pass. A failure keeps the PR Draft and requires a new implementation head, complete CI/E2E rerun, and newly frozen artifact digest.
+Continue verified parity slices on `feat/m8-profile-workflow`. The semantic placeholder cleanup is the current slice; Fixed Profile parity follows after its exact Head passes CI, Browser E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

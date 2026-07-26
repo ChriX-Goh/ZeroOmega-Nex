@@ -12,6 +12,10 @@ const i18nPath = 'apps/extension/src/lib/i18n.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
 const manifestPath = 'apps/extension/wxt.config.ts';
 const defaultsPath = 'packages/profile-workflow/src/defaults.ts';
+const advancedProfileEditorPath =
+  'apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte';
+const advancedProfileOperationsPath =
+  'packages/profile-workflow/src/advanced-profile-operations.ts';
 
 const [
   popupApp,
@@ -26,6 +30,8 @@ const [
   profileIcon,
   manifest,
   defaults,
+  advancedProfileEditor,
+  advancedProfileOperations,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -39,6 +45,8 @@ const [
   readFile(profileIconPath, 'utf8'),
   readFile(manifestPath, 'utf8'),
   readFile(defaultsPath, 'utf8'),
+  readFile(advancedProfileEditorPath, 'utf8'),
+  readFile(advancedProfileOperationsPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -169,6 +177,16 @@ const requirements = [
   [
     snapshotHistory.includes('Extension reference-safety check plus browser install confirmation'),
     'Snapshot history must disclose browser-safe runtime verification mode.',
+  ],
+  [
+    !advancedProfileEditor.includes('https://example.invalid/') &&
+      !advancedProfileEditor.includes('! Add rules here.') &&
+      !advancedProfileEditor.includes("value: 'ZeroOmega Nex'"),
+    'Profile source controls must create blank URL, rule text, and request-header values.',
+  ],
+  [
+    !advancedProfileOperations.includes('! Add AutoProxy rules here.'),
+    'New Rule List profiles must not persist instructional text as rule data.',
   ],
 ];
 

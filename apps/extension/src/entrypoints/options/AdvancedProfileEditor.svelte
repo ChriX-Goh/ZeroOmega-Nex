@@ -109,9 +109,7 @@
   async function updateRuleSourceKind(kind: 'inline' | 'url') {
     await mutateRuleSource((target) => {
       target.location =
-        kind === 'inline'
-          ? { kind: 'inline', content: '! Add rules here.\n' }
-          : { kind: 'url', url: 'https://example.invalid/rules.txt' };
+        kind === 'inline' ? { kind: 'inline', content: '' } : { kind: 'url', url: '' };
     });
   }
 
@@ -135,13 +133,7 @@
   async function updatePacSourceKind(kind: 'inline' | 'url') {
     await mutateProfile((target) => {
       if (target.kind !== 'pac') return;
-      target.source =
-        kind === 'inline'
-          ? {
-              kind: 'inline',
-              script: "function FindProxyForURL(url, host) {\n  return 'DIRECT';\n}\n",
-            }
-          : { kind: 'url', url: 'https://example.invalid/proxy.pac' };
+      target.source = kind === 'inline' ? { kind: 'inline', script: '' } : { kind: 'url', url: '' };
     });
   }
 
@@ -183,8 +175,8 @@
   async function addHeader() {
     await mutateHeaders((headers) => {
       headers.push({
-        name: 'User-Agent',
-        value: { kind: 'literal', value: 'ZeroOmega Nex' },
+        name: '',
+        value: { kind: 'literal', value: '' },
       });
     });
   }

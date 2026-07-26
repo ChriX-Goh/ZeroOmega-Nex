@@ -66,7 +66,7 @@ graph LR
 - 原版“新建情景模式”对话框只有 **4 类**：`FixedProfile`、`SwitchProfile`、`PacProfile`、`VirtualProfile`。
 - `RuleListProfile` 是可编辑的真实类型，但通常由自动切换情景模式附加、导入或旧格式转换产生；不在普通新建对话框中。
 - `Auto Detect Profile` 不是 v3.5.0 的独立普通新建类型。schema v1 中的 `auto_detect` 会升级为指向 `http://wpad/wpad.dat` 的 `PacProfile`。
-- 当前 Nex 的“Fixed / Switch / Rule List / PAC / Auto Detect”五选一分类是错误基线：误暴露 Rule List、误新增 Auto Detect、漏掉 Virtual。
+- 历史 Nex 曾采用错误的五选一分类；当前普通新建入口已经修正为 Fixed / Switch / PAC / Virtual 四类，Rule List 与 Auto Detect 仅保留导入/兼容路径。
 
 ## 4. 全局 Options 生命周期
 
@@ -206,7 +206,7 @@ graph TD
 - 认证全部代理服务器的入口、能力警告和浏览器差异。
 - 不支持 PAC 的浏览器目标要显示明确错误。
 
-禁止做法：切换“URL”选项时自动写入 `https://example.invalid/proxy.pac`；该字符串只能作为 placeholder/示例，不得变成用户配置。
+禁止做法：切换“URL”选项时自动写入 `https://example.invalid/proxy.pac`；该字符串只能作为 placeholder/示例，不得变成用户配置。Nex 的模式切换现以空值初始化，并由永久 UI compatibility guard 阻止该回归。
 
 ## 11. VirtualProfile 知识节点
 
@@ -292,7 +292,7 @@ graph TD
 | `127.0.0.1`、`::1`、`localhost`         | 默认 bypass                    | 语义必须保留                                                           |
 | `https://example.invalid/...`           | Nex 临时占位写法，不是原版默认 | 必须改为 placeholder 或空值                                            |
 | `! Add rules here.`                     | Nex 临时内容                   | 不得作为自动保存的默认规则正文                                         |
-| `User-Agent: ZeroOmega Nex`             | Nex 临时 header                | 不得在点击“添加请求头”时自动写入有语义的值；应为空白行/placeholder     |
+| `User-Agent: ZeroOmega Nex`             | Nex 临时 header                | 新增请求头必须为空白行；名称和值只可由用户输入，永久守卫阻止回归       |
 
 ## 16. 实现决策分类
 
@@ -319,7 +319,8 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 ## 18. 修订记录
 
-| 日期       | 变更                                                                                                                         | 依据                                                               |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                     |
-| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee` |
+| 日期       | 变更                                                                                                                         | 依据                                                                          |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                                |
+| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`            |
+| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义 |

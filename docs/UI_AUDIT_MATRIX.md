@@ -61,58 +61,58 @@
 
 ## D. SwitchProfile 与附属 RuleList
 
-| ID   | 界面/功能        | 原版源码               | 原版布局与行为                  | 分类       | Nex 状态   | 翻译    | 证据/问题                        | 下一步             |
-| ---- | ---------------- | ---------------------- | ------------------------------- | ---------- | ---------- | ------- | -------------------------------- | ------------------ |
-| D-01 | 条件帮助区       | `profile_switch.jade`  | 基础/高级分组，可展开关闭       | MUST_MATCH | MISSING    | MISSING | 无帮助图谱                       | 从 locale 生成     |
-| D-02 | 规则表格         | 同上                   | 排序/类型/细节/结果/动作/备注列 | MUST_MATCH | BROKEN     | PARTIAL | 当前每规则一个 fieldset          | 重建表格           |
-| D-03 | 拖动排序         | 同上                   | drag handle 排序                | MUST_MATCH | MISSING    | N/A     | 仅 Up/Down 或按钮逻辑            | 实现键盘+拖动      |
-| D-04 | 条件类型下拉     | 同上                   | 原版类型和分组                  | MUST_MATCH | PARTIAL    | MISSING | 类型较多但名称全英文且分类不一致 | 建立映射表         |
-| D-05 | 条件专属字段     | 同上                   | 不同条件用专属控件              | MUST_MATCH | PARTIAL    | MISSING | 有部分字段，布局/验证不一致      | 逐条件巡查         |
-| D-06 | 结果情景模式列   | 同上                   | 每规则 profile selector         | MUST_MATCH | PARTIAL    | PARTIAL | 有 route select，但布局不一致    | 改表格控件         |
-| D-07 | 删除规则         | 同上                   | 行内删除按钮                    | MUST_MATCH | DONE       | PARTIAL | 功能有                           | 放回表格           |
-| D-08 | 复制规则         | 同上                   | 行内 clone                      | MUST_MATCH | DONE       | PARTIAL | 功能有                           | 放回表格           |
-| D-09 | 备注列           | 同上                   | 可按需显示/添加备注             | MUST_MATCH | PARTIAL    | MISSING | note 字段有，交互不同            | 实现原版交互       |
-| D-10 | 添加条件位置     | 同上、UI setting       | 顶部/底部由设置决定             | MUST_MATCH | UNVERIFIED | PARTIAL | 设置存在，编辑器调用需核验       | 加排序测试         |
-| D-11 | 默认情景模式行   | 同上                   | 表格尾部独立默认行              | MUST_MATCH | PARTIAL    | PARTIAL | 当前独立 section                 | 调整布局           |
-| D-12 | 图形/源码切换    | 同上                   | Edit Source，错误显示           | MUST_MATCH | MISSING    | MISSING | 无源码模式                       | 实现双向解析       |
-| D-13 | URL 条件限制警告 | 同上                   | 明确浏览器完整 URL 限制         | MUST_MATCH | MISSING    | MISSING | 无对应警告                       | 按 target 显示     |
-| D-14 | 附加 RuleList    | 同上                   | Attach Profile 区块             | MUST_MATCH | MISSING    | MISSING | 当前 RuleList 独立新建           | 重构类型关系       |
-| D-15 | 附属启用开关     | 同上                   | 规则表中启用/禁用               | MUST_MATCH | MISSING    | MISSING | 无                               | 实现               |
-| D-16 | 附属匹配结果     | 同上                   | profile selector                | MUST_MATCH | MISSING    | MISSING | 无                               | 实现               |
-| D-17 | 附属格式/URL     | 同上                   | 格式、URL、帮助                 | MUST_MATCH | PARTIAL    | MISSING | 独立 editor 有近似字段           | 移入附属区         |
-| D-18 | 附属请求头       | 同上                   | 空白可增删 header 行            | MUST_MATCH | PARTIAL    | MISSING | 当前新增自动填 User-Agent        | 改空值+placeholder |
-| D-19 | 附属立即下载     | 同上                   | 下载状态/更新时间/错误          | MUST_MATCH | MISSING    | MISSING | 无网络更新动作                   | 实现安全下载服务   |
-| D-20 | 附属规则文本     | 同上                   | URL 时只读，否则可编辑          | MUST_MATCH | PARTIAL    | MISSING | 当前有通用 inline/url            | 按原版语义重构     |
-| D-21 | 删除附属确认     | `delete_attached.jade` | 恢复默认引用后删除              | MUST_MATCH | MISSING    | MISSING | 无                               | 实现事务           |
+| ID   | 界面/功能        | 原版源码               | 原版布局与行为                  | 分类       | Nex 状态   | 翻译    | 证据/问题                                                 | 下一步                |
+| ---- | ---------------- | ---------------------- | ------------------------------- | ---------- | ---------- | ------- | --------------------------------------------------------- | --------------------- |
+| D-01 | 条件帮助区       | `profile_switch.jade`  | 基础/高级分组，可展开关闭       | MUST_MATCH | MISSING    | MISSING | 无帮助图谱                                                | 从 locale 生成        |
+| D-02 | 规则表格         | 同上                   | 排序/类型/细节/结果/动作/备注列 | MUST_MATCH | BROKEN     | PARTIAL | 当前每规则一个 fieldset                                   | 重建表格              |
+| D-03 | 拖动排序         | 同上                   | drag handle 排序                | MUST_MATCH | MISSING    | N/A     | 仅 Up/Down 或按钮逻辑                                     | 实现键盘+拖动         |
+| D-04 | 条件类型下拉     | 同上                   | 原版类型和分组                  | MUST_MATCH | PARTIAL    | MISSING | 类型较多但名称全英文且分类不一致                          | 建立映射表            |
+| D-05 | 条件专属字段     | 同上                   | 不同条件用专属控件              | MUST_MATCH | PARTIAL    | MISSING | 有部分字段，布局/验证不一致                               | 逐条件巡查            |
+| D-06 | 结果情景模式列   | 同上                   | 每规则 profile selector         | MUST_MATCH | PARTIAL    | PARTIAL | 有 route select，但布局不一致                             | 改表格控件            |
+| D-07 | 删除规则         | 同上                   | 行内删除按钮                    | MUST_MATCH | DONE       | PARTIAL | 功能有                                                    | 放回表格              |
+| D-08 | 复制规则         | 同上                   | 行内 clone                      | MUST_MATCH | DONE       | PARTIAL | 功能有                                                    | 放回表格              |
+| D-09 | 备注列           | 同上                   | 可按需显示/添加备注             | MUST_MATCH | PARTIAL    | MISSING | note 字段有，交互不同                                     | 实现原版交互          |
+| D-10 | 添加条件位置     | 同上、UI setting       | 顶部/底部由设置决定             | MUST_MATCH | UNVERIFIED | PARTIAL | 设置存在，编辑器调用需核验                                | 加排序测试            |
+| D-11 | 默认情景模式行   | 同上                   | 表格尾部独立默认行              | MUST_MATCH | PARTIAL    | PARTIAL | 当前独立 section                                          | 调整布局              |
+| D-12 | 图形/源码切换    | 同上                   | Edit Source，错误显示           | MUST_MATCH | MISSING    | MISSING | 无源码模式                                                | 实现双向解析          |
+| D-13 | URL 条件限制警告 | 同上                   | 明确浏览器完整 URL 限制         | MUST_MATCH | MISSING    | MISSING | 无对应警告                                                | 按 target 显示        |
+| D-14 | 附加 RuleList    | 同上                   | Attach Profile 区块             | MUST_MATCH | MISSING    | MISSING | 当前 RuleList 独立新建                                    | 重构类型关系          |
+| D-15 | 附属启用开关     | 同上                   | 规则表中启用/禁用               | MUST_MATCH | MISSING    | MISSING | 无                                                        | 实现                  |
+| D-16 | 附属匹配结果     | 同上                   | profile selector                | MUST_MATCH | MISSING    | MISSING | 无                                                        | 实现                  |
+| D-17 | 附属格式/URL     | 同上                   | 格式、URL、帮助                 | MUST_MATCH | PARTIAL    | MISSING | 独立 editor 有近似字段                                    | 移入附属区            |
+| D-18 | 附属请求头       | 同上                   | 空白可增删 header 行            | MUST_MATCH | PARTIAL    | MISSING | 新增 header 已为空白，不再注入 User-Agent；附属布局未完成 | 补附属区布局与 locale |
+| D-19 | 附属立即下载     | 同上                   | 下载状态/更新时间/错误          | MUST_MATCH | MISSING    | MISSING | 无网络更新动作                                            | 实现安全下载服务      |
+| D-20 | 附属规则文本     | 同上                   | URL 时只读，否则可编辑          | MUST_MATCH | PARTIAL    | MISSING | 当前有通用 inline/url                                     | 按原版语义重构        |
+| D-21 | 删除附属确认     | `delete_attached.jade` | 恢复默认引用后删除              | MUST_MATCH | MISSING    | MISSING | 无                                                        | 实现事务              |
 
 ## E. RuleListProfile
 
-| ID   | 界面/功能        | 原版源码                 | 原版布局与行为             | 分类       | Nex 状态 | 翻译     | 证据/问题                           | 下一步          |
-| ---- | ---------------- | ------------------------ | -------------------------- | ---------- | -------- | -------- | ----------------------------------- | --------------- |
-| E-01 | 普通新建入口     | `new_profile.jade`       | 不在普通新建四类中         | MUST_MATCH | DONE     | COMPLETE | 已从新建模态框移除，导入数据仍兼容  | 保持回归测试    |
-| E-02 | 独立编辑页       | `profile_rule_list.jade` | 导入/附属后可见            | MUST_MATCH | PARTIAL  | MISSING  | 有 Advanced editor，但结构不同      | 重建专属模板    |
-| E-03 | 匹配情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 matchRoute                       | 对齐名称和布局  |
-| E-04 | 默认情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 defaultRoute                     | 对齐            |
-| E-05 | 格式单选         | 同上                     | 原版格式列表               | MUST_MATCH | PARTIAL  | PARTIAL  | 只有 AutoProxy/Switchy              | 核对全部 format |
-| E-06 | URL 与清除       | 同上                     | URL input                  | MUST_MATCH | PARTIAL  | MISSING  | 有 URL 模式，但默认注入 invalid URL | 改空值          |
-| E-07 | 立即下载         | 同上                     | 下载按钮                   | MUST_MATCH | MISSING  | MISSING  | 无                                  | 实现            |
-| E-08 | 规则文本只读语义 | 同上                     | 有 URL 只读，无 URL 可编辑 | MUST_MATCH | PARTIAL  | MISSING  | 当前切换 location 会写示例正文      | 改为空/保留原值 |
+| ID   | 界面/功能        | 原版源码                 | 原版布局与行为             | 分类       | Nex 状态 | 翻译     | 证据/问题                                                  | 下一步          |
+| ---- | ---------------- | ------------------------ | -------------------------- | ---------- | -------- | -------- | ---------------------------------------------------------- | --------------- |
+| E-01 | 普通新建入口     | `new_profile.jade`       | 不在普通新建四类中         | MUST_MATCH | DONE     | COMPLETE | 已从新建模态框移除，导入数据仍兼容                         | 保持回归测试    |
+| E-02 | 独立编辑页       | `profile_rule_list.jade` | 导入/附属后可见            | MUST_MATCH | PARTIAL  | MISSING  | 有 Advanced editor，但结构不同                             | 重建专属模板    |
+| E-03 | 匹配情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 matchRoute                                              | 对齐名称和布局  |
+| E-04 | 默认情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 defaultRoute                                            | 对齐            |
+| E-05 | 格式单选         | 同上                     | 原版格式列表               | MUST_MATCH | PARTIAL  | PARTIAL  | 只有 AutoProxy/Switchy                                     | 核对全部 format |
+| E-06 | URL 与清除       | 同上                     | URL input                  | MUST_MATCH | PARTIAL  | MISSING  | URL 模式已从空值开始，不再写入 invalid URL；专属布局仍不同 | 重建专属模板    |
+| E-07 | 立即下载         | 同上                     | 下载按钮                   | MUST_MATCH | MISSING  | MISSING  | 无                                                         | 实现            |
+| E-08 | 规则文本只读语义 | 同上                     | 有 URL 只读，无 URL 可编辑 | MUST_MATCH | PARTIAL  | MISSING  | 切换位置不再写示例正文；URL 只读与下载状态仍待重构         | 完成状态关系    |
 
 ## F. PacProfile 与 VirtualProfile
 
-| ID   | 界面/功能              | 原版源码                                 | 原版布局与行为                     | 分类       | Nex 状态 | 翻译     | 证据/问题                                        | 下一步                       |
-| ---- | ---------------------- | ---------------------------------------- | ---------------------------------- | ---------- | -------- | -------- | ------------------------------------------------ | ---------------------------- |
-| F-01 | PAC URL                | `profile_pac.jade`                       | 单独 URL 输入/清除                 | MUST_MATCH | PARTIAL  | MISSING  | 有 URL/inline selector，模式不同                 | 对齐原版                     |
-| F-02 | file URL 警告          | 同上                                     | 按引用和 target 显示               | MUST_MATCH | MISSING  | MISSING  | 无                                               | 实现 capability 提示         |
-| F-03 | PAC 请求头             | 同上                                     | 远程 URL 时可展开                  | MUST_MATCH | PARTIAL  | MISSING  | 有 headers，但新增值错误                         | 空白行+验证                  |
-| F-04 | PAC 立即下载           | 同上                                     | 更新远程脚本                       | MUST_MATCH | MISSING  | MISSING  | 无                                               | 实现                         |
-| F-05 | PAC Script             | 同上                                     | URL 时下载结果/只读；无 URL 可编辑 | MUST_MATCH | PARTIAL  | MISSING  | 有 inline textarea                               | 重构状态关系                 |
-| F-06 | PAC 认证全部代理       | 同上                                     | 入口和浏览器警告                   | MUST_MATCH | MISSING  | MISSING  | 后端局部认证存在但无等价 UI                      | 研究实现                     |
-| F-07 | 不支持目标提示         | 同上                                     | 明确错误                           | MUST_MATCH | PARTIAL  | PARTIAL  | 有泛化说明                                       | 对齐 target 能力             |
-| F-08 | invalid PAC URL 默认值 | 原版无此强制默认                         | 示例只能是 placeholder             | MUST_MATCH | BROKEN   | N/A      | 当前写入 `https://example.invalid/proxy.pac`     | 删除数据默认                 |
-| F-09 | Virtual 编辑页         | `profile_virtual.jade`                   | 目标 selector + 帮助               | MUST_MATCH | DONE     | COMPLETE | 新增真实 Virtual 类型、目标选择器和帮助          | 增加浏览器 E2E               |
-| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`profile.coffee` | 用目标替换所有 Virtual 引用        | MUST_MATCH | DONE     | PARTIAL  | 已有排除目标/Virtual 本身的 typed 引用替换和去重 | 补确认文案翻译与复杂引用测试 |
-| F-11 | Auto Detect 普通新建   | `options.coffee` upgrade                 | 原版不是独立普通类型               | MUST_MATCH | DONE     | COMPLETE | 已从普通新建移除；旧导入类型暂保留兼容           | 后续迁移为 WPAD PAC          |
+| ID   | 界面/功能              | 原版源码                                 | 原版布局与行为                     | 分类       | Nex 状态 | 翻译     | 证据/问题                                               | 下一步                       |
+| ---- | ---------------------- | ---------------------------------------- | ---------------------------------- | ---------- | -------- | -------- | ------------------------------------------------------- | ---------------------------- |
+| F-01 | PAC URL                | `profile_pac.jade`                       | 单独 URL 输入/清除                 | MUST_MATCH | PARTIAL  | MISSING  | 有 URL/inline selector，模式不同                        | 对齐原版                     |
+| F-02 | file URL 警告          | 同上                                     | 按引用和 target 显示               | MUST_MATCH | MISSING  | MISSING  | 无                                                      | 实现 capability 提示         |
+| F-03 | PAC 请求头             | 同上                                     | 远程 URL 时可展开                  | MUST_MATCH | PARTIAL  | MISSING  | 新增 header 已为空白；展示条件、布局和翻译仍不等价      | 对齐原版区块                 |
+| F-04 | PAC 立即下载           | 同上                                     | 更新远程脚本                       | MUST_MATCH | MISSING  | MISSING  | 无                                                      | 实现                         |
+| F-05 | PAC Script             | 同上                                     | URL 时下载结果/只读；无 URL 可编辑 | MUST_MATCH | PARTIAL  | MISSING  | 有 inline textarea                                      | 重构状态关系                 |
+| F-06 | PAC 认证全部代理       | 同上                                     | 入口和浏览器警告                   | MUST_MATCH | MISSING  | MISSING  | 后端局部认证存在但无等价 UI                             | 研究实现                     |
+| F-07 | 不支持目标提示         | 同上                                     | 明确错误                           | MUST_MATCH | PARTIAL  | PARTIAL  | 有泛化说明                                              | 对齐 target 能力             |
+| F-08 | invalid PAC URL 默认值 | 原版无此强制默认                         | 示例只能是 placeholder             | MUST_MATCH | DONE     | N/A      | URL 模式以空值初始化；永久守卫拒绝 example.invalid 回归 | 保持测试                     |
+| F-09 | Virtual 编辑页         | `profile_virtual.jade`                   | 目标 selector + 帮助               | MUST_MATCH | DONE     | COMPLETE | 新增真实 Virtual 类型、目标选择器和帮助                 | 增加浏览器 E2E               |
+| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`profile.coffee` | 用目标替换所有 Virtual 引用        | MUST_MATCH | DONE     | PARTIAL  | 已有排除目标/Virtual 本身的 typed 引用替换和去重        | 补确认文案翻译与复杂引用测试 |
+| F-11 | Auto Detect 普通新建   | `options.coffee` upgrade                 | 原版不是独立普通类型               | MUST_MATCH | DONE     | COMPLETE | 已从普通新建移除；旧导入类型暂保留兼容                  | 后续迁移为 WPAD PAC          |
 
 ## G. 导入 / 导出 / 同步
 
@@ -137,20 +137,20 @@
 
 ## H. 本地化、默认值与示例
 
-| ID   | 界面/功能              | 原版源码                 | 原版布局与行为                    | 分类       | Nex 状态   | 翻译     | 证据/问题                  | 下一步                    |
-| ---- | ---------------------- | ------------------------ | --------------------------------- | ---------- | ---------- | -------- | -------------------------- | ------------------------- |
-| H-01 | 英文默认               | locale                   | 其他语言回退英文                  | MUST_MATCH | DONE       | COMPLETE | 已实现                     | 保持                      |
-| H-02 | 简体中文               | `zh_CN`                  | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 主导航可用，编辑器大量英文 | 建立键级清单              |
-| H-03 | 正體中文               | `zh_TW/zh_Hant`          | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 同上                       | 键级清单                  |
-| H-04 | 动态文本               | locale/controller        | 状态变化后仍翻译                  | MUST_MATCH | PARTIAL    | PARTIAL  | observer 已修，但词典不全  | 组件级验证                |
-| H-05 | select option          | locale                   | 条件/协议/格式均翻译              | MUST_MATCH | BROKEN     | MISSING  | 大量硬编码英文             | 移到 typed locale catalog |
-| H-06 | placeholder/title/aria | locale/template          | 一同翻译                          | MUST_MATCH | PARTIAL    | PARTIAL  | 部分已覆盖                 | 自动 DOM 巡查             |
-| H-07 | 错误和确认框           | locale                   | 全部本地化                        | MUST_MATCH | BROKEN     | MISSING  | 端口错误、删除确认等英文   | 统一错误码翻译            |
-| H-08 | 内置名显示翻译         | locale/filter            | 内部 direct/system 与显示名分离   | MUST_MATCH | PARTIAL    | PARTIAL  | Popup 好于 Options select  | 统一 route label          |
-| H-09 | example.invalid URL    | 非原版默认               | 不得写入配置                      | MUST_MATCH | BROKEN     | N/A      | Advanced editor 会自动写入 | 改 placeholder/空值       |
-| H-10 | `! Add rules here.`    | 非原版默认               | 不得自动保存                      | MUST_MATCH | BROKEN     | N/A      | 当前写入 rule source       | 删除                      |
-| H-11 | 自动填 User-Agent      | 非原版默认               | 新 header 应为空                  | MUST_MATCH | BROKEN     | N/A      | 当前自动写 ZeroOmega Nex   | 改为空白行                |
-| H-12 | 原版初始示例           | `default_options.coffee` | 初始 proxy/auto switch 示例可保留 | MUST_MATCH | UNVERIFIED | PARTIAL  | 需区分首次安装与新建       | 加生命周期测试            |
+| ID   | 界面/功能              | 原版源码                 | 原版布局与行为                    | 分类       | Nex 状态   | 翻译     | 证据/问题                                      | 下一步                    |
+| ---- | ---------------------- | ------------------------ | --------------------------------- | ---------- | ---------- | -------- | ---------------------------------------------- | ------------------------- |
+| H-01 | 英文默认               | locale                   | 其他语言回退英文                  | MUST_MATCH | DONE       | COMPLETE | 已实现                                         | 保持                      |
+| H-02 | 简体中文               | `zh_CN`                  | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 主导航可用，编辑器大量英文                     | 建立键级清单              |
+| H-03 | 正體中文               | `zh_TW/zh_Hant`          | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 同上                                           | 键级清单                  |
+| H-04 | 动态文本               | locale/controller        | 状态变化后仍翻译                  | MUST_MATCH | PARTIAL    | PARTIAL  | observer 已修，但词典不全                      | 组件级验证                |
+| H-05 | select option          | locale                   | 条件/协议/格式均翻译              | MUST_MATCH | BROKEN     | MISSING  | 大量硬编码英文                                 | 移到 typed locale catalog |
+| H-06 | placeholder/title/aria | locale/template          | 一同翻译                          | MUST_MATCH | PARTIAL    | PARTIAL  | 部分已覆盖                                     | 自动 DOM 巡查             |
+| H-07 | 错误和确认框           | locale                   | 全部本地化                        | MUST_MATCH | BROKEN     | MISSING  | 端口错误、删除确认等英文                       | 统一错误码翻译            |
+| H-08 | 内置名显示翻译         | locale/filter            | 内部 direct/system 与显示名分离   | MUST_MATCH | PARTIAL    | PARTIAL  | Popup 好于 Options select                      | 统一 route label          |
+| H-09 | example.invalid URL    | 非原版默认               | 不得写入配置                      | MUST_MATCH | DONE       | N/A      | PAC/Rule List URL 模式均从空值开始，守卫已覆盖 | 保持守卫                  |
+| H-10 | `! Add rules here.`    | 非原版默认               | 不得自动保存                      | MUST_MATCH | DONE       | N/A      | 新建及模式切换均为空规则正文，守卫已覆盖       | 保持守卫                  |
+| H-11 | 自动填 User-Agent      | 非原版默认               | 新 header 应为空                  | MUST_MATCH | DONE       | N/A      | 新增 header 名称和值均为空，守卫已覆盖         | 保持守卫                  |
+| H-12 | 原版初始示例           | `default_options.coffee` | 初始 proxy/auto switch 示例可保留 | MUST_MATCH | UNVERIFIED | PARTIAL  | 需区分首次安装与新建                           | 加生命周期测试            |
 
 ## I. Popup 与辅助页面
 
@@ -185,13 +185,14 @@
 
 ## 当前结论
 
-- **明确 BROKEN**：新建类型分类、新建布局、Fixed 布局、Switch 布局、真实备份导入、完整导出、多个示例被写成配置、编辑器翻译。
-- **明确 MISSING**：Virtual、在线恢复、单 Profile 导出、附属 RuleList 完整流程、Popup 当前站点/临时规则/网络检查。
+- **明确 BROKEN**：Fixed/Switch 编辑器结构、真实备份导入、完整导出、编辑器翻译。会污染配置的 Nex 假默认值已在本切片清除。
+- **明确 MISSING**：在线恢复、单 Profile 导出、附属 RuleList 完整流程、Popup 当前站点/临时规则/网络检查；Virtual 已实现但浏览器 E2E 仍不完整。
 - **UNCERTAIN**：Gist/WebDAV/浏览器同步、FTP scheme 的现代浏览器能力；未获范围决定前不得标记 `NOT_PORTING`。
 - 当前 PR 必须继续保持 Draft，现有安装包不再作为功能完整候选。
 
 ## 更新记录
 
-| 日期       | 变更                                                                          |
-| ---------- | ----------------------------------------------------------------------------- |
-| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口 |
+| 日期       | 变更                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------ |
+| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口        |
+| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证 |
