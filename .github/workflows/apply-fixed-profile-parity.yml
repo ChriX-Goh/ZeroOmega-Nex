@@ -128,6 +128,54 @@ jobs:
           path.write_text(source)
           PY
 
+      - name: Allow blank Fixed Profiles as Direct
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          validation_path = Path('packages/profile-spec/src/validation.ts')
+          validation = validation_path.read_text()
+          block = """      if (references.length === 0) {
+                issues.push(
+                  issue(
+                    'profile.fixed-without-endpoint',
+                    `/profiles/${profileIndex}/proxyByScheme`,
+                    'fixed profile must reference at least one proxy endpoint',
+                  ),
+                );
+              }
+          """
+          if block in validation:
+              validation = validation.replace(block, '')
+          elif 'profile.fixed-without-endpoint' in validation:
+              raise SystemExit('blank Fixed validation rule changed unexpectedly')
+          validation_path.write_text(validation)
+
+          test_path = Path('packages/profile-spec/src/index.test.ts')
+          tests = test_path.read_text()
+          title = "accepts a Fixed Profile without proxy endpoints as Direct"
+          if title not in tests:
+              anchor = """  it('rejects missing endpoint and profile references', () => {
+          """
+              addition = """  it('accepts a Fixed Profile without proxy endpoints as Direct', () => {
+                const value = validSpec();
+                const fixed = value.profiles[0]!;
+                if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+                fixed.proxyByScheme = {};
+                value.proxyEndpoints = [];
+
+                const result = validateProfileSpec(value);
+                expect(result.valid).toBe(true);
+                expect(result.issues).toEqual([]);
+              });
+
+          """
+              if tests.count(anchor) != 1:
+                  raise SystemExit(f'blank Fixed test anchor mismatch: {tests.count(anchor)}')
+              tests = tests.replace(anchor, addition + anchor)
+          test_path.write_text(tests)
+          PY
+
       - name: Remove build outputs and all one-time executors
         run: |
           git rm -r --ignore-unmatch \
@@ -154,6 +202,8 @@ jobs:
             apps/extension/src/lib/i18n.test.ts \
             apps/extension/src/lib/i18n.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-spec/src/index.test.ts \
+            packages/profile-spec/src/validation.ts \
             packages/profile-workflow/src/commands-import.test.ts \
             packages/profile-workflow/src/commands.ts \
             packages/profile-workflow/src/profile-operations.test.ts \
@@ -190,6 +240,8 @@ jobs:
             apps/extension/src/lib/i18n.test.ts \
             apps/extension/src/lib/i18n.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-spec/src/index.test.ts \
+            packages/profile-spec/src/validation.ts \
             packages/profile-workflow/src/commands-import.test.ts \
             packages/profile-workflow/src/commands.ts \
             packages/profile-workflow/src/profile-operations.test.ts \
