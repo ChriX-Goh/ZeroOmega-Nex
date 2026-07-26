@@ -185,10 +185,9 @@ try {
   await attachedConfig
     .getByLabel('Attached Rule List text')
     .fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
-  await options
-    .locator('[data-attached-rule-list-headers]')
-    .getByRole('button', { name: 'Add header' })
-    .click();
+  const attachedHeaders = options.locator('[data-attached-rule-list-headers]');
+  await attachedHeaders.locator('summary').click();
+  await attachedHeaders.getByRole('button', { name: 'Add header', exact: true }).click();
   await options.getByLabel('Attached header 1 name').fill('X-E2E');
   await options.getByLabel('Attached header 1 value').fill('attached');
   options.once('dialog', (dialog) => dialog.accept());
