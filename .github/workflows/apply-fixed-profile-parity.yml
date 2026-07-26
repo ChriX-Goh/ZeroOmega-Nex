@@ -55,85 +55,62 @@ jobs:
             git apply --exclude=scripts/validate-ui-compatibility.mjs /tmp/fixed-profile-parity.patch
           } 2>&1 | tee fixed-profile-patch.log
 
-      - name: Merge Fixed Profile UI guard with default-integrity guard
+      - name: Append Fixed Profile UI guard
         run: |
           python <<'PY'
           from pathlib import Path
 
           path = Path('scripts/validate-ui-compatibility.mjs')
           source = path.read_text()
+          marker = 'Fixed Profile parity guard passed.'
+          if marker not in source:
+              source += r'''
 
-          def insert_once(anchor: str, replacement: str, marker: str) -> None:
-              global source
-              if marker in source:
-                  return
-              if source.count(anchor) != 1:
-                  raise SystemExit(f'expected one UI guard anchor for {marker}, found {source.count(anchor)}')
-              source = source.replace(anchor, replacement)
+          const [fixedProfileParity, fixedProfileOperationsParity, fixedRuntimeParity] =
+            await Promise.all([
+              readFile('apps/extension/src/entrypoints/options/FixedProfileEditor.svelte', 'utf8'),
+              readFile('packages/profile-workflow/src/profile-operations.ts', 'utf8'),
+              readFile('apps/extension/src/lib/profile-workflow-runtime.ts', 'utf8'),
+            ]);
 
-          insert_once(
-              "const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';\nconst optionsHtmlPath",
-              "const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';\nconst fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';\nconst optionsHtmlPath",
-              'const fixedProfilePath',
-          )
-          insert_once(
-              "const defaultsPath = 'packages/profile-workflow/src/defaults.ts';\nconst advancedProfileEditorPath",
-              "const defaultsPath = 'packages/profile-workflow/src/defaults.ts';\nconst profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';\nconst runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';\nconst advancedProfileEditorPath",
-              'const profileOperationsPath',
-          )
-          insert_once(
-              '  themePanel,\n  optionsHtml,',
-              '  themePanel,\n  fixedProfile,\n  optionsHtml,',
-              '  fixedProfile,',
-          )
-          insert_once(
-              '  defaults,\n  advancedProfileEditor,',
-              '  defaults,\n  profileOperations,\n  runtime,\n  advancedProfileEditor,',
-              '  profileOperations,',
-          )
-          insert_once(
-              "  readFile(themePanelPath, 'utf8'),\n  readFile(optionsHtmlPath, 'utf8'),",
-              "  readFile(themePanelPath, 'utf8'),\n  readFile(fixedProfilePath, 'utf8'),\n  readFile(optionsHtmlPath, 'utf8'),",
-              'readFile(fixedProfilePath',
-          )
-          insert_once(
-              "  readFile(defaultsPath, 'utf8'),\n  readFile(advancedProfileEditorPath, 'utf8'),",
-              "  readFile(defaultsPath, 'utf8'),\n  readFile(profileOperationsPath, 'utf8'),\n  readFile(runtimePath, 'utf8'),\n  readFile(advancedProfileEditorPath, 'utf8'),",
-              'readFile(profileOperationsPath',
-          )
+          const fixedProfileParityFailures = [
+            [
+              ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
+                fixedProfileParity.includes(`key: '${scheme}'`),
+              ) &&
+                fixedProfileParity.includes('Show Advanced') &&
+                fixedProfileParity.includes('Proxy Authentication') &&
+                fixedProfileParity.includes('fallbackPlaceholder'),
+              'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
+            ],
+            [
+              fixedProfileOperationsParity.includes('proxyByScheme: {}') &&
+                fixedProfileOperationsParity.includes("pattern: '[::1]'") &&
+                !fixedProfileOperationsParity
+                  .slice(
+                    fixedProfileOperationsParity.indexOf('export function createFixedProfileDraft'),
+                    fixedProfileOperationsParity.indexOf('export function duplicateProfileDraft'),
+                  )
+                  .includes("host: '127.0.0.1'"),
+              'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',
+            ],
+            [
+              fixedRuntimeParity.includes('initialProfile.proxyByScheme = {}') &&
+                fixedRuntimeParity.includes('initial.proxyEndpoints = []'),
+              'Fresh browser installation must not turn an example proxy server into user configuration.',
+            ],
+          ]
+            .filter(([passed]) => !passed)
+            .map(([, message]) => message);
 
-          requirement_anchor = """  [
-            optionsApp.includes('class=\"settings-section\"'),
-            'Options profile pages must use familiar flat settings sections.',
-          ],
-          """
-          fixed_requirements = """  [
-            ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
-              fixedProfile.includes(`key: '${scheme}'`),
-            ) &&
-              fixedProfile.includes('Show Advanced') &&
-              fixedProfile.includes('Proxy Authentication') &&
-              fixedProfile.includes('fallbackPlaceholder'),
-            'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
-          ],
-          [
-            profileOperations.includes('proxyByScheme: {}') &&
-              profileOperations.includes("pattern: '[::1]'") &&
-              !profileOperations
-                .slice(
-                  profileOperations.indexOf('export function createFixedProfileDraft'),
-                  profileOperations.indexOf('export function duplicateProfileDraft'),
-                )
-                .includes("host: '127.0.0.1'"),
-            'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',
-          ],
-          [
-            runtime.includes('initialProfile.proxyByScheme = {}') &&
-              runtime.includes('initial.proxyEndpoints = []'),
-            'Fresh browser installation must not turn an example proxy server into user configuration.',
-          ],
-          """ + requirement_anchor
-          insert_once(requirement_anchor, fixed_requirements, 'Fixed Profile must preserve the original')
+          if (fixedProfileParityFailures.length > 0) {
+            console.error('Fixed Profile parity validation failed:');
+            for (const failure of fixedProfileParityFailures) console.error(`- ${failure}`);
+            process.exit(1);
+          }
+
+          console.log('Fixed Profile parity guard passed.');
+          '''
           path.write_text(source)
           PY
 
