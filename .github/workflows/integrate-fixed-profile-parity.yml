@@ -126,6 +126,47 @@ jobs:
               + response_block.replace(old_return, new_return)
               + commands[response_end:]
           )
+
+          validation_path = Path('packages/profile-spec/src/validation.ts')
+          validation = validation_path.read_text()
+          empty_endpoint_rule = """      if (references.length === 0) {
+            issues.push(
+              issue(
+                'profile.fixed-without-endpoint',
+                `/profiles/${profileIndex}/proxyByScheme`,
+                'fixed profile must reference at least one proxy endpoint',
+              ),
+            );
+          }
+          """
+          if validation.count(empty_endpoint_rule) != 1:
+              raise SystemExit(
+                  f'blank Fixed validation rule mismatch: {validation.count(empty_endpoint_rule)}'
+              )
+          validation_path.write_text(validation.replace(empty_endpoint_rule, ''))
+
+          profile_spec_test_path = Path('packages/profile-spec/src/index.test.ts')
+          profile_spec_test = profile_spec_test_path.read_text()
+          test_marker = "  it('rejects missing endpoint and profile references', () => {\n"
+          blank_fixed_test = """  it('accepts a blank fixed profile before proxy endpoints are configured', () => {
+            const value = validSpec();
+            const fixed = value.profiles[0]!;
+            if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+            fixed.proxyByScheme = {};
+
+            const result = validateProfileSpec(value);
+            expect(result.valid).toBe(true);
+            expect(result.issues).toEqual([]);
+          });
+
+          """
+          if profile_spec_test.count(test_marker) != 1:
+              raise SystemExit(
+                  f'blank Fixed test marker mismatch: {profile_spec_test.count(test_marker)}'
+              )
+          profile_spec_test_path.write_text(
+              profile_spec_test.replace(test_marker, blank_fixed_test + test_marker)
+          )
           PY
       - name: Format integrated slice
         run: |
@@ -136,6 +177,8 @@ jobs:
             apps/extension/src/lib/i18n.test.ts \
             apps/extension/src/lib/i18n.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-spec/src/index.test.ts \
+            packages/profile-spec/src/validation.ts \
             packages/profile-workflow/src/commands-import.test.ts \
             packages/profile-workflow/src/commands.ts \
             packages/profile-workflow/src/profile-operations.test.ts \
@@ -171,6 +214,7 @@ jobs:
           rm -f .github/workflows/diagnose-default-integrity-slice.yml
           rm -f .github/workflows/apply-fixed-profile-parity.yml
           rm -f .github/workflows/export-fixed-profile-patch.yml
+          rm -f .github/workflows/patch-fixed-validation.yml
           rm -f .github/workflows/integrate-fixed-profile-parity.yml
           git diff --check
       - name: Commit verified integrated slice
