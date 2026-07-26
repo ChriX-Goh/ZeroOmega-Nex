@@ -36,12 +36,16 @@ jobs:
         run: |
           set -o pipefail
           {
-            wc -c .github/patches/virtual-new-profile.patch.gz.b64
-            base64 --decode .github/patches/virtual-new-profile.patch.gz.b64 > /tmp/virtual-new-profile.patch.gz
-            wc -c /tmp/virtual-new-profile.patch.gz
+            cat \
+              .github/patches/virtual-new-profile.part00 \
+              .github/patches/virtual-new-profile.part01 \
+              .github/patches/virtual-new-profile.part02 \
+              > /tmp/virtual-new-profile.b64
+            test "$(wc -c < /tmp/virtual-new-profile.b64)" -eq 20428
+            base64 --decode /tmp/virtual-new-profile.b64 > /tmp/virtual-new-profile.patch.gz
             gzip --test /tmp/virtual-new-profile.patch.gz
             gzip --decompress --stdout /tmp/virtual-new-profile.patch.gz > /tmp/virtual-new-profile.patch
-            wc -c /tmp/virtual-new-profile.patch
+            test "$(wc -c < /tmp/virtual-new-profile.patch)" -eq 66381
             git apply --check --verbose /tmp/virtual-new-profile.patch
             git apply /tmp/virtual-new-profile.patch
           } 2>&1 | tee patch-application.log
