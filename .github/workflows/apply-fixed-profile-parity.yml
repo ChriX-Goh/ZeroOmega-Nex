@@ -121,12 +121,16 @@ jobs:
 
           path = Path('packages/profile-workflow/src/commands.ts')
           source = path.read_text()
+          start = source.index('export type ProfileWorkflowCommandResponse =')
+          failure = source.index("\n  | {\n      readonly ok: false;", start)
+          success_branch = source[start:failure]
           declaration = '      readonly secretValue?: string;'
-          if declaration not in source:
+          if declaration not in success_branch:
               anchor = '      readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];\n'
-              if source.count(anchor) != 1:
-                  raise SystemExit(f'expected one success-response anchor, found {source.count(anchor)}')
-              source = source.replace(anchor, anchor + declaration + '\n')
+              if success_branch.count(anchor) != 1:
+                  raise SystemExit(f'expected one success-response anchor, found {success_branch.count(anchor)}')
+              success_branch = success_branch.replace(anchor, anchor + declaration + '\n')
+              source = source[:start] + success_branch + source[failure:]
           path.write_text(source)
           PY
 
