@@ -1,0 +1,43 @@
+name: Capture draft validation call sites
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/capture-draft-validation-call-sites.yml
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+          show-progress: false
+      - name: Collect validation and clone call sites
+        run: |
+          {
+            echo '## cloneProfileSpec'
+            rg -n --glob '!node_modules/**' --glob '!dist/**' 'cloneProfileSpec' . || true
+            echo
+            echo '## validateProfileSpec'
+            rg -n --glob '!node_modules/**' --glob '!dist/**' 'validateProfileSpec' . || true
+            echo
+            echo '## createProfileSpecRevision'
+            rg -n --glob '!node_modules/**' --glob '!dist/**' 'createProfileSpecRevision' . || true
+            echo
+            echo '## serializeProfileSpec'
+            rg -n --glob '!node_modules/**' --glob '!dist/**' 'serializeProfileSpec' . || true
+          } > /tmp/draft-validation-call-sites.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: draft-validation-call-sites
+          path: /tmp/draft-validation-call-sites.txt
+          if-no-files-found: error
