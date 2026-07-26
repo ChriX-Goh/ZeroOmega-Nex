@@ -66,7 +66,7 @@ requireAll('parity index', index, [
   'PR #11 remains Draft',
 ]);
 
-const auditRows = audit.match(/^\| [A-J]-\d+/gmu) ?? [];
+const auditRows = audit.match(/^\|\s+[A-J]-\d+\s+\|/gmu) ?? [];
 if (auditRows.length < 120) {
   failures.push(`UI audit has ${auditRows.length} classified rows; expected at least 120`);
 }
@@ -74,7 +74,7 @@ if (auditRows.length < 120) {
 const statusCounts = Object.fromEntries(
   ['DONE', 'PARTIAL', 'MISSING', 'BROKEN', 'UNVERIFIED'].map((status) => [
     status,
-    (audit.match(new RegExp(`\\| ${status} \\|`, 'gu')) ?? []).length,
+    (audit.match(new RegExp(`\\|\\s+${status}\\s+\\|`, 'gu')) ?? []).length,
   ]),
 );
 
