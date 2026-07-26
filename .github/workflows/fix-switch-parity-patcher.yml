@@ -1,0 +1,66 @@
+name: Fix Switch parity patcher
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/fix-switch-parity-patcher.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - name: Make replacement helper indentation-aware
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/apply-switch-table-parity.yml')
+          source = path.read_text()
+          old = """          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text()
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}: {old[:80]!r}')
+              target.write_text(source.replace(old, new))
+          """
+          new = """          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text()
+              matches = []
+              for indent in ('', '  ', '    ', '      '):
+                  candidate = indent + old.replace('\\n', '\\n' + indent)
+                  if source.count(candidate) == 1:
+                      matches.append((candidate, indent + new.replace('\\n', '\\n' + indent)))
+              if len(matches) != 1:
+                  raise SystemExit(
+                      f'{path}: expected one indentation-aware match, found {len(matches)}: {old[:80]!r}'
+                  )
+              old_value, new_value = matches[0]
+              target.write_text(source.replace(old_value, new_value))
+          """
+          if source.count(old) != 1:
+              raise SystemExit(f'helper block mismatch: {source.count(old)}')
+          path.write_text(source.replace(old, new))
+          PY
+          rm -f .github/workflows/fix-switch-parity-patcher.yml
+          rm -f .github/workflows/diagnose-switch-table-parity.yml
+      - name: Commit corrected patcher
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'ci: make Switch parity patch indentation-aware'
+          git push origin HEAD:feat/m8-profile-workflow
