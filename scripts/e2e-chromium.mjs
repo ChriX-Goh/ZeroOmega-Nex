@@ -196,8 +196,15 @@ try {
     await headerDetails.locator('summary').click();
   }
   await addHeader.click();
-  await options.getByLabel('Attached header 1 name').fill('X-E2E');
-  await options.getByLabel('Attached header 1 value').fill('attached');
+  await assertEventually(
+    async () => (await attachedHeaders.locator('.header-row').count()) === 1,
+    'Attached Rule List did not create a blank request-header row',
+  );
+  if (!(await headerDetails.evaluate((element) => element.open))) {
+    await headerDetails.locator('summary').click();
+  }
+  await attachedHeaders.locator('input[aria-label="Attached header 1 name"]').fill('X-E2E');
+  await attachedHeaders.locator('input[aria-label="Attached header 1 value"]').fill('attached');
   options.once('dialog', (dialog) => dialog.accept());
   await attachedRow.getByRole('button', { name: 'Delete attached Rule List' }).click();
   await attachRuleList.waitFor();
