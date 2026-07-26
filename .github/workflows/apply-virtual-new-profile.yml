@@ -31,7 +31,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Apply reviewed product patch
+      - name: Apply reviewed product patches
         shell: bash
         run: |
           set -o pipefail
@@ -48,37 +48,17 @@ jobs:
             test "$(wc -c < /tmp/virtual-new-profile.patch)" -eq 66381
             git apply --check --verbose /tmp/virtual-new-profile.patch
             git apply /tmp/virtual-new-profile.patch
+
+            test "$(wc -c < .github/patches/virtual-new-profile-supplement.patch.gz.b64)" -eq 6168
+            base64 --decode .github/patches/virtual-new-profile-supplement.patch.gz.b64 \
+              > /tmp/virtual-new-profile-supplement.patch.gz
+            gzip --test /tmp/virtual-new-profile-supplement.patch.gz
+            gzip --decompress --stdout /tmp/virtual-new-profile-supplement.patch.gz \
+              > /tmp/virtual-new-profile-supplement.patch
+            test "$(wc -c < /tmp/virtual-new-profile-supplement.patch)" -eq 18523
+            git apply --check --verbose /tmp/virtual-new-profile-supplement.patch
+            git apply /tmp/virtual-new-profile-supplement.patch
           } 2>&1 | tee patch-application.log
-
-      - name: Normalize optional route rewrites
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          path = Path('packages/profile-workflow/src/profile-operations.ts')
-          text = path.read_text()
-          pattern = re.compile(
-              r"  draft\.settings\.startup\.route = replaceRouteReference\(\n"
-              r"    draft\.settings\.startup\.route,\n"
-              r"    fromProfileId,\n"
-              r"    toProfileId,\n"
-              r"  \);\n"
-          )
-          replacement = (
-              "  const startupRoute = replaceRouteReference(\n"
-              "    draft.settings.startup.route,\n"
-              "    fromProfileId,\n"
-              "    toProfileId,\n"
-              "  );\n"
-              "  if (startupRoute === undefined) delete draft.settings.startup.route;\n"
-              "  else draft.settings.startup.route = startupRoute;\n"
-          )
-          text, count = pattern.subn(replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'startup route rewrite count was {count}')
-          path.write_text(text)
-          PY
 
       - name: Generate CSP-safe validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
