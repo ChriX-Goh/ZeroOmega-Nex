@@ -129,16 +129,17 @@ jobs:
 
           validation_path = Path('packages/profile-spec/src/validation.ts')
           validation = validation_path.read_text()
-          empty_endpoint_rule = """      if (references.length === 0) {
-            issues.push(
-              issue(
-                'profile.fixed-without-endpoint',
-                `/profiles/${profileIndex}/proxyByScheme`,
-                'fixed profile must reference at least one proxy endpoint',
-              ),
-            );
-          }
-          """
+          empty_endpoint_rule = "\n".join([
+              "      if (references.length === 0) {",
+              "        issues.push(",
+              "          issue(",
+              "            'profile.fixed-without-endpoint',",
+              "            `/profiles/${profileIndex}/proxyByScheme`,",
+              "            'fixed profile must reference at least one proxy endpoint',",
+              "          ),",
+              "        );",
+              "      }",
+          ]) + "\n"
           if validation.count(empty_endpoint_rule) != 1:
               raise SystemExit(
                   f'blank Fixed validation rule mismatch: {validation.count(empty_endpoint_rule)}'
@@ -148,18 +149,19 @@ jobs:
           profile_spec_test_path = Path('packages/profile-spec/src/index.test.ts')
           profile_spec_test = profile_spec_test_path.read_text()
           test_marker = "  it('rejects missing endpoint and profile references', () => {\n"
-          blank_fixed_test = """  it('accepts a blank fixed profile before proxy endpoints are configured', () => {
-            const value = validSpec();
-            const fixed = value.profiles[0]!;
-            if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
-            fixed.proxyByScheme = {};
-
-            const result = validateProfileSpec(value);
-            expect(result.valid).toBe(true);
-            expect(result.issues).toEqual([]);
-          });
-
-          """
+          blank_fixed_test = "\n".join([
+              "  it('accepts a blank fixed profile before proxy endpoints are configured', () => {",
+              "    const value = validSpec();",
+              "    const fixed = value.profiles[0]!;",
+              "    if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');",
+              "    fixed.proxyByScheme = {};",
+              "",
+              "    const result = validateProfileSpec(value);",
+              "    expect(result.valid).toBe(true);",
+              "    expect(result.issues).toEqual([]);",
+              "  });",
+              "",
+          ]) + "\n"
           if profile_spec_test.count(test_marker) != 1:
               raise SystemExit(
                   f'blank Fixed test marker mismatch: {profile_spec_test.count(test_marker)}'
