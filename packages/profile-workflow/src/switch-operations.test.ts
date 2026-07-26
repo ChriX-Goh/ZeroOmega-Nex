@@ -94,23 +94,29 @@ describe('Switch Profile draft operations', () => {
     expect(validateProfileSpec(duplicated.draft).valid).toBe(true);
   });
 
-  it('uses the default result profile and respects top-or-bottom insertion settings', () => {
+  it('appends editor-added rules and copies the previous rule after the first row', () => {
     const ids = deterministicIds();
     const created = createSwitchProfileDraft(workflowFixture(), ids);
     const profile = switchProfile(created.draft, created.profileId);
     profile.defaultRoute = { kind: 'system' };
 
     const first = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');
-    expect(switchProfile(first.draft, created.profileId).rules[0]?.route).toEqual({
-      kind: 'system',
-    });
+    const firstProfile = switchProfile(first.draft, created.profileId);
+    expect(firstProfile.rules[0]?.route).toEqual({ kind: 'system' });
+    firstProfile.rules[0]!.route = { kind: 'direct' };
+    firstProfile.rules[0]!.note = 'template note';
 
     first.draft.settings.interface.addConditionsToBottom = false;
     const second = addSwitchRuleDraft(first.draft, created.profileId, ids, 'url-wildcard');
-    expect(switchProfile(second.draft, created.profileId).rules.map((rule) => rule.id)).toEqual([
-      second.ruleId,
-      first.ruleId,
-    ]);
+    const secondProfile = switchProfile(second.draft, created.profileId);
+
+    expect(secondProfile.rules.map((rule) => rule.id)).toEqual([first.ruleId, second.ruleId]);
+    expect(secondProfile.rules[1]).toMatchObject({
+      condition: secondProfile.rules[0]?.condition,
+      route: { kind: 'direct' },
+      note: 'template note',
+    });
+    expect(secondProfile.rules[1]).not.toBe(secondProfile.rules[0]);
   });
 
   it('moves and deletes rules while preserving first-match order', () => {

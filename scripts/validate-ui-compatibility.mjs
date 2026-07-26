@@ -20,6 +20,7 @@ const advancedProfileOperationsPath =
   'packages/profile-workflow/src/advanced-profile-operations.ts';
 const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
+const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 
 const [
   popupApp,
@@ -40,6 +41,7 @@ const [
   advancedProfileOperations,
   profileOperations,
   runtime,
+  switchOperations,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -59,6 +61,7 @@ const [
   readFile(advancedProfileOperationsPath, 'utf8'),
   readFile(profileOperationsPath, 'utf8'),
   readFile(runtimePath, 'utf8'),
+  readFile(switchOperationsPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -168,6 +171,18 @@ const requirements = [
       switchProfile.includes('Default profile') &&
       !switchProfile.includes('Ordered Switch Profile rules'),
     'Switch Profile must use the original compact rule table, grouped condition help, drag handle, and table-bottom default row.',
+  ],
+  [
+    switchOperations.includes('const template = profile.rules.at(-1);') &&
+      switchOperations.includes('...structuredClone(template)') &&
+      switchOperations.includes('profile.rules.push(rule);') &&
+      !switchOperations
+        .slice(
+          switchOperations.indexOf('export function addSwitchRuleDraft'),
+          switchOperations.indexOf('export function duplicateSwitchRuleDraft'),
+        )
+        .includes('addConditionsToBottom'),
+    'Options-added Switch rules must append and copy the previous rule; the Popup insertion preference must not control the editor button.',
   ],
   [
     profileOperations.includes('proxyByScheme: {}') &&

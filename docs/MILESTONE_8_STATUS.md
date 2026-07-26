@@ -68,7 +68,8 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Native drag handles and keyboard Up/Down controls preserve first-match order.
 - Delete, clone, enable, and note actions are inline; the default profile is a separate table-bottom row.
 - Full-URL rules expose a capability warning.
-- New rules inherit the Switch profile's current default route and honor `addConditionsToBottom` for top-or-bottom insertion.
+- The Options editor always appends a new rule. The first rule uses the current default route; later rows copy the final rule as their template.
+- `addConditionsToBottom` belongs to Popup/current-site condition injection and no longer changes the Options editor button.
 - Unit tests, component-rendering tests, permanent UI compatibility guards, the knowledge graph, and the audit matrix were updated in the same product commit.
 - Integration run `30188210782` passed full repository verification before product commit `6a147772ad5a60e9db45c12194440d5d715ce7ff`.
 - This is a partial Switch restoration, not completion: source editing, attached Rule List, complete localization, browser drag E2E, and source-backed default-condition semantics remain open.
@@ -112,7 +113,8 @@ Current blockers include:
 
 - Switch source editor and bidirectional parsing,
 - attached Rule List lifecycle, match/default routes, format/URL/headers, update state, text editor, and detach confirmation,
-- source-backed blank/default values for newly added Switch conditions,
+- source-backed incomplete-condition drafts: original text rules clear the copied pattern, while Nex still requires every Draft to be semantically valid,
+- Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
 - Virtual browser E2E creation and reference-migration coverage,

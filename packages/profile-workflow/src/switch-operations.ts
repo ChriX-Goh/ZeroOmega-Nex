@@ -110,13 +110,19 @@ export function addSwitchRuleDraft(
   const draft = cloneProfileSpec(spec);
   const profile = findSwitchProfile(draft, profileId);
   const ruleId = idFactory('rule');
-  const rule: SwitchRule = {
-    id: ruleId,
-    condition: createDefaultSwitchCondition(conditionKind),
-    route: structuredClone(profile.defaultRoute),
-  };
-  if (draft.settings.interface.addConditionsToBottom) profile.rules.push(rule);
-  else profile.rules.unshift(rule);
+  const template = profile.rules.at(-1);
+  const rule: SwitchRule =
+    template === undefined
+      ? {
+          id: ruleId,
+          condition: createDefaultSwitchCondition(conditionKind),
+          route: structuredClone(profile.defaultRoute),
+        }
+      : {
+          ...structuredClone(template),
+          id: ruleId,
+        };
+  profile.rules.push(rule);
   assertValidDraft(draft);
   return { draft, ruleId };
 }
