@@ -83,6 +83,7 @@ export interface SwitchProfile extends ProfileBase {
   kind: 'switch';
   rules: SwitchRule[];
   defaultRoute: ProfileRouteTarget;
+  attachedRuleListProfileId?: Identifier;
 }
 
 export type RuleListFormat = 'autoproxy' | 'switchy';
@@ -102,7 +103,9 @@ export interface RuleSourceHeader {
   value: LiteralHeaderValue | SecretHeaderValue;
 }
 
-export type RuleSourceLocation = { kind: 'inline'; content: string } | { kind: 'url'; url: string };
+export type RuleSourceLocation =
+  | { kind: 'inline'; content: string }
+  | { kind: 'url'; url: string; content?: string };
 
 export interface RuleSource {
   id: Identifier;

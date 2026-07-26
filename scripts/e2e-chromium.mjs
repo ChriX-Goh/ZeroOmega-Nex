@@ -165,6 +165,37 @@ try {
   await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
+  await options.getByRole('button', { name: 'switch', exact: true }).click();
+  const attachRuleList = options.getByRole('button', { name: 'Attach Rule List', exact: true });
+  await attachRuleList.click();
+  const attachedRow = options.locator('[data-attached-rule-list-row]');
+  await attachedRow.waitFor();
+  assert.equal(
+    await options.getByRole('button', { name: '__ruleListOf_switch', exact: true }).count(),
+    0,
+  );
+  const attachedEnabled = attachedRow.getByRole('checkbox', { name: 'Use attached Rule List' });
+  assert.equal(await attachedEnabled.isChecked(), true);
+  await attachedEnabled.uncheck();
+  assert.equal(await attachedEnabled.isChecked(), false);
+  await attachedEnabled.check();
+  await attachedRow.getByLabel('Attached Rule List matching route').selectOption('system');
+  const attachedConfig = options.locator('[data-attached-rule-list-config]');
+  await attachedConfig.waitFor();
+  await attachedConfig
+    .getByLabel('Attached Rule List text')
+    .fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
+  await options
+    .locator('[data-attached-rule-list-headers]')
+    .getByRole('button', { name: 'Add header' })
+    .click();
+  await options.getByLabel('Attached header 1 name').fill('X-E2E');
+  await options.getByLabel('Attached header 1 value').fill('attached');
+  options.once('dialog', (dialog) => dialog.accept());
+  await attachedRow.getByRole('button', { name: 'Delete attached Rule List' }).click();
+  await attachRuleList.waitFor();
+  assert.equal(await options.locator('[data-attached-rule-list-row]').count(), 0);
+
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
   await context?.close();

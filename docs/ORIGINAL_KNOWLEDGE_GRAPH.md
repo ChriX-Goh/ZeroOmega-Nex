@@ -189,10 +189,13 @@ graph TD
 
 ### 附属 RuleListProfile
 
-- 可给 SwitchProfile 附加一个 RuleListProfile。
-- 附属项可启用/禁用，设置匹配结果情景模式。
-- 可选择格式、URL、自定义请求头、立即下载、查看/编辑规则文本。
-- 删除附属规则列表必须确认，并恢复原默认情景模式引用。
+- 可给 SwitchProfile 附加一个 RuleListProfile；原版隐藏名称固定为 `__ruleListOf_<父情景模式名称>`，不进入普通导航、Quick Switch、Startup 或其他 profile selector。
+- 父 Switch 显式持有附属关系。启用时父默认路由指向隐藏 RuleList；隐藏 RuleList 的默认路由保存用户可见的 Switch 默认路由。禁用时父 Switch 直接使用该可见默认路由。
+- 附属项可设置匹配结果情景模式、Switchy/AutoProxy 格式、inline/URL 来源、自定义请求头和规则文本。inline 文本可编辑；URL 来源使用已下载缓存并只读，缓存必须随原版备份保留以支持离线编译。
+- 新增请求头先产生空白 Draft 行；空名称属于 Draft warning，Apply 仍严格拒绝。敏感 header 继续使用 secret reference，原始秘密不得进入 ProfileSpec。
+- 父情景模式改名/改色必须同步隐藏项；复制父项必须复制独立隐藏 profile/source；删除父项必须级联删除，单独解除附属则先恢复原默认路由并确认。
+- 原版导入通过 `__ruleListOf_<父名称>` 自动重建关系；不得把隐藏附属项当作普通独立 RuleList 展示。
+- “立即下载”、更新时间和下载错误属于后台网络更新服务，未实现前保持独立缺口，不能用已有缓存冒充下载功能。
 
 ### 条件语义
 
@@ -211,7 +214,7 @@ graph TD
 - Applied、导入、历史修订和 Apply candidate 保持严格校验；无效 Draft 不会进入浏览器激活、PAC 快照或 Applied 状态。
 - 已实现原版结果模式源码的双向 compose/parse、备注、内置/用户结果引用、默认规则、原版条件类型和行级错误；源码修改纳入全局 Apply/Discard，并在导航离开前解析。
 - 普通规则表已移除 Nex 自创的逐行启用复选框和正则 flags 输入；旧 Nex 数据必须先显式 Normalize 才能进入可逆源码模式。
-- 源码编辑仍缺完整 locale、浏览器交互 E2E 和编辑模式跨重载持久化；附属 RuleList、字段级错误展示和浏览器拖放 E2E 也未完成，因此 Switch 整体仍是 `PARTIAL`。
+- 图形/源码编辑已闭环；附属 RuleList 的创建、启停、路由、格式/URL/headers/文本、隐藏导航、导入重建、复制与删除事务已实现。网络立即下载/更新时间/错误状态、完整 locale、源码模式跨重载持久化和浏览器拖放 E2E 仍未完成，因此 Switch 整体仍是 `PARTIAL`。
 
 ## 9. RuleListProfile 知识节点
 
@@ -359,3 +362,4 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 | 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                                          |
 | 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                         | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                      |
 | 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口         | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee` |
+| 2026-07-27 | 恢复 Switch 附属 Rule List 隐藏关系、启停/路由、格式/URL/headers/文本、缓存迁移及复制/删除事务                               | 原版 `profile_switch.jade`、`switch_profile.coffee`、`profiles.coffee`                       |

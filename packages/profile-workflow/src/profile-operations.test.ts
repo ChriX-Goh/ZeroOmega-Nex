@@ -6,6 +6,10 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import {
+  createAttachedRuleListDraft,
+  inspectAttachedRuleList,
+} from './attached-rule-list-operations.js';
+import {
   createFixedProfileDraft,
   createVirtualProfileDraft,
   deleteProfileDraft,
@@ -13,6 +17,7 @@ import {
   replaceProfileReferencesDraft,
   type ProfileWorkflowIdFactory,
 } from './profile-operations.js';
+import { createSwitchProfileDraft } from './switch-operations.js';
 import { workflowFixture } from './test-fixture.js';
 
 function deterministicIds(): ProfileWorkflowIdFactory {
@@ -76,6 +81,47 @@ describe('profile draft operations', () => {
       profileId: result.profileId,
     });
     expect(validateProfileSpec(result.draft).valid).toBe(true);
+  });
+
+  it('duplicates a Switch profile with an independent hidden attached Rule List', () => {
+    const ids = deterministicIds();
+    const created = createSwitchProfileDraft(workflowFixture(), ids, 'Owner');
+    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const result = duplicateProfileDraft(attached, created.profileId, ids);
+    const originalState = inspectAttachedRuleList(result.draft, created.profileId);
+    const duplicateState = inspectAttachedRuleList(result.draft, result.profileId);
+
+    expect(originalState).toBeDefined();
+    expect(duplicateState).toBeDefined();
+    expect(duplicateState?.profile.id).not.toBe(originalState?.profile.id);
+    expect(duplicateState?.source.id).not.toBe(originalState?.source.id);
+    expect(duplicateState?.enabled).toBe(true);
+    expect(duplicateState?.profile.name).toBe(
+      `__ruleListOf_${result.draft.profiles.find((profile) => profile.id === result.profileId)?.name}`,
+    );
+    expect(duplicateState?.source.name).toBe('Owner copy attached rules');
+    expect(result.draft.settings.quickSwitch.routes).toContainEqual({
+      kind: 'profile',
+      profileId: result.profileId,
+    });
+    expect(result.draft.settings.quickSwitch.routes).not.toContainEqual({
+      kind: 'profile',
+      profileId: duplicateState?.profile.id,
+    });
+    expect(validateProfileSpec(result.draft).valid).toBe(true);
+  });
+
+  it('deletes a Switch profile together with its hidden attached Rule List and source', () => {
+    const ids = deterministicIds();
+    const created = createSwitchProfileDraft(workflowFixture(), ids, 'Owner');
+    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const state = inspectAttachedRuleList(attached, created.profileId);
+    const deleted = deleteProfileDraft(attached, created.profileId);
+
+    expect(deleted.profiles.some((profile) => profile.id === created.profileId)).toBe(false);
+    expect(deleted.profiles.some((profile) => profile.id === state?.profile.id)).toBe(false);
+    expect(deleted.ruleSources.some((source) => source.id === state?.source.id)).toBe(false);
+    expect(validateProfileSpec(deleted).valid).toBe(true);
   });
 
   it('deletes a profile and removes resources that became orphaned', () => {

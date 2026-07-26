@@ -9,6 +9,8 @@ const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPan
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
 const fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';
 const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte';
+const attachedRuleListConfigPath =
+  'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte';
 const virtualProfilePath = 'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
@@ -23,6 +25,10 @@ const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
+const attachedRuleListOperationsPath =
+  'packages/profile-workflow/src/attached-rule-list-operations.ts';
+const profileSpecTypesPath = 'packages/profile-spec/src/types.ts';
+const legacyImportImplementationPath = 'packages/legacy-zeroomega/src/import.ts';
 const profileSpecValidationPath = 'packages/profile-spec/src/validation.ts';
 const profileSpecSerializationPath = 'packages/profile-spec/src/serialization.ts';
 const workflowStatePath = 'packages/profile-workflow/src/state.ts';
@@ -38,6 +44,7 @@ const [
   themePanel,
   fixedProfile,
   switchProfile,
+  attachedRuleListConfig,
   virtualProfile,
   optionsHtml,
   i18n,
@@ -50,6 +57,9 @@ const [
   runtime,
   switchOperations,
   switchSource,
+  attachedRuleListOperations,
+  profileSpecTypes,
+  legacyImportImplementation,
   profileSpecValidation,
   profileSpecSerialization,
   workflowState,
@@ -64,6 +74,7 @@ const [
   readFile(themePanelPath, 'utf8'),
   readFile(fixedProfilePath, 'utf8'),
   readFile(switchProfilePath, 'utf8'),
+  readFile(attachedRuleListConfigPath, 'utf8'),
   readFile(virtualProfilePath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
@@ -76,6 +87,9 @@ const [
   readFile(runtimePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
+  readFile(attachedRuleListOperationsPath, 'utf8'),
+  readFile(profileSpecTypesPath, 'utf8'),
+  readFile(legacyImportImplementationPath, 'utf8'),
   readFile(profileSpecValidationPath, 'utf8'),
   readFile(profileSpecSerializationPath, 'utf8'),
   readFile(workflowStatePath, 'utf8'),
@@ -207,6 +221,26 @@ const requirements = [
       !switchProfile.includes('Rule enabled') &&
       !switchProfile.includes('regular-expression flags'),
     'Switch Profile must provide the original result-enabled source editor, block invalid source on Apply/navigation, and avoid Nex-only enable/regex-flags controls.',
+  ],
+  [
+    profileSpecTypes.includes('attachedRuleListProfileId?: Identifier') &&
+      profileSpecTypes.includes("{ kind: 'url'; url: string; content?: string }") &&
+      attachedRuleListOperations.includes('export function createAttachedRuleListDraft') &&
+      attachedRuleListOperations.includes('export function setAttachedRuleListEnabledDraft') &&
+      attachedRuleListOperations.includes('export function detachAttachedRuleListDraft') &&
+      attachedRuleListOperations.includes('`__ruleListOf_${owner.name}`') &&
+      switchProfile.includes('data-attached-rule-list-row') &&
+      switchProfile.includes('data-attach-rule-list-section') &&
+      attachedRuleListConfig.includes('data-attached-rule-list-config') &&
+      attachedRuleListConfig.includes('data-attached-rule-list-headers') &&
+      optionsApp.includes('attachedRuleListProfileIds') &&
+      virtualProfile.includes('attachedRuleListProfileIds') &&
+      legacyImportImplementation.includes('profile.attached-rule-list-linked') &&
+      legacyImportImplementation.includes('rule-source.downloaded-cache-preserved') &&
+      profileSpecValidation.includes('profile.external-attached-rule-list-reference') &&
+      profileOperations.includes('duplicateSwitchProfileResources') &&
+      profileOperations.includes('deleted.attachedRuleListProfileId'),
+    'Switch attached Rule Lists must be hidden owned profiles with source-backed lifecycle, import reconstruction, cached URL content, duplication, and cascading deletion.',
   ],
   [
     !switchOperations.includes('`${source.note} copy`') &&

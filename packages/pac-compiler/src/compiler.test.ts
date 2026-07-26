@@ -127,10 +127,25 @@ describe('deterministic PAC compiler', () => {
     if (pac.ok) throw new Error('expected unsupported PAC nesting');
     expect(pac.issues.map((issue) => issue.code)).toContain('profile.pac-nesting-unsupported');
 
-    const remote = compilePac(spec, profileRoute(spec, 'rule-autoproxy'));
-    expect(remote.ok).toBe(false);
-    if (remote.ok) throw new Error('expected unavailable rule-source block');
-    expect(remote.issues.map((issue) => issue.code)).toContain('rule-source.content-unavailable');
+    const cachedRemote = compilePac(spec, profileRoute(spec, 'rule-autoproxy'));
+    expect(cachedRemote.ok).toBe(true);
+    const remoteProfile = spec.profiles.find(
+      (profile) => profile.kind === 'rule-list' && profile.name === 'rule-autoproxy',
+    );
+    if (!remoteProfile || remoteProfile.kind !== 'rule-list') {
+      throw new Error('remote Rule List fixture mismatch');
+    }
+    const remoteSource = spec.ruleSources.find((source) => source.id === remoteProfile.sourceId);
+    if (!remoteSource || remoteSource.location.kind !== 'url') {
+      throw new Error('remote Rule List source fixture mismatch');
+    }
+    delete remoteSource.location.content;
+    const unavailableRemote = compilePac(spec, profileRoute(spec, 'rule-autoproxy'));
+    expect(unavailableRemote.ok).toBe(false);
+    if (unavailableRemote.ok) throw new Error('expected unavailable rule-source block');
+    expect(unavailableRemote.issues.map((issue) => issue.code)).toContain(
+      'rule-source.content-unavailable',
+    );
   });
 
   it('enforces script, profile, and rule budgets without emitting partial artifacts', async () => {

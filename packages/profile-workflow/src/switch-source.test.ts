@@ -1,6 +1,10 @@
 import type { Condition, SwitchProfile, SwitchRule } from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
+import {
+  createAttachedRuleListDraft,
+  inspectAttachedRuleList,
+} from './attached-rule-list-operations.js';
 import type { ProfileWorkflowIdFactory } from './profile-operations.js';
 import { createSwitchProfileDraft } from './switch-operations.js';
 import { composeSwitchProfileSource, parseSwitchProfileSourceDraft } from './switch-source.js';
@@ -70,6 +74,32 @@ describe('SwitchyOmega source editing', () => {
     );
     expect(parsedProfile?.rules).toEqual(profile.rules);
     expect(parsedProfile?.defaultRoute).toEqual({ kind: 'system' });
+  });
+
+  it('uses the visible base default while an attached Rule List owns the runtime default route', () => {
+    const { ids, spec, profile } = fixture();
+    profile.defaultRoute = { kind: 'system' };
+    const attached = createAttachedRuleListDraft(spec, profile.id, ids);
+    const state = inspectAttachedRuleList(attached, profile.id);
+    expect(state?.enabled).toBe(true);
+
+    const composed = composeSwitchProfileSource(attached, profile.id);
+    expect(composed.ok).toBe(true);
+    if (!composed.ok) throw new Error(composed.error.message);
+    expect(composed.source).toContain('* +system');
+    expect(composed.source).not.toContain('__ruleListOf_');
+
+    const parsed = parseSwitchProfileSourceDraft(
+      attached,
+      profile.id,
+      composed.source.replace('* +system', '* +direct'),
+      ids,
+    );
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    const parsedState = inspectAttachedRuleList(parsed.draft, profile.id);
+    expect(parsedState?.enabled).toBe(true);
+    expect(parsedState?.profile.defaultRoute).toEqual({ kind: 'direct' });
   });
 
   it('round-trips every original condition representation', () => {

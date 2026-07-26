@@ -4,6 +4,7 @@ import {
   type Condition,
   type ProfileRouteTarget,
   type ProfileSpec,
+  type RuleListProfile,
   type SwitchProfile,
   type SwitchRule,
   type Weekday,
@@ -116,6 +117,53 @@ function findSwitchProfile(spec: ProfileSpec, profileId: string): SwitchProfile 
   );
 }
 
+function attachedRuleListProfile(
+  spec: ProfileSpec,
+  profile: SwitchProfile,
+): RuleListProfile | undefined {
+  if (profile.attachedRuleListProfileId === undefined) return undefined;
+  return spec.profiles.find(
+    (candidate): candidate is RuleListProfile =>
+      candidate.id === profile.attachedRuleListProfileId && candidate.kind === 'rule-list',
+  );
+}
+
+function routeTargetsProfile(route: ProfileRouteTarget, profileId: string): boolean {
+  return route.kind === 'profile' && route.profileId === profileId;
+}
+
+function sourceDefaultRoute(spec: ProfileSpec, profile: SwitchProfile): ProfileRouteTarget {
+  const attached = attachedRuleListProfile(spec, profile);
+  return attached && routeTargetsProfile(profile.defaultRoute, attached.id)
+    ? attached.defaultRoute
+    : profile.defaultRoute;
+}
+
+function applySourceDefaultRoute(
+  spec: ProfileSpec,
+  profile: SwitchProfile,
+  route: ProfileRouteTarget,
+): void {
+  const attached = attachedRuleListProfile(spec, profile);
+  if (!attached) {
+    profile.defaultRoute = structuredClone(route);
+    return;
+  }
+  const enabled = routeTargetsProfile(profile.defaultRoute, attached.id);
+  attached.defaultRoute = structuredClone(route);
+  if (!enabled) profile.defaultRoute = structuredClone(route);
+}
+
+function attachedProfileIds(spec: ProfileSpec): ReadonlySet<string> {
+  return new Set(
+    spec.profiles.flatMap((profile) =>
+      profile.kind === 'switch' && profile.attachedRuleListProfileId !== undefined
+        ? [profile.attachedRuleListProfileId]
+        : [],
+    ),
+  );
+}
+
 function routeName(spec: ProfileSpec, route: ProfileRouteTarget): string | undefined {
   if (route.kind === 'direct' || route.kind === 'system') return route.kind;
   return spec.profiles.find((profile) => profile.id === route.profileId)?.name;
@@ -123,7 +171,10 @@ function routeName(spec: ProfileSpec, route: ProfileRouteTarget): string | undef
 
 function routeFromName(spec: ProfileSpec, name: string): ProfileRouteTarget | undefined {
   if (name === 'direct' || name === 'system') return { kind: name };
-  const profile = spec.profiles.find((candidate) => candidate.name === name);
+  const hidden = attachedProfileIds(spec);
+  const profile = spec.profiles.find(
+    (candidate) => candidate.name === name && !hidden.has(candidate.id),
+  );
   return profile ? { kind: 'profile', profileId: profile.id } : undefined;
 }
 
@@ -272,7 +323,7 @@ export function composeSwitchProfileSource(
     lines.push(`${condition.source} +${resultName}`);
   }
 
-  const defaultName = routeName(spec, profile.defaultRoute);
+  const defaultName = routeName(spec, sourceDefaultRoute(spec, profile));
   if (!defaultName) {
     return {
       ok: false,
@@ -569,7 +620,7 @@ export function parseSwitchProfileSourceDraft(
     };
   }
   profile.rules = mergeRuleIds(profile.rules, parsedRules, idFactory);
-  profile.defaultRoute = structuredClone(defaultRoute);
+  applySourceDefaultRoute(draft, profile, defaultRoute);
 
   const validation = validateProfileSpecDraft(draft);
   const blockingIssue = validation.issues.find((issue) => issue.severity === 'error');

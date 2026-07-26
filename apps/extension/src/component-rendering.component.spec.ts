@@ -1,5 +1,6 @@
 import {
   addSwitchRuleDraft,
+  createAttachedRuleListDraft,
   createDefaultProfileSpec,
   createFixedProfileDraft,
   createRuleListProfileDraft,
@@ -124,6 +125,32 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Edit Source');
     expect(body).toContain('<optgroup label="Basic conditions">');
     expect(body).not.toContain('Ordered Switch Profile rules');
+  });
+
+  it('renders the attached Rule List row, configuration, headers, and detach action', () => {
+    const ids = idFactory();
+    const created = createSwitchProfileDraft(baseSpec(), ids, 'Owner');
+    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const { body } = render(SwitchProfileEditor, {
+      props: {
+        spec: attached,
+        profileId: created.profileId,
+        disabled: false,
+        idFactory: ids,
+        onReplaceDraft: replaceDraft,
+        onRegisterBeforeAction: () => undefined,
+        onSourceDirtyChange: () => undefined,
+      },
+    });
+
+    expect(body).toContain('data-attached-rule-list-row');
+    expect(body).toContain('Use attached Rule List');
+    expect(body).toContain('Attached Rule List matching route');
+    expect(body).toContain('data-attached-rule-list-config');
+    expect(body).toContain('Attached Rule List source type');
+    expect(body).toContain('Attached Rule List text');
+    expect(body).toContain('data-attached-rule-list-headers');
+    expect(body).toContain('Delete attached Rule List');
   });
 
   it('renders the Rule List source and routing editors', () => {

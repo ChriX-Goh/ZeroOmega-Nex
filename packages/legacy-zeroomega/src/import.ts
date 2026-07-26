@@ -909,7 +909,12 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
   const cachedContent = stringValue(raw.ruleList) ?? '';
   let location: RuleSource['location'];
   if (sourceUrl) {
-    location = { kind: 'url', url: sourceUrl };
+    const content = decodeMaybeBase64RuleList(cachedContent, format);
+    location = {
+      kind: 'url',
+      url: sourceUrl,
+      ...(raw.ruleList === undefined ? {} : { content }),
+    };
     state.report.add(
       'exact',
       'rule-source.url-mapped',
@@ -918,10 +923,14 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
     );
     if (raw.ruleList !== undefined) {
       state.report.add(
-        'ignored-generated',
-        'rule-source.cache-omitted',
+        'exact',
+        content === cachedContent
+          ? 'rule-source.downloaded-cache-preserved'
+          : 'rule-source.downloaded-cache-base64-decoded',
         `${descriptor.path}/ruleList`,
-        'Downloaded rule-list cache was omitted and will be refreshed.',
+        content === cachedContent
+          ? 'Downloaded rule-list content was preserved for offline use.'
+          : 'Downloaded base64 AutoProxy content was decoded and preserved for offline use.',
       );
     }
   } else {
@@ -1446,6 +1455,21 @@ export function importZeroOmegaBackup(
       continue;
     const profile = mapProfile(descriptor, state);
     if (profile) profiles.push(profile);
+  }
+
+  const profileByName = new Map(profiles.map((profile) => [profile.name, profile]));
+  for (const profile of profiles) {
+    if (profile.kind !== 'switch') continue;
+    const attachedName = `__ruleListOf_${profile.name}`;
+    const attached = profileByName.get(attachedName);
+    if (!attached || attached.kind !== 'rule-list') continue;
+    profile.attachedRuleListProfileId = attached.id;
+    state.report.add(
+      'exact',
+      'profile.attached-rule-list-linked',
+      `/+${profile.name}/defaultProfileName`,
+      `Hidden Rule List "${attachedName}" was linked to its parent Switch profile.`,
+    );
   }
 
   const settingsResult = mapSettings(decoded.value.options, state);

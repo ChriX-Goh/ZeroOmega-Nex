@@ -11,16 +11,26 @@
   } from '@zeroomega-nex/profile-spec';
   import {
     addSwitchRuleDraft,
+    attachedRuleListProfileIds,
     composeSwitchProfileSource,
+    createAttachedRuleListDraft,
     createDefaultSwitchCondition,
     deleteSwitchRuleDraft,
+    detachAttachedRuleListDraft,
     duplicateSwitchRuleDraft,
+    inspectAttachedRuleList,
     moveSwitchRuleDraft,
     parseSwitchProfileSourceDraft,
+    setAttachedRuleListEnabledDraft,
+    updateAttachedRuleListMatchRouteDraft,
+    updateSwitchDefaultRouteDraft,
+    type AttachedRuleListState,
     type ProfileWorkflowIdFactory,
     type SwitchSourceError,
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
+
+  import AttachedRuleListConfig from './AttachedRuleListConfig.svelte';
 
   export let spec: ProfileSpec;
   export let profileId: string;
@@ -162,6 +172,8 @@
   ];
 
   let profile: SwitchProfile | undefined;
+  let attachedState: AttachedRuleListState | undefined;
+  let hiddenProfileIds: ReadonlySet<string> = new Set();
   let routeProfiles: readonly UserProfile[] = [];
   let showConditionHelp = false;
   let notesExpanded = false;
@@ -178,7 +190,11 @@
     (candidate): candidate is SwitchProfile =>
       candidate.id === profileId && candidate.kind === 'switch',
   );
-  $: routeProfiles = spec.profiles.filter((candidate) => candidate.id !== profileId);
+  $: attachedState = inspectAttachedRuleList(spec, profileId);
+  $: hiddenProfileIds = attachedRuleListProfileIds(spec);
+  $: routeProfiles = spec.profiles.filter(
+    (candidate) => candidate.id !== profileId && !hiddenProfileIds.has(candidate.id),
+  );
   $: useAdvancedConditions =
     spec.settings.interface.showAdvancedConditions ||
     (profile?.rules.some((rule) => !basicConditionKinds.has(rule.condition.kind)) ?? false);
@@ -249,14 +265,32 @@
   async function updateDefaultRoute(value: string): Promise<void> {
     const route = parseRoute(value);
     if (!route) return;
-    const draft = cloneProfileSpecDraft(spec);
-    const targetProfile = draft.profiles.find(
-      (candidate): candidate is SwitchProfile =>
-        candidate.id === profileId && candidate.kind === 'switch',
-    );
-    if (!targetProfile) return;
-    targetProfile.defaultRoute = route;
-    await onReplaceDraft(draft);
+    await onReplaceDraft(updateSwitchDefaultRouteDraft(spec, profileId, route));
+  }
+
+  async function attachRuleList(): Promise<void> {
+    await onReplaceDraft(createAttachedRuleListDraft(spec, profileId, idFactory));
+  }
+
+  async function toggleAttachedRuleList(enabled: boolean): Promise<void> {
+    await onReplaceDraft(setAttachedRuleListEnabledDraft(spec, profileId, enabled));
+  }
+
+  async function updateAttachedMatchRoute(value: string): Promise<void> {
+    const route = parseRoute(value);
+    if (!route) return;
+    await onReplaceDraft(updateAttachedRuleListMatchRouteDraft(spec, profileId, route));
+  }
+
+  async function detachRuleList(): Promise<void> {
+    if (
+      !globalThis.confirm(
+        'Delete the attached Rule List? The Switch default route will be restored before removal.',
+      )
+    ) {
+      return;
+    }
+    await onReplaceDraft(detachAttachedRuleListDraft(spec, profileId));
   }
 
   async function addRule(): Promise<void> {
@@ -791,13 +825,58 @@
                 <button type="button" {disabled} on:click={addRule}>＋ Add condition</button>
               </td>
             </tr>
+            {#if attachedState}
+              <tr class="attached-rule-list-row" data-attached-rule-list-row>
+                <td class="attached-icon" aria-hidden="true">☷</td>
+                <td>
+                  <label class="attached-enabled">
+                    <input
+                      type="checkbox"
+                      checked={attachedState.enabled}
+                      {disabled}
+                      on:change={(event) => toggleAttachedRuleList(checkedFrom(event))}
+                    />
+                    Use attached Rule List
+                  </label>
+                </td>
+                <td>
+                  {attachedState.enabled
+                    ? 'Matching attached rules use the selected result profile.'
+                    : 'Attached rules are retained but bypassed.'}
+                </td>
+                <td>
+                  <select
+                    aria-label="Attached Rule List matching route"
+                    value={routeValue(attachedState.profile.matchRoute)}
+                    disabled={disabled || !attachedState.enabled}
+                    on:change={(event) => updateAttachedMatchRoute(valueFrom(event))}
+                  >
+                    <option value="direct">Direct</option>
+                    <option value="system">System Proxy</option>
+                    {#each routeProfiles as target (target.id)}
+                      <option value={`profile:${target.id}`}>{target.name}</option>
+                    {/each}
+                  </select>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="detach-attached"
+                    aria-label="Delete attached Rule List"
+                    {disabled}
+                    on:click={detachRuleList}>🗑</button
+                  >
+                </td>
+                {#if showNotes}<td></td>{/if}
+              </tr>
+            {/if}
             <tr class="default-route-row">
               <td></td>
               <th scope="row" colspan="2">Default profile</th>
               <td>
                 <select
                   aria-label="Switch Profile default route"
-                  value={routeValue(profile.defaultRoute)}
+                  value={routeValue(attachedState?.defaultRoute ?? profile.defaultRoute)}
                   {disabled}
                   on:change={(event) => updateDefaultRoute(valueFrom(event))}
                 >
@@ -816,6 +895,19 @@
       </div>
     {/if}
   </section>
+
+  {#if attachedState}
+    <AttachedRuleListConfig {spec} switchProfileId={profileId} {disabled} {onReplaceDraft} />
+  {:else}
+    <section class="settings-section attach-rule-list-section" data-attach-rule-list-section>
+      <h2>Attach Profile</h2>
+      <p class="section-help">
+        Attach a hidden Rule List Profile to extend this Switch Profile without adding another
+        normal navigation entry.
+      </p>
+      <button type="button" {disabled} on:click={attachRuleList}>＋ Attach Rule List</button>
+    </section>
+  {/if}
 {/if}
 
 <style>
@@ -952,7 +1044,9 @@
   .drag-handle,
   .keyboard-order-actions button,
   .row-actions button,
-  .add-condition-row button {
+  .add-condition-row button,
+  .detach-attached,
+  .attach-rule-list-section button {
     border: 1px solid var(--border-strong);
     background: var(--button-bg);
     border-radius: 3px;
@@ -1022,6 +1116,25 @@
   .default-route-row th,
   .default-route-row td {
     background: var(--hover);
+  }
+
+  .attached-rule-list-row td {
+    background: color-mix(in srgb, var(--active) 45%, var(--content-bg));
+  }
+
+  .attached-icon {
+    text-align: center !important;
+  }
+
+  .attached-enabled {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .attached-enabled input {
+    width: auto;
   }
 
   @media (max-width: 760px) {

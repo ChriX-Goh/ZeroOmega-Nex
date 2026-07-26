@@ -1,4 +1,14 @@
 export {
+  attachedRuleListProfileIds,
+  createAttachedRuleListDraft,
+  detachAttachedRuleListDraft,
+  inspectAttachedRuleList,
+  setAttachedRuleListEnabledDraft,
+  updateAttachedRuleListMatchRouteDraft,
+  updateSwitchDefaultRouteDraft,
+  type AttachedRuleListState,
+} from './attached-rule-list-operations.js';
+export {
   createAutoDetectProfileDraft,
   createPacProfileDraft,
   createRuleListProfileDraft,

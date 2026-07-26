@@ -211,17 +211,18 @@ export function parseRuleList(
   profile: RuleListProfile,
   source: RuleSource,
 ): RuleListParseResult {
-  if (source.location.kind !== 'inline') {
-    return { ok: false, issues: [`rule source ${source.id} has no inline content`] };
+  const content = source.location.content;
+  if (content === undefined) {
+    return { ok: false, issues: [`rule source ${source.id} has no downloaded content`] };
   }
 
   if (source.format === 'autoproxy') {
-    return parseAutoProxy(source, profile, source.location.content);
+    return parseAutoProxy(source, profile, content);
   }
 
-  return source.location.content.includes('[SwitchyOmega Conditions]')
-    ? parseSwitchyModern(spec, source, profile, source.location.content)
-    : parseSwitchyLegacy(source, profile, source.location.content);
+  return content.includes('[SwitchyOmega Conditions]')
+    ? parseSwitchyModern(spec, source, profile, content)
+    : parseSwitchyLegacy(source, profile, content);
 }
 
 export function evaluateRuleListProfile(

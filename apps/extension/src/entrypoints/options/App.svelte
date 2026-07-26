@@ -10,6 +10,7 @@
     VirtualProfile,
   } from '@zeroomega-nex/profile-spec';
   import {
+    attachedRuleListProfileIds,
     createFixedProfileDraft,
     createPacProfileDraft,
     createSwitchProfileDraft,
@@ -78,13 +79,17 @@
   let profileEditorEpoch = 0;
   let hasUnappliedChanges = false;
 
+  let allProfiles: readonly UserProfile[] = [];
+  let hiddenProfileIds: ReadonlySet<string> = new Set();
   let profiles: readonly UserProfile[] = [];
   let selectedProfile: UserProfile | undefined;
   let fixedProfile: FixedProfile | undefined;
   let switchProfile: SwitchProfile | undefined;
   let virtualProfile: VirtualProfile | undefined;
 
-  $: profiles = state?.draft.profiles ?? [];
+  $: allProfiles = state?.draft.profiles ?? [];
+  $: hiddenProfileIds = state ? attachedRuleListProfileIds(state.draft) : new Set();
+  $: profiles = allProfiles.filter((profile) => !hiddenProfileIds.has(profile.id));
   $: selectedProfile = profiles.find((profile) => profile.id === state?.selectedProfileId);
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
   $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
@@ -362,7 +367,17 @@
     const profileId = selectedProfile.id;
     await mutateDraft((draft) => {
       const profile = draft.profiles.find((candidate) => candidate.id === profileId);
-      if (profile) profile.name = name.trim();
+      if (!profile) return;
+      profile.name = name.trim();
+      if (profile.kind !== 'switch' || profile.attachedRuleListProfileId === undefined) return;
+      const attached = draft.profiles.find(
+        (candidate) =>
+          candidate.id === profile.attachedRuleListProfileId && candidate.kind === 'rule-list',
+      );
+      if (!attached || attached.kind !== 'rule-list') return;
+      attached.name = `__ruleListOf_${profile.name}`;
+      const source = draft.ruleSources.find((candidate) => candidate.id === attached.sourceId);
+      if (source) source.name = `${profile.name} attached rules`;
     });
   }
 
@@ -371,7 +386,14 @@
     const profileId = selectedProfile.id;
     await mutateDraft((draft) => {
       const profile = draft.profiles.find((candidate) => candidate.id === profileId);
-      if (profile) profile.color = color;
+      if (!profile) return;
+      profile.color = color;
+      if (profile.kind !== 'switch' || profile.attachedRuleListProfileId === undefined) return;
+      const attached = draft.profiles.find(
+        (candidate) =>
+          candidate.id === profile.attachedRuleListProfileId && candidate.kind === 'rule-list',
+      );
+      if (attached) attached.color = color;
     });
   }
 
@@ -485,7 +507,7 @@
     }
     if (hash.startsWith('profile/')) {
       const profileId = decodeURIComponent(hash.slice('profile/'.length));
-      if (!state?.draft.profiles.some((profile) => profile.id === profileId)) {
+      if (!profiles.some((profile) => profile.id === profileId)) {
         window.history.replaceState(null, '', previousHash);
         return;
       }
@@ -493,10 +515,12 @@
         window.history.replaceState(null, '', previousHash);
         return;
       }
-      if (state.selectedProfileId !== profileId && !saving) {
+      const currentState = state;
+      if (!currentState) return;
+      if (currentState.selectedProfileId !== profileId && !saving) {
         await runCommand({
           action: 'select-profile',
-          expectedGeneration: state.generation,
+          expectedGeneration: currentState.generation,
           profileId,
         });
       }

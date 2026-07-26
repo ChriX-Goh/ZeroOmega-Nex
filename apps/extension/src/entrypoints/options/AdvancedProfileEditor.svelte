@@ -11,6 +11,7 @@
     type RuleSourceHeader,
     type UserProfile,
   } from '@zeroomega-nex/profile-spec';
+  import { attachedRuleListProfileIds } from '@zeroomega-nex/profile-workflow';
 
   export let spec: ProfileSpec;
   export let profileId: string;
@@ -33,7 +34,12 @@
     profile?.kind === 'rule-list'
       ? spec.ruleSources.find((source) => source.id === profile?.sourceId)
       : undefined;
-  $: routeProfiles = spec.profiles.filter((candidate) => candidate.id !== profileId);
+  $: {
+    const hiddenProfileIds = attachedRuleListProfileIds(spec);
+    routeProfiles = spec.profiles.filter(
+      (candidate) => candidate.id !== profileId && !hiddenProfileIds.has(candidate.id),
+    );
+  }
 
   function valueFrom(event: Event): string {
     return (event.currentTarget as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)
@@ -108,17 +114,25 @@
 
   async function updateRuleSourceKind(kind: 'inline' | 'url') {
     await mutateRuleSource((target) => {
+      const content = target.location.content ?? '';
       target.location =
-        kind === 'inline' ? { kind: 'inline', content: '' } : { kind: 'url', url: '' };
+        kind === 'inline'
+          ? { kind: 'inline', content }
+          : {
+              kind: 'url',
+              url: target.location.kind === 'url' ? target.location.url : '',
+              ...(content ? { content } : {}),
+            };
     });
   }
 
   async function updateRuleSourceLocation(value: string) {
     await mutateRuleSource((target) => {
-      target.location =
-        target.location.kind === 'inline'
-          ? { kind: 'inline', content: value }
-          : { kind: 'url', url: value.trim() };
+      if (target.location.kind === 'inline') {
+        target.location.content = value;
+      } else {
+        target.location.url = value.trim();
+      }
     });
   }
 
@@ -267,6 +281,11 @@
         {disabled}
         on:change={(event) => updateRuleSourceLocation(valueFrom(event))}
       />
+      <textarea
+        aria-label="Downloaded rule source"
+        rows="10"
+        readonly
+        value={ruleSource.location.content ?? ''}></textarea>
     {/if}
     <label>
       Update interval (minutes)

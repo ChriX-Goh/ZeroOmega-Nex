@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** `5bf115091cc46e81347f851610f92343dc3a2ead`  
 **Latest integration verification:** run `30215295471` passed full `pnpm verify` before committing the Switch graphical/source editor  
-**Last exact-Head verification:** `371acd582ad0372477560036778f9188cdba1104`; CI `30210603889`, Browser E2E `30210603887`, Parity Documentation `30210603935` passed  
+**Last exact-Head verification:** `196f7d332894b4e1dfa36a888494189c9856ab2f`; CI `30215434190`, Browser E2E `30215434168`, Parity Documentation `30215434165` passed
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
@@ -98,7 +98,17 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Rule cloning now preserves notes exactly. Normal UI no longer exposes Nex-only per-rule enabled or regex-flags controls; imported legacy state requires an explicit Normalize action before reversible source editing.
 - Permanent compatibility guards and component-rendering coverage require the source editor and the App-level action boundary.
 - Integration run `30215295471` passed full repository verification before product commit `5bf115091cc46e81347f851610f92343dc3a2ead`.
-- The product commit still requires exact-Head CI, Chromium/Firefox E2E, and Parity Documentation before this slice is marked verified.
+- Exact-Head verification at `196f7d332894b4e1dfa36a888494189c9856ab2f` passed CI `30215434190`, Browser E2E `30215434168`, and Parity Documentation `30215434165`.
+
+### Attached Rule List core lifecycle — current slice
+
+- A Switch Profile can create one hidden `__ruleListOf_<parent name>` Rule List that never appears in normal navigation, Quick Switch, Startup, or ordinary route selectors.
+- Enable/disable semantics preserve the visible Switch default route exactly; match and default routes remain separately editable.
+- Switchy/AutoProxy, inline/URL, downloaded read-only cache, custom request headers, and editable inline text are represented in ProfileSpec.
+- Original backups reconstruct the hidden relationship and preserve downloaded URL content for offline interpretation and PAC compilation.
+- Parent rename/color, duplication, direct detach, and parent deletion update or remove the hidden profile/source transactionally.
+- Chromium E2E covers creation, hidden navigation, enable/disable, match route, text/header edits, confirmation, and detach.
+- Network download/update state remains deliberately separate and is the next slice.
 
 ### Appearance
 
@@ -127,7 +137,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 ### Automated acceptance
 
-- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch table, correct add-rule semantics, and Draft/Apply validation separation.
+- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch/source editing, Draft/Apply separation, and hidden attached Rule List ownership/lifecycle.
 - The Switch source-editor integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
 - Four existing Svelte accessibility warnings remain tracked; no new Svelte errors were introduced.
 
@@ -138,7 +148,7 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 Current blockers include:
 
 - Switch source-editor localization, browser interaction E2E, and edit-mode persistence across reloads,
-- attached Rule List lifecycle, match/default routes, format/URL/headers, update state, text editor, and detach confirmation,
+- attached Rule List background download, update timestamp, stale/error state, and safe request execution,
 - Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
@@ -150,4 +160,4 @@ Current blockers include:
 
 ## Current next action
 
-Confirm exact-Head CI, Chromium/Firefox E2E, and Parity Documentation for the Switch source editor. After they pass, implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Verify the attached Rule List core lifecycle slice, then implement the background download/update service with timestamps, stale/error states, safe request headers, and atomic cached-content replacement. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

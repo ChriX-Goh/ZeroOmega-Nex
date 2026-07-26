@@ -278,7 +278,7 @@ export function analyzePacCompatibility(
             blocking: true,
             message: `Rule source ${profile.sourceId} does not exist.`,
           });
-        } else if (source.location.kind !== 'inline') {
+        } else if (source.location.content === undefined) {
           addIssue({
             code: 'rule-source.content-unavailable',
             path: `/ruleSources/${spec.ruleSources.indexOf(source)}/location`,

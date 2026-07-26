@@ -137,6 +137,7 @@ function validateUrl(
   path: string,
   allowedProtocols: readonly string[],
   issues: ValidationIssue[],
+  severity: ValidationSeverity = 'error',
 ): void {
   try {
     const parsed = new URL(value);
@@ -146,11 +147,12 @@ function validateUrl(
           'source.unsupported-protocol',
           path,
           `protocol ${parsed.protocol} is not allowed; expected ${allowedProtocols.join(', ')}`,
+          severity,
         ),
       );
     }
   } catch {
-    issues.push(issue('source.invalid-url', path, 'must be an absolute URL'));
+    issues.push(issue('source.invalid-url', path, 'must be an absolute URL', severity));
   }
 }
 
@@ -324,16 +326,28 @@ function validateHeaders(
   headers: readonly RuleSourceHeader[] | undefined,
   path: string,
   issues: ValidationIssue[],
+  severity: ValidationSeverity = 'error',
 ): void {
   const headerNames = new Set<string>();
   headers?.forEach((header, headerIndex) => {
     const normalizedName = header.name.trim().toLowerCase();
+    if (!normalizedName) {
+      issues.push(
+        issue(
+          'source.empty-header-name',
+          `${path}/${headerIndex}/name`,
+          'header name is required',
+          severity,
+        ),
+      );
+    }
     if (headerNames.has(normalizedName)) {
       issues.push(
         issue(
           'source.duplicate-header',
           `${path}/${headerIndex}/name`,
           `header "${header.name}" is duplicated`,
+          severity,
         ),
       );
     }
@@ -454,8 +468,10 @@ export function validateProfileSpec(
   const issues: ValidationIssue[] = [];
   const conditionSeverity: ValidationSeverity = options.mode === 'draft' ? 'warning' : 'error';
   const profileIds = new Set(spec.profiles.map((profile) => profile.id));
+  const profileById = new Map(spec.profiles.map((profile) => [profile.id, profile]));
   const endpointIds = new Set(spec.proxyEndpoints.map((endpoint) => endpoint.id));
   const sourceIds = new Set(spec.ruleSources.map((source) => source.id));
+  const attachedRuleListOwnerById = new Map<string, string>();
 
   validateIsoTimestamp(spec.revision.createdAt, '/revision/createdAt', issues);
   addUniqueIssues(spec.profiles, '/profiles', 'profile.duplicate-id', issues);
@@ -529,6 +545,49 @@ export function validateProfileSpec(
           conditionSeverity,
         );
       });
+
+      if (profile.attachedRuleListProfileId !== undefined) {
+        const attachedId = profile.attachedRuleListProfileId;
+        const attached = profileById.get(attachedId);
+        if (!attached) {
+          issues.push(
+            issue(
+              'profile.missing-attached-rule-list',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List profile "${attachedId}" does not exist`,
+            ),
+          );
+        } else if (attached.kind !== 'rule-list') {
+          issues.push(
+            issue(
+              'profile.invalid-attached-rule-list-type',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached profile "${attachedId}" must be a Rule List profile`,
+            ),
+          );
+        } else if (attached.name !== `__ruleListOf_${profile.name}`) {
+          issues.push(
+            issue(
+              'profile.invalid-attached-rule-list-name',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List name must be "__ruleListOf_${profile.name}"`,
+            ),
+          );
+        }
+
+        const previousOwner = attachedRuleListOwnerById.get(attachedId);
+        if (previousOwner !== undefined && previousOwner !== profile.id) {
+          issues.push(
+            issue(
+              'profile.shared-attached-rule-list',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List profile "${attachedId}" is already owned by "${previousOwner}"`,
+            ),
+          );
+        } else {
+          attachedRuleListOwnerById.set(attachedId, profile.id);
+        }
+      }
     }
 
     if (profile.kind === 'rule-list' && !sourceIds.has(profile.sourceId)) {
@@ -555,7 +614,12 @@ export function validateProfileSpec(
     }
 
     if (profile.kind === 'pac') {
-      validateHeaders(profile.headers, `/profiles/${profileIndex}/headers`, issues);
+      validateHeaders(
+        profile.headers,
+        `/profiles/${profileIndex}/headers`,
+        issues,
+        conditionSeverity,
+      );
       if (profile.source.kind === 'url') {
         validateUrl(
           profile.source.url,
@@ -590,11 +654,40 @@ export function validateProfileSpec(
         `/ruleSources/${sourceIndex}/location/url`,
         ['http:', 'https:', 'file:'],
         issues,
+        conditionSeverity,
       );
     }
 
-    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);
+    validateHeaders(
+      source.headers,
+      `/ruleSources/${sourceIndex}/headers`,
+      issues,
+      conditionSeverity,
+    );
   });
+
+  for (const [attachedId, ownerId] of attachedRuleListOwnerById) {
+    for (const profile of spec.profiles) {
+      const referencedByOwnerDefault =
+        profile.id === ownerId &&
+        profile.kind === 'switch' &&
+        routeProfileId(profile.defaultRoute) === attachedId;
+      const references = profileRoutes(profile).filter(
+        (route) => routeProfileId(route) === attachedId,
+      ).length;
+      const allowedReferences = referencedByOwnerDefault ? 1 : 0;
+      if (references > allowedReferences) {
+        const profileIndex = spec.profiles.findIndex((candidate) => candidate.id === profile.id);
+        issues.push(
+          issue(
+            'profile.external-attached-rule-list-reference',
+            `/profiles/${profileIndex}`,
+            `attached Rule List profile "${attachedId}" may only be referenced by its owner Switch default route`,
+          ),
+        );
+      }
+    }
+  }
 
   spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
     const profileId = routeProfileId(route);
@@ -604,6 +697,14 @@ export function validateProfileSpec(
           'profile.missing-quick-switch-reference',
           `/settings/quickSwitch/routes/${routeIndex}`,
           `quick-switch profile "${profileId}" does not exist`,
+        ),
+      );
+    } else if (profileId && attachedRuleListOwnerById.has(profileId)) {
+      issues.push(
+        issue(
+          'profile.attached-rule-list-in-quick-switch',
+          `/settings/quickSwitch/routes/${routeIndex}`,
+          'attached Rule List profiles are hidden implementation profiles and cannot appear in Quick Switch',
         ),
       );
     }
@@ -616,6 +717,14 @@ export function validateProfileSpec(
         'profile.missing-startup-reference',
         '/settings/startup/route',
         `startup profile "${startupProfileId}" does not exist`,
+      ),
+    );
+  } else if (startupProfileId && attachedRuleListOwnerById.has(startupProfileId)) {
+    issues.push(
+      issue(
+        'profile.attached-rule-list-as-startup',
+        '/settings/startup/route',
+        'attached Rule List profiles cannot be selected as the startup profile',
       ),
     );
   }

@@ -4,6 +4,9 @@ import {
   type FixedProfile,
   type ProfileRouteTarget,
   type ProfileSpec,
+  type RuleListProfile,
+  type RuleSource,
+  type SwitchProfile,
   type UserProfile,
   type VirtualProfile,
 } from '@zeroomega-nex/profile-spec';
@@ -97,6 +100,54 @@ function duplicateFixedProfileResources(
   return duplicate;
 }
 
+interface DuplicatedSwitchResources {
+  readonly profile: SwitchProfile;
+  readonly attachedProfile?: RuleListProfile;
+  readonly attachedSource?: RuleSource;
+}
+
+function duplicateSwitchProfileResources(
+  spec: ProfileSpec,
+  source: SwitchProfile,
+  duplicateProfileId: string,
+  idFactory: ProfileWorkflowIdFactory,
+): DuplicatedSwitchResources {
+  const profile = structuredClone(source);
+  profile.rules = profile.rules.map((rule) => ({
+    ...rule,
+    id: idFactory('rule'),
+  }));
+
+  const attachedId = source.attachedRuleListProfileId;
+  if (attachedId === undefined) return { profile };
+  const attached = spec.profiles.find(
+    (candidate): candidate is RuleListProfile =>
+      candidate.id === attachedId && candidate.kind === 'rule-list',
+  );
+  if (!attached) throw new RangeError(`attached Rule List profile ${attachedId} does not exist`);
+  const attachedSource = spec.ruleSources.find((candidate) => candidate.id === attached.sourceId);
+  if (!attachedSource) throw new RangeError(`rule source ${attached.sourceId} does not exist`);
+
+  const duplicateAttachedId = idFactory('profile');
+  const duplicateSourceId = idFactory('source');
+  const duplicatedAttached: RuleListProfile = {
+    ...structuredClone(attached),
+    id: duplicateAttachedId,
+    name: `__ruleListOf_${source.name} copy`,
+    sourceId: duplicateSourceId,
+  };
+  const duplicatedSource: RuleSource = {
+    ...structuredClone(attachedSource),
+    id: duplicateSourceId,
+    name: `${source.name} copy attached rules`,
+  };
+  profile.attachedRuleListProfileId = duplicateAttachedId;
+  if (routeTargetsProfile(profile.defaultRoute, attachedId)) {
+    profile.defaultRoute = { kind: 'profile', profileId: duplicateAttachedId };
+  }
+  return { profile, attachedProfile: duplicatedAttached, attachedSource: duplicatedSource };
+}
+
 export function createFixedProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
@@ -135,21 +186,26 @@ export function duplicateProfileDraft(
 
   const profileId = idFactory('profile');
   let duplicate: UserProfile;
+  let attachedProfile: RuleListProfile | undefined;
+  let attachedSource: RuleSource | undefined;
   if (source.kind === 'fixed') {
     duplicate = duplicateFixedProfileResources(draft, source, idFactory);
+  } else if (source.kind === 'switch') {
+    const resources = duplicateSwitchProfileResources(draft, source, profileId, idFactory);
+    duplicate = resources.profile;
+    attachedProfile = resources.attachedProfile;
+    attachedSource = resources.attachedSource;
   } else {
     duplicate = structuredClone(source);
-    if (duplicate.kind === 'switch') {
-      duplicate.rules = duplicate.rules.map((rule) => ({
-        ...rule,
-        id: idFactory('rule'),
-      }));
-    }
   }
 
   duplicate.id = profileId;
   duplicate.name = uniqueProfileName(draft, `${source.name} copy`);
+  if (attachedProfile) attachedProfile.name = `__ruleListOf_${duplicate.name}`;
+  if (attachedSource) attachedSource.name = `${duplicate.name} attached rules`;
   draft.profiles.push(duplicate);
+  if (attachedProfile) draft.profiles.push(attachedProfile);
+  if (attachedSource) draft.ruleSources.push(attachedSource);
   appendQuickSwitchRoute(draft, profileId);
   assertValidDraft(draft);
   return { draft, profileId };
@@ -223,6 +279,16 @@ export function replaceProfileReferencesDraft(
   }
   if (!draft.profiles.some((profile) => profile.id === toProfileId)) {
     throw new RangeError(`profile ${toProfileId} does not exist`);
+  }
+  const attachedIds = new Set(
+    draft.profiles.flatMap((profile) =>
+      profile.kind === 'switch' && profile.attachedRuleListProfileId !== undefined
+        ? [profile.attachedRuleListProfileId]
+        : [],
+    ),
+  );
+  if (attachedIds.has(fromProfileId) || attachedIds.has(toProfileId)) {
+    throw new RangeError('attached Rule List profiles cannot be replacement endpoints');
   }
   for (const profile of draft.profiles) {
     if (profile.id === fromProfileId || profile.id === toProfileId) continue;
@@ -309,21 +375,46 @@ export function deleteProfileDraft(spec: ProfileSpec, profileId: string): Profil
   const deleted = draft.profiles.find((profile) => profile.id === profileId);
   if (!deleted) throw new RangeError(`profile ${profileId} does not exist`);
 
-  const deletedEndpointIds =
-    deleted.kind === 'fixed'
-      ? new Set(Object.values(deleted.proxyByScheme).filter((id): id is string => id !== undefined))
-      : new Set<string>();
-  const deletedRuleSourceIds =
-    deleted.kind === 'rule-list' ? new Set([deleted.sourceId]) : new Set<string>();
+  const deletedProfileIds = new Set<string>([profileId]);
+  const attachedOwner = draft.profiles.find(
+    (profile): profile is SwitchProfile =>
+      profile.kind === 'switch' && profile.attachedRuleListProfileId === profileId,
+  );
+  if (attachedOwner && deleted.kind === 'rule-list') {
+    if (routeTargetsProfile(attachedOwner.defaultRoute, deleted.id)) {
+      attachedOwner.defaultRoute = structuredClone(deleted.defaultRoute);
+    }
+    delete attachedOwner.attachedRuleListProfileId;
+  }
+  if (deleted.kind === 'switch' && deleted.attachedRuleListProfileId !== undefined) {
+    deletedProfileIds.add(deleted.attachedRuleListProfileId);
+  }
 
-  draft.profiles = draft.profiles.filter((profile) => profile.id !== profileId);
-  for (const profile of draft.profiles) rewriteProfileRoutes(profile, profileId);
+  const deletedProfiles = draft.profiles.filter((profile) => deletedProfileIds.has(profile.id));
+  const deletedEndpointIds = new Set(
+    deletedProfiles.flatMap((profile) =>
+      profile.kind === 'fixed'
+        ? Object.values(profile.proxyByScheme).filter((id): id is string => id !== undefined)
+        : [],
+    ),
+  );
+  const deletedRuleSourceIds = new Set(
+    deletedProfiles.flatMap((profile) => (profile.kind === 'rule-list' ? [profile.sourceId] : [])),
+  );
 
-  if (routeTargetsProfile(draft.settings.startup.route, profileId)) {
+  draft.profiles = draft.profiles.filter((profile) => !deletedProfileIds.has(profile.id));
+  for (const deletedId of deletedProfileIds) {
+    for (const profile of draft.profiles) rewriteProfileRoutes(profile, deletedId);
+  }
+
+  if (
+    draft.settings.startup.route?.kind === 'profile' &&
+    deletedProfileIds.has(draft.settings.startup.route.profileId)
+  ) {
     draft.settings.startup.route = directRoute();
   }
   draft.settings.quickSwitch.routes = draft.settings.quickSwitch.routes.filter(
-    (route) => !routeTargetsProfile(route, profileId),
+    (route) => route.kind !== 'profile' || !deletedProfileIds.has(route.profileId),
   );
   if (draft.settings.quickSwitch.routes.length === 0) {
     draft.settings.quickSwitch.routes = [{ kind: 'direct' }, { kind: 'system' }];

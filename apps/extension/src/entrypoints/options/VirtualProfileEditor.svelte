@@ -6,7 +6,10 @@
     type UserProfile,
     type VirtualProfile,
   } from '@zeroomega-nex/profile-spec';
-  import { replaceProfileReferencesDraft } from '@zeroomega-nex/profile-workflow';
+  import {
+    attachedRuleListProfileIds,
+    replaceProfileReferencesDraft,
+  } from '@zeroomega-nex/profile-workflow';
 
   export let spec: ProfileSpec;
   export let profileId: string;
@@ -19,7 +22,12 @@
     (candidate): candidate is VirtualProfile =>
       candidate.id === profileId && candidate.kind === 'virtual',
   );
-  $: candidates = spec.profiles.filter((candidate) => candidate.id !== profileId);
+  $: {
+    const hiddenProfileIds = attachedRuleListProfileIds(spec);
+    candidates = spec.profiles.filter(
+      (candidate) => candidate.id !== profileId && !hiddenProfileIds.has(candidate.id),
+    );
+  }
 
   function routeValue(route: ProfileRouteTarget): string {
     return route.kind === 'profile' ? `profile:${route.profileId}` : route.kind;

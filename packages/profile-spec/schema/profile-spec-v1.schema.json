@@ -505,6 +505,9 @@
             },
             "defaultRoute": {
               "$ref": "#/$defs/routeTarget"
+            },
+            "attachedRuleListProfileId": {
+              "$ref": "#/$defs/identifier"
             }
           }
         },
@@ -800,8 +803,10 @@
                   "const": "url"
                 },
                 "url": {
-                  "type": "string",
-                  "minLength": 1
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
                 }
               }
             }
@@ -956,8 +961,7 @@
       "required": ["name", "value"],
       "properties": {
         "name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "value": {
           "$ref": "#/$defs/headerValue"
