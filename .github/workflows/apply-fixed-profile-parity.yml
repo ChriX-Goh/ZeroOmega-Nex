@@ -1,0 +1,112 @@
+name: Apply Fixed Profile Parity
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply reviewed Fixed Profile patch
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            cat \
+              .github/patches/fixed-profile-parity.part00 \
+              .github/patches/fixed-profile-parity.part01 \
+              .github/patches/fixed-profile-parity.part02 \
+              .github/patches/fixed-profile-parity.part03 \
+              > /tmp/fixed-profile-parity.b64
+            test "$(wc -c < /tmp/fixed-profile-parity.b64)" -eq 21544
+            echo '320f779fb8d856a1b19c997c6da31f8909d0cb7d243ef3074339d4b23a032b65  /tmp/fixed-profile-parity.b64' | sha256sum --check
+            base64 --decode /tmp/fixed-profile-parity.b64 > /tmp/fixed-profile-parity.patch.gz
+            test "$(wc -c < /tmp/fixed-profile-parity.patch.gz)" -eq 16156
+            echo '0f43deeeb2c61ae440ac8aa56620860911389a7c856eef8643245fb173efd834  /tmp/fixed-profile-parity.patch.gz' | sha256sum --check
+            gzip --test /tmp/fixed-profile-parity.patch.gz
+            gzip --decompress --stdout /tmp/fixed-profile-parity.patch.gz > /tmp/fixed-profile-parity.patch
+            test "$(wc -c < /tmp/fixed-profile-parity.patch)" -eq 64654
+            echo '34fe41b7393fd3f80bacc6e03414f1a184dc6e4f0b2515925f7a4df6a95d313e  /tmp/fixed-profile-parity.patch' | sha256sum --check
+            git apply --check --verbose /tmp/fixed-profile-parity.patch
+            git apply /tmp/fixed-profile-parity.patch
+          } 2>&1 | tee fixed-profile-patch.log
+
+      - name: Format Fixed Profile slice
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/component-rendering.component.spec.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/FixedProfileEditor.svelte \
+            apps/extension/src/lib/i18n.test.ts \
+            apps/extension/src/lib/i18n.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-workflow/src/commands-import.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/profile-operations.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+
+      - name: Verify complete repository
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee fixed-profile-verify.log
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixed-profile-parity-log
+          path: |
+            fixed-profile-patch.log
+            fixed-profile-verify.log
+          if-no-files-found: warn
+
+      - name: Commit verified Fixed Profile slice
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            apps/extension/src/component-rendering.component.spec.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/FixedProfileEditor.svelte \
+            apps/extension/src/lib/i18n.test.ts \
+            apps/extension/src/lib/i18n.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-workflow/src/commands-import.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/profile-operations.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+          git commit -m 'feat: restore original Fixed Profile editor'
+          git push origin HEAD:feat/m8-profile-workflow
