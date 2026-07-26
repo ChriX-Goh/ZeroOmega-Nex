@@ -186,7 +186,7 @@ try {
   await attachedText.fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
   await attachedText.press('Tab');
   const attachedHeaders = options.locator('[data-attached-rule-list-headers]');
-  const addHeader = attachedHeaders.getByRole('button', { name: 'Add header', exact: true });
+  const addHeader = attachedHeaders.locator('button').filter({ hasText: 'Add header' });
   await assertEventually(
     async () => !(await addHeader.isDisabled()),
     'Attached Rule List header button remained disabled after saving text',
