@@ -2,10 +2,11 @@
 
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
-**PR state:** Draft; original-parity implementation continues
-**Last fully verified parity implementation head:** `bb3fa10871e5ee62fd231e79c56998bba2046e76`
-**Verification:** CI `30183999834`, Browser E2E `30183999830`, Parity Documentation `30183999833` passed
-**Installable release candidate:** none; all previously frozen artifacts are obsolete
+**PR state:** Draft; original-parity implementation continues  
+**Current product implementation head:** `0669f5636ca083090cbcd7a32dcb1dc66317157a`  
+**Integration verification:** run `30187058569` passed full `pnpm verify` before committing the product slice  
+**Last exact-Head verification:** `bb3fa10871e5ee62fd231e79c56998bba2046e76`; CI `30183999834`, Browser E2E `30183999830`, Parity Documentation `30183999833` passed  
+**Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
 All previously frozen Milestone 8 candidates and artifacts failed or were superseded by source-backed parity review. They must not be installed, accepted, or used as evidence of functional completeness.
@@ -35,9 +36,28 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Profiles contains Built-in Profiles, one entry per user profile, and one `New profile…` entry.
 - Actions contains persistent Apply changes and Discard changes controls plus Draft status.
 - The right-hand editor renders only the selected page. Startup and Quick Switch settings no longer appear inside every profile.
-- Fixed, Switch, Rule List, PAC, and Auto Detect profiles retain dedicated profile editors.
+- Fixed, Switch, Rule List, PAC, Virtual, and legacy Auto Detect data retain type-aware handling.
 - Built-in Direct and System colors have their own page instead of appearing as fake user profiles.
 - Product identity is updated to Milestone 8.
+
+### New Profile and Virtual parity slice
+
+- Normal creation uses the original four choices: Fixed, Switch, PAC, and Virtual.
+- The modal validates blank, reserved, duplicate, and hidden names before creation.
+- Rule List remains an imported/attached type rather than a normal New Profile choice.
+- Legacy schema-v1 Auto Detect upgrades into PAC behavior instead of appearing as a new v3.5.0 profile type.
+- Virtual profiles participate in schema validation, reference graphs, cycle checks, migration, routing, PAC compilation, authentication reachability, duplication, deletion, reference replacement, Options editing, and tests.
+
+### Fixed Profile parity slice
+
+- The editor now follows the original fallback, HTTP, HTTPS, and FTP proxy-row structure.
+- Advanced rows expose SOCKS4, SOCKS5, and bypass settings without replacing the main table.
+- HTTP, HTTPS, and FTP rows inherit fallback host and port through placeholders rather than persisted duplicate values.
+- Authentication is configured per endpoint through the background-owned secret flow.
+- Newly created and freshly installed Fixed profiles start blank; fake loopback proxy endpoints are no longer written into user configuration.
+- Blank Fixed profiles are valid before configuration and resolve safely through the existing Direct fallback behavior.
+- PAC/Rule List source switching and request-header creation no longer persist `example.invalid`, instructional rule text, or `User-Agent: ZeroOmega Nex` as user data.
+- Permanent compatibility guards cover the original Fixed structure and the removal of semantic placeholder defaults.
 
 ### Appearance
 
@@ -66,12 +86,11 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 ### Automated acceptance
 
-- Permanent UI guard enforces original navigation groups, independent settings/profile pages, full-tab Options, file-first one-step migration, system theme support, responsive layout, keyboard focus, rollback confirmation, and global error visibility.
-- Svelte checks report zero errors and zero warnings.
-- Root suite passes 274 unit/integration tests and 6 Svelte component-rendering tests.
-- Chromium and Firefox production builds, manifests, MV3 CSP inspection, architecture guards, formatting, lint, packaging, and all workspace checks pass.
-- Chromium real-browser E2E verifies Automatic and Dark theme behavior, profile edit and Apply, snapshot history, Popup Direct switching, upload of the original schema-v2 fixture, and `Import and use now` activation.
-- Firefox real-browser E2E verifies profile edit and Apply, history navigation under the restored layout, Popup Direct switching, normalized runtime identity, and required private-window access.
+- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, system theme behavior, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, and Fixed Profile structure.
+- The Fixed integration verification passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
+- `svelte-check` reported 0 errors and 4 accessibility warnings; the warnings remain tracked rather than represented as clean.
+- The root test run passed 50 files and 299 tests; the component-rendering run passed 1 file and 10 tests.
+- Chrome MV3 and Firefox MV3 production builds completed with required proxy/storage permissions, optional authentication permission, no global host access, and CSP-safe output.
 
 ## Remaining closure
 
@@ -79,13 +98,14 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 
 Current blockers include:
 
-- original per-scheme Fixed editor and authentication layout,
-- original compact Switch table, source mode, and attached Rule List workflow,
+- original compact Switch table, drag ordering, grouped condition help, source mode, and attached Rule List workflow,
 - dedicated Rule List and PAC download/update semantics,
+- Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original backup round-trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup result-profile, current-site, temporary-rule, external-ownership, and bounded diagnostic functions.
+- Popup result-profile, current-site, temporary-rule, external-ownership, and bounded diagnostic functions,
+- remaining accessibility warnings in the New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Continue verified parity slices on `feat/m8-profile-workflow`. The semantic placeholder cleanup is the current slice; Fixed Profile parity follows after its exact Head passes CI, Browser E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Confirm CI, Browser E2E, and Parity Documentation on the current PR Head. Once those exact-Head checks pass, treat the Fixed slice as verified and continue with the original Switch Profile editor. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
