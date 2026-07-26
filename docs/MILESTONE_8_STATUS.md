@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `e428e0702fcba56e4ee3a55f0d9f184134efc107`  
-**Latest integration verification:** run `30210366430` passed full `pnpm verify` before committing the Draft/Apply validation boundary  
-**Last exact-Head verification:** `ca3cc64d8b47a37ca117c9e6e3f76a4b174c9493`; CI `30210513221`, Browser E2E `30210513212`, Parity Documentation `30210513208` passed  
+**Current product implementation head:** `5bf115091cc46e81347f851610f92343dc3a2ead`  
+**Latest integration verification:** run `30215295471` passed full `pnpm verify` before committing the Switch graphical/source editor  
+**Last exact-Head verification:** `371acd582ad0372477560036778f9188cdba1104`; CI `30210603889`, Browser E2E `30210603887`, Parity Documentation `30210603935` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
@@ -63,9 +63,9 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 - The vertical Nex rule-card editor has been replaced by one compact table with Sort, Condition type, Condition details, Result profile, Actions, and optional Note columns.
 - Basic conditions and advanced Host, URL, and Special condition groups drive the type selectors and expandable help area.
-- Pattern, regex flags, IP network, host-level, weekday, and local-time conditions use dedicated inline controls.
+- Pattern, IP network, host-level, weekday, and local-time conditions use dedicated inline controls. Nex-only regular-expression flags are retained only as imported legacy state and require explicit normalization before source editing.
 - Native drag handles and keyboard Up/Down controls preserve first-match order.
-- Delete, clone, enable, and note actions are inline; the default profile is a separate table-bottom row.
+- Delete, clone, and note actions are inline; the default profile is a separate table-bottom row. Imported Nex-only disabled state is retained only for explicit normalization.
 - Full-URL rules expose a capability warning.
 - The Options editor always appends a new rule. The first rule uses the current default route; later rows copy the final rule as their template.
 - `addConditionsToBottom` belongs to Popup/current-site condition injection and does not change the Options editor button.
@@ -86,9 +86,9 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Unit tests cover strict-versus-Draft validation, Draft persistence, structurally invalid rejection, strict candidate creation, and pre-activation Apply refusal.
 - Permanent compatibility guards require the validation boundary and reject regressions to example condition data.
 - Integration run `30210366430` passed the full repository verification before product commit `e428e0702fcba56e4ee3a55f0d9f184134efc107`.
-- Exact-Head verification at `ca3cc64d8b47a37ca117c9e6e3f76a4b174c9493` passed CI `30210513221`, Browser E2E `30210513212`, and Parity Documentation `30210513208`.
+- Exact-Head verification at `371acd582ad0372477560036778f9188cdba1104` passed CI `30210603889`, Browser E2E `30210603887`, and Parity Documentation `30210603935`.
 
-### Switch graphical/source editor slice — pending verification
+### Switch graphical/source editor slice
 
 - Added bidirectional parsing and composition for the original result-enabled SwitchyOmega Conditions format.
 - Source uses `[SwitchyOmega Conditions]`, `@with result`, per-rule `+result profile`, optional `@note`, and a final `* +default profile` rule.
@@ -97,7 +97,8 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Local source edits participate in global Apply/Discard even before they are parsed into the persisted Draft; Discard remounts the editor without forcing invalid source through the workflow.
 - Rule cloning now preserves notes exactly. Normal UI no longer exposes Nex-only per-rule enabled or regex-flags controls; imported legacy state requires an explicit Normalize action before reversible source editing.
 - Permanent compatibility guards and component-rendering coverage require the source editor and the App-level action boundary.
-- Full integration and exact-Head checks are still required before this slice is marked verified.
+- Integration run `30215295471` passed full repository verification before product commit `5bf115091cc46e81347f851610f92343dc3a2ead`.
+- The product commit still requires exact-Head CI, Chromium/Firefox E2E, and Parity Documentation before this slice is marked verified.
 
 ### Appearance
 
@@ -127,7 +128,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 ### Automated acceptance
 
 - Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch table, correct add-rule semantics, and Draft/Apply validation separation.
-- The latest integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, 307 unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
+- The Switch source-editor integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
 - Four existing Svelte accessibility warnings remain tracked; no new Svelte errors were introduced.
 
 ## Remaining closure
@@ -149,4 +150,4 @@ Current blockers include:
 
 ## Current next action
 
-Run full integration and exact-Head verification for the Switch source editor. After it passes, implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Confirm exact-Head CI, Chromium/Firefox E2E, and Parity Documentation for the Switch source editor. After they pass, implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
