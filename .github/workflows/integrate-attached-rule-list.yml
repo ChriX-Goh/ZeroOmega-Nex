@@ -45,7 +45,7 @@ jobs:
           git apply --check /tmp/attached-rule-list.patch
           git apply /tmp/attached-rule-list.patch
           base64 --decode .github/patches/attached-rule-list-new-files.tgz.b64 > /tmp/attached-rule-list-new-files.tgz
-          echo '5ca762d2fe851d89c2f23adf1e91685e969fd60f8110391dc81250b36f556cfc  /tmp/attached-rule-list-new-files.tgz' | sha256sum --check
+          echo '0f626be4ffca01cd04aab9a54c9462883a4cea3dd69d07969e48cb5f4f9a2a19  /tmp/attached-rule-list-new-files.tgz' | sha256sum --check
           tar --extract --gzip --file /tmp/attached-rule-list-new-files.tgz
           git diff --check
       - name: Regenerate ProfileSpec validator
