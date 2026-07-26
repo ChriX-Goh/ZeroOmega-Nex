@@ -34,13 +34,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .github/patches/attached-rule-list.patch.gz.b64.part{00,01,02} > /tmp/attached-rule-list.patch.gz.b64
+          : > /tmp/attached-rule-list.patch.gz.b64
+          for part in 00 01 02; do
+            git show 7a7dcbb34b33df37f9510b33b0813a865e462b70:.github/patches/attached-rule-list.patch.gz.b64.part${part} >> /tmp/attached-rule-list.patch.gz.b64
+          done
           base64 --decode /tmp/attached-rule-list.patch.gz.b64 > /tmp/attached-rule-list.patch.gz
-          echo 'bbee80968deb4a50a6a66183da07071b465fa50f9ec5f4d5cceb991528455c79  /tmp/attached-rule-list.patch.gz' | sha256sum --check
+          echo '2dd15a5af2287b444ba4123cd046ed41af873c4dd82e017f80cec2262b1c25ac  /tmp/attached-rule-list.patch.gz' | sha256sum --check
           gzip --decompress --stdout /tmp/attached-rule-list.patch.gz > /tmp/attached-rule-list.patch
-          echo '6b27a7e288325fbcd128f452d984105b902bd01d747d70b2416be7d2606b8d26  /tmp/attached-rule-list.patch' | sha256sum --check
+          echo '8b1e25727445ffc26ca7e0acc7069119ca1a7eb7918f52b1735cf228fa71f667  /tmp/attached-rule-list.patch' | sha256sum --check
           git apply --check /tmp/attached-rule-list.patch
           git apply /tmp/attached-rule-list.patch
+          base64 --decode .github/patches/attached-rule-list-new-files.tgz.b64 > /tmp/attached-rule-list-new-files.tgz
+          echo '5ca762d2fe851d89c2f23adf1e91685e969fd60f8110391dc81250b36f556cfc  /tmp/attached-rule-list-new-files.tgz' | sha256sum --check
+          tar --extract --gzip --file /tmp/attached-rule-list-new-files.tgz
           git diff --check
       - name: Regenerate ProfileSpec validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
@@ -115,6 +121,7 @@ jobs:
           git clean -fdX
           rm -rf .github/patches
           rm -f .github/workflows/capture-attached-rule-list-context.yml
+          rm -f .github/workflows/diagnose-attached-rule-list-patch.yml
           rm -f .github/workflows/integrate-attached-rule-list.yml
           git diff --check
       - name: Commit verified product slice
