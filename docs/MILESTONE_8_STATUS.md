@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `740bd175a887dcf1c0339d0a72825864d632934e`  
-**Latest integration verification:** run `30207888281` passed full `pnpm verify` before committing the Switch add-rule semantic correction  
+**Current product implementation head:** `e428e0702fcba56e4ee3a55f0d9f184134efc107`  
+**Latest integration verification:** run `30210366430` passed full `pnpm verify` before committing the Draft/Apply validation boundary  
 **Last exact-Head verification:** `12275f8b42a296e8cf6823120cf65236e3389a06`; CI `30207977729`, Browser E2E `30207977745`, Parity Documentation `30207977744` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
@@ -57,24 +57,36 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Newly created and freshly installed Fixed profiles start blank; fake loopback proxy endpoints are no longer written into user configuration.
 - Blank Fixed profiles are valid before configuration and resolve safely through the existing Direct fallback behavior.
 - PAC/Rule List source switching and request-header creation no longer persist `example.invalid`, instructional rule text, or `User-Agent: ZeroOmega Nex` as user data.
-- Permanent compatibility guards cover the original Fixed structure and the removal of semantic placeholder defaults.
 - Exact-Head verification at `e8f4ecf7c1583c1ed723eeda06724110f72cf74c` passed CI `30187574395`, Browser E2E `30187574392`, and Parity Documentation `30187574414`.
 
-### Switch Profile rule-table slice
+### Switch Profile rule-table and add-rule semantics
 
 - The vertical Nex rule-card editor has been replaced by one compact table with Sort, Condition type, Condition details, Result profile, Actions, and optional Note columns.
-- Basic conditions and advanced Host, URL, and Special condition groups now drive the type selectors and expandable help area.
+- Basic conditions and advanced Host, URL, and Special condition groups drive the type selectors and expandable help area.
 - Pattern, regex flags, IP network, host-level, weekday, and local-time conditions use dedicated inline controls.
 - Native drag handles and keyboard Up/Down controls preserve first-match order.
 - Delete, clone, enable, and note actions are inline; the default profile is a separate table-bottom row.
 - Full-URL rules expose a capability warning.
 - The Options editor always appends a new rule. The first rule uses the current default route; later rows copy the final rule as their template.
-- `addConditionsToBottom` belongs to Popup/current-site condition injection and no longer changes the Options editor button.
-- Unit tests, component-rendering tests, permanent UI compatibility guards, the knowledge graph, and the audit matrix were updated with the implementation.
+- `addConditionsToBottom` belongs to Popup/current-site condition injection and does not change the Options editor button.
 - Rule-table integration run `30188210782` passed full repository verification before product commit `6a147772ad5a60e9db45c12194440d5d715ce7ff`.
-- Source re-audit found and corrected two semantic mistakes in that first slice: Options insertion is always append, and later rules copy the last rule rather than always taking the default route. Correction run `30207888281` passed full repository verification before product commit `740bd175a887dcf1c0339d0a72825864d632934e`.
+- Source re-audit correction run `30207888281` passed full repository verification before product commit `740bd175a887dcf1c0339d0a72825864d632934e`.
 - Exact-Head verification at `12275f8b42a296e8cf6823120cf65236e3389a06` passed CI `30207977729`, Browser E2E `30207977745`, and Parity Documentation `30207977744`.
-- This is a partial Switch restoration, not completion: source editing, attached Rule List, complete localization, browser drag E2E, Popup condition injection, and incomplete-condition Draft semantics remain open.
+
+### Draft and Apply validation boundary
+
+- ProfileSpec validation now exposes explicit `strict` and `draft` modes.
+- Draft mode preserves strict JSON structure, unique IDs, references, cycle detection, sensitive-data rejection, and other document invariants.
+- Switch condition semantic errors such as an empty text pattern, an unfinished regular expression, invalid IP/prefix, duplicate weekday, or reversed host-level range remain visible as warnings while editing.
+- Applied state, imported data, immutable revisions, candidate creation, PAC compilation, and Apply remain strictly validated.
+- Draft-specific clone and serialization APIs prevent strict persistence paths from being weakened accidentally.
+- Workflow Draft storage accepts structurally valid incomplete conditions; strict storage paths still reject them.
+- Apply rejects an invalid Draft before browser activation and leaves the Draft available for correction.
+- New textual Switch conditions start with an empty pattern. Adding a later textual condition copies the preceding row and clears its pattern, matching the original editor.
+- Unit tests cover strict-versus-Draft validation, Draft persistence, structurally invalid rejection, strict candidate creation, and pre-activation Apply refusal.
+- Permanent compatibility guards require the validation boundary and reject regressions to example condition data.
+- Integration run `30210366430` passed the full repository verification before product commit `e428e0702fcba56e4ee3a55f0d9f184134efc107`.
+- Exact-Head CI, Chromium/Firefox E2E, and Parity Documentation are pending on this status commit.
 
 ### Appearance
 
@@ -103,9 +115,9 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 ### Automated acceptance
 
-- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, system theme behavior, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, the compact Switch rule table, and separation of editor insertion from Popup insertion settings.
-- The latest Switch correction verification passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
-- The correction exact Head passed CI, Chromium/Firefox E2E, and Parity Documentation.
+- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch table, correct add-rule semantics, and Draft/Apply validation separation.
+- The latest integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, 307 unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
+- Four existing Svelte accessibility warnings remain tracked; no new Svelte errors were introduced.
 
 ## Remaining closure
 
@@ -113,9 +125,8 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 
 Current blockers include:
 
-- Switch source editor and bidirectional parsing,
+- Switch graphical/source dual editing and bidirectional parsing,
 - attached Rule List lifecycle, match/default routes, format/URL/headers, update state, text editor, and detach confirmation,
-- source-backed incomplete-condition drafts: original text rules clear the copied pattern, while Nex still requires every Draft to be semantically valid,
 - Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
@@ -127,4 +138,4 @@ Current blockers include:
 
 ## Current next action
 
-Implement source-backed incomplete-condition Draft handling: permit temporary Switch condition errors in Draft state, preserve strict validation at import/applied/Apply boundaries, then clear copied text patterns exactly like the original editor. Only after that slice passes exact-Head checks should source editing and the attached Rule List lifecycle begin. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Confirm CI, Browser E2E, and Parity Documentation on the exact current PR Head. If those pass, begin the source-backed Switch graphical/source dual editor, then the attached Rule List lifecycle. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
