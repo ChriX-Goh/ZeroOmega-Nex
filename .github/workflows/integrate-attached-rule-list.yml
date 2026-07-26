@@ -44,7 +44,8 @@ jobs:
           echo '8b1e25727445ffc26ca7e0acc7069119ca1a7eb7918f52b1735cf228fa71f667  /tmp/attached-rule-list.patch' | sha256sum --check
           git apply --check /tmp/attached-rule-list.patch
           git apply /tmp/attached-rule-list.patch
-          base64 --decode .github/patches/attached-rule-list-new-files.tgz.b64 > /tmp/attached-rule-list-new-files.tgz
+          cat .github/patches/attached-new-v2.p{00,01,02,03,04,05,06} > /tmp/attached-rule-list-new-files.tgz.b64
+          base64 --decode /tmp/attached-rule-list-new-files.tgz.b64 > /tmp/attached-rule-list-new-files.tgz
           echo '0f626be4ffca01cd04aab9a54c9462883a4cea3dd69d07969e48cb5f4f9a2a19  /tmp/attached-rule-list-new-files.tgz' | sha256sum --check
           tar --extract --gzip --file /tmp/attached-rule-list-new-files.tgz
           git diff --check
@@ -122,6 +123,7 @@ jobs:
           rm -rf .github/patches
           rm -f .github/workflows/capture-attached-rule-list-context.yml
           rm -f .github/workflows/diagnose-attached-rule-list-patch.yml
+          rm -f .github/workflows/diagnose-attached-new-files.yml
           rm -f .github/workflows/integrate-attached-rule-list.yml
           git diff --check
       - name: Commit verified product slice
