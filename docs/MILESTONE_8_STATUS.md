@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `5bf115091cc46e81347f851610f92343dc3a2ead`  
-**Latest integration verification:** run `30215295471` passed full `pnpm verify` before committing the Switch graphical/source editor  
+**Current product implementation head:** `e6d01ad0cb8ac98104f808b9cbe8eac88c44c27a`  
+**Latest integration verification:** run `30220260281` passed full `pnpm verify` before committing the attached Rule List core lifecycle  
 **Last exact-Head verification:** `196f7d332894b4e1dfa36a888494189c9856ab2f`; CI `30215434190`, Browser E2E `30215434168`, Parity Documentation `30215434165` passed
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
@@ -108,6 +108,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Original backups reconstruct the hidden relationship and preserve downloaded URL content for offline interpretation and PAC compilation.
 - Parent rename/color, duplication, direct detach, and parent deletion update or remove the hidden profile/source transactionally.
 - Chromium E2E covers creation, hidden navigation, enable/disable, match route, text/header edits, confirmation, and detach.
+- Integration run `30220260281` passed full repository verification before product commit `e6d01ad0cb8ac98104f808b9cbe8eac88c44c27a`.
 - Network download/update state remains deliberately separate and is the next slice.
 
 ### Appearance
@@ -138,7 +139,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 ### Automated acceptance
 
 - Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch/source editing, Draft/Apply separation, and hidden attached Rule List ownership/lifecycle.
-- The Switch source-editor integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
+- The attached Rule List integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
 - Four existing Svelte accessibility warnings remain tracked; no new Svelte errors were introduced.
 
 ## Remaining closure
@@ -160,4 +161,4 @@ Current blockers include:
 
 ## Current next action
 
-Verify the attached Rule List core lifecycle slice, then implement the background download/update service with timestamps, stale/error states, safe request headers, and atomic cached-content replacement. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Confirm CI, Browser E2E, and Parity Documentation on the exact current Head. If they pass, implement the background download/update service with timestamps, stale/error states, safe request headers, and atomic cached-content replacement. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
