@@ -114,6 +114,9 @@ jobs:
           path.write_text(source)
           PY
 
+      - name: Remove accidentally committed build outputs
+        run: git rm -r --ignore-unmatch browser-builds browser-builds.tar.gz
+
       - name: Format Fixed Profile slice
         run: |
           pnpm exec prettier --write \
