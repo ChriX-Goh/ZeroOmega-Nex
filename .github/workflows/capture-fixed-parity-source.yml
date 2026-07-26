@@ -1,0 +1,28 @@
+name: Capture Fixed Parity Source
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+      - name: Package repository source
+        run: |
+          tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=.output -czf /tmp/zeroomega-nex-fixed-source.tar.gz .
+          mv /tmp/zeroomega-nex-fixed-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zeroomega-nex-fixed-source
+          path: zeroomega-nex-fixed-source.tar.gz
+          if-no-files-found: error
