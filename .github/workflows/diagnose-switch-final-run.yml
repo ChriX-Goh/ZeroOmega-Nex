@@ -1,0 +1,76 @@
+name: Diagnose final Switch patch
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-switch-final-run.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+          show-progress: false
+      - name: Capture indentation-safe apply output
+        id: apply
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/apply-switch-table-parity.yml').read_text().splitlines()
+          marker = workflow.index('      - name: Apply Switch table parity slice')
+          start = workflow.index('        run: |', marker) + 1
+          extracted = []
+          for line in workflow[start:]:
+              if line.startswith('      - name:'):
+                  break
+              extracted.append(line[10:] if line.startswith('          ') else line)
+          helper_start = next(i for i, line in enumerate(extracted) if line.strip().startswith('def replace_once('))
+          helper_end = next(i for i in range(helper_start + 1, len(extracted)) if extracted[i].strip() == '')
+          indent = extracted[helper_start][:-len(extracted[helper_start].lstrip())]
+          extracted[helper_start:helper_end] = [
+              indent + 'def replace_once(path: str, old: str, new: str) -> None:',
+              indent + '    target = Path(path)',
+              indent + '    source = target.read_text()',
+              indent + '    matches = []',
+              indent + "    for base_indent in ('', '  ', '    ', '      '):",
+              indent + "        candidate = '\\n'.join(",
+              indent + "            base_indent + line if line else '' for line in old.split('\\n')",
+              indent + '        )',
+              indent + '        if source.count(candidate) == 1:',
+              indent + "            replacement = '\\n'.join(",
+              indent + "                base_indent + line if line else '' for line in new.split('\\n')",
+              indent + '            )',
+              indent + '            matches.append((candidate, replacement))',
+              indent + '    if len(matches) != 1:',
+              indent + '        raise SystemExit(',
+              indent + "            f'{path}: expected one indentation-aware match, found {len(matches)}: {old[:80]!r}'",
+              indent + '        )',
+              indent + '    old_value, new_value = matches[0]',
+              indent + '    target.write_text(source.replace(old_value, new_value))',
+          ]
+          Path('/tmp/apply-switch-final.sh').write_text('\n'.join(extracted) + '\n')
+          PY
+          set +e
+          bash -x /tmp/apply-switch-final.sh >/tmp/switch-final.log 2>&1
+          status=$?
+          set -e
+          printf '\nexit_status=%s\n' "$status" >>/tmp/switch-final.log
+          exit "$status"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: switch-final-patch-diagnostics
+          path: /tmp/switch-final.log
+          if-no-files-found: error
