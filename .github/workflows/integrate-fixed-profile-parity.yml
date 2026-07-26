@@ -111,6 +111,21 @@ jobs:
           if text.count(marker) != 1:
               raise SystemExit(f'guard requirement marker mismatch: {text.count(marker)}')
           path.write_text(text.replace(marker, fixed_requirements + '\n' + marker))
+
+          commands_path = Path('packages/profile-workflow/src/commands.ts')
+          commands = commands_path.read_text()
+          response_start = commands.index('function response(')
+          response_end = commands.index('\n}', response_start)
+          response_block = commands[response_start:response_end]
+          old_return = '): ProfileWorkflowCommandResponse {'
+          new_return = "): Extract<ProfileWorkflowCommandResponse, { readonly ok: true }> {"
+          if response_block.count(old_return) != 1:
+              raise SystemExit(f'response return type mismatch: {response_block.count(old_return)}')
+          commands_path.write_text(
+              commands[:response_start]
+              + response_block.replace(old_return, new_return)
+              + commands[response_end:]
+          )
           PY
       - name: Format integrated slice
         run: |
