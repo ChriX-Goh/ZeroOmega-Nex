@@ -26,6 +26,7 @@ jobs:
           tar -czf /tmp/switch-source-editor-context.tgz \
             package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json \
             apps/extension/package.json apps/extension/tsconfig.json \
+            apps/extension/src/component-rendering.component.spec.ts \
             apps/extension/src/entrypoints/options \
             apps/extension/src/lib \
             packages/profile-spec \
