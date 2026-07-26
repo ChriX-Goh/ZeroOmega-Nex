@@ -1,0 +1,41 @@
+name: Capture Switch source editor context
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/capture-switch-source-editor-context.yml
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+          show-progress: false
+      - name: Capture implementation context
+        run: |
+          tar -czf /tmp/switch-source-editor-context.tgz \
+            package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json \
+            apps/extension/package.json apps/extension/tsconfig.json \
+            apps/extension/src/entrypoints/options \
+            apps/extension/src/lib \
+            packages/profile-spec \
+            packages/profile-workflow \
+            scripts \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: switch-source-editor-context
+          path: /tmp/switch-source-editor-context.tgz
+          if-no-files-found: error
