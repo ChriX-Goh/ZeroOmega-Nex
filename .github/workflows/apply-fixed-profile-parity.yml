@@ -114,23 +114,17 @@ jobs:
           path.write_text(source)
           PY
 
-      - name: Add read-secret success response contract
+      - name: Narrow successful command response type
         run: |
           python <<'PY'
           from pathlib import Path
 
           path = Path('packages/profile-workflow/src/commands.ts')
           source = path.read_text()
-          start = source.index('export type ProfileWorkflowCommandResponse =')
-          failure = source.index("\n  | {\n      readonly ok: false;", start)
-          success_branch = source[start:failure]
-          declaration = '      readonly secretValue?: string;'
-          if declaration not in success_branch:
-              anchor = '      readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];\n'
-              if success_branch.count(anchor) != 1:
-                  raise SystemExit(f'expected one success-response anchor, found {success_branch.count(anchor)}')
-              success_branch = success_branch.replace(anchor, anchor + declaration + '\n')
-              source = source[:start] + success_branch + source[failure:]
+          start = source.index('function response(')
+          old = '): ProfileWorkflowCommandResponse {'
+          position = source.index(old, start)
+          source = source[:position] + "): Extract<ProfileWorkflowCommandResponse, { ok: true }> {" + source[position + len(old):]
           path.write_text(source)
           PY
 
