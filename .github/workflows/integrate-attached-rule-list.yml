@@ -48,6 +48,33 @@ jobs:
           base64 --decode /tmp/attached-rule-list-new-files.tgz.b64 > /tmp/attached-rule-list-new-files.tgz
           echo '0f626be4ffca01cd04aab9a54c9462883a4cea3dd69d07969e48cb5f4f9a2a19  /tmp/attached-rule-list-new-files.tgz' | sha256sum --check
           tar --extract --gzip --file /tmp/attached-rule-list-new-files.tgz
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/extension/src/entrypoints/options/App.svelte')
+          source = path.read_text()
+          old = """      if (state.selectedProfileId !== profileId && !saving) {
+                await runCommand({
+                  action: 'select-profile',
+                  expectedGeneration: state.generation,
+                  profileId,
+                });
+              }
+          """
+          new = """      const currentState = state;
+              if (!currentState) return;
+              if (currentState.selectedProfileId !== profileId && !saving) {
+                await runCommand({
+                  action: 'select-profile',
+                  expectedGeneration: currentState.generation,
+                  profileId,
+                });
+              }
+          """
+          if source.count(old) != 1:
+              raise SystemExit(f'async navigation state block mismatch: {source.count(old)}')
+          path.write_text(source.replace(old, new))
+          PY
           git diff --check
       - name: Regenerate ProfileSpec validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
