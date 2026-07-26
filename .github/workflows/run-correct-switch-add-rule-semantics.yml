@@ -1,0 +1,101 @@
+name: Run Switch add-rule semantic correction
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/run-correct-switch-add-rule-semantics.yml
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Extract and run indentation-safe correction
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/correct-switch-add-rule-semantics.yml').read_text().splitlines()
+          marker = workflow.index('      - name: Apply source-backed correction')
+          start = workflow.index('        run: |', marker) + 1
+          extracted = []
+          for line in workflow[start:]:
+              if line.startswith('      - name:'):
+                  break
+              extracted.append(line[10:] if line.startswith('          ') else line)
+
+          import_index = extracted.index('from pathlib import Path')
+          extracted.insert(import_index + 1, 'from textwrap import dedent')
+          helper_start = next(i for i, line in enumerate(extracted) if line.strip().startswith('def replace_once('))
+          helper_end = next(i for i in range(helper_start + 1, len(extracted)) if extracted[i].strip() == '')
+          indent = extracted[helper_start][:-len(extracted[helper_start].lstrip())]
+          extracted[helper_start:helper_end] = [
+              indent + 'def replace_once(path: str, old: str, new: str) -> None:',
+              indent + '    target = Path(path)',
+              indent + '    source = target.read_text()',
+              indent + "    old = dedent(old).strip('\\n')",
+              indent + "    new = dedent(new).strip('\\n')",
+              indent + '    matches = []',
+              indent + "    for base_indent in ('', '  ', '    ', '      '):",
+              indent + "        candidate = '\\n'.join(",
+              indent + "            base_indent + line if line else '' for line in old.split('\\n')",
+              indent + '        )',
+              indent + '        if source.count(candidate) == 1:',
+              indent + "            replacement = '\\n'.join(",
+              indent + "                base_indent + line if line else '' for line in new.split('\\n')",
+              indent + '            )',
+              indent + '            matches.append((candidate, replacement))',
+              indent + '    if len(matches) != 1:',
+              indent + '        raise SystemExit(',
+              indent + "            f'{path}: expected one indentation-aware match, found {len(matches)}: {old[:100]!r}'",
+              indent + '        )',
+              indent + '    old_value, new_value = matches[0]',
+              indent + '    target.write_text(source.replace(old_value, new_value))',
+          ]
+          Path('/tmp/correct-switch-add-rule.py').write_text('\n'.join(extracted) + '\n')
+          PY
+          python /tmp/correct-switch-add-rule.py
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/switch-operations.ts \
+            packages/profile-workflow/src/switch-operations.test.ts \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md
+      - name: Verify repository
+        run: pnpm verify
+      - name: Clean generated and temporary files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          rm -f .github/workflows/correct-switch-add-rule-semantics.yml
+          rm -f .github/workflows/run-correct-switch-add-rule-semantics.yml
+          git diff --check
+      - name: Commit verified correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'fix: align Switch editor add-rule semantics'
+          git push origin HEAD:feat/m8-profile-workflow
