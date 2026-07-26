@@ -128,8 +128,22 @@ jobs:
           path.write_text(source)
           PY
 
-      - name: Remove accidentally committed build outputs
-        run: git rm -r --ignore-unmatch browser-builds browser-builds.tar.gz
+      - name: Remove build outputs and all one-time executors
+        run: |
+          git rm -r --ignore-unmatch \
+            browser-builds \
+            browser-builds.tar.gz \
+            .github/fixed-profile-parity-trigger.txt \
+            .github/patches/fixed-profile-parity.part00 \
+            .github/patches/fixed-profile-parity.part01 \
+            .github/patches/fixed-profile-parity.part02 \
+            .github/patches/fixed-profile-parity.part03 \
+            .github/workflows/apply-default-integrity-slice.yml \
+            .github/workflows/apply-fixed-profile-parity.yml \
+            .github/workflows/diagnose-default-integrity-slice.yml \
+            .github/workflows/export-fixed-profile-patch.yml \
+            .github/workflows/integrate-fixed-profile-parity.yml \
+            .github/workflows/patch-fixed-validation.yml
 
       - name: Format Fixed Profile slice
         run: |
