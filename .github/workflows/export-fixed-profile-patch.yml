@@ -1,0 +1,34 @@
+name: Export Fixed Profile patch
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-fixed-profile-patch.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+          show-progress: false
+      - name: Reconstruct reviewed patch
+        run: |
+          cat .github/patches/fixed-profile-parity.part{00,01,02,03} > /tmp/fixed-profile-parity.b64
+          echo '320f779fb8d856a1b19c997c6da31f8909d0cb7d243ef3074339d4b23a032b65  /tmp/fixed-profile-parity.b64' | sha256sum --check
+          base64 --decode /tmp/fixed-profile-parity.b64 | gzip --decompress --stdout > /tmp/fixed-profile-parity.patch
+          echo '34fe41b7393fd3f80bacc6e03414f1a184dc6e4f0b2515925f7a4df6a95d313e  /tmp/fixed-profile-parity.patch' | sha256sum --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-fixed-profile-patch
+          path: /tmp/fixed-profile-parity.patch
+          if-no-files-found: error
