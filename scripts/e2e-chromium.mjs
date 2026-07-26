@@ -166,7 +166,7 @@ try {
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
   await options.getByRole('button', { name: 'switch', exact: true }).click();
-  const attachRuleList = options.getByRole('button', { name: 'Attach Rule List', exact: true });
+  const attachRuleList = options.getByRole('button', { name: /Attach Rule List/u });
   await attachRuleList.click();
   const attachedRow = options.locator('[data-attached-rule-list-row]');
   await attachedRow.waitFor();
