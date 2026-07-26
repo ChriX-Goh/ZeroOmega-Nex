@@ -77,6 +77,7 @@ jobs:
           ]
           path.write_text('\n'.join(lines) + '\n')
           PY
+          python .github/patches/fix-attached-import-test.py
           git diff --check
       - name: Regenerate ProfileSpec validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
