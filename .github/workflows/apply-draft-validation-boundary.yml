@@ -31,17 +31,34 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Reconstruct and apply verified patch
+        id: patch
+        continue-on-error: true
+        shell: bash
         run: |
-          git fetch --no-tags origin tmp/draft-validation-package
-          for part in 00 01 02 03 04 05a 05b 06 07 08 09 10 11 12 13 14 15 16; do
-            git show FETCH_HEAD:patch.$part
-          done > /tmp/draft-validation.patch.gz.b64
-          base64 --decode /tmp/draft-validation.patch.gz.b64 > /tmp/draft-validation.patch.gz
-          echo 'ef93d5ee5781b90c5688bd9c9ffb357aa7a407500ed54946a5815099a4d5ae88  /tmp/draft-validation.patch.gz' | sha256sum --check
-          gzip --decompress --stdout /tmp/draft-validation.patch.gz > /tmp/draft-validation.patch
-          echo '19f3f68bcf66d8146d055e4877ce6f0642d496d360a6db6b740fb238aeeb2483  /tmp/draft-validation.patch' | sha256sum --check
-          git apply --check /tmp/draft-validation.patch
-          git apply /tmp/draft-validation.patch
+          set -o pipefail
+          {
+            git fetch --no-tags origin tmp/draft-validation-package
+            for part in 00 01 02 03 04 05a 05b 06 07 08 09 10 11 12 13 14 15 16; do
+              git show FETCH_HEAD:patch.$part
+            done > /tmp/draft-validation.patch.gz.b64
+            base64 --decode /tmp/draft-validation.patch.gz.b64 > /tmp/draft-validation.patch.gz
+            sha256sum /tmp/draft-validation.patch.gz
+            echo 'ef93d5ee5781b90c5688bd9c9ffb357aa7a407500ed54946a5815099a4d5ae88  /tmp/draft-validation.patch.gz' | sha256sum --check
+            gzip --decompress --stdout /tmp/draft-validation.patch.gz > /tmp/draft-validation.patch
+            sha256sum /tmp/draft-validation.patch
+            echo '19f3f68bcf66d8146d055e4877ce6f0642d496d360a6db6b740fb238aeeb2483  /tmp/draft-validation.patch' | sha256sum --check
+            git apply --check --verbose /tmp/draft-validation.patch
+            git apply /tmp/draft-validation.patch
+          } 2>&1 | tee /tmp/draft-validation-patch.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: draft-validation-patch-diagnostics
+          path: /tmp/draft-validation-patch.log
+          if-no-files-found: error
+      - name: Enforce patch result
+        if: steps.patch.outcome != 'success'
+        run: exit 1
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
