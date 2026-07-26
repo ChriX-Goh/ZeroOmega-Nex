@@ -52,28 +52,30 @@ jobs:
           from pathlib import Path
 
           path = Path('apps/extension/src/entrypoints/options/App.svelte')
-          source = path.read_text()
-          old = """      if (state.selectedProfileId !== profileId && !saving) {
-                await runCommand({
-                  action: 'select-profile',
-                  expectedGeneration: state.generation,
-                  profileId,
-                });
-              }
-          """
-          new = """      const currentState = state;
-              if (!currentState) return;
-              if (currentState.selectedProfileId !== profileId && !saving) {
-                await runCommand({
-                  action: 'select-profile',
-                  expectedGeneration: currentState.generation,
-                  profileId,
-                });
-              }
-          """
-          if source.count(old) != 1:
-              raise SystemExit(f'async navigation state block mismatch: {source.count(old)}')
-          path.write_text(source.replace(old, new))
+          lines = path.read_text().splitlines()
+          matches = [
+              index
+              for index, line in enumerate(lines)
+              if 'if (state.selectedProfileId !== profileId && !saving)' in line
+          ]
+          if len(matches) != 1:
+              raise SystemExit(f'async navigation state line mismatch: {len(matches)}')
+          index = matches[0]
+          if 'expectedGeneration: state.generation' not in '\n'.join(lines[index:index + 7]):
+              raise SystemExit('async navigation generation line mismatch')
+          indent = lines[index][:-len(lines[index].lstrip())]
+          lines[index:index + 7] = [
+              indent + 'const currentState = state;',
+              indent + 'if (!currentState) return;',
+              indent + 'if (currentState.selectedProfileId !== profileId && !saving) {',
+              indent + '  await runCommand({',
+              indent + "    action: 'select-profile',",
+              indent + '    expectedGeneration: currentState.generation,',
+              indent + '    profileId,',
+              indent + '  });',
+              indent + '}',
+          ]
+          path.write_text('\n'.join(lines) + '\n')
           PY
           git diff --check
       - name: Regenerate ProfileSpec validator
