@@ -34,9 +34,17 @@ jobs:
       - name: Apply reviewed product patch
         shell: bash
         run: |
-          base64 --decode .github/patches/virtual-new-profile.patch.gz.b64 | gzip --decompress > /tmp/virtual-new-profile.patch
-          git apply --check /tmp/virtual-new-profile.patch
-          git apply /tmp/virtual-new-profile.patch
+          set -o pipefail
+          {
+            wc -c .github/patches/virtual-new-profile.patch.gz.b64
+            base64 --decode .github/patches/virtual-new-profile.patch.gz.b64 > /tmp/virtual-new-profile.patch.gz
+            wc -c /tmp/virtual-new-profile.patch.gz
+            gzip --test /tmp/virtual-new-profile.patch.gz
+            gzip --decompress --stdout /tmp/virtual-new-profile.patch.gz > /tmp/virtual-new-profile.patch
+            wc -c /tmp/virtual-new-profile.patch
+            git apply --check --verbose /tmp/virtual-new-profile.patch
+            git apply /tmp/virtual-new-profile.patch
+          } 2>&1 | tee patch-application.log
 
       - name: Generate CSP-safe validator
         run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
@@ -60,12 +68,14 @@ jobs:
           set -o pipefail
           pnpm verify 2>&1 | tee original-new-profile-virtual.log
 
-      - name: Upload verification log
+      - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: original-new-profile-virtual-log
-          path: original-new-profile-virtual.log
+          path: |
+            patch-application.log
+            original-new-profile-virtual.log
           if-no-files-found: warn
 
       - name: Commit verified slice
