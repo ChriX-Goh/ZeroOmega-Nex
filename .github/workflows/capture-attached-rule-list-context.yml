@@ -23,11 +23,13 @@ jobs:
           show-progress: false
       - name: Capture implementation context
         run: |
-          tar -czf /tmp/attached-rule-list-context.tgz \
-            package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json \
-            apps packages scripts docs \
+          tar \
             --exclude='apps/extension/.output' \
-            --exclude='**/node_modules'
+            --exclude='*/node_modules' \
+            --exclude='*/node_modules/*' \
+            -czf /tmp/attached-rule-list-context.tgz \
+            package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig*.json \
+            apps packages scripts docs
       - uses: actions/upload-artifact@v4
         with:
           name: attached-rule-list-context
