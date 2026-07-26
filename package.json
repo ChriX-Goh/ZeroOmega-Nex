@@ -25,9 +25,10 @@
     "format:check": "prettier --check .",
     "guard:architecture": "node scripts/guard-architecture.mjs",
     "validate:ui": "node scripts/validate-ui-compatibility.mjs",
+    "validate:parity-docs": "node scripts/validate-parity-docs.mjs",
     "inspect:manifests": "node scripts/inspect-manifests.mjs",
     "stage:builds": "node scripts/stage-builds.mjs",
-    "verify": "pnpm guard:architecture && pnpm validate:ui && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm test:components && pnpm build && pnpm inspect:manifests && pnpm stage:builds"
+    "verify": "pnpm guard:architecture && pnpm validate:ui && pnpm validate:parity-docs && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm test:components && pnpm build && pnpm inspect:manifests && pnpm stage:builds"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
