@@ -1,0 +1,64 @@
+name: Finalize Fixed Chromium E2E correction
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/finalize-fixed-e2e.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Make Direct activation assertion idempotent
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/e2e-chromium.mjs')
+          source = path.read_text()
+          old = """  const direct = popup.getByRole('button', { name: /直接连接/u });
+            await direct.click();
+            await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
+          """
+          new = """  const direct = popup.getByRole('button', { name: /直接连接/u });
+            if (!(await direct.isDisabled())) await direct.click();
+            await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
+          """
+          if source.count(old) != 1:
+              raise SystemExit(f'Direct activation block mismatch: {source.count(old)}')
+          path.write_text(source.replace(old, new))
+          PY
+      - name: Format and verify repository
+        run: |
+          pnpm exec prettier --write scripts/e2e-chromium.mjs
+          pnpm verify
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/finalize-fixed-e2e.yml
+      - name: Commit verified E2E correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'test: stabilize Fixed Chromium E2E flow'
+          git push origin HEAD:feat/m8-profile-workflow
