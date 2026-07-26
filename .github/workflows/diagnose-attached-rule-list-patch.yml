@@ -1,0 +1,59 @@
+name: Diagnose attached Rule List patch
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-attached-rule-list-patch.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - name: Inspect transport and patch applicability
+        id: inspect
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '## sizes'
+            wc -c .github/patches/attached-rule-list.patch.gz.b64.part{00,01,02}
+            echo '## part hashes'
+            sha256sum .github/patches/attached-rule-list.patch.gz.b64.part{00,01,02}
+            cat .github/patches/attached-rule-list.patch.gz.b64.part{00,01,02} > /tmp/attached.b64
+            echo '## combined base64'
+            wc -c /tmp/attached.b64
+            sha256sum /tmp/attached.b64
+            base64 --decode /tmp/attached.b64 > /tmp/attached.patch.gz
+            echo "decode_status=$?"
+            echo '## gzip'
+            wc -c /tmp/attached.patch.gz
+            sha256sum /tmp/attached.patch.gz
+            gzip --test /tmp/attached.patch.gz
+            echo "gzip_test_status=$?"
+            gzip --decompress --stdout /tmp/attached.patch.gz > /tmp/attached.patch
+            echo "decompress_status=$?"
+            echo '## patch'
+            wc -c /tmp/attached.patch
+            sha256sum /tmp/attached.patch
+            git apply --check /tmp/attached.patch
+            echo "git_apply_check_status=$?"
+          } > /tmp/attached-patch-diagnostics.txt 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: attached-rule-list-patch-diagnostics
+          path: /tmp/attached-patch-diagnostics.txt
+          if-no-files-found: error
