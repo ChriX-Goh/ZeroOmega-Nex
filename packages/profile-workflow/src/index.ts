@@ -83,6 +83,13 @@ export {
   type ProfileWorkflowSwitchRuleMutation,
 } from './switch-operations.js';
 export {
+  composeSwitchProfileSource,
+  parseSwitchProfileSourceDraft,
+  type SwitchSourceComposeResult,
+  type SwitchSourceError,
+  type SwitchSourceParseResult,
+} from './switch-source.js';
+export {
   BrowserStorageProfileWorkflowRepository,
   parseProfileWorkflowState,
   type ProfileWorkflowStorageArea,

@@ -177,6 +177,16 @@ graph TD
 - 独立“默认情景模式”行。
 - 支持图形编辑与源码编辑切换，并显示解析错误。
 
+### 源码编辑语义
+
+- 原版源码采用结果模式的 SwitchyOmega Conditions 格式：文件头为 `[SwitchyOmega Conditions]`，随后是 `@with result`。
+- 每条规则使用 `条件 +结果情景模式`；备注在规则前使用 `@note`；最后必须有 `* +默认情景模式`。
+- `!条件` 表示使用最后默认情景模式。图形转源码时使用可逆的原版条件缩写/全名；源码转图形时必须校验条件、结果引用和最后默认规则。
+- 切回图形模式、离开当前情景模式或执行 Apply 时解析已修改源码。解析失败时阻止动作、保留源码模式并显示行号/原因。
+- 源码文本尚未解析前属于编辑器本地 Draft；因此必须参与全局 Apply/Discard 的 dirty 状态。Discard 可直接丢弃本地源码，Apply 必须先解析后再进入严格候选校验。
+- 原版规则没有逐行 `enabled` 标记，也没有正则 flags 字段。Nex 不再提供这两项普通编辑入口；仅对旧 Nex 数据显示显式 Normalize 兼容操作，禁止静默丢失。
+- 复制规则必须精确复制备注，不得添加 `copy` 等 Nex 自创后缀。
+
 ### 附属 RuleListProfile
 
 - 可给 SwitchProfile 附加一个 RuleListProfile。
@@ -199,7 +209,9 @@ graph TD
 - 文本条件首次新增时使用空 `pattern`；复制最后一条文本规则后也会清空 `pattern`，不再写入 `example.com` 一类假用户数据。
 - Draft 校验将 Switch 条件的空 pattern、错误正则、无效 IP/前缀和无效范围降为 warning；结构、引用和循环错误仍阻止保存。
 - Applied、导入、历史修订和 Apply candidate 保持严格校验；无效 Draft 不会进入浏览器激活、PAC 快照或 Applied 状态。
-- 图形/源码双向编辑、附属 RuleList、原版 locale 文本、字段级错误展示和浏览器拖放 E2E 尚未完成，因此 Switch 整体仍是 `PARTIAL`。
+- 已实现原版结果模式源码的双向 compose/parse、备注、内置/用户结果引用、默认规则、原版条件类型和行级错误；源码修改纳入全局 Apply/Discard，并在导航离开前解析。
+- 普通规则表已移除 Nex 自创的逐行启用复选框和正则 flags 输入；旧 Nex 数据必须先显式 Normalize 才能进入可逆源码模式。
+- 源码编辑仍缺完整 locale、浏览器交互 E2E 和编辑模式跨重载持久化；附属 RuleList、字段级错误展示和浏览器拖放 E2E 也未完成，因此 Switch 整体仍是 `PARTIAL`。
 
 ## 9. RuleListProfile 知识节点
 
@@ -339,10 +351,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 ## 18. 修订记录
 
-| 日期       | 变更                                                                                                                         | 依据                                                                          |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                                |
-| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`            |
-| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义 |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                           |
-| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                         | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界       |
+| 日期       | 变更                                                                                                                         | 依据                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                                               |
+| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`                           |
+| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义                |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                                          |
+| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                         | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                      |
+| 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口         | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee` |

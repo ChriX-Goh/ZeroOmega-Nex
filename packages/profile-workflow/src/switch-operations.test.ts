@@ -97,11 +97,13 @@ describe('Switch Profile draft operations', () => {
     const ids = deterministicIds();
     const created = createSwitchProfileDraft(workflowFixture(), ids);
     const added = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');
+    switchProfile(added.draft, created.profileId).rules[0]!.note = 'original note';
     const duplicated = duplicateSwitchRuleDraft(added.draft, created.profileId, added.ruleId, ids);
     const profile = switchProfile(duplicated.draft, created.profileId);
 
     expect(profile.rules.map((rule) => rule.id)).toEqual(['rule-switch-1', 'rule-switch-2']);
     expect(profile.rules[1]?.condition).toEqual(profile.rules[0]?.condition);
+    expect(profile.rules[1]?.note).toBe(profile.rules[0]?.note);
     expect(profile.rules[1]).not.toBe(profile.rules[0]);
     expect(validateProfileSpecDraft(duplicated.draft).valid).toBe(true);
   });

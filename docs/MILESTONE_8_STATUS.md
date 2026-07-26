@@ -88,6 +88,17 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Integration run `30210366430` passed the full repository verification before product commit `e428e0702fcba56e4ee3a55f0d9f184134efc107`.
 - Exact-Head verification at `ca3cc64d8b47a37ca117c9e6e3f76a4b174c9493` passed CI `30210513221`, Browser E2E `30210513212`, and Parity Documentation `30210513208`.
 
+### Switch graphical/source editor slice — pending verification
+
+- Added bidirectional parsing and composition for the original result-enabled SwitchyOmega Conditions format.
+- Source uses `[SwitchyOmega Conditions]`, `@with result`, per-rule `+result profile`, optional `@note`, and a final `* +default profile` rule.
+- All supported original condition forms, built-in routes, user-profile references, default-route shorthand, comments, notes, and stable rule identities are covered by unit tests.
+- Invalid source remains open with structured line errors. Switching back, leaving the profile, browser history navigation, Duplicate/Delete, and Apply run the same guard before continuing.
+- Local source edits participate in global Apply/Discard even before they are parsed into the persisted Draft; Discard remounts the editor without forcing invalid source through the workflow.
+- Rule cloning now preserves notes exactly. Normal UI no longer exposes Nex-only per-rule enabled or regex-flags controls; imported legacy state requires an explicit Normalize action before reversible source editing.
+- Permanent compatibility guards and component-rendering coverage require the source editor and the App-level action boundary.
+- Full integration and exact-Head checks are still required before this slice is marked verified.
+
 ### Appearance
 
 - Theme choices are Automatic, Light, and Dark.
@@ -125,7 +136,7 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 
 Current blockers include:
 
-- Switch graphical/source dual editing and bidirectional parsing,
+- Switch source-editor localization, browser interaction E2E, and edit-mode persistence across reloads,
 - attached Rule List lifecycle, match/default routes, format/URL/headers, update state, text editor, and detach confirmation,
 - Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
@@ -138,4 +149,4 @@ Current blockers include:
 
 ## Current next action
 
-Begin the source-backed Switch graphical/source dual editor, then implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Run full integration and exact-Head verification for the Switch source editor. After it passes, implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

@@ -11,18 +11,24 @@
   } from '@zeroomega-nex/profile-spec';
   import {
     addSwitchRuleDraft,
+    composeSwitchProfileSource,
     createDefaultSwitchCondition,
     deleteSwitchRuleDraft,
     duplicateSwitchRuleDraft,
     moveSwitchRuleDraft,
+    parseSwitchProfileSourceDraft,
     type ProfileWorkflowIdFactory,
+    type SwitchSourceError,
   } from '@zeroomega-nex/profile-workflow';
+  import { onMount } from 'svelte';
 
   export let spec: ProfileSpec;
   export let profileId: string;
   export let disabled = false;
   export let idFactory: ProfileWorkflowIdFactory;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let onRegisterBeforeAction: (guard: (() => Promise<boolean>) | undefined) => void;
+  export let onSourceDirtyChange: (dirty: boolean) => void;
 
   interface ConditionKindOption {
     readonly value: Condition['kind'];
@@ -160,6 +166,10 @@
   let showConditionHelp = false;
   let notesExpanded = false;
   let draggedRuleId: string | undefined;
+  let editSource = false;
+  let sourceText = '';
+  let sourceTouched = false;
+  let sourceError: SwitchSourceError | undefined;
   let useAdvancedConditions = false;
   let conditionGroups: readonly ConditionGroup[] = basicConditionGroups;
   let showNotes = false;
@@ -200,12 +210,6 @@
 
   function conditionPattern(condition: Condition): string {
     return 'pattern' in condition ? condition.pattern : '';
-  }
-
-  function conditionFlags(condition: Condition): string {
-    return condition.kind === 'host-regex' || condition.kind === 'url-regex'
-      ? (condition.flags ?? '')
-      : '';
   }
 
   function conditionAddress(condition: Condition): string {
@@ -285,12 +289,6 @@
     });
   }
 
-  async function updateRuleEnabled(ruleId: string, enabled: boolean): Promise<void> {
-    await mutateRule(ruleId, (rule) => {
-      rule.enabled = enabled;
-    });
-  }
-
   async function updateRuleNote(ruleId: string, note: string): Promise<void> {
     await mutateRule(ruleId, (rule) => {
       const normalized = note.trim();
@@ -302,21 +300,30 @@
   async function updateConditionKind(ruleId: string, kind: Condition['kind']): Promise<void> {
     await mutateRule(ruleId, (rule) => {
       rule.condition = createDefaultSwitchCondition(kind);
+      delete rule.enabled;
+    });
+  }
+
+  function hasLegacySourceState(rule: SwitchRule): boolean {
+    return (
+      rule.enabled === false ||
+      ((rule.condition.kind === 'host-regex' || rule.condition.kind === 'url-regex') &&
+        Boolean(rule.condition.flags))
+    );
+  }
+
+  async function normalizeLegacySourceState(ruleId: string): Promise<void> {
+    await mutateRule(ruleId, (rule) => {
+      delete rule.enabled;
+      if (rule.condition.kind === 'host-regex' || rule.condition.kind === 'url-regex') {
+        delete rule.condition.flags;
+      }
     });
   }
 
   async function updateConditionPattern(ruleId: string, pattern: string): Promise<void> {
     await mutateRule(ruleId, (rule) => {
       if ('pattern' in rule.condition) rule.condition.pattern = pattern.trim();
-    });
-  }
-
-  async function updateConditionFlags(ruleId: string, flags: string): Promise<void> {
-    await mutateRule(ruleId, (rule) => {
-      if (rule.condition.kind !== 'host-regex' && rule.condition.kind !== 'url-regex') return;
-      const normalized = flags.trim();
-      if (normalized) rule.condition.flags = normalized;
-      else delete rule.condition.flags;
     });
   }
 
@@ -370,6 +377,58 @@
     await onReplaceDraft(draft);
   }
 
+  function sourceErrorText(value: SwitchSourceError): string {
+    const location = value.line === undefined ? '' : `Line ${value.line}: `;
+    return `${location}${value.message}`;
+  }
+
+  async function commitSourceIfNeeded(): Promise<boolean> {
+    if (!editSource || !sourceTouched) return true;
+    const parsed = parseSwitchProfileSourceDraft(spec, profileId, sourceText, idFactory);
+    if (!parsed.ok) {
+      sourceError = parsed.error;
+      return false;
+    }
+    if (!(await onReplaceDraft(parsed.draft))) return false;
+    sourceTouched = false;
+    onSourceDirtyChange(false);
+    sourceError = undefined;
+    return true;
+  }
+
+  async function toggleSource(): Promise<void> {
+    if (!editSource) {
+      const composed = composeSwitchProfileSource(spec, profileId);
+      if (!composed.ok) {
+        sourceError = composed.error;
+        return;
+      }
+      sourceText = composed.source;
+      sourceTouched = false;
+      onSourceDirtyChange(false);
+      sourceError = undefined;
+      editSource = true;
+      return;
+    }
+    if (!(await commitSourceIfNeeded())) return;
+    editSource = false;
+    sourceError = undefined;
+  }
+
+  function markSourceTouched(): void {
+    sourceTouched = true;
+    onSourceDirtyChange(true);
+    sourceError = undefined;
+  }
+
+  onMount(() => {
+    onRegisterBeforeAction(commitSourceIfNeeded);
+    return () => {
+      onRegisterBeforeAction(undefined);
+      onSourceDirtyChange(false);
+    };
+  });
+
   function startRuleDrag(ruleId: string, event: DragEvent): void {
     draggedRuleId = ruleId;
     event.dataTransfer?.setData('text/plain', ruleId);
@@ -421,16 +480,37 @@
           profile.
         </p>
       </div>
-      <button
-        type="button"
-        class="help-button"
-        aria-expanded={showConditionHelp}
-        aria-controls="switch-condition-help"
-        on:click={() => (showConditionHelp = !showConditionHelp)}
-      >
-        ? Condition help
-      </button>
+      <div class="switch-heading-actions">
+        <button
+          type="button"
+          class="source-toggle"
+          class:active={editSource}
+          data-switch-source-toggle
+          aria-pressed={editSource}
+          {disabled}
+          on:click={toggleSource}
+        >
+          ✎ Edit Source
+        </button>
+        {#if !editSource}
+          <button
+            type="button"
+            class="help-button"
+            aria-expanded={showConditionHelp}
+            aria-controls="switch-condition-help"
+            on:click={() => (showConditionHelp = !showConditionHelp)}
+          >
+            ? Condition help
+          </button>
+        {/if}
+      </div>
     </div>
+
+    {#if sourceError}
+      <p class="source-error" role="alert" data-switch-source-error>
+        {sourceErrorText(sourceError)}
+      </p>
+    {/if}
 
     {#if hasUrlConditions}
       <p class="url-condition-warning" role="alert">
@@ -439,201 +519,287 @@
       </p>
     {/if}
 
-    <div class="table-scroller">
-      <table class="switch-rules-table" data-switch-rules-table>
-        <thead>
-          <tr>
-            <th scope="col">Sort</th>
-            <th scope="col">Condition type</th>
-            <th scope="col">Condition details</th>
-            <th scope="col">Result profile</th>
-            <th scope="col">Actions</th>
-            {#if showNotes}<th scope="col">Note</th>{/if}
-          </tr>
-        </thead>
-        <tbody>
-          {#each profile.rules as rule, index (rule.id)}
-            <tr
-              class:dragging={draggedRuleId === rule.id}
-              data-switch-rule-row={rule.id}
-              on:dragover|preventDefault
-              on:drop={() => dropRule(index)}
-            >
-              <td class="sort-cell">
-                <button
-                  type="button"
-                  class="drag-handle"
-                  data-switch-drag-handle
-                  title="Drag to reorder"
-                  aria-label={`Drag rule ${index + 1} to reorder`}
-                  aria-grabbed={draggedRuleId === rule.id}
-                  draggable={!disabled}
-                  disabled={disabled || profile.rules.length < 2}
-                  on:dragstart={(event) => startRuleDrag(rule.id, event)}
-                  on:dragend={() => (draggedRuleId = undefined)}
-                >
-                  ↕
-                </button>
-                <label class="enabled-toggle" title="Rule enabled">
-                  <input
-                    type="checkbox"
-                    checked={rule.enabled !== false}
+    {#if editSource}
+      <div class="switch-source-editor" data-switch-source-editor>
+        <textarea
+          aria-label="Switch Profile source"
+          rows="20"
+          bind:value={sourceText}
+          {disabled}
+          on:input={markSourceTouched}></textarea>
+        <p class="section-help">
+          Uses the original result-enabled SwitchyOmega conditions format. Invalid source remains in
+          this editor until corrected.
+          <a
+            href="https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-format"
+            target="_blank"
+            rel="noreferrer">Format help</a
+          >
+        </p>
+      </div>
+    {:else}
+      <div class="table-scroller">
+        <table class="switch-rules-table" data-switch-rules-table>
+          <thead>
+            <tr>
+              <th scope="col">Sort</th>
+              <th scope="col">Condition type</th>
+              <th scope="col">Condition details</th>
+              <th scope="col">Result profile</th>
+              <th scope="col">Actions</th>
+              {#if showNotes}<th scope="col">Note</th>{/if}
+            </tr>
+          </thead>
+          <tbody>
+            {#each profile.rules as rule, index (rule.id)}
+              <tr
+                class:dragging={draggedRuleId === rule.id}
+                data-switch-rule-row={rule.id}
+                on:dragover|preventDefault
+                on:drop={() => dropRule(index)}
+              >
+                <td class="sort-cell">
+                  <button
+                    type="button"
+                    class="drag-handle"
+                    data-switch-drag-handle
+                    title="Drag to reorder"
+                    aria-label={`Drag rule ${index + 1} to reorder`}
+                    aria-grabbed={draggedRuleId === rule.id}
+                    draggable={!disabled}
+                    disabled={disabled || profile.rules.length < 2}
+                    on:dragstart={(event) => startRuleDrag(rule.id, event)}
+                    on:dragend={() => (draggedRuleId = undefined)}
+                  >
+                    ↕
+                  </button>
+                  <div class="keyboard-order-actions">
+                    <button
+                      type="button"
+                      aria-label={`Move rule ${index + 1} up`}
+                      disabled={disabled || index === 0}
+                      on:click={() => moveRule(rule.id, -1)}>↑</button
+                    >
+                    <button
+                      type="button"
+                      aria-label={`Move rule ${index + 1} down`}
+                      disabled={disabled || index === profile.rules.length - 1}
+                      on:click={() => moveRule(rule.id, 1)}>↓</button
+                    >
+                  </div>
+                </td>
+                <td>
+                  <select
+                    aria-label={`Rule ${index + 1} condition type`}
+                    value={rule.condition.kind}
                     {disabled}
-                    aria-label={`Enable rule ${index + 1}`}
-                    on:change={(event) => updateRuleEnabled(rule.id, checkedFrom(event))}
-                  />
-                </label>
-                <div class="keyboard-order-actions">
-                  <button
-                    type="button"
-                    aria-label={`Move rule ${index + 1} up`}
-                    disabled={disabled || index === 0}
-                    on:click={() => moveRule(rule.id, -1)}>↑</button
+                    on:change={(event) =>
+                      updateConditionKind(rule.id, valueFrom(event) as Condition['kind'])}
                   >
-                  <button
-                    type="button"
-                    aria-label={`Move rule ${index + 1} down`}
-                    disabled={disabled || index === profile.rules.length - 1}
-                    on:click={() => moveRule(rule.id, 1)}>↓</button
-                  >
-                </div>
-              </td>
-              <td>
-                <select
-                  aria-label={`Rule ${index + 1} condition type`}
-                  value={rule.condition.kind}
-                  {disabled}
-                  on:change={(event) =>
-                    updateConditionKind(rule.id, valueFrom(event) as Condition['kind'])}
-                >
-                  {#each conditionGroups as group (group.label)}
-                    <optgroup label={group.label}>
-                      {#each group.options as option (option.value)}
-                        <option value={option.value}>{option.label}</option>
-                      {/each}
-                    </optgroup>
-                  {/each}
-                </select>
-              </td>
-              <td class="condition-details-cell">
-                {#if rule.condition.kind === 'true'}
-                  <span>Always matches</span>
-                {:else if rule.condition.kind === 'false'}
-                  <span>Never matches</span>
-                {:else if 'pattern' in rule.condition}
-                  <div class="inline-details">
-                    <input
-                      aria-label={`Rule ${index + 1} pattern`}
-                      value={conditionPattern(rule.condition)}
-                      {disabled}
-                      on:change={(event) => updateConditionPattern(rule.id, valueFrom(event))}
-                    />
-                    {#if rule.condition.kind === 'host-regex' || rule.condition.kind === 'url-regex'}
-                      <input
-                        class="flags-input"
-                        aria-label={`Rule ${index + 1} regular-expression flags`}
-                        value={conditionFlags(rule.condition)}
-                        placeholder="flags"
-                        {disabled}
-                        on:change={(event) => updateConditionFlags(rule.id, valueFrom(event))}
-                      />
-                    {/if}
-                  </div>
-                {:else if rule.condition.kind === 'ip'}
-                  <div class="inline-details ip-details">
-                    <input
-                      aria-label={`Rule ${index + 1} IP address`}
-                      value={conditionAddress(rule.condition)}
-                      placeholder="127.0.0.1"
-                      {disabled}
-                      on:change={(event) => updateIpAddress(rule.id, valueFrom(event))}
-                    />
-                    <span>/</span>
-                    <input
-                      class="small-number"
-                      aria-label={`Rule ${index + 1} prefix length`}
-                      type="number"
-                      min="0"
-                      max="128"
-                      value={conditionNumber(rule.condition, 'prefixLength')}
-                      {disabled}
-                      on:change={(event) =>
-                        updateConditionNumber(rule.id, 'prefixLength', valueFrom(event))}
-                    />
-                  </div>
-                {:else if rule.condition.kind === 'host-levels'}
-                  <div class="inline-details range-details">
-                    <input
-                      class="small-number"
-                      aria-label={`Rule ${index + 1} minimum host levels`}
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={conditionNumber(rule.condition, 'min')}
-                      {disabled}
-                      on:change={(event) => updateConditionNumber(rule.id, 'min', valueFrom(event))}
-                    />
-                    <span>to</span>
-                    <input
-                      class="small-number"
-                      aria-label={`Rule ${index + 1} maximum host levels`}
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={conditionNumber(rule.condition, 'max')}
-                      {disabled}
-                      on:change={(event) => updateConditionNumber(rule.id, 'max', valueFrom(event))}
-                    />
-                  </div>
-                {:else if rule.condition.kind === 'weekday'}
-                  <div class="weekday-options" aria-label={`Rule ${index + 1} weekdays`}>
-                    {#each weekdays as day (day.value)}
-                      <label class="weekday-option">
-                        <input
-                          type="checkbox"
-                          checked={conditionWeekdays(rule.condition).includes(day.value)}
-                          {disabled}
-                          on:change={(event) =>
-                            toggleWeekday(rule.id, day.value, checkedFrom(event))}
-                        />
-                        {day.label}
-                      </label>
+                    {#each conditionGroups as group (group.label)}
+                      <optgroup label={group.label}>
+                        {#each group.options as option (option.value)}
+                          <option value={option.value}>{option.label}</option>
+                        {/each}
+                      </optgroup>
                     {/each}
-                  </div>
-                {:else if rule.condition.kind === 'time'}
-                  <div class="inline-details range-details">
-                    <input
-                      class="small-number"
-                      aria-label={`Rule ${index + 1} start hour`}
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={conditionNumber(rule.condition, 'startHour')}
+                  </select>
+                </td>
+                <td class="condition-details-cell">
+                  {#if rule.condition.kind === 'true'}
+                    <span>Always matches</span>
+                  {:else if rule.condition.kind === 'false'}
+                    <span>Never matches</span>
+                  {:else if 'pattern' in rule.condition}
+                    <div class="inline-details">
+                      <input
+                        aria-label={`Rule ${index + 1} pattern`}
+                        value={conditionPattern(rule.condition)}
+                        {disabled}
+                        on:change={(event) => updateConditionPattern(rule.id, valueFrom(event))}
+                      />
+                    </div>
+                  {:else if rule.condition.kind === 'ip'}
+                    <div class="inline-details ip-details">
+                      <input
+                        aria-label={`Rule ${index + 1} IP address`}
+                        value={conditionAddress(rule.condition)}
+                        placeholder="127.0.0.1"
+                        {disabled}
+                        on:change={(event) => updateIpAddress(rule.id, valueFrom(event))}
+                      />
+                      <span>/</span>
+                      <input
+                        class="small-number"
+                        aria-label={`Rule ${index + 1} prefix length`}
+                        type="number"
+                        min="0"
+                        max="128"
+                        value={conditionNumber(rule.condition, 'prefixLength')}
+                        {disabled}
+                        on:change={(event) =>
+                          updateConditionNumber(rule.id, 'prefixLength', valueFrom(event))}
+                      />
+                    </div>
+                  {:else if rule.condition.kind === 'host-levels'}
+                    <div class="inline-details range-details">
+                      <input
+                        class="small-number"
+                        aria-label={`Rule ${index + 1} minimum host levels`}
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={conditionNumber(rule.condition, 'min')}
+                        {disabled}
+                        on:change={(event) =>
+                          updateConditionNumber(rule.id, 'min', valueFrom(event))}
+                      />
+                      <span>to</span>
+                      <input
+                        class="small-number"
+                        aria-label={`Rule ${index + 1} maximum host levels`}
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={conditionNumber(rule.condition, 'max')}
+                        {disabled}
+                        on:change={(event) =>
+                          updateConditionNumber(rule.id, 'max', valueFrom(event))}
+                      />
+                    </div>
+                  {:else if rule.condition.kind === 'weekday'}
+                    <div class="weekday-options" aria-label={`Rule ${index + 1} weekdays`}>
+                      {#each weekdays as day (day.value)}
+                        <label class="weekday-option">
+                          <input
+                            type="checkbox"
+                            checked={conditionWeekdays(rule.condition).includes(day.value)}
+                            {disabled}
+                            on:change={(event) =>
+                              toggleWeekday(rule.id, day.value, checkedFrom(event))}
+                          />
+                          {day.label}
+                        </label>
+                      {/each}
+                    </div>
+                  {:else if rule.condition.kind === 'time'}
+                    <div class="inline-details range-details">
+                      <input
+                        class="small-number"
+                        aria-label={`Rule ${index + 1} start hour`}
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={conditionNumber(rule.condition, 'startHour')}
+                        {disabled}
+                        on:change={(event) =>
+                          updateConditionNumber(rule.id, 'startHour', valueFrom(event))}
+                      />
+                      <span>to</span>
+                      <input
+                        class="small-number"
+                        aria-label={`Rule ${index + 1} end hour`}
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={conditionNumber(rule.condition, 'endHour')}
+                        {disabled}
+                        on:change={(event) =>
+                          updateConditionNumber(rule.id, 'endHour', valueFrom(event))}
+                      />
+                    </div>
+                  {/if}
+                  {#if hasLegacySourceState(rule)}
+                    <p class="legacy-source-warning">
+                      Legacy Nex-only rule state cannot be represented in original source format.
+                    </p>
+                  {/if}
+                </td>
+                <td>
+                  <select
+                    aria-label={`Rule ${index + 1} result profile`}
+                    value={routeValue(rule.route)}
+                    {disabled}
+                    on:change={(event) => updateRuleRoute(rule.id, valueFrom(event))}
+                  >
+                    <option value="direct">Direct</option>
+                    <option value="system">System Proxy</option>
+                    {#each routeProfiles as target (target.id)}
+                      <option value={`profile:${target.id}`}>{target.name}</option>
+                    {/each}
+                  </select>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      title="Delete rule"
+                      aria-label={`Delete rule ${index + 1}`}
                       {disabled}
-                      on:change={(event) =>
-                        updateConditionNumber(rule.id, 'startHour', valueFrom(event))}
-                    />
-                    <span>to</span>
-                    <input
-                      class="small-number"
-                      aria-label={`Rule ${index + 1} end hour`}
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={conditionNumber(rule.condition, 'endHour')}
+                      on:click={() => deleteRule(rule.id)}>🗑</button
+                    >
+                    <button
+                      type="button"
+                      title="Clone rule"
+                      aria-label={`Clone rule ${index + 1}`}
                       {disabled}
-                      on:change={(event) =>
-                        updateConditionNumber(rule.id, 'endHour', valueFrom(event))}
-                    />
+                      on:click={() => duplicateRule(rule.id)}>⧉</button
+                    >
+                    {#if hasLegacySourceState(rule)}
+                      <button
+                        type="button"
+                        title="Remove legacy Nex-only rule state"
+                        aria-label={`Normalize rule ${index + 1} for source editing`}
+                        {disabled}
+                        on:click={() => normalizeLegacySourceState(rule.id)}>Normalize</button
+                      >
+                    {/if}
+                    <button
+                      type="button"
+                      class:active-note={Boolean(rule.note)}
+                      title="Add note"
+                      aria-label={`Show note for rule ${index + 1}`}
+                      {disabled}
+                      on:click={() => (notesExpanded = true)}>✎</button
+                    >
                   </div>
+                </td>
+                {#if showNotes}
+                  <td>
+                    <input
+                      aria-label={`Rule ${index + 1} note`}
+                      value={rule.note ?? ''}
+                      placeholder="Optional note"
+                      {disabled}
+                      on:change={(event) => updateRuleNote(rule.id, valueFrom(event))}
+                    />
+                  </td>
                 {/if}
+              </tr>
+            {/each}
+            {#if profile.rules.length === 0}
+              <tr class="empty-rules-row">
+                <td></td>
+                <td colspan={showNotes ? 5 : 4}>
+                  No conditions. Requests use the default profile below.
+                </td>
+              </tr>
+            {/if}
+            <tr class="add-condition-row">
+              <td></td>
+              <td colspan={showNotes ? 5 : 4}>
+                <button type="button" {disabled} on:click={addRule}>＋ Add condition</button>
               </td>
+            </tr>
+            <tr class="default-route-row">
+              <td></td>
+              <th scope="row" colspan="2">Default profile</th>
               <td>
                 <select
-                  aria-label={`Rule ${index + 1} result profile`}
-                  value={routeValue(rule.route)}
+                  aria-label="Switch Profile default route"
+                  value={routeValue(profile.defaultRoute)}
                   {disabled}
-                  on:change={(event) => updateRuleRoute(rule.id, valueFrom(event))}
+                  on:change={(event) => updateDefaultRoute(valueFrom(event))}
                 >
                   <option value="direct">Direct</option>
                   <option value="system">System Proxy</option>
@@ -642,82 +808,13 @@
                   {/each}
                 </select>
               </td>
-              <td>
-                <div class="row-actions">
-                  <button
-                    type="button"
-                    title="Delete rule"
-                    aria-label={`Delete rule ${index + 1}`}
-                    {disabled}
-                    on:click={() => deleteRule(rule.id)}>🗑</button
-                  >
-                  <button
-                    type="button"
-                    title="Clone rule"
-                    aria-label={`Clone rule ${index + 1}`}
-                    {disabled}
-                    on:click={() => duplicateRule(rule.id)}>⧉</button
-                  >
-                  <button
-                    type="button"
-                    class:active-note={Boolean(rule.note)}
-                    title="Add note"
-                    aria-label={`Show note for rule ${index + 1}`}
-                    {disabled}
-                    on:click={() => (notesExpanded = true)}>✎</button
-                  >
-                </div>
-              </td>
-              {#if showNotes}
-                <td>
-                  <input
-                    aria-label={`Rule ${index + 1} note`}
-                    value={rule.note ?? ''}
-                    placeholder="Optional note"
-                    {disabled}
-                    on:change={(event) => updateRuleNote(rule.id, valueFrom(event))}
-                  />
-                </td>
-              {/if}
-            </tr>
-          {/each}
-          {#if profile.rules.length === 0}
-            <tr class="empty-rules-row">
               <td></td>
-              <td colspan={showNotes ? 5 : 4}>
-                No conditions. Requests use the default profile below.
-              </td>
+              {#if showNotes}<td></td>{/if}
             </tr>
-          {/if}
-          <tr class="add-condition-row">
-            <td></td>
-            <td colspan={showNotes ? 5 : 4}>
-              <button type="button" {disabled} on:click={addRule}>＋ Add condition</button>
-            </td>
-          </tr>
-          <tr class="default-route-row">
-            <td></td>
-            <th scope="row" colspan="2">Default profile</th>
-            <td>
-              <select
-                aria-label="Switch Profile default route"
-                value={routeValue(profile.defaultRoute)}
-                {disabled}
-                on:change={(event) => updateDefaultRoute(valueFrom(event))}
-              >
-                <option value="direct">Direct</option>
-                <option value="system">System Proxy</option>
-                {#each routeProfiles as target (target.id)}
-                  <option value={`profile:${target.id}`}>{target.name}</option>
-                {/each}
-              </select>
-            </td>
-            <td></td>
-            {#if showNotes}<td></td>{/if}
-          </tr>
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </section>
 {/if}
 
@@ -736,11 +833,44 @@
   }
 
   .close-help,
-  .help-button {
+  .help-button,
+  .source-toggle {
     border: 1px solid var(--border-strong);
     background: var(--button-bg);
     border-radius: 3px;
     padding: 0.35rem 0.6rem;
+  }
+
+  .switch-heading-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .source-toggle.active {
+    border-color: var(--accent);
+    background: var(--active);
+    color: var(--accent-strong);
+  }
+
+  .source-error {
+    max-width: 980px;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--danger);
+  }
+
+  .switch-source-editor textarea {
+    width: min(100%, 980px);
+    max-width: 980px;
+    min-height: 25rem;
+  }
+
+  .legacy-source-warning {
+    margin: 0.35rem 0 0;
+    color: var(--danger);
+    font-size: 0.78rem;
   }
 
   .condition-help-groups {
@@ -834,12 +964,6 @@
     cursor: grab;
   }
 
-  .enabled-toggle {
-    display: inline-flex;
-    margin: 0 0.25rem;
-  }
-
-  .enabled-toggle input,
   .weekday-option input {
     width: auto;
   }
@@ -868,10 +992,6 @@
 
   .condition-details-cell {
     min-width: 15rem;
-  }
-
-  .flags-input {
-    max-width: 5rem !important;
   }
 
   .small-number {

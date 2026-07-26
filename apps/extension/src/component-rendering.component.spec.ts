@@ -107,6 +107,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         disabled: true,
         idFactory: ids,
         onReplaceDraft: replaceDraft,
+        onRegisterBeforeAction: () => undefined,
+        onSourceDirtyChange: () => undefined,
       },
     });
 
@@ -118,6 +120,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Result profile');
     expect(body).toContain('Add condition');
     expect(body).toContain('Default profile');
+    expect(body).toContain('data-switch-source-toggle');
+    expect(body).toContain('Edit Source');
     expect(body).toContain('<optgroup label="Basic conditions">');
     expect(body).not.toContain('Ordered Switch Profile rules');
   });

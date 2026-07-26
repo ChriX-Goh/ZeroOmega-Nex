@@ -22,6 +22,7 @@ const advancedProfileOperationsPath =
 const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
+const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
 const profileSpecValidationPath = 'packages/profile-spec/src/validation.ts';
 const profileSpecSerializationPath = 'packages/profile-spec/src/serialization.ts';
 const workflowStatePath = 'packages/profile-workflow/src/state.ts';
@@ -48,6 +49,7 @@ const [
   profileOperations,
   runtime,
   switchOperations,
+  switchSource,
   profileSpecValidation,
   profileSpecSerialization,
   workflowState,
@@ -73,6 +75,7 @@ const [
   readFile(profileOperationsPath, 'utf8'),
   readFile(runtimePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
+  readFile(switchSourcePath, 'utf8'),
   readFile(profileSpecValidationPath, 'utf8'),
   readFile(profileSpecSerializationPath, 'utf8'),
   readFile(workflowStatePath, 'utf8'),
@@ -186,6 +189,29 @@ const requirements = [
       switchProfile.includes('Default profile') &&
       !switchProfile.includes('Ordered Switch Profile rules'),
     'Switch Profile must use the original compact rule table, grouped condition help, drag handle, and table-bottom default row.',
+  ],
+  [
+    switchProfile.includes('data-switch-source-toggle') &&
+      switchProfile.includes('data-switch-source-editor') &&
+      switchProfile.includes('data-switch-source-error') &&
+      switchProfile.includes('onRegisterBeforeAction') &&
+      switchProfile.includes('onSourceDirtyChange') &&
+      optionsApp.includes('commitActiveProfileEditor') &&
+      optionsApp.includes('profileEditorDirty') &&
+      optionsApp.includes('onRegisterBeforeAction={registerBeforeProfileEditorAction}') &&
+      switchSource.includes('export function composeSwitchProfileSource') &&
+      switchSource.includes('export function parseSwitchProfileSourceDraft') &&
+      switchSource.includes("const HEADER = '[SwitchyOmega Conditions]'") &&
+      switchSource.includes("const WITH_RESULT = '@with result'") &&
+      switchSource.includes("lines.push('', `* +${defaultName}`, '')") &&
+      !switchProfile.includes('Rule enabled') &&
+      !switchProfile.includes('regular-expression flags'),
+    'Switch Profile must provide the original result-enabled source editor, block invalid source on Apply/navigation, and avoid Nex-only enable/regex-flags controls.',
+  ],
+  [
+    !switchOperations.includes('`${source.note} copy`') &&
+      switchOperations.includes('...structuredClone(source)'),
+    'Cloning a Switch rule must preserve the original note exactly instead of adding a Nex-only suffix.',
   ],
   [
     switchOperations.includes('const template = profile.rules.at(-1);') &&

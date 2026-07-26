@@ -143,7 +143,6 @@ export function duplicateSwitchRuleDraft(
   const duplicate: SwitchRule = {
     ...structuredClone(source),
     id: duplicateRuleId,
-    ...(source.note === undefined ? {} : { note: `${source.note} copy` }),
   };
   profile.rules.splice(index + 1, 0, duplicate);
   assertValidDraft(draft);

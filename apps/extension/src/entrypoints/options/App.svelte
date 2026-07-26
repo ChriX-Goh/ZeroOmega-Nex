@@ -73,6 +73,10 @@
   let saving = false;
   let errorMessage = '';
   let lastAppliedSnapshotId = '';
+  let beforeProfileEditorAction: (() => Promise<boolean>) | undefined;
+  let profileEditorDirty = false;
+  let profileEditorEpoch = 0;
+  let hasUnappliedChanges = false;
 
   let profiles: readonly UserProfile[] = [];
   let selectedProfile: UserProfile | undefined;
@@ -85,6 +89,7 @@
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
   $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
   $: virtualProfile = selectedProfile?.kind === 'virtual' ? selectedProfile : undefined;
+  $: hasUnappliedChanges = Boolean(view?.dirty || profileEditorDirty);
 
   const createWorkflowId: ProfileWorkflowIdFactory = (kind) => `${kind}-${crypto.randomUUID()}`;
 
@@ -193,8 +198,20 @@
     }
   }
 
+  function registerBeforeProfileEditorAction(guard: (() => Promise<boolean>) | undefined): void {
+    beforeProfileEditorAction = guard;
+  }
+
+  function updateProfileEditorDirty(dirty: boolean): void {
+    profileEditorDirty = dirty;
+  }
+
+  async function commitActiveProfileEditor(): Promise<boolean> {
+    return beforeProfileEditorAction ? beforeProfileEditorAction() : true;
+  }
+
   async function selectProfile(profileId: string): Promise<void> {
-    navigate('profile', profileId);
+    if (!(await navigate('profile', profileId))) return;
     if (!state || state.selectedProfileId === profileId) return;
     await runCommand({
       action: 'select-profile',
@@ -303,19 +320,18 @@
               ? createPacProfileDraft(state.draft, createWorkflowId, name)
               : createVirtualProfileDraft(state.draft, createWorkflowId, name);
       await replaceDraftAndSelect(mutation);
-      navigate('profile', mutation.profileId);
     } catch (error) {
       errorMessage = messageFrom(error);
     }
   }
 
   function cancelNewProfile(): void {
-    if (selectedProfile) navigate('profile', selectedProfile.id);
-    else navigate('about');
+    if (selectedProfile) void navigate('profile', selectedProfile.id);
+    else void navigate('about');
   }
 
   async function duplicateSelectedProfile(): Promise<void> {
-    if (!state || !selectedProfile) return;
+    if (!state || !selectedProfile || !(await commitActiveProfileEditor())) return;
     try {
       await replaceDraftAndSelect(
         duplicateProfileDraft(state.draft, selectedProfile.id, createWorkflowId),
@@ -326,7 +342,7 @@
   }
 
   async function deleteSelectedProfile(): Promise<void> {
-    if (!state || !selectedProfile) return;
+    if (!state || !selectedProfile || !(await commitActiveProfileEditor())) return;
     const shouldConfirm = state.draft.settings.interface.confirmDeletion;
     if (
       shouldConfirm &&
@@ -433,31 +449,56 @@
       : `#/${section}`;
   }
 
-  function navigate(section: OptionsSection, profileId: string | undefined = undefined): void {
-    activeSection = section;
-    if (typeof window === 'undefined') return;
-    const hash = pageHash(section, profileId);
-    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+  function currentPageHash(): string {
+    return pageHash(
+      activeSection,
+      activeSection === 'profile' ? state?.selectedProfileId : undefined,
+    );
   }
 
-  function syncNavigationFromLocation(): void {
+  async function navigate(
+    section: OptionsSection,
+    profileId: string | undefined = undefined,
+    updateLocation = true,
+  ): Promise<boolean> {
+    const leavingCurrentProfile =
+      activeSection === 'profile' &&
+      (section !== 'profile' || profileId !== state?.selectedProfileId);
+    if (leavingCurrentProfile && !(await commitActiveProfileEditor())) return false;
+
+    activeSection = section;
+    if (typeof window === 'undefined' || !updateLocation) return true;
+    const hash = pageHash(section, profileId);
+    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+    return true;
+  }
+
+  async function syncNavigationFromLocation(): Promise<void> {
     if (typeof window === 'undefined') return;
+    const previousHash = currentPageHash();
     const hash = window.location.hash.replace(/^#\//u, '');
     if (!hash) {
-      activeSection = 'profile';
+      if (!(await navigate('profile', state?.selectedProfileId, false))) {
+        window.history.replaceState(null, '', previousHash);
+      }
       return;
     }
     if (hash.startsWith('profile/')) {
-      activeSection = 'profile';
       const profileId = decodeURIComponent(hash.slice('profile/'.length));
-      if (state?.draft.profiles.some((profile) => profile.id === profileId)) {
-        if (state.selectedProfileId !== profileId && !saving) {
-          void runCommand({
-            action: 'select-profile',
-            expectedGeneration: state.generation,
-            profileId,
-          });
-        }
+      if (!state?.draft.profiles.some((profile) => profile.id === profileId)) {
+        window.history.replaceState(null, '', previousHash);
+        return;
+      }
+      if (!(await navigate('profile', profileId, false))) {
+        window.history.replaceState(null, '', previousHash);
+        return;
+      }
+      if (state.selectedProfileId !== profileId && !saving) {
+        await runCommand({
+          action: 'select-profile',
+          expectedGeneration: state.generation,
+          profileId,
+        });
       }
       return;
     }
@@ -474,7 +515,9 @@
         'about',
       ].includes(section)
     ) {
-      activeSection = section;
+      if (!(await navigate(section, undefined, false))) {
+        window.history.replaceState(null, '', previousHash);
+      }
     }
   }
 
@@ -484,15 +527,23 @@
   }
 
   async function revertDraft(): Promise<void> {
-    if (!state) return;
-    await runCommand({
-      action: 'revert',
-      expectedGeneration: state.generation,
-    });
+    if (!state || !hasUnappliedChanges) return;
+    let reverted = true;
+    if (view?.dirty) {
+      reverted = await runCommand({
+        action: 'revert',
+        expectedGeneration: state.generation,
+      });
+    }
+    if (!reverted) return;
+    beforeProfileEditorAction = undefined;
+    profileEditorDirty = false;
+    profileEditorEpoch += 1;
   }
 
   async function applyDraft(): Promise<void> {
-    if (!state || !view?.dirty) return;
+    if (!state || !hasUnappliedChanges || !(await commitActiveProfileEditor())) return;
+    if (!view?.dirty) return;
     await runCommand({
       action: 'apply',
       expectedGeneration: state.generation,
@@ -511,10 +562,10 @@
   onMount(() => {
     themeMode = readThemeMode();
     applyThemeMode(themeMode);
-    const handleNavigation = () => syncNavigationFromLocation();
+    const handleNavigation = () => void syncNavigationFromLocation();
     window.addEventListener('popstate', handleNavigation);
     window.addEventListener('hashchange', handleNavigation);
-    void loadWorkflow().then(syncNavigationFromLocation);
+    void loadWorkflow().then(() => syncNavigationFromLocation());
     return () => {
       window.removeEventListener('popstate', handleNavigation);
       window.removeEventListener('hashchange', handleNavigation);
@@ -529,7 +580,7 @@
 <div class="app-shell">
   <aside class="sidebar">
     <header class="side-brand">
-      <button type="button" on:click={() => navigate('about')}>
+      <button type="button" on:click={() => void navigate('about')}>
         <span class="brand-mark" aria-hidden="true">Ω</span>
         <span>Zero Omega</span>
       </button>
@@ -541,14 +592,14 @@
         <button
           class:active={activeSection === 'interface'}
           type="button"
-          on:click={() => navigate('interface')}
+          on:click={() => void navigate('interface')}
         >
           <span aria-hidden="true">⌘</span><span>Interface</span>
         </button>
         <button
           class:active={activeSection === 'general'}
           type="button"
-          on:click={() => navigate('general')}
+          on:click={() => void navigate('general')}
         >
           <span aria-hidden="true">⚙</span><span>General</span>
         </button>
@@ -556,14 +607,14 @@
           class:active={activeSection === 'import'}
           type="button"
           disabled={!state || saving || view?.busy}
-          on:click={() => navigate('import')}
+          on:click={() => void navigate('import')}
         >
           <span aria-hidden="true">⇅</span><span>Import / Export</span>
         </button>
         <button
           class:active={activeSection === 'theme'}
           type="button"
-          on:click={() => navigate('theme')}
+          on:click={() => void navigate('theme')}
         >
           <span aria-hidden="true">◐</span><span>Theme</span>
         </button>
@@ -571,7 +622,7 @@
           class:active={activeSection === 'history'}
           type="button"
           disabled={!state || saving || view?.busy}
-          on:click={() => navigate('history')}
+          on:click={() => void navigate('history')}
         >
           <span aria-hidden="true">↶</span><span>Snapshot History</span>
         </button>
@@ -582,7 +633,7 @@
         <button
           class:active={activeSection === 'builtin'}
           type="button"
-          on:click={() => navigate('builtin')}
+          on:click={() => void navigate('builtin')}
         >
           <span class="builtin-marker" aria-hidden="true">◎</span><span>Built-in Profiles</span>
         </button>
@@ -602,7 +653,7 @@
           class:active={activeSection === 'new-profile'}
           type="button"
           disabled={!state || view?.busy || saving}
-          on:click={() => navigate('new-profile')}
+          on:click={() => void navigate('new-profile')}
         >
           <span aria-hidden="true">＋</span><span>New profile…</span>
         </button>
@@ -613,7 +664,7 @@
         <button
           type="button"
           class="primary"
-          disabled={!view?.dirty || view.busy || saving}
+          disabled={!hasUnappliedChanges || view?.busy || saving}
           on:click={applyDraft}
         >
           <span aria-hidden="true">✓</span><span>{saving ? 'Working…' : 'Apply changes'}</span>
@@ -621,7 +672,7 @@
         <button
           type="button"
           class="discard"
-          disabled={!view?.dirty || view.busy || saving}
+          disabled={!hasUnappliedChanges || view?.busy || saving}
           on:click={revertDraft}
         >
           <span aria-hidden="true">×</span><span>Discard changes</span>
@@ -629,9 +680,11 @@
         <p class="draft-status" role="status">
           {view?.busy
             ? `Apply is in progress: ${state?.pendingApply?.phase ?? 'preparing'}.`
-            : view?.dirty
-              ? 'Draft contains unapplied changes.'
-              : 'Draft matches the currently applied revision.'}
+            : profileEditorDirty
+              ? 'Switch source contains unapplied changes.'
+              : view?.dirty
+                ? 'Draft contains unapplied changes.'
+                : 'Draft matches the currently applied revision.'}
         </p>
       </section>
     </nav>
@@ -972,13 +1025,17 @@
           onReadSecret={readSecret}
         />
       {:else if switchProfile}
-        <SwitchProfileEditor
-          spec={state.draft}
-          profileId={switchProfile.id}
-          disabled={saving || view?.busy === true}
-          idFactory={createWorkflowId}
-          onReplaceDraft={replaceDraft}
-        />
+        {#key `${switchProfile.id}:${profileEditorEpoch}`}
+          <SwitchProfileEditor
+            spec={state.draft}
+            profileId={switchProfile.id}
+            disabled={saving || view?.busy === true}
+            idFactory={createWorkflowId}
+            onReplaceDraft={replaceDraft}
+            onRegisterBeforeAction={registerBeforeProfileEditorAction}
+            onSourceDirtyChange={updateProfileEditorDirty}
+          />
+        {/key}
       {:else if virtualProfile}
         <VirtualProfileEditor
           spec={state.draft}
