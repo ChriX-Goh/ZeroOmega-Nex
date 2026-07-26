@@ -1,0 +1,51 @@
+name: Diagnose default integrity slice
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/diagnose-default-integrity-slice.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+          show-progress: false
+      - name: Extract and run apply script
+        id: apply
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/apply-default-integrity-slice.yml').read_text().splitlines()
+          marker = source.index('      - name: Apply source-backed default integrity corrections')
+          start = source.index('        run: |', marker) + 1
+          output = []
+          for line in source[start:]:
+              if line.startswith('      - name:'):
+                  break
+              output.append(line[10:] if line.startswith('          ') else line)
+          Path('/tmp/apply-default-integrity.sh').write_text('\n'.join(output) + '\n')
+          PY
+          set +e
+          bash -x /tmp/apply-default-integrity.sh >/tmp/apply-default-integrity.log 2>&1
+          status=$?
+          set -e
+          printf 'exit_status=%s\n' "$status" >>/tmp/apply-default-integrity.log
+          exit "$status"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: default-integrity-apply-diagnostics
+          path: /tmp/apply-default-integrity.log
+          if-no-files-found: error
