@@ -35,6 +35,8 @@ function profileRoutes(profile: UserProfile): readonly ProfileRouteTarget[] {
     case 'pac':
     case 'auto-detect':
       return profile.fallbackRoute === undefined ? [] : [profile.fallbackRoute];
+    case 'virtual':
+      return [profile.targetRoute];
   }
 }
 

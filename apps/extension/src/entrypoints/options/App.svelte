@@ -8,13 +8,13 @@
     ProxyEndpoint,
     SwitchProfile,
     UserProfile,
+    VirtualProfile,
   } from '@zeroomega-nex/profile-spec';
   import {
-    createAutoDetectProfileDraft,
     createFixedProfileDraft,
     createPacProfileDraft,
-    createRuleListProfileDraft,
     createSwitchProfileDraft,
+    createVirtualProfileDraft,
     deleteProfileDraft,
     duplicateProfileDraft,
   } from '@zeroomega-nex/profile-workflow';
@@ -38,9 +38,13 @@
   } from '../../lib/ui-theme';
   import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
+  import NewProfileDialog from './NewProfileDialog.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
   import ThemePanel from './ThemePanel.svelte';
+  import VirtualProfileEditor from './VirtualProfileEditor.svelte';
+
+  type NewProfileKind = 'fixed' | 'switch' | 'pac' | 'virtual';
 
   type OptionsSection =
     | 'interface'
@@ -74,6 +78,7 @@
   let selectedProfile: UserProfile | undefined;
   let fixedProfile: FixedProfile | undefined;
   let switchProfile: SwitchProfile | undefined;
+  let virtualProfile: VirtualProfile | undefined;
   let endpoint: ProxyEndpoint | undefined;
   let bypassText = '';
 
@@ -81,6 +86,7 @@
   $: selectedProfile = profiles.find((profile) => profile.id === state?.selectedProfileId);
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
   $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
+  $: virtualProfile = selectedProfile?.kind === 'virtual' ? selectedProfile : undefined;
   $: endpoint = fixedProfile && state ? findEndpoint(state.draft, fixedProfile) : undefined;
   $: bypassText = fixedProfile?.bypass.map((entry) => entry.pattern).join('\n') ?? '';
 
@@ -98,7 +104,21 @@
         return 'PAC Profile';
       case 'auto-detect':
         return 'Auto Detect Profile';
+      case 'virtual':
+        return 'Virtual Profile';
     }
+  }
+
+  function profileDisplayColor(profile: UserProfile): string {
+    if (profile.kind !== 'virtual') return profile.color ?? '#90a4ae';
+    const route = profile.targetRoute;
+    if (route.kind === 'profile') {
+      return profiles.find((candidate) => candidate.id === route.profileId)?.color ?? '#90a4ae';
+    }
+    if (route.kind === 'direct') {
+      return state?.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee';
+    }
+    return state?.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88';
   }
 
   function routeValue(route: ProfileRouteTarget | undefined): string {
@@ -264,49 +284,27 @@
     await replaceDraft(draft);
   }
 
-  async function createFixedProfile(): Promise<void> {
+  async function createNamedProfile(kind: NewProfileKind, name: string): Promise<void> {
     if (!state) return;
     try {
-      await replaceDraftAndSelect(createFixedProfileDraft(state.draft, createWorkflowId));
+      const mutation =
+        kind === 'fixed'
+          ? createFixedProfileDraft(state.draft, createWorkflowId, name)
+          : kind === 'switch'
+            ? createSwitchProfileDraft(state.draft, createWorkflowId, name)
+            : kind === 'pac'
+              ? createPacProfileDraft(state.draft, createWorkflowId, name)
+              : createVirtualProfileDraft(state.draft, createWorkflowId, name);
+      await replaceDraftAndSelect(mutation);
+      navigate('profile', mutation.profileId);
     } catch (error) {
       errorMessage = messageFrom(error);
     }
   }
 
-  async function createSwitchProfile(): Promise<void> {
-    if (!state) return;
-    try {
-      await replaceDraftAndSelect(createSwitchProfileDraft(state.draft, createWorkflowId));
-    } catch (error) {
-      errorMessage = messageFrom(error);
-    }
-  }
-
-  async function createRuleListProfile(): Promise<void> {
-    if (!state) return;
-    try {
-      await replaceDraftAndSelect(createRuleListProfileDraft(state.draft, createWorkflowId));
-    } catch (error) {
-      errorMessage = messageFrom(error);
-    }
-  }
-
-  async function createPacProfile(): Promise<void> {
-    if (!state) return;
-    try {
-      await replaceDraftAndSelect(createPacProfileDraft(state.draft, createWorkflowId));
-    } catch (error) {
-      errorMessage = messageFrom(error);
-    }
-  }
-
-  async function createAutoDetectProfile(): Promise<void> {
-    if (!state) return;
-    try {
-      await replaceDraftAndSelect(createAutoDetectProfileDraft(state.draft, createWorkflowId));
-    } catch (error) {
-      errorMessage = messageFrom(error);
-    }
+  function cancelNewProfile(): void {
+    if (selectedProfile) navigate('profile', selectedProfile.id);
+    else navigate('about');
   }
 
   async function duplicateSelectedProfile(): Promise<void> {
@@ -936,50 +934,18 @@
         >
       </section>
     {:else if activeSection === 'new-profile'}
-      <header class="editor-heading">
-        <div>
-          <h1>New Profile</h1>
-          <p>Choose the same profile type you used in original ZeroOmega.</p>
-        </div>
-      </header>
-      <section class="settings-section new-profile-grid">
-        <button
-          type="button"
-          disabled={!state || view?.busy || saving}
-          on:click={createFixedProfile}
-          ><ProfileIcon kind="fixed" color="#64b5f6" size={30} /><strong>Proxy Profile</strong><span
-            >Fixed HTTP, HTTPS, SOCKS4, or SOCKS5 server settings.</span
-          ></button
-        >
-        <button
-          type="button"
-          disabled={!state || view?.busy || saving}
-          on:click={createSwitchProfile}
-          ><ProfileIcon kind="switch" color="#8bc34a" size={30} /><strong>Switch Profile</strong
-          ><span>Choose routes by URL, host, IP, weekday, or time rules.</span></button
-        >
-        <button
-          type="button"
-          disabled={!state || view?.busy || saving}
-          on:click={createRuleListProfile}
-          ><ProfileIcon kind="rule-list" color="#4db6ac" size={30} /><strong
-            >Rule List Profile</strong
-          ><span>Use an AutoProxy or Switchy rule list.</span></button
-        >
-        <button type="button" disabled={!state || view?.busy || saving} on:click={createPacProfile}
-          ><ProfileIcon kind="pac" color="#ffb74d" size={30} /><strong>PAC Profile</strong><span
-            >Use a PAC URL or inline PAC script.</span
-          ></button
-        >
-        <button
-          type="button"
-          disabled={!state || view?.busy || saving}
-          on:click={createAutoDetectProfile}
-          ><ProfileIcon kind="auto-detect" color="#90a4ae" size={30} /><strong
-            >Auto Detect Profile</strong
-          ><span>Use browser proxy auto-detection when supported.</span></button
-        >
+      <section class="settings-section shell-status" aria-hidden="true">
+        <h1>Profiles</h1>
+        <p>Create a profile using the original ZeroOmega workflow.</p>
       </section>
+      {#if state}
+        <NewProfileDialog
+          existingNames={profiles.map((profile) => profile.name)}
+          disabled={saving || view?.busy === true}
+          onCancel={cancelNewProfile}
+          onCreate={createNamedProfile}
+        />
+      {/if}
     {:else if activeSection === 'about'}
       <header class="editor-heading">
         <div>
@@ -999,7 +965,7 @@
         <div class="profile-title">
           <ProfileIcon
             kind={selectedProfile.kind}
-            color={selectedProfile.color ?? '#90a4ae'}
+            color={profileDisplayColor(selectedProfile)}
             size={30}
           />
           <div>
@@ -1033,8 +999,8 @@
           <input
             aria-label="Profile color"
             type="color"
-            value={selectedProfile.color ?? '#90a4ae'}
-            disabled={saving || view?.busy}
+            value={profileDisplayColor(selectedProfile)}
+            disabled={saving || view?.busy || selectedProfile.kind === 'virtual'}
             on:change={(event) => updateProfileColor(valueFrom(event))}
           />
         </label>
@@ -1088,6 +1054,13 @@
           profileId={switchProfile.id}
           disabled={saving || view?.busy === true}
           idFactory={createWorkflowId}
+          onReplaceDraft={replaceDraft}
+        />
+      {:else if virtualProfile}
+        <VirtualProfileEditor
+          spec={state.draft}
+          profileId={virtualProfile.id}
+          disabled={saving || view?.busy === true}
           onReplaceDraft={replaceDraft}
         />
       {:else if selectedProfile.kind === 'rule-list' || selectedProfile.kind === 'pac' || selectedProfile.kind === 'auto-detect'}

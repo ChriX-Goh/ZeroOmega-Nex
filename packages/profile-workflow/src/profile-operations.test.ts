@@ -7,8 +7,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createFixedProfileDraft,
+  createVirtualProfileDraft,
   deleteProfileDraft,
   duplicateProfileDraft,
+  replaceProfileReferencesDraft,
   type ProfileWorkflowIdFactory,
 } from './profile-operations.js';
 import { workflowFixture } from './test-fixture.js';
@@ -138,5 +140,42 @@ describe('profile draft operations', () => {
     expect(() => deleteProfileDraft(workflowFixture(), 'missing-profile')).toThrow(
       'does not exist',
     );
+  });
+});
+
+describe('virtual profile draft operations', () => {
+  it('creates a named Virtual profile at the bottom', () => {
+    const result = createVirtualProfileDraft(workflowFixture(), deterministicIds(), 'Alias');
+    expect(result.draft.profiles.at(-1)).toMatchObject({
+      id: result.profileId,
+      name: 'Alias',
+      kind: 'virtual',
+      targetRoute: { kind: 'direct' },
+    });
+    expect(validateProfileSpec(result.draft).valid).toBe(true);
+  });
+
+  it('replaces references to a target with the Virtual profile without rewriting either endpoint', () => {
+    const source = workflowFixture();
+    const created = createVirtualProfileDraft(source, deterministicIds(), 'Alias');
+    const virtual = created.draft.profiles.find((profile) => profile.id === created.profileId);
+    if (!virtual || virtual.kind !== 'virtual') throw new Error('virtual profile missing');
+    virtual.targetRoute = { kind: 'profile', profileId: 'profile-primary' };
+    created.draft.settings.startup.route = { kind: 'profile', profileId: 'profile-primary' };
+    const replaced = replaceProfileReferencesDraft(
+      created.draft,
+      'profile-primary',
+      created.profileId,
+    );
+    expect(replaced.settings.startup.route).toEqual({
+      kind: 'profile',
+      profileId: created.profileId,
+    });
+    const retainedVirtual = replaced.profiles.find((profile) => profile.id === created.profileId);
+    expect(retainedVirtual).toMatchObject({
+      kind: 'virtual',
+      targetRoute: { kind: 'profile', profileId: 'profile-primary' },
+    });
+    expect(validateProfileSpec(replaced).valid).toBe(true);
   });
 });

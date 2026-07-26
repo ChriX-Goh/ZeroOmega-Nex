@@ -77,12 +77,13 @@ export function createDefaultSwitchCondition(kind: Condition['kind']): Condition
 export function createSwitchProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
+  preferredName = 'New switch profile',
 ): ProfileWorkflowProfileMutation {
   const draft = cloneProfileSpec(spec);
   const profileId = idFactory('profile');
   const profile: SwitchProfile = {
     id: profileId,
-    name: uniqueProfileName(draft, 'New switch profile'),
+    name: uniqueProfileName(draft, preferredName),
     color: '#9575cd',
     kind: 'switch',
     rules: [],

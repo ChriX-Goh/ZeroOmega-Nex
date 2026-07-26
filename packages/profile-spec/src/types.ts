@@ -135,12 +135,18 @@ export interface AutoDetectProfile extends ProfileBase {
   fallbackRoute?: ProfileRouteTarget;
 }
 
+export interface VirtualProfile extends ProfileBase {
+  kind: 'virtual';
+  targetRoute: ProfileRouteTarget;
+}
+
 export type UserProfile =
   | FixedProfile
   | SwitchProfile
   | RuleListProfile
   | PacProfile
-  | AutoDetectProfile;
+  | AutoDetectProfile
+  | VirtualProfile;
 
 export interface TrueCondition {
   kind: 'true';

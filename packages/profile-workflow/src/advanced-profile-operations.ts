@@ -79,12 +79,13 @@ export function createRuleListProfileDraft(
 export function createPacProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
+  preferredName = 'New PAC profile',
 ): ProfileWorkflowProfileMutation {
   const draft = cloneProfileSpec(spec);
   const profileId = idFactory('profile');
   const profile: PacProfile = {
     id: profileId,
-    name: uniqueProfileName(draft, 'New PAC profile'),
+    name: uniqueProfileName(draft, preferredName),
     color: '#ffb74d',
     kind: 'pac',
     source: {

@@ -17,6 +17,48 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Built-in Profiles': { 'zh-CN': '内置情景模式', 'zh-TW': '內建情景模式' },
   'New profile…': { 'zh-CN': '新建情景模式…', 'zh-TW': '新增情景模式…' },
   'New Profile': { 'zh-CN': '新建情景模式', 'zh-TW': '新增情景模式' },
+  'Profile type': { 'zh-CN': '情景模式类型', 'zh-TW': '情景模式類型' },
+  'Profile name cannot be empty.': {
+    'zh-CN': '情景模式名称不能为空。',
+    'zh-TW': '情景模式名稱不可留空。',
+  },
+  'Names beginning with two underscores and built-in profile names are reserved.': {
+    'zh-CN': '以双下划线开头的名称及内置情景模式名称为系统保留，禁止使用。',
+    'zh-TW': '以雙底線開頭的名稱及內建情景模式名稱為系統保留，禁止使用。',
+  },
+  'A profile with the same name already exists.': {
+    'zh-CN': '已经存在相同名称的情景模式。',
+    'zh-TW': '已經存在相同名稱的情景模式。',
+  },
+  'Profiles beginning with an underscore are hidden from the popup but can still be used as switching results.':
+    {
+      'zh-CN': '以下划线开头的情景模式不会在弹出菜单中显示，但仍可被用作切换结果。',
+      'zh-TW': '以底線開頭的情景模式不會顯示在彈出式選單中，但仍可作為切換結果。',
+    },
+  'Configure proxy servers separately for each URL scheme.': {
+    'zh-CN': '为不同 URL 协议分别配置代理服务器。',
+    'zh-TW': '為不同 URL 通訊協定分別設定代理伺服器。',
+  },
+  'Select another profile by URL, host, or other switching conditions.': {
+    'zh-CN': '按照 URL、主机或其他切换条件选择情景模式。',
+    'zh-TW': '依 URL、主機或其他切換條件選擇情景模式。',
+  },
+  'Use a PAC script from a URL or edit the script directly.': {
+    'zh-CN': '从 URL 获取 PAC 脚本，或直接编辑脚本。',
+    'zh-TW': '從 URL 取得 PAC 指令碼，或直接編輯指令碼。',
+  },
+  'Virtual Profile': { 'zh-CN': '虚拟情景模式', 'zh-TW': '虛擬情景模式' },
+  'Create a stable alias that points to another profile.': {
+    'zh-CN': '创建一个指向其他情景模式的稳定别名。',
+    'zh-TW': '建立一個指向其他情景模式的穩定別名。',
+  },
+  Cancel: { 'zh-CN': '取消', 'zh-TW': '取消' },
+  Create: { 'zh-CN': '创建', 'zh-TW': '建立' },
+  'Creating…': { 'zh-CN': '正在创建…', 'zh-TW': '正在建立…' },
+  'Target profile': { 'zh-CN': '目标情景模式', 'zh-TW': '目標情景模式' },
+  'Virtual Profile target': { 'zh-CN': '虚拟情景模式目标', 'zh-TW': '虛擬情景模式目標' },
+  'Migrate to Virtual Profile': { 'zh-CN': '迁移到虚拟情景模式', 'zh-TW': '移轉到虛擬情景模式' },
+  'Replace target profile': { 'zh-CN': '替换目标情景模式', 'zh-TW': '取代目標情景模式' },
   'Apply changes': { 'zh-CN': '应用选项', 'zh-TW': '套用選項' },
   'Discard changes': { 'zh-CN': '撤销更改', 'zh-TW': '復原變更' },
   'Working…': { 'zh-CN': '处理中…', 'zh-TW': '處理中…' },

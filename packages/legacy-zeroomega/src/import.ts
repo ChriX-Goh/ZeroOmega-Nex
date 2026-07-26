@@ -18,6 +18,7 @@ import {
   type SwitchProfile,
   type SwitchRule,
   type UserProfile,
+  type VirtualProfile,
   type Weekday,
 } from '@zeroomega-nex/profile-spec';
 
@@ -1095,21 +1096,46 @@ function mapAutoDetectProfile(
   return { ...profileBase(descriptor, fields), kind: 'auto-detect' };
 }
 
+function mapVirtualProfile(descriptor: ProfileDescriptor, state: ImportState): VirtualProfile {
+  const raw = descriptor.raw;
+  const rules = Array.isArray(raw.rules) ? raw.rules : [];
+  if (rules.length > 0) {
+    state.report.add(
+      'downgraded',
+      'profile.virtual-rules-preserved',
+      `${descriptor.path}/rules`,
+      'VirtualProfile rules are non-canonical and were preserved as legacy metadata.',
+    );
+  } else {
+    state.report.add(
+      'exact',
+      'profile.virtual-mapped',
+      descriptor.path,
+      'VirtualProfile target was mapped as a stable alias.',
+    );
+  }
+  const known = new Set([...COMMON_PROFILE_FIELDS, 'defaultProfileName', 'rules']);
+  const fields = safeUnknownFields(raw, known, descriptor.path, state.report) ?? {};
+  if (rules.length > 0 && isJsonValue(rules)) fields.rules = rules;
+  return {
+    ...profileBase(descriptor, Object.keys(fields).length === 0 ? undefined : fields),
+    kind: 'virtual',
+    targetRoute: routeForName(
+      raw.defaultProfileName,
+      `${descriptor.path}/defaultProfileName`,
+      state,
+    ),
+  };
+}
+
 function mapProfile(descriptor: ProfileDescriptor, state: ImportState): UserProfile | undefined {
   switch (descriptor.profileType) {
     case 'FixedProfile':
       return mapFixedProfile(descriptor, state);
     case 'SwitchProfile':
-    case 'VirtualProfile':
-      if (descriptor.profileType === 'VirtualProfile') {
-        state.report.add(
-          'preserved',
-          'profile.virtual-alias',
-          descriptor.path,
-          'VirtualProfile origin was preserved while mapping to a switch profile.',
-        );
-      }
       return mapSwitchProfile(descriptor, state);
+    case 'VirtualProfile':
+      return mapVirtualProfile(descriptor, state);
     case 'RuleListProfile':
     case 'SwitchyRuleListProfile':
     case 'AutoProxyRuleListProfile':

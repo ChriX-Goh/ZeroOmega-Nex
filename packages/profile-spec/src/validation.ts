@@ -231,6 +231,8 @@ function profileRoutes(profile: UserProfile): ProfileRouteTarget[] {
     case 'pac':
     case 'auto-detect':
       return profile.fallbackRoute ? [profile.fallbackRoute] : [];
+    case 'virtual':
+      return [profile.targetRoute];
   }
 }
 

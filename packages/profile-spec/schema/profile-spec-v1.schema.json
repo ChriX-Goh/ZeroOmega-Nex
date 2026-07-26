@@ -650,6 +650,39 @@
               "$ref": "#/$defs/routeTarget"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "name", "kind", "targetRoute"],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/identifier"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "color": {
+              "$ref": "#/$defs/color"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "legacy": {
+              "$ref": "#/$defs/legacy"
+            },
+            "extensions": {
+              "$ref": "#/$defs/extensions"
+            },
+            "kind": {
+              "const": "virtual"
+            },
+            "targetRoute": {
+              "$ref": "#/$defs/routeTarget"
+            }
+          }
         }
       ]
     },

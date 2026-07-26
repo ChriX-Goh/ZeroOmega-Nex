@@ -67,6 +67,7 @@ export type {
   UrlRegexCondition,
   UrlWildcardCondition,
   UserProfile,
+  VirtualProfile,
   Weekday,
   WeekdayCondition,
 } from './types.js';

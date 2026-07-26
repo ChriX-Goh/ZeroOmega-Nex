@@ -6,6 +6,7 @@
     | 'switch'
     | 'rule-list'
     | 'pac'
+    | 'virtual'
     | 'auto-detect'
     | 'external';
 
@@ -43,6 +44,10 @@
     {:else if kind === 'pac'}
       <path d="M7 3.8h7l4 4V20H7z" />
       <path d="M14 3.8V8h4M11 11l-2 2 2 2M14 11l2 2-2 2" />
+    {:else if kind === 'virtual'}
+      <path d="M5 8h8a4 4 0 0 1 4 4v5" />
+      <path d="m14 14 3 3 3-3M5 16h5" />
+      <circle cx="5" cy="8" r="2" />
     {:else if kind === 'auto-detect'}
       <circle cx="12" cy="12" r="8" />
       <circle cx="12" cy="12" r="3" />

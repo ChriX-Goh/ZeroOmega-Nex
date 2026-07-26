@@ -5,6 +5,7 @@ import {
   type ProfileRouteTarget,
   type ProfileSpec,
   type UserProfile,
+  type VirtualProfile,
 } from '@zeroomega-nex/profile-spec';
 
 const PROFILE_COLORS = ['#64b5f6', '#8bc34a', '#ffb74d', '#9575cd', '#4db6ac', '#e57373'] as const;
@@ -99,6 +100,7 @@ function duplicateFixedProfileResources(
 export function createFixedProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
+  preferredName = 'New profile',
 ): ProfileWorkflowProfileMutation {
   const draft = cloneProfileSpec(spec);
   const profileId = idFactory('profile');
@@ -106,14 +108,14 @@ export function createFixedProfileDraft(
   const color = PROFILE_COLORS[draft.profiles.length % PROFILE_COLORS.length] ?? PROFILE_COLORS[0];
   const profile: FixedProfile = {
     id: profileId,
-    name: uniqueProfileName(draft, 'New profile'),
+    name: uniqueProfileName(draft, preferredName),
     color,
     kind: 'fixed',
     proxyByScheme: { fallback: endpointId },
     bypass: [
-      { id: idFactory('bypass'), pattern: 'localhost' },
       { id: idFactory('bypass'), pattern: '127.0.0.1' },
-      { id: idFactory('bypass'), pattern: '<local>' },
+      { id: idFactory('bypass'), pattern: '::1' },
+      { id: idFactory('bypass'), pattern: 'localhost' },
     ],
   };
   draft.proxyEndpoints.push({
@@ -176,6 +178,9 @@ function rewriteProfileRoutes(profile: UserProfile, deletedProfileId: string): v
       profile.matchRoute = replaceDeletedRoute(profile.matchRoute, deletedProfileId)!;
       profile.defaultRoute = replaceDeletedRoute(profile.defaultRoute, deletedProfileId)!;
       return;
+    case 'virtual':
+      profile.targetRoute = replaceDeletedRoute(profile.targetRoute, deletedProfileId)!;
+      return;
     case 'pac':
     case 'auto-detect': {
       const fallbackRoute = replaceDeletedRoute(profile.fallbackRoute, deletedProfileId);
@@ -183,6 +188,109 @@ function rewriteProfileRoutes(profile: UserProfile, deletedProfileId: string): v
       else profile.fallbackRoute = fallbackRoute;
     }
   }
+}
+
+export function createVirtualProfileDraft(
+  spec: ProfileSpec,
+  idFactory: ProfileWorkflowIdFactory,
+  preferredName = 'New virtual profile',
+): ProfileWorkflowProfileMutation {
+  const draft = cloneProfileSpec(spec);
+  const profileId = idFactory('profile');
+  const profile: VirtualProfile = {
+    id: profileId,
+    name: uniqueProfileName(draft, preferredName),
+    kind: 'virtual',
+    targetRoute: { kind: 'direct' },
+  };
+  draft.profiles.push(profile);
+  appendQuickSwitchRoute(draft, profileId);
+  assertValidDraft(draft);
+  return { draft, profileId };
+}
+
+function replaceRouteReference(
+  route: ProfileRouteTarget | undefined,
+  fromProfileId: string,
+  toProfileId: string,
+): ProfileRouteTarget | undefined {
+  return routeTargetsProfile(route, fromProfileId)
+    ? { kind: 'profile', profileId: toProfileId }
+    : route;
+}
+
+export function replaceProfileReferencesDraft(
+  spec: ProfileSpec,
+  fromProfileId: string,
+  toProfileId: string,
+): ProfileSpec {
+  if (fromProfileId === toProfileId) return cloneProfileSpec(spec);
+  const draft = cloneProfileSpec(spec);
+  if (!draft.profiles.some((profile) => profile.id === fromProfileId)) {
+    throw new RangeError(`profile ${fromProfileId} does not exist`);
+  }
+  if (!draft.profiles.some((profile) => profile.id === toProfileId)) {
+    throw new RangeError(`profile ${toProfileId} does not exist`);
+  }
+  for (const profile of draft.profiles) {
+    if (profile.id === fromProfileId || profile.id === toProfileId) continue;
+    switch (profile.kind) {
+      case 'fixed':
+        break;
+      case 'switch':
+        profile.defaultRoute = replaceRouteReference(
+          profile.defaultRoute,
+          fromProfileId,
+          toProfileId,
+        )!;
+        profile.rules = profile.rules.map((rule) => ({
+          ...rule,
+          route: replaceRouteReference(rule.route, fromProfileId, toProfileId)!,
+        }));
+        break;
+      case 'rule-list':
+        profile.matchRoute = replaceRouteReference(profile.matchRoute, fromProfileId, toProfileId)!;
+        profile.defaultRoute = replaceRouteReference(
+          profile.defaultRoute,
+          fromProfileId,
+          toProfileId,
+        )!;
+        break;
+      case 'virtual':
+        profile.targetRoute = replaceRouteReference(
+          profile.targetRoute,
+          fromProfileId,
+          toProfileId,
+        )!;
+        break;
+      case 'pac':
+      case 'auto-detect': {
+        const next = replaceRouteReference(profile.fallbackRoute, fromProfileId, toProfileId);
+        if (next === undefined) delete profile.fallbackRoute;
+        else profile.fallbackRoute = next;
+        break;
+      }
+    }
+  }
+  const startupRoute = replaceRouteReference(
+    draft.settings.startup.route,
+    fromProfileId,
+    toProfileId,
+  );
+  if (startupRoute === undefined) delete draft.settings.startup.route;
+  else draft.settings.startup.route = startupRoute;
+  draft.settings.quickSwitch.routes = draft.settings.quickSwitch.routes.map(
+    (route) => replaceRouteReference(route, fromProfileId, toProfileId)!,
+  );
+  const seen = new Set<string>();
+  draft.settings.quickSwitch.routes = draft.settings.quickSwitch.routes.filter((route) => {
+    const key = route.kind === 'profile' ? `profile:${route.profileId}` : route.kind;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  assertValidDraft(draft);
+  return draft;
 }
 
 function referencedEndpointIds(spec: ProfileSpec): Set<string> {

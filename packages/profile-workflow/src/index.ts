@@ -49,8 +49,10 @@ export {
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
   createFixedProfileDraft,
+  createVirtualProfileDraft,
   deleteProfileDraft,
   duplicateProfileDraft,
+  replaceProfileReferencesDraft,
   type ProfileWorkflowIdFactory,
   type ProfileWorkflowIdKind,
   type ProfileWorkflowProfileMutation,

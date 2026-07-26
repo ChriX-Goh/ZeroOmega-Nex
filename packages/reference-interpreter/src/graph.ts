@@ -331,6 +331,23 @@ export function evaluateProfileGraph(
         return resolve(decision.route, nextSupport, selectedTrace, nextStack);
       }
 
+      case 'virtual':
+        return resolve(
+          profile.targetRoute,
+          support,
+          [
+            ...enteredTrace,
+            {
+              action: 'virtual',
+              profileId: profile.id,
+              profileName: profile.name,
+              profileKind: profile.kind,
+              support,
+            },
+          ],
+          nextStack,
+        );
+
       case 'pac':
         return indeterminate(
           'target-dependent',

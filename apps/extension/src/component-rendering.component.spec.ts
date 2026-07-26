@@ -2,11 +2,14 @@ import {
   createDefaultProfileSpec,
   createRuleListProfileDraft,
   createSwitchProfileDraft,
+  createVirtualProfileDraft,
   type ProfileWorkflowIdFactory,
 } from '@zeroomega-nex/profile-workflow';
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 
+import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
+import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
 import AdvancedProfileEditor from './entrypoints/options/AdvancedProfileEditor.svelte';
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
 import SnapshotHistoryPanel from './entrypoints/options/SnapshotHistoryPanel.svelte';
@@ -44,6 +47,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       'switch',
       'rule-list',
       'pac',
+      'virtual',
       'auto-detect',
     ] as const) {
       const { body } = render(ProfileIcon, { props: { kind, color: '#123456', size: 24 } });
@@ -142,5 +146,41 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Draft contains unapplied changes');
     expect(body).toContain('Loading verified snapshot and revision history');
     expect(body).not.toContain('Confirm rollback');
+  });
+  it('renders the original four new-profile choices and name validation shell', () => {
+    const { body } = render(NewProfileDialog, {
+      props: {
+        existingNames: ['Existing'],
+        disabled: false,
+        pacSupported: true,
+        onCancel: () => undefined,
+        onCreate: async () => undefined,
+      },
+    });
+
+    expect(body).toContain('role="dialog"');
+    expect(body).toContain('Profile name');
+    expect(body).toContain('Proxy Profile');
+    expect(body).toContain('Switch Profile');
+    expect(body).toContain('PAC Profile');
+    expect(body).toContain('Virtual Profile');
+    expect(body).not.toContain('Rule List Profile');
+    expect(body).not.toContain('Auto Detect Profile');
+  });
+
+  it('renders a Virtual Profile target and migration workflow', () => {
+    const mutation = createVirtualProfileDraft(baseSpec(), idFactory(), 'Virtual');
+    const { body } = render(VirtualProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+      },
+    });
+
+    expect(body).toContain('Target profile');
+    expect(body).toContain('Migrate to Virtual Profile');
+    expect(body).toContain('Replace target profile');
   });
 });

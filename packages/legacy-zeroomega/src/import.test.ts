@@ -37,7 +37,7 @@ describe('ZeroOmega schema-v2 importer', () => {
       'pac',
       'auto-detect',
       'switch',
-      'switch',
+      'virtual',
       'rule-list',
       'rule-list',
       'rule-list',

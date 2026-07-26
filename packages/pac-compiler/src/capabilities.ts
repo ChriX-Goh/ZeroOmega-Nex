@@ -317,6 +317,10 @@ export function analyzePacCompatibility(
         return;
       }
 
+      case 'virtual':
+        visitRoute(profile.targetRoute, `${profilePath}/targetRoute`);
+        return;
+
       case 'pac':
         addIssue({
           code: 'profile.pac-nesting-unsupported',
