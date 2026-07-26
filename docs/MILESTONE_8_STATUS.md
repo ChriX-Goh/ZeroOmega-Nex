@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** `e428e0702fcba56e4ee3a55f0d9f184134efc107`  
 **Latest integration verification:** run `30210366430` passed full `pnpm verify` before committing the Draft/Apply validation boundary  
-**Last exact-Head verification:** `12275f8b42a296e8cf6823120cf65236e3389a06`; CI `30207977729`, Browser E2E `30207977745`, Parity Documentation `30207977744` passed  
+**Last exact-Head verification:** `ca3cc64d8b47a37ca117c9e6e3f76a4b174c9493`; CI `30210513221`, Browser E2E `30210513212`, Parity Documentation `30210513208` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
@@ -86,7 +86,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Unit tests cover strict-versus-Draft validation, Draft persistence, structurally invalid rejection, strict candidate creation, and pre-activation Apply refusal.
 - Permanent compatibility guards require the validation boundary and reject regressions to example condition data.
 - Integration run `30210366430` passed the full repository verification before product commit `e428e0702fcba56e4ee3a55f0d9f184134efc107`.
-- Exact-Head CI, Chromium/Firefox E2E, and Parity Documentation are pending on this status commit.
+- Exact-Head verification at `ca3cc64d8b47a37ca117c9e6e3f76a4b174c9493` passed CI `30210513221`, Browser E2E `30210513212`, and Parity Documentation `30210513208`.
 
 ### Appearance
 
@@ -138,4 +138,4 @@ Current blockers include:
 
 ## Current next action
 
-Confirm CI, Browser E2E, and Parity Documentation on the exact current PR Head. If those pass, begin the source-backed Switch graphical/source dual editor, then the attached Rule List lifecycle. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Begin the source-backed Switch graphical/source dual editor, then implement the attached Rule List lifecycle. Each slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
