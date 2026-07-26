@@ -8,6 +8,7 @@ const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHist
 const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte';
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
 const fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';
+const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
@@ -29,6 +30,7 @@ const [
   legacyImport,
   themePanel,
   fixedProfile,
+  switchProfile,
   optionsHtml,
   i18n,
   profileIcon,
@@ -47,6 +49,7 @@ const [
   readFile(legacyImportPath, 'utf8'),
   readFile(themePanelPath, 'utf8'),
   readFile(fixedProfilePath, 'utf8'),
+  readFile(switchProfilePath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
   readFile(profileIconPath, 'utf8'),
@@ -154,6 +157,17 @@ const requirements = [
       fixedProfile.includes('Proxy Authentication') &&
       fixedProfile.includes('fallbackPlaceholder'),
     'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
+  ],
+
+  [
+    switchProfile.includes('data-switch-rules-table') &&
+      switchProfile.includes('data-switch-rule-row') &&
+      switchProfile.includes('data-switch-drag-handle') &&
+      switchProfile.includes('Condition help') &&
+      switchProfile.includes('<optgroup label={group.label}>') &&
+      switchProfile.includes('Default profile') &&
+      !switchProfile.includes('Ordered Switch Profile rules'),
+    'Switch Profile must use the original compact rule table, grouped condition help, drag handle, and table-bottom default row.',
   ],
   [
     profileOperations.includes('proxyByScheme: {}') &&

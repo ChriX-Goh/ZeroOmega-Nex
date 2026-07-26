@@ -94,6 +94,25 @@ describe('Switch Profile draft operations', () => {
     expect(validateProfileSpec(duplicated.draft).valid).toBe(true);
   });
 
+  it('uses the default result profile and respects top-or-bottom insertion settings', () => {
+    const ids = deterministicIds();
+    const created = createSwitchProfileDraft(workflowFixture(), ids);
+    const profile = switchProfile(created.draft, created.profileId);
+    profile.defaultRoute = { kind: 'system' };
+
+    const first = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');
+    expect(switchProfile(first.draft, created.profileId).rules[0]?.route).toEqual({
+      kind: 'system',
+    });
+
+    first.draft.settings.interface.addConditionsToBottom = false;
+    const second = addSwitchRuleDraft(first.draft, created.profileId, ids, 'url-wildcard');
+    expect(switchProfile(second.draft, created.profileId).rules.map((rule) => rule.id)).toEqual([
+      second.ruleId,
+      first.ruleId,
+    ]);
+  });
+
   it('moves and deletes rules while preserving first-match order', () => {
     const ids = deterministicIds();
     const created = createSwitchProfileDraft(workflowFixture(), ids);

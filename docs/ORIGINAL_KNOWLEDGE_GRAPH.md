@@ -188,6 +188,13 @@ graph TD
 - URL 条件有完整 URL 能力限制警告。
 - 新增条件插入顶部或底部由界面设置决定。
 
+### SwitchProfile 当前实现状态（2026-07-26）
+
+- 已恢复单一紧凑规则表，列结构为排序、条件类型、条件细节、结果情景模式、动作和可选备注。
+- 条件类型按基础或 Host/URL/Special 分组；现有高级条件会自动展开高级分组，避免导入数据失去可编辑项。
+- 已提供原生拖动 handle 与键盘 Up/Down 后备；新增条件按 `addConditionsToBottom` 插入顶部或底部，并继承表格尾部默认路由。
+- 图形/源码双向编辑、附属 RuleList、原版 locale 文本和浏览器拖放 E2E 尚未完成，因此 Switch 整体仍是 `PARTIAL`。
+
 ## 9. RuleListProfile 知识节点
 
 原版来源：`profile_rule_list.jade`、`rule_list_profile.coffee`。
@@ -331,3 +338,4 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 | 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                                |
 | 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`            |
 | 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义 |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                           |

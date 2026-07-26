@@ -1,4 +1,5 @@
 import {
+  addSwitchRuleDraft,
   createDefaultProfileSpec,
   createFixedProfileDraft,
   createRuleListProfileDraft,
@@ -95,23 +96,30 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('value="7890"');
   });
 
-  it('renders an empty ordered Switch Profile editor with disabled controls', () => {
-    const mutation = createSwitchProfileDraft(baseSpec(), idFactory());
+  it('renders the original compact Switch Profile rule table and grouped conditions', () => {
+    const ids = idFactory();
+    const created = createSwitchProfileDraft(baseSpec(), ids);
+    const mutation = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');
     const { body } = render(SwitchProfileEditor, {
       props: {
         spec: mutation.draft,
-        profileId: mutation.profileId,
+        profileId: created.profileId,
         disabled: true,
-        idFactory: idFactory(),
+        idFactory: ids,
         onReplaceDraft: replaceDraft,
       },
     });
 
-    expect(body).toContain('Default route');
-    expect(body).toContain('Rules are evaluated from top to bottom');
-    expect(body).toContain('No rules. This profile always uses its default route.');
-    expect(body).toContain('aria-label="Add Switch Profile rule"');
-    expect(body).toContain('disabled');
+    expect(body).toContain('data-switch-rules-table');
+    expect(body).toContain('data-switch-rule-row');
+    expect(body).toContain('data-switch-drag-handle');
+    expect(body).toContain('Condition type');
+    expect(body).toContain('Condition details');
+    expect(body).toContain('Result profile');
+    expect(body).toContain('Add condition');
+    expect(body).toContain('Default profile');
+    expect(body).toContain('<optgroup label="Basic conditions">');
+    expect(body).not.toContain('Ordered Switch Profile rules');
   });
 
   it('renders the Rule List source and routing editors', () => {
