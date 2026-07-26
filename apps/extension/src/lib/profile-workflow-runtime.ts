@@ -68,6 +68,9 @@ class RuntimeInitializer implements ProfileWorkflowInitializer {
       deviceId: this.#deviceId,
     });
     initial.settings.startup.route = { kind: 'direct' };
+    const initialProfile = initial.profiles[0];
+    if (initialProfile?.kind === 'fixed') initialProfile.proxyByScheme = {};
+    initial.proxyEndpoints = [];
     return initial;
   }
 }

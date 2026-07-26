@@ -230,6 +230,17 @@ describe('ProfileSpec v1', () => {
     expect(codes).toContain('profile.duplicate-name');
   });
 
+  it('accepts a blank fixed profile before proxy endpoints are configured', () => {
+    const value = validSpec();
+    const fixed = value.profiles[0]!;
+    if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+    fixed.proxyByScheme = {};
+
+    const result = validateProfileSpec(value);
+    expect(result.valid).toBe(true);
+    expect(result.issues).toEqual([]);
+  });
+
   it('rejects missing endpoint and profile references', () => {
     const value = validSpec();
     const fixed = value.profiles[0]!;

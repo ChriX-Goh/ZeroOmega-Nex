@@ -33,18 +33,19 @@ describe('profile draft operations', () => {
     expect(profile).toMatchObject({
       name: 'New profile',
       kind: 'fixed',
-      proxyByScheme: { fallback: 'endpoint-generated-1' },
+      proxyByScheme: {},
     });
-    expect(result.draft.proxyEndpoints).toContainEqual(
-      expect.objectContaining({
-        id: 'endpoint-generated-1',
-        host: '127.0.0.1',
-        port: 7890,
-      }),
-    );
+    expect(result.draft.proxyEndpoints).toEqual(workflowFixture().proxyEndpoints);
     expect(result.draft.settings.quickSwitch.routes.at(-1)).toEqual({
       kind: 'profile',
       profileId: result.profileId,
+    });
+    expect(profile).toMatchObject({
+      bypass: [
+        expect.objectContaining({ pattern: '127.0.0.1' }),
+        expect.objectContaining({ pattern: '[::1]' }),
+        expect.objectContaining({ pattern: 'localhost' }),
+      ],
     });
     expect(validateProfileSpec(result.draft).valid).toBe(true);
   });

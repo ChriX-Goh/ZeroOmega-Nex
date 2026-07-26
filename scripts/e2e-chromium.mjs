@@ -48,6 +48,47 @@ try {
   }
   assert.equal(await profileName.inputValue(), 'Proxy');
 
+  const fixedTable = options.locator('[data-fixed-proxy-table]');
+  await fixedTable.waitFor({ state: 'visible' });
+  await options.getByRole('heading', { name: '代理服务器', exact: true }).waitFor();
+  assert.equal(await fixedTable.locator('[data-proxy-scheme]').count(), 1);
+  const fallbackRow = fixedTable.locator('[data-proxy-scheme="fallback"]');
+  const fallbackProtocol = fallbackRow.locator('[data-proxy-field="protocol"]');
+  const fallbackServer = fallbackRow.locator('[data-proxy-field="server"]');
+  const fallbackPort = fallbackRow.locator('[data-proxy-field="port"]');
+  assert.equal(await fallbackProtocol.inputValue(), '');
+  assert.equal(await fallbackServer.inputValue(), '');
+  assert.equal(await fallbackServer.getAttribute('placeholder'), 'example.com');
+  assert.equal(await fallbackPort.inputValue(), '');
+  await fallbackProtocol.selectOption('http');
+  assert.equal(await fallbackServer.inputValue(), '');
+  assert.equal(await fallbackPort.inputValue(), '80');
+  await fallbackServer.fill('proxy.e2e.invalid');
+  await fallbackServer.press('Tab');
+  await assertEventually(
+    async () => !(await fallbackRow.locator('[data-proxy-action="authentication"]').isDisabled()),
+    'Fixed Profile authentication button remained disabled after saving the endpoint',
+  );
+  await fixedTable.locator('[data-proxy-action="show-advanced"]').click();
+  assert.equal(await fixedTable.locator('[data-proxy-scheme]').count(), 4);
+  const httpRow = fixedTable.locator('[data-proxy-scheme="http"]');
+  assert.equal(await httpRow.locator('[data-proxy-field="protocol"]').inputValue(), '');
+  assert.equal(
+    await httpRow.locator('[data-proxy-field="server"]').getAttribute('placeholder'),
+    'proxy.e2e.invalid',
+  );
+  assert.equal(
+    await httpRow.locator('[data-proxy-field="port"]').getAttribute('placeholder'),
+    '80',
+  );
+  await fallbackRow.locator('[data-proxy-action="authentication"]').click();
+  const authDialog = options.locator('[data-fixed-auth-dialog]');
+  await authDialog.getByRole('heading', { name: '代理登录', exact: true }).waitFor();
+  await authDialog.getByLabel('用户名').fill('chromium-e2e');
+  await authDialog.getByLabel('密码').fill('not-a-real-secret');
+  await authDialog.locator('[data-auth-action="save"]').click();
+  await authDialog.waitFor({ state: 'detached' });
+
   await options.getByRole('button', { name: '主题', exact: true }).click();
   await options.getByRole('heading', { name: '主题', exact: true, level: 1 }).waitFor();
   const automaticTheme = options.getByRole('radio', { name: /^自动/u });

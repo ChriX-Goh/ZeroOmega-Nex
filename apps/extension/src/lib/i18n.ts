@@ -217,6 +217,40 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   Duplicate: { 'zh-CN': '复制', 'zh-TW': '複製' },
   Delete: { 'zh-CN': '删除', 'zh-TW': '刪除' },
   'Proxy servers': { 'zh-CN': '代理服务器', 'zh-TW': '代理伺服器' },
+  Scheme: { 'zh-CN': '网址协议', 'zh-TW': '網址協定' },
+  Authentication: { 'zh-CN': '代理登录', 'zh-TW': '代理認證' },
+  '(default)': { 'zh-CN': '(默认)', 'zh-TW': '(預設)' },
+  DIRECT: { 'zh-CN': '直接连接', 'zh-TW': '直接連線' },
+  '(use default)': { 'zh-CN': '(同默认)', 'zh-TW': '(同預設)' },
+  'Show Advanced': { 'zh-CN': '显示高级设置', 'zh-TW': '顯示進階設定' },
+  'Bypass List': { 'zh-CN': '不代理的地址列表', 'zh-TW': '不代理的位址清單' },
+  'Servers for which you do not want to use any proxy: (One server on each line.)': {
+    'zh-CN': '不经过代理连接的主机列表: (每行一个主机)',
+    'zh-TW': '不經過代理連線的主機清單: (每行一個主機)',
+  },
+  '(Wildcards and more available…)': {
+    'zh-CN': '(可使用通配符等匹配规则…)',
+    'zh-TW': '(可使用萬用字元等比對規則…)',
+  },
+  'Proxy Authentication': { 'zh-CN': '代理登录', 'zh-TW': '代理認證' },
+  Username: { 'zh-CN': '用户名', 'zh-TW': '使用者名稱' },
+  Password: { 'zh-CN': '密码', 'zh-TW': '密碼' },
+  'Show password': { 'zh-CN': '显示密码', 'zh-TW': '顯示密碼' },
+  'Hide password': { 'zh-CN': '隐藏密码', 'zh-TW': '隱藏密碼' },
+  'No Authentication': { 'zh-CN': '(无密码)', 'zh-TW': '(無密碼)' },
+  'Save changes': { 'zh-CN': '保存更改', 'zh-TW': '儲存變更' },
+  'Saving…': { 'zh-CN': '正在保存…', 'zh-TW': '正在儲存…' },
+  'Loading…': { 'zh-CN': '正在加载…', 'zh-TW': '正在載入…' },
+  Close: { 'zh-CN': '关闭', 'zh-TW': '關閉' },
+  'Server is required.': { 'zh-CN': '代理服务器不能为空。', 'zh-TW': '代理伺服器不可留空。' },
+  'Port must be an integer from 1 to 65535.': {
+    'zh-CN': '代理端口必须是 1 到 65535 之间的整数。',
+    'zh-TW': '代理連接埠必須是 1 到 65535 之間的整數。',
+  },
+  'Proxy server no longer exists.': {
+    'zh-CN': '代理服务器已不存在。',
+    'zh-TW': '代理伺服器已不存在。',
+  },
   Protocol: { 'zh-CN': '协议', 'zh-TW': '通訊協定' },
   Server: { 'zh-CN': '服务器', 'zh-TW': '伺服器' },
   Port: { 'zh-CN': '端口', 'zh-TW': '連接埠' },
@@ -267,6 +301,34 @@ const dynamicTranslations: readonly {
       locale === 'zh-CN'
         ? `删除情景模式“${match[1]}”？此操作只会修改尚未应用的设置。`
         : `刪除情景模式「${match[1]}」？此操作只會修改尚未套用的設定。`,
+  },
+  {
+    pattern: /^(.+) proxy protocol$/u,
+    replace: (match, locale) =>
+      locale === 'zh-CN'
+        ? `${translate(match[1] ?? '', locale)} 代理协议`
+        : `${translate(match[1] ?? '', locale)} 代理協定`,
+  },
+  {
+    pattern: /^(.+) proxy server$/u,
+    replace: (match, locale) =>
+      locale === 'zh-CN'
+        ? `${translate(match[1] ?? '', locale)} 代理服务器`
+        : `${translate(match[1] ?? '', locale)} 代理伺服器`,
+  },
+  {
+    pattern: /^(.+) proxy port$/u,
+    replace: (match, locale) =>
+      locale === 'zh-CN'
+        ? `${translate(match[1] ?? '', locale)} 代理端口`
+        : `${translate(match[1] ?? '', locale)} 代理連接埠`,
+  },
+  {
+    pattern: /^Your browser does not support (.+) proxy authentication\.$/u,
+    replace: (match, locale) =>
+      locale === 'zh-CN'
+        ? `您的浏览器不支持 ${match[1]} 代理认证。`
+        : `您的瀏覽器不支持 ${match[1]} 代理認證。`,
   },
 ];
 

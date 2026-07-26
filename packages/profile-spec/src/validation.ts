@@ -451,15 +451,6 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
     if (profile.kind === 'fixed') {
       const references = Object.entries(profile.proxyByScheme);
-      if (references.length === 0) {
-        issues.push(
-          issue(
-            'profile.fixed-without-endpoint',
-            `/profiles/${profileIndex}/proxyByScheme`,
-            'fixed profile must reference at least one proxy endpoint',
-          ),
-        );
-      }
       for (const [scheme, endpointId] of references) {
         if (!endpointIds.has(endpointId)) {
           issues.push(

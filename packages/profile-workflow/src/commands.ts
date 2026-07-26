@@ -54,6 +54,12 @@ export type ProfileWorkflowCommand =
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'read-secret' | 'remove-secret';
+      readonly expectedGeneration: number;
+      readonly secretRef: string;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'select-profile';
       readonly expectedGeneration: number;
       readonly profileId?: string;
@@ -85,6 +91,7 @@ export type ProfileWorkflowCommandResponse =
       readonly runtime?: ProfileWorkflowRuntimeView;
       readonly snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[];
       readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];
+      readonly secretValue?: string;
     }
   | {
       readonly ok: false;
@@ -131,7 +138,7 @@ function response(
   runtime?: ProfileWorkflowRuntimeView,
   snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[],
   revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[],
-): ProfileWorkflowCommandResponse {
+): Extract<ProfileWorkflowCommandResponse, { readonly ok: true }> {
   return {
     ok: true,
     state,
@@ -217,6 +224,35 @@ function validSecretMaterials(value: unknown): value is readonly ProfileWorkflow
   );
 }
 
+function profileSpecReferencesSecret(spec: ProfileSpec, secretRef: string): boolean {
+  if (
+    spec.proxyEndpoints.some((endpoint) => endpoint.credential?.passwordSecretRef === secretRef)
+  ) {
+    return true;
+  }
+  if (spec.settings.sync?.secretRef === secretRef) return true;
+  for (const source of spec.ruleSources) {
+    if (
+      source.headers?.some(
+        (header) => header.value.kind === 'secret' && header.value.secretRef === secretRef,
+      )
+    ) {
+      return true;
+    }
+  }
+  for (const profile of spec.profiles) {
+    if (
+      profile.kind === 'pac' &&
+      profile.headers?.some(
+        (header) => header.value.kind === 'secret' && header.value.secretRef === secretRef,
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
   if (left.kind !== right.kind) return false;
   return (
@@ -256,6 +292,13 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         validGeneration(record.expectedGeneration) &&
         record.candidate !== undefined &&
         validSecretMaterials(record.secretMaterials)
+      );
+    case 'read-secret':
+    case 'remove-secret':
+      return (
+        validGeneration(record.expectedGeneration) &&
+        typeof record.secretRef === 'string' &&
+        record.secretRef.length > 0
       );
     case 'select-profile':
       return (
@@ -361,6 +404,42 @@ export async function executeProfileWorkflowCommand(
   }
   if (state.pendingApply) {
     return failure('busy', 'profile workflow is busy applying another revision', state);
+  }
+
+  if (command.action === 'read-secret') {
+    if (!importService) {
+      return failure('invalid', 'profile workflow secret store is unavailable', state);
+    }
+    if (
+      !profileSpecReferencesSecret(state.draft, command.secretRef) &&
+      !profileSpecReferencesSecret(state.applied, command.secretRef)
+    ) {
+      return failure('invalid', `secret ${command.secretRef} is not referenced`, state);
+    }
+    try {
+      const secretValue = (await importService.secretStore.getSecret(command.secretRef)) ?? '';
+      return { ...response(state), secretValue };
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
+  }
+
+  if (command.action === 'remove-secret') {
+    if (!importService) {
+      return failure('invalid', 'profile workflow secret store is unavailable', state);
+    }
+    if (
+      profileSpecReferencesSecret(state.draft, command.secretRef) ||
+      profileSpecReferencesSecret(state.applied, command.secretRef)
+    ) {
+      return failure('invalid', `secret ${command.secretRef} is still referenced`, state);
+    }
+    try {
+      await importService.secretStore.removeSecret(command.secretRef);
+      return response(state);
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
   }
 
   if (command.action === 'accept-import') {

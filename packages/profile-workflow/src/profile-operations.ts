@@ -104,27 +104,19 @@ export function createFixedProfileDraft(
 ): ProfileWorkflowProfileMutation {
   const draft = cloneProfileSpec(spec);
   const profileId = idFactory('profile');
-  const endpointId = idFactory('endpoint');
   const color = PROFILE_COLORS[draft.profiles.length % PROFILE_COLORS.length] ?? PROFILE_COLORS[0];
   const profile: FixedProfile = {
     id: profileId,
     name: uniqueProfileName(draft, preferredName),
     color,
     kind: 'fixed',
-    proxyByScheme: { fallback: endpointId },
+    proxyByScheme: {},
     bypass: [
       { id: idFactory('bypass'), pattern: '127.0.0.1' },
-      { id: idFactory('bypass'), pattern: '::1' },
+      { id: idFactory('bypass'), pattern: '[::1]' },
       { id: idFactory('bypass'), pattern: 'localhost' },
     ],
   };
-  draft.proxyEndpoints.push({
-    id: endpointId,
-    name: `${profile.name} endpoint`,
-    protocol: 'http',
-    host: '127.0.0.1',
-    port: 7890,
-  });
   draft.profiles.push(profile);
   appendQuickSwitchRoute(draft, profileId);
   assertValidDraft(draft);

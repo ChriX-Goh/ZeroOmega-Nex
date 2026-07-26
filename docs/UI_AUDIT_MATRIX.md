@@ -44,20 +44,20 @@
 
 ## C. FixedProfile
 
-| ID   | 界面/功能          | 原版源码                 | 原版布局与行为                              | 分类       | Nex 状态   | 翻译    | 证据/问题                           | 下一步             |
-| ---- | ------------------ | ------------------------ | ------------------------------------------- | ---------- | ---------- | ------- | ----------------------------------- | ------------------ |
-| C-01 | 代理服务器表格     | `profile_fixed.jade`     | 表格而非单行表单                            | MUST_MATCH | BROKEN     | PARTIAL | 当前只显示单 endpoint               | 重建 scheme 表格   |
-| C-02 | 默认/后备代理行    | 同上                     | 第一行覆盖未独立设置的 scheme               | MUST_MATCH | PARTIAL    | PARTIAL | schema 有 fallback 概念但 UI 不等价 | 建立映射           |
-| C-03 | HTTP 行            | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | MISSING    | MISSING | UI 无独立 scheme                    | 实现               |
-| C-04 | HTTPS 行           | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | MISSING    | MISSING | 同上                                | 实现               |
-| C-05 | FTP 行/目标差异    | 同上                     | 原版包含 scheme 行；现代支持需核对          | UNCERTAIN  | MISSING    | MISSING | 浏览器 API 能力可能变化             | 研究后决策         |
-| C-06 | 高级行折叠         | 同上                     | 默认隐藏，展开后显示                        | MUST_MATCH | MISSING    | MISSING | 无折叠                              | 实现               |
-| C-07 | 继承值 placeholder | 同上                     | 未设置行显示 fallback host/port placeholder | MUST_MATCH | MISSING    | MISSING | 无 scheme 行                        | 实现               |
-| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`   | 锁形按钮打开认证编辑                        | MUST_MATCH | PARTIAL    | PARTIAL | 后端有认证计划，Options UI 不等价   | 重建对话框         |
-| C-09 | 协议选项限制       | `fixed_profile.coffee`   | 按 scheme/target 提供允许协议               | MUST_MATCH | PARTIAL    | N/A     | 当前通用 HTTP/HTTPS/SOCKS           | 对照原版与现代 API |
-| C-10 | Bypass 独立区块    | `profile_fixed.jade`     | 帮助、链接、多行输入                        | MUST_MATCH | PARTIAL    | PARTIAL | 多行框已有，帮助不全                | 补布局和 locale    |
-| C-11 | 默认 bypass        | `default_options.coffee` | 127.0.0.1 / ::1 / localhost                 | MUST_MATCH | DONE       | N/A     | 已映射                              | 增加显式测试       |
-| C-12 | 初始示例 proxy     | `default_options.coffee` | proxy.example.com:8080 仅初始示例           | MUST_MATCH | UNVERIFIED | N/A     | 需确认 Nex 新建是否错误复用         | 加创建前后测试     |
+| ID   | 界面/功能          | 原版源码                 | 原版布局与行为                              | 分类       | Nex 状态 | 翻译     | 证据/问题                                                        | 下一步                 |
+| ---- | ------------------ | ------------------------ | ------------------------------------------- | ---------- | -------- | -------- | ---------------------------------------------------------------- | ---------------------- |
+| C-01 | 代理服务器表格     | `profile_fixed.jade`     | 表格而非单行表单                            | MUST_MATCH | DONE     | COMPLETE | 已恢复默认/HTTP/HTTPS/FTP 表格；Chromium E2E 验证结构            | 保持                   |
+| C-02 | 默认/后备代理行    | 同上                     | 第一行覆盖未独立设置的 scheme               | MUST_MATCH | DONE     | COMPLETE | fallback 为第一行；DIRECT 表示不使用代理                         | 保持                   |
+| C-03 | HTTP 行            | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口；Chromium E2E 已覆盖                | 保持                   |
+| C-04 | HTTPS 行           | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口                                     | 浏览器巡查             |
+| C-05 | FTP 行/目标差异    | 同上                     | 原版包含 scheme 行；现代支持需核对          | UNCERTAIN  | PARTIAL  | COMPLETE | UI 已恢复；Chromium/Firefox 应用能力仍需实测                     | 双浏览器能力测试       |
+| C-06 | 高级行折叠         | 同上                     | 默认隐藏，展开后显示                        | MUST_MATCH | DONE     | COMPLETE | 无高级映射时默认折叠；已有映射自动展开                           | 保持                   |
+| C-07 | 继承值 placeholder | 同上                     | 未设置行显示 fallback host/port placeholder | MUST_MATCH | DONE     | COMPLETE | 未单独设置时禁用输入并显示 fallback 值                           | 保持                   |
+| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`   | 锁形按钮打开认证编辑                        | MUST_MATCH | PARTIAL  | COMPLETE | 对话框、密码读取/显示、秘密存储及 Chromium E2E；SOCKS 受目标限制 | Firefox/SOCKS 能力测试 |
+| C-09 | 协议选项限制       | `fixed_profile.coffee`   | 按 scheme/target 提供允许协议               | MUST_MATCH | PARTIAL  | COMPLETE | 原版协议项已恢复；认证支持按现代目标显式限制                     | 能力矩阵验证           |
+| C-10 | Bypass 独立区块    | `profile_fixed.jade`     | 帮助、链接、多行输入                        | MUST_MATCH | DONE     | COMPLETE | 原版标题、帮助、链接与多行输入已恢复                             | 保持                   |
+| C-11 | 默认 bypass        | `default_options.coffee` | 127.0.0.1 / [::1] / localhost               | MUST_MATCH | DONE     | N/A      | 新建 Fixed 显式测试三条原版默认值                                | 保持                   |
+| C-12 | 初始示例 proxy     | `default_options.coffee` | 示例只能是示例，不能冒充用户配置            | MUST_MATCH | DONE     | N/A      | 新建及首次运行均为空代理；Chromium E2E 验证示例只为 placeholder  | 保持                   |
 
 ## D. SwitchProfile 与附属 RuleList
 

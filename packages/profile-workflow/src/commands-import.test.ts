@@ -149,3 +149,83 @@ describe('profile workflow import command', () => {
     expect(JSON.stringify(response)).not.toContain('sensitive-value');
   });
 });
+
+describe('profile workflow secret commands', () => {
+  it('reads a secret only when the current configuration references it', async () => {
+    const spec = workflowFixture();
+    spec.proxyEndpoints[0]!.credential = {
+      username: 'alice',
+      passwordSecretRef: 'secret-proxy-password',
+    };
+    const state = createProfileWorkflowState(spec);
+    const repository = new MemoryProfileWorkflowRepository(state);
+    const secrets = new MemorySecretStore();
+    secrets.values.set('secret-proxy-password', 'correct horse');
+
+    const response = await executeProfileWorkflowCommand(
+      repository,
+      new Initializer(),
+      {
+        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+        action: 'read-secret',
+        expectedGeneration: state.generation,
+        secretRef: 'secret-proxy-password',
+      },
+      undefined,
+      importService(secrets),
+    );
+
+    expect(response).toMatchObject({ ok: true, secretValue: 'correct horse' });
+  });
+
+  it('does not remove a secret while Draft or Applied still references it', async () => {
+    const spec = workflowFixture();
+    spec.proxyEndpoints[0]!.credential = {
+      username: 'alice',
+      passwordSecretRef: 'secret-proxy-password',
+    };
+    const state = createProfileWorkflowState(spec);
+    const repository = new MemoryProfileWorkflowRepository(state);
+    const secrets = new MemorySecretStore();
+    secrets.values.set('secret-proxy-password', 'correct horse');
+
+    const response = await executeProfileWorkflowCommand(
+      repository,
+      new Initializer(),
+      {
+        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+        action: 'remove-secret',
+        expectedGeneration: state.generation,
+        secretRef: 'secret-proxy-password',
+      },
+      undefined,
+      importService(secrets),
+    );
+
+    expect(response).toMatchObject({ ok: false, code: 'invalid' });
+    expect(secrets.values.get('secret-proxy-password')).toBe('correct horse');
+  });
+
+  it('removes an orphaned secret', async () => {
+    const state = createProfileWorkflowState(workflowFixture());
+    const repository = new MemoryProfileWorkflowRepository(state);
+    const secrets = new MemorySecretStore();
+    secrets.values.set('secret-orphan', 'unused');
+
+    const response = await executeProfileWorkflowCommand(
+      repository,
+      new Initializer(),
+      {
+        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+        action: 'remove-secret',
+        expectedGeneration: state.generation,
+        secretRef: 'secret-orphan',
+      },
+      undefined,
+      importService(secrets),
+    );
+
+    expect(response).toMatchObject({ ok: true });
+    expect(secrets.values.has('secret-orphan')).toBe(false);
+  });
+});

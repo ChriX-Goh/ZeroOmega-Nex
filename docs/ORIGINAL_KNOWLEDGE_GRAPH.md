@@ -148,10 +148,17 @@ graph TD
 
 ### 语义
 
-- 允许按 scheme 分配代理，而不是 Nex 当前单一 endpoint。
+- 允许按 scheme 分配代理；Nex 已改为 fallback/HTTP/HTTPS/FTP 独立映射，并在共享 endpoint 被编辑时先复制，避免串改其他行或情景模式。
 - 认证是每个 scheme 的操作，不是全局一组随意附加字段。
-- 默认 bypass 为 `127.0.0.1`、`::1`、`localhost`，这是原版真实默认值。
-- `proxy.example.com:8080` 是原版示例默认代理，仅属于初始示例情景模式；新建空白 FixedProfile 是否继承该示例必须按原版 `Profiles.create` 实测，不得擅自填充。
+- 默认 bypass 为 `127.0.0.1`、`[::1]`、`localhost`，这是原版真实默认值。
+- 原版控制器仅在用户主动选择代理协议后才补端口及示例 host；Nex 不把示例写入配置：新建 Fixed 与首次运行的 Fixed 均无 endpoint，`example.com` 只作为新建行的输入 placeholder。
+- 认证密码存放在浏览器秘密存储中，ProfileSpec 只保存 `passwordSecretRef`；Options 通过受引用检查的后台命令读取密码，并通过带秘密材料的原子 Draft 接受流程更新。
+
+### FixedProfile 当前实现状态（2026-07-26）
+
+- 已恢复原版表格、默认行、高级折叠、fallback placeholder、逐 scheme 认证按钮和 Bypass 帮助区。
+- `MUST_MATCH` 的布局、空白默认值、fallback 继承和 HTTP 认证流程已进入组件测试、永久 UI 守卫及简体中文 Chromium E2E。
+- FTP 应用能力、SOCKS 认证目标差异及真实浏览器认证仍保持 `PARTIAL/UNCERTAIN`，不得宣称完全等价。
 
 ## 8. SwitchProfile 知识节点
 

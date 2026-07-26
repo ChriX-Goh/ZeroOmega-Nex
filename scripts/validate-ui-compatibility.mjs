@@ -7,6 +7,7 @@ const optionsStylePath = 'apps/extension/src/entrypoints/options/style.css';
 const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
 const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte';
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
+const fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
@@ -16,6 +17,8 @@ const advancedProfileEditorPath =
   'apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte';
 const advancedProfileOperationsPath =
   'packages/profile-workflow/src/advanced-profile-operations.ts';
+const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
+const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
 
 const [
   popupApp,
@@ -25,6 +28,7 @@ const [
   snapshotHistory,
   legacyImport,
   themePanel,
+  fixedProfile,
   optionsHtml,
   i18n,
   profileIcon,
@@ -32,6 +36,8 @@ const [
   defaults,
   advancedProfileEditor,
   advancedProfileOperations,
+  profileOperations,
+  runtime,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -40,6 +46,7 @@ const [
   readFile(snapshotHistoryPath, 'utf8'),
   readFile(legacyImportPath, 'utf8'),
   readFile(themePanelPath, 'utf8'),
+  readFile(fixedProfilePath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
   readFile(profileIconPath, 'utf8'),
@@ -47,6 +54,8 @@ const [
   readFile(defaultsPath, 'utf8'),
   readFile(advancedProfileEditorPath, 'utf8'),
   readFile(advancedProfileOperationsPath, 'utf8'),
+  readFile(profileOperationsPath, 'utf8'),
+  readFile(runtimePath, 'utf8'),
 ]);
 
 const requirements = [
@@ -136,6 +145,31 @@ const requirements = [
   [
     ['Automatic', 'Light', 'Dark'].every((label) => themePanel.includes(label)),
     'Options must provide Automatic, Light, and Dark appearance modes.',
+  ],
+  [
+    ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
+      fixedProfile.includes(`key: '${scheme}'`),
+    ) &&
+      fixedProfile.includes('Show Advanced') &&
+      fixedProfile.includes('Proxy Authentication') &&
+      fixedProfile.includes('fallbackPlaceholder'),
+    'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
+  ],
+  [
+    profileOperations.includes('proxyByScheme: {}') &&
+      profileOperations.includes("pattern: '[::1]'") &&
+      !profileOperations
+        .slice(
+          profileOperations.indexOf('export function createFixedProfileDraft'),
+          profileOperations.indexOf('export function duplicateProfileDraft'),
+        )
+        .includes("host: '127.0.0.1'"),
+    'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',
+  ],
+  [
+    runtime.includes('initialProfile.proxyByScheme = {}') &&
+      runtime.includes('initial.proxyEndpoints = []'),
+    'Fresh browser installation must not turn an example proxy server into user configuration.',
   ],
   [
     optionsApp.includes('class="settings-section"'),

@@ -1,5 +1,6 @@
 import {
   createDefaultProfileSpec,
+  createFixedProfileDraft,
   createRuleListProfileDraft,
   createSwitchProfileDraft,
   createVirtualProfileDraft,
@@ -8,6 +9,7 @@ import {
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 
+import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte';
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
 import AdvancedProfileEditor from './entrypoints/options/AdvancedProfileEditor.svelte';
@@ -64,6 +66,33 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('popup-footer');
     expect(body).toContain('aria-label="Open ZeroOmega Nex options"');
     expect(body).toContain('<span>Options</span>');
+  });
+
+  it('renders the original Fixed Profile proxy table and collapsed advanced rows', () => {
+    const mutation = createFixedProfileDraft(baseSpec(), idFactory(), 'Blank proxy');
+    const { body } = render(FixedProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        generation: 0,
+        disabled: false,
+        idFactory: idFactory(),
+        onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
+        onReadSecret: async () => '',
+      },
+    });
+
+    expect(body).toContain('Proxy servers');
+    expect(body).toContain('Scheme');
+    expect(body).toContain('(default)');
+    expect(body).toContain('DIRECT');
+    expect(body).toContain('Show Advanced');
+    expect(body).toContain('Bypass List');
+    expect(body).toContain('127.0.0.1');
+    expect(body).toContain('[::1]');
+    expect(body).not.toContain('value="127.0.0.1"');
+    expect(body).not.toContain('value="7890"');
   });
 
   it('renders an empty ordered Switch Profile editor with disabled controls', () => {

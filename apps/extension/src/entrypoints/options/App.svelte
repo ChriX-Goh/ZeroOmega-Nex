@@ -5,7 +5,6 @@
     FixedProfile,
     ProfileRouteTarget,
     ProfileSpec,
-    ProxyEndpoint,
     SwitchProfile,
     UserProfile,
     VirtualProfile,
@@ -37,6 +36,7 @@
     type ThemeMode,
   } from '../../lib/ui-theme';
   import AdvancedProfileEditor from './AdvancedProfileEditor.svelte';
+  import FixedProfileEditor from './FixedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
   import NewProfileDialog from './NewProfileDialog.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
@@ -79,16 +79,12 @@
   let fixedProfile: FixedProfile | undefined;
   let switchProfile: SwitchProfile | undefined;
   let virtualProfile: VirtualProfile | undefined;
-  let endpoint: ProxyEndpoint | undefined;
-  let bypassText = '';
 
   $: profiles = state?.draft.profiles ?? [];
   $: selectedProfile = profiles.find((profile) => profile.id === state?.selectedProfileId);
   $: fixedProfile = selectedProfile?.kind === 'fixed' ? selectedProfile : undefined;
   $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
   $: virtualProfile = selectedProfile?.kind === 'virtual' ? selectedProfile : undefined;
-  $: endpoint = fixedProfile && state ? findEndpoint(state.draft, fixedProfile) : undefined;
-  $: bypassText = fixedProfile?.bypass.map((entry) => entry.pattern).join('\n') ?? '';
 
   const createWorkflowId: ProfileWorkflowIdFactory = (kind) => `${kind}-${crypto.randomUUID()}`;
 
@@ -144,22 +140,6 @@
 
   function checkedFrom(event: Event): boolean {
     return (event.currentTarget as HTMLInputElement).checked;
-  }
-
-  function endpointId(profile: FixedProfile): string | undefined {
-    return (
-      profile.proxyByScheme.fallback ??
-      profile.proxyByScheme.http ??
-      profile.proxyByScheme.https ??
-      profile.proxyByScheme.ftp
-    );
-  }
-
-  function findEndpoint(spec: ProfileSpec, profile: FixedProfile): ProxyEndpoint | undefined {
-    const id = endpointId(profile);
-    return id === undefined
-      ? undefined
-      : spec.proxyEndpoints.find((candidate) => candidate.id === id);
   }
 
   function valueFrom(event: Event): string {
@@ -243,6 +223,33 @@
       candidate,
       secretMaterials,
     });
+  }
+
+  async function replaceDraftWithSecrets(
+    candidate: ProfileSpec,
+    secretMaterials: readonly ProfileWorkflowSecretMaterial[],
+  ): Promise<boolean> {
+    if (!state) return false;
+    return acceptImportedDraft(state.generation, candidate, secretMaterials);
+  }
+
+  async function readSecret(secretRef: string): Promise<string> {
+    if (!state || saving) return '';
+    saving = true;
+    try {
+      const response = await sendProfileWorkflowCommand({
+        action: 'read-secret',
+        expectedGeneration: state.generation,
+        secretRef,
+      });
+      if (!acceptResponse(response) || !response.ok) return '';
+      return response.secretValue ?? '';
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return '';
+    } finally {
+      saving = false;
+    }
   }
 
   async function acceptImportedAndApply(
@@ -349,58 +356,6 @@
     await mutateDraft((draft) => {
       const profile = draft.profiles.find((candidate) => candidate.id === profileId);
       if (profile) profile.color = color;
-    });
-  }
-
-  async function updateEndpoint(
-    field: 'protocol' | 'host' | 'port',
-    rawValue: string,
-  ): Promise<void> {
-    if (!fixedProfile || !endpoint) return;
-    const endpointReference = endpoint.id;
-    if (field === 'port') {
-      const port = Number(rawValue);
-      if (!Number.isInteger(port) || port < 1 || port > 65_535) {
-        errorMessage = 'Port must be an integer from 1 to 65535.';
-        return;
-      }
-      await mutateDraft((draft) => {
-        const target = draft.proxyEndpoints.find((candidate) => candidate.id === endpointReference);
-        if (target) target.port = port;
-      });
-      return;
-    }
-    if (field === 'protocol') {
-      if (!['http', 'https', 'socks4', 'socks5'].includes(rawValue)) return;
-      await mutateDraft((draft) => {
-        const target = draft.proxyEndpoints.find((candidate) => candidate.id === endpointReference);
-        if (target) target.protocol = rawValue as ProxyEndpoint['protocol'];
-      });
-      return;
-    }
-    await mutateDraft((draft) => {
-      const target = draft.proxyEndpoints.find((candidate) => candidate.id === endpointReference);
-      if (target) target.host = rawValue.trim();
-    });
-  }
-
-  async function updateBypassList(value: string): Promise<void> {
-    if (!fixedProfile) return;
-    const profileId = fixedProfile.id;
-    const patterns = value
-      .split(/\r?\n/u)
-      .map((pattern) => pattern.trim())
-      .filter(Boolean);
-    await mutateDraft((draft) => {
-      const profile = draft.profiles.find(
-        (candidate): candidate is FixedProfile =>
-          candidate.id === profileId && candidate.kind === 'fixed',
-      );
-      if (!profile) return;
-      profile.bypass = patterns.map((pattern, index) => ({
-        id: profile.bypass[index]?.id ?? `bypass-${crypto.randomUUID()}`,
-        pattern,
-      }));
     });
   }
 
@@ -1005,49 +960,17 @@
           />
         </label>
       </section>
-      {#if fixedProfile && endpoint}
-        <section class="settings-section">
-          <h2>Proxy servers</h2>
-          <div class="proxy-table" role="group" aria-label="Proxy server editor">
-            <div class="proxy-row proxy-headings" aria-hidden="true">
-              <span>Protocol</span><span>Server</span><span>Port</span>
-            </div>
-            <div class="proxy-row">
-              <select
-                aria-label="Protocol"
-                value={endpoint.protocol}
-                disabled={saving || view?.busy}
-                on:change={(event) => updateEndpoint('protocol', valueFrom(event))}
-                ><option value="http">HTTP</option><option value="https">HTTPS</option><option
-                  value="socks4">SOCKS4</option
-                ><option value="socks5">SOCKS5</option></select
-              >
-              <input
-                aria-label="Server"
-                value={endpoint.host}
-                disabled={saving || view?.busy}
-                on:change={(event) => updateEndpoint('host', valueFrom(event))}
-              />
-              <input
-                aria-label="Port"
-                inputmode="numeric"
-                value={endpoint.port}
-                disabled={saving || view?.busy}
-                on:change={(event) => updateEndpoint('port', valueFrom(event))}
-              />
-            </div>
-          </div>
-        </section>
-        <section class="settings-section">
-          <h2>Bypass list</h2>
-          <p class="section-help">One pattern per line.</p>
-          <textarea
-            aria-label="Bypass list"
-            rows="9"
-            value={bypassText}
-            disabled={saving || view?.busy}
-            on:change={(event) => updateBypassList(valueFrom(event))}></textarea>
-        </section>
+      {#if fixedProfile}
+        <FixedProfileEditor
+          spec={state.draft}
+          profileId={fixedProfile.id}
+          generation={state.generation}
+          disabled={saving || view?.busy === true}
+          idFactory={createWorkflowId}
+          onReplaceDraft={replaceDraft}
+          onReplaceDraftWithSecrets={replaceDraftWithSecrets}
+          onReadSecret={readSecret}
+        />
       {:else if switchProfile}
         <SwitchProfileEditor
           spec={state.draft}
