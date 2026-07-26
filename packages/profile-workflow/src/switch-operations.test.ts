@@ -1,5 +1,6 @@
 import {
   validateProfileSpec,
+  validateProfileSpecDraft,
   type Condition,
   type SwitchProfile,
 } from '@zeroomega-nex/profile-spec';
@@ -53,7 +54,7 @@ describe('Switch Profile draft operations', () => {
     expect(validateProfileSpec(result.draft).valid).toBe(true);
   });
 
-  it('provides a valid starter condition for every supported condition kind', () => {
+  it('uses blank text conditions while keeping every starter structurally valid as a draft', () => {
     const kinds: readonly Condition['kind'][] = [
       'true',
       'false',
@@ -68,16 +69,27 @@ describe('Switch Profile draft operations', () => {
       'weekday',
       'time',
     ];
+    const textKinds = new Set<Condition['kind']>([
+      'url-regex',
+      'url-wildcard',
+      'host-regex',
+      'host-wildcard',
+      'bypass',
+      'keyword',
+    ]);
 
     for (const kind of kinds) {
       const created = createSwitchProfileDraft(workflowFixture(), deterministicIds());
       const profile = switchProfile(created.draft, created.profileId);
+      const condition = createDefaultSwitchCondition(kind);
       profile.rules.push({
         id: `rule-${kind}`,
-        condition: createDefaultSwitchCondition(kind),
+        condition,
         route: { kind: 'direct' },
       });
-      expect(validateProfileSpec(created.draft).valid, kind).toBe(true);
+      expect(validateProfileSpecDraft(created.draft).valid, kind).toBe(true);
+      expect(validateProfileSpec(created.draft).valid, kind).toBe(!textKinds.has(kind));
+      if ('pattern' in condition) expect(condition.pattern, kind).toBe('');
     }
   });
 
@@ -91,7 +103,7 @@ describe('Switch Profile draft operations', () => {
     expect(profile.rules.map((rule) => rule.id)).toEqual(['rule-switch-1', 'rule-switch-2']);
     expect(profile.rules[1]?.condition).toEqual(profile.rules[0]?.condition);
     expect(profile.rules[1]).not.toBe(profile.rules[0]);
-    expect(validateProfileSpec(duplicated.draft).valid).toBe(true);
+    expect(validateProfileSpecDraft(duplicated.draft).valid).toBe(true);
   });
 
   it('appends editor-added rules and copies the previous rule after the first row', () => {
@@ -105,6 +117,9 @@ describe('Switch Profile draft operations', () => {
     expect(firstProfile.rules[0]?.route).toEqual({ kind: 'system' });
     firstProfile.rules[0]!.route = { kind: 'direct' };
     firstProfile.rules[0]!.note = 'template note';
+    const firstCondition = firstProfile.rules[0]!.condition;
+    if (firstCondition.kind !== 'host-wildcard') throw new Error('condition fixture mismatch');
+    firstCondition.pattern = '*.example.com';
 
     first.draft.settings.interface.addConditionsToBottom = false;
     const second = addSwitchRuleDraft(first.draft, created.profileId, ids, 'url-wildcard');
@@ -112,9 +127,13 @@ describe('Switch Profile draft operations', () => {
 
     expect(secondProfile.rules.map((rule) => rule.id)).toEqual([first.ruleId, second.ruleId]);
     expect(secondProfile.rules[1]).toMatchObject({
-      condition: secondProfile.rules[0]?.condition,
+      condition: { kind: 'host-wildcard', pattern: '' },
       route: { kind: 'direct' },
       note: 'template note',
+    });
+    expect(secondProfile.rules[0]?.condition).toEqual({
+      kind: 'host-wildcard',
+      pattern: '*.example.com',
     });
     expect(secondProfile.rules[1]).not.toBe(secondProfile.rules[0]);
   });
@@ -138,7 +157,7 @@ describe('Switch Profile draft operations', () => {
       first.ruleId,
       second.ruleId,
     ]);
-    expect(validateProfileSpec(deleted).valid).toBe(true);
+    expect(validateProfileSpecDraft(deleted).valid).toBe(true);
   });
 
   it('rejects operations for missing switch profiles and rules', () => {

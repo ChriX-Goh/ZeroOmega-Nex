@@ -9,6 +9,7 @@ const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPan
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
 const fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';
 const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte';
+const virtualProfilePath = 'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
@@ -21,6 +22,10 @@ const advancedProfileOperationsPath =
 const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
+const profileSpecValidationPath = 'packages/profile-spec/src/validation.ts';
+const profileSpecSerializationPath = 'packages/profile-spec/src/serialization.ts';
+const workflowStatePath = 'packages/profile-workflow/src/state.ts';
+const storageRepositoryPath = 'packages/profile-workflow/src/storage-repository.ts';
 
 const [
   popupApp,
@@ -32,6 +37,7 @@ const [
   themePanel,
   fixedProfile,
   switchProfile,
+  virtualProfile,
   optionsHtml,
   i18n,
   profileIcon,
@@ -42,6 +48,10 @@ const [
   profileOperations,
   runtime,
   switchOperations,
+  profileSpecValidation,
+  profileSpecSerialization,
+  workflowState,
+  storageRepository,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -52,6 +62,7 @@ const [
   readFile(themePanelPath, 'utf8'),
   readFile(fixedProfilePath, 'utf8'),
   readFile(switchProfilePath, 'utf8'),
+  readFile(virtualProfilePath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
   readFile(profileIconPath, 'utf8'),
@@ -62,6 +73,10 @@ const [
   readFile(profileOperationsPath, 'utf8'),
   readFile(runtimePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
+  readFile(profileSpecValidationPath, 'utf8'),
+  readFile(profileSpecSerializationPath, 'utf8'),
+  readFile(workflowStatePath, 'utf8'),
+  readFile(storageRepositoryPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -183,6 +198,25 @@ const requirements = [
         )
         .includes('addConditionsToBottom'),
     'Options-added Switch rules must append and copy the previous rule; the Popup insertion preference must not control the editor button.',
+  ],
+  [
+    profileSpecValidation.includes("options.mode === 'draft' ? 'warning' : 'error'") &&
+      profileSpecValidation.includes('export function validateProfileSpecDraft') &&
+      profileSpecSerialization.includes('export function cloneProfileSpecDraft') &&
+      profileSpecSerialization.includes('export function serializeProfileSpecDraft') &&
+      workflowState.includes('cloneProfileSpecDraft(state.draft)') &&
+      workflowState.includes('createProfileSpecRevision(state.applied') &&
+      storageRepository.includes("parseProfileSpecDraft(state.draft, 'draft')") &&
+      [fixedProfile, switchProfile, virtualProfile, advancedProfileEditor, optionsApp].every(
+        (source) => source.includes('cloneProfileSpecDraft'),
+      ),
+    'Draft editing must allow temporary Switch condition warnings while strict Applied, storage revision, import, and Apply boundaries remain separate.',
+  ],
+  [
+    switchOperations.includes("return { kind: 'host-wildcard', pattern: '' };") &&
+      switchOperations.includes("if ('pattern' in rule.condition) rule.condition.pattern = '';") &&
+      !switchOperations.includes("pattern: '*.example.com'"),
+    'Options-added Switch text conditions must start blank and copied text rules must clear their pattern like the original editor.',
   ],
   [
     profileOperations.includes('proxyByScheme: {}') &&

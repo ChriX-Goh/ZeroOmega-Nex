@@ -4,6 +4,7 @@ import {
   PROFILE_SPEC_SCHEMA_VERSION,
   profileSpecJsonSchema,
   validateProfileSpec,
+  validateProfileSpecDraft,
   type ProfileSpec,
   type SwitchRule,
 } from './index.js';
@@ -239,6 +240,43 @@ describe('ProfileSpec v1', () => {
     const result = validateProfileSpec(value);
     expect(result.valid).toBe(true);
     expect(result.issues).toEqual([]);
+  });
+
+  it('keeps incomplete Switch text conditions as draft warnings but rejects them strictly', () => {
+    const value = validSpec();
+    const profile = value.profiles[1]!;
+    if (profile.kind !== 'switch') throw new Error('fixture mismatch');
+    const wildcard = profile.rules.find((rule) => rule.id === 'rule-host-wildcard');
+    if (!wildcard || wildcard.condition.kind !== 'host-wildcard') {
+      throw new Error('condition fixture mismatch');
+    }
+    wildcard.condition.pattern = '';
+
+    const strict = validateProfileSpec(value);
+    expect(strict.valid).toBe(false);
+    expect(strict.issues).toContainEqual(
+      expect.objectContaining({ code: 'condition.empty-pattern', severity: 'error' }),
+    );
+
+    const draft = validateProfileSpecDraft(value);
+    expect(draft.valid).toBe(true);
+    expect(draft.value).toBe(value);
+    expect(draft.issues).toContainEqual(
+      expect.objectContaining({ code: 'condition.empty-pattern', severity: 'warning' }),
+    );
+  });
+
+  it('does not relax structural or reference errors in draft validation', () => {
+    const value = validSpec();
+    const fixed = value.profiles[0]!;
+    if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+    fixed.proxyByScheme.fallback = 'missing-endpoint';
+
+    const result = validateProfileSpecDraft(value);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ code: 'endpoint.missing-reference', severity: 'error' }),
+    );
   });
 
   it('rejects missing endpoint and profile references', () => {

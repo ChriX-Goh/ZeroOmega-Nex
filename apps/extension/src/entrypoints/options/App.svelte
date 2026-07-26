@@ -1,6 +1,6 @@
 <script lang="ts">
   import { productIdentity } from '@zeroomega-nex/core-contracts';
-  import { cloneProfileSpec } from '@zeroomega-nex/profile-spec';
+  import { cloneProfileSpecDraft } from '@zeroomega-nex/profile-spec';
   import type {
     FixedProfile,
     ProfileRouteTarget,
@@ -286,7 +286,7 @@
 
   async function mutateDraft(update: (draft: ProfileSpec) => void): Promise<void> {
     if (!state) return;
-    const draft = cloneProfileSpec(state.draft);
+    const draft = cloneProfileSpecDraft(state.draft);
     update(draft);
     await replaceDraft(draft);
   }

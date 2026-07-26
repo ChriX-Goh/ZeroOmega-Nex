@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    cloneProfileSpec,
+    cloneProfileSpecDraft,
     type ProfileRouteTarget,
     type ProfileSpec,
     type UserProfile,
@@ -34,7 +34,7 @@
   async function updateTarget(value: string): Promise<void> {
     const route = parseRoute(value);
     if (!route) return;
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const target = draft.profiles.find(
       (candidate): candidate is VirtualProfile =>
         candidate.id === profileId && candidate.kind === 'virtual',

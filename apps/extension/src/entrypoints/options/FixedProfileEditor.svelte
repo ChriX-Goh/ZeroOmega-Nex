@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    cloneProfileSpec,
+    cloneProfileSpecDraft,
     type FixedProfile,
     type ProfileSpec,
     type ProxyEndpoint,
@@ -182,7 +182,7 @@
 
   async function removeScheme(scheme: SchemeKey): Promise<void> {
     if (!profile) return;
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const current = draft.profiles.find(
       (candidate): candidate is FixedProfile =>
         candidate.id === profileId && candidate.kind === 'fixed',
@@ -213,7 +213,7 @@
       return false;
     }
 
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const current = draft.profiles.find(
       (candidate): candidate is FixedProfile =>
         candidate.id === profileId && candidate.kind === 'fixed',
@@ -271,7 +271,7 @@
       .split(/\r?\n/u)
       .map((pattern) => pattern.trim())
       .filter(Boolean);
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const current = draft.profiles.find(
       (candidate): candidate is FixedProfile =>
         candidate.id === profileId && candidate.kind === 'fixed',
@@ -323,7 +323,7 @@
       authError = `Your browser does not support ${protocolLabel(authProtocol)} proxy authentication.`;
       return;
     }
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const current = draft.profiles.find(
       (candidate): candidate is FixedProfile =>
         candidate.id === profileId && candidate.kind === 'fixed',

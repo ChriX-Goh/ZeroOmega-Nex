@@ -1,6 +1,6 @@
 import {
-  cloneProfileSpec,
-  validateProfileSpec,
+  cloneProfileSpecDraft,
+  validateProfileSpecDraft,
   type Condition,
   type ProfileSpec,
   type SwitchProfile,
@@ -18,7 +18,7 @@ export interface ProfileWorkflowSwitchRuleMutation {
 }
 
 function assertValidDraft(draft: ProfileSpec): void {
-  const validation = validateProfileSpec(draft);
+  const validation = validateProfileSpecDraft(draft);
   if (validation.valid) return;
   const messages = validation.issues
     .filter((entry) => entry.severity === 'error')
@@ -52,17 +52,17 @@ export function createDefaultSwitchCondition(kind: Condition['kind']): Condition
     case 'false':
       return { kind: 'false' };
     case 'url-regex':
-      return { kind: 'url-regex', pattern: '^https://example\\.com/' };
+      return { kind: 'url-regex', pattern: '' };
     case 'url-wildcard':
-      return { kind: 'url-wildcard', pattern: 'https://*.example.com/*' };
+      return { kind: 'url-wildcard', pattern: '' };
     case 'host-regex':
-      return { kind: 'host-regex', pattern: '(^|\\.)example\\.com$' };
+      return { kind: 'host-regex', pattern: '' };
     case 'host-wildcard':
-      return { kind: 'host-wildcard', pattern: '*.example.com' };
+      return { kind: 'host-wildcard', pattern: '' };
     case 'bypass':
-      return { kind: 'bypass', pattern: '<local>' };
+      return { kind: 'bypass', pattern: '' };
     case 'keyword':
-      return { kind: 'keyword', pattern: 'example', httpOnly: true };
+      return { kind: 'keyword', pattern: '', httpOnly: true };
     case 'ip':
       return { kind: 'ip', address: '127.0.0.1', prefixLength: 32 };
     case 'host-levels':
@@ -79,7 +79,7 @@ export function createSwitchProfileDraft(
   idFactory: ProfileWorkflowIdFactory,
   preferredName = 'New switch profile',
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const profile: SwitchProfile = {
     id: profileId,
@@ -107,7 +107,7 @@ export function addSwitchRuleDraft(
   idFactory: ProfileWorkflowIdFactory,
   conditionKind: Condition['kind'] = 'host-wildcard',
 ): ProfileWorkflowSwitchRuleMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profile = findSwitchProfile(draft, profileId);
   const ruleId = idFactory('rule');
   const template = profile.rules.at(-1);
@@ -122,6 +122,7 @@ export function addSwitchRuleDraft(
           ...structuredClone(template),
           id: ruleId,
         };
+  if ('pattern' in rule.condition) rule.condition.pattern = '';
   profile.rules.push(rule);
   assertValidDraft(draft);
   return { draft, ruleId };
@@ -133,7 +134,7 @@ export function duplicateSwitchRuleDraft(
   ruleId: string,
   idFactory: ProfileWorkflowIdFactory,
 ): ProfileWorkflowSwitchRuleMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profile = findSwitchProfile(draft, profileId);
   const index = profile.rules.findIndex((rule) => rule.id === ruleId);
   const source = profile.rules[index];
@@ -154,7 +155,7 @@ export function deleteSwitchRuleDraft(
   profileId: string,
   ruleId: string,
 ): ProfileSpec {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profile = findSwitchProfile(draft, profileId);
   const index = profile.rules.findIndex((rule) => rule.id === ruleId);
   if (index === -1) throw new RangeError(`switch rule ${ruleId} does not exist`);
@@ -169,7 +170,7 @@ export function moveSwitchRuleDraft(
   ruleId: string,
   offset: -1 | 1,
 ): ProfileSpec {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profile = findSwitchProfile(draft, profileId);
   const index = profile.rules.findIndex((rule) => rule.id === ruleId);
   if (index === -1) throw new RangeError(`switch rule ${ruleId} does not exist`);

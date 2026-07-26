@@ -88,6 +88,8 @@ stateDiagram-v2
 - 左侧固定三组：设置、情景模式、操作。
 - Apply 与 Discard 是全局操作，不属于某个单独情景模式。
 - 新建、重命名、删除、替换引用、颜色修改先改变 Options 草稿。
+- Draft 必须满足 JSON Schema、引用完整性、循环安全和秘密隔离；Switch 条件的文本/正则语义错误可暂存为 warning，便于用户完成编辑。
+- Applied、导入结果、历史修订、PAC 编译输入与 Apply candidate 始终使用严格校验；存在条件错误时 Apply 在接触浏览器代理 API 前失败，并保留 Draft。
 - 删除被引用的情景模式必须被阻止并列出引用者；不能静默改坏引用。
 - 删除情景模式时还要清理启动项、快速切换项和附属规则列表。
 
@@ -194,8 +196,10 @@ graph TD
 - 已恢复单一紧凑规则表，列结构为排序、条件类型、条件细节、结果情景模式、动作和可选备注。
 - 条件类型按基础或 Host/URL/Special 分组；现有高级条件会自动展开高级分组，避免导入数据失去可编辑项。
 - 已提供原生拖动 handle 与键盘 Up/Down 后备；编辑器新增规则固定追加，第一条使用默认路由，后续复制最后一条规则。
-- 原版复制文本条件后会清空 `pattern`，但当前工作流仍要求 Draft 始终通过完整语义校验；该差异必须在“可保存无效 Draft、Apply 严格拒绝”的后续切片解决，不能用示例值伪装完成。
-- 图形/源码双向编辑、附属 RuleList、原版 locale 文本和浏览器拖放 E2E 尚未完成，因此 Switch 整体仍是 `PARTIAL`。
+- 文本条件首次新增时使用空 `pattern`；复制最后一条文本规则后也会清空 `pattern`，不再写入 `example.com` 一类假用户数据。
+- Draft 校验将 Switch 条件的空 pattern、错误正则、无效 IP/前缀和无效范围降为 warning；结构、引用和循环错误仍阻止保存。
+- Applied、导入、历史修订和 Apply candidate 保持严格校验；无效 Draft 不会进入浏览器激活、PAC 快照或 Applied 状态。
+- 图形/源码双向编辑、附属 RuleList、原版 locale 文本、字段级错误展示和浏览器拖放 E2E 尚未完成，因此 Switch 整体仍是 `PARTIAL`。
 
 ## 9. RuleListProfile 知识节点
 
@@ -341,3 +345,4 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 | 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`            |
 | 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义 |
 | 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                           |
+| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                         | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界       |

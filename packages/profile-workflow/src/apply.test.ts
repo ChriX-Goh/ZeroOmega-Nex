@@ -136,6 +136,42 @@ describe('atomic profile Apply transaction', () => {
     expect(driver.rolledBack).toHaveLength(0);
   });
 
+  it('rejects an incomplete Switch Draft before browser activation', async () => {
+    const state = updateProfileWorkflowDraft(
+      createProfileWorkflowState(workflowFixture()),
+      (draft) => {
+        draft.profiles.push({
+          id: 'profile-switch-incomplete',
+          name: 'Incomplete Switch',
+          kind: 'switch',
+          rules: [
+            {
+              id: 'rule-incomplete',
+              condition: { kind: 'host-wildcard', pattern: '' },
+              route: { kind: 'direct' },
+            },
+          ],
+          defaultRoute: { kind: 'direct' },
+        });
+      },
+    );
+    const repository = new MemoryProfileWorkflowRepository(state);
+    const driver = new ActivationDriver();
+
+    const result = await applyProfileWorkflow(repository, driver, context);
+
+    expect(result).toMatchObject({ status: 'invalid' });
+    expect(driver.activated).toHaveLength(0);
+    expect(driver.rolledBack).toHaveLength(0);
+    const persisted = await repository.read();
+    expect(
+      persisted?.applied.profiles.some((profile) => profile.id === 'profile-switch-incomplete'),
+    ).toBe(false);
+    expect(
+      persisted?.draft.profiles.some((profile) => profile.id === 'profile-switch-incomplete'),
+    ).toBe(true);
+  });
+
   it('rejects clean and busy workspaces before browser activation', async () => {
     const clean = new MemoryProfileWorkflowRepository(
       createProfileWorkflowState(workflowFixture()),

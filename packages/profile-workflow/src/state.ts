@@ -1,8 +1,10 @@
 import {
   cloneProfileSpec,
+  cloneProfileSpecDraft,
   createProfileSpecRevision,
-  serializeProfileSpec,
+  serializeProfileSpecDraft,
   validateProfileSpec,
+  validateProfileSpecDraft,
   type ProfileSpec,
 } from '@zeroomega-nex/profile-spec';
 
@@ -17,6 +19,13 @@ function assertValidSpec(spec: ProfileSpec, label: string): void {
   const validation = validateProfileSpec(spec);
   if (!validation.valid) {
     throw new TypeError(`${label} is not a valid ProfileSpec`);
+  }
+}
+
+function assertValidDraft(spec: ProfileSpec, label: string): void {
+  const validation = validateProfileSpecDraft(spec);
+  if (!validation.valid) {
+    throw new TypeError(`${label} is not a structurally valid ProfileSpec draft`);
   }
 }
 
@@ -37,19 +46,19 @@ function normalizeDraft(applied: ProfileSpec, draft: ProfileSpec): ProfileSpec {
   if (draft.documentId !== applied.documentId) {
     throw new TypeError('draft and applied ProfileSpec must use the same documentId');
   }
-  const normalized = cloneProfileSpec(draft);
+  const normalized = cloneProfileSpecDraft(draft);
   normalized.revision = structuredClone(applied.revision);
-  assertValidSpec(normalized, 'draft');
+  assertValidDraft(normalized, 'draft');
   return normalized;
 }
 
 function userContent(spec: ProfileSpec): string {
-  const normalized = cloneProfileSpec(spec);
+  const normalized = cloneProfileSpecDraft(spec);
   normalized.revision = {
     id: 'workflow-content-comparison',
     createdAt: '1970-01-01T00:00:00.000Z',
   };
-  return serializeProfileSpec(normalized, { space: 0, trailingNewline: false });
+  return serializeProfileSpecDraft(normalized, { space: 0, trailingNewline: false });
 }
 
 function withoutSelectedProfile(state: ProfileWorkflowState): ProfileWorkflowState {
@@ -93,7 +102,7 @@ export function updateProfileWorkflowDraft(
   state: ProfileWorkflowState,
   update: (draft: ProfileSpec) => void,
 ): ProfileWorkflowState {
-  const draft = cloneProfileSpec(state.draft);
+  const draft = cloneProfileSpecDraft(state.draft);
   update(draft);
   return replaceProfileWorkflowDraft(state, draft);
 }
@@ -154,7 +163,7 @@ export function createProfileWorkflowCandidate(
     createdAt: context.startedAt,
     ...(context.deviceId === undefined ? {} : { deviceId: context.deviceId }),
     update(candidate) {
-      const draft = cloneProfileSpec(state.draft);
+      const draft = cloneProfileSpecDraft(state.draft);
       candidate.profiles = draft.profiles;
       candidate.proxyEndpoints = draft.proxyEndpoints;
       candidate.ruleSources = draft.ruleSources;

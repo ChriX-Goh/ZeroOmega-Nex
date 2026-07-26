@@ -101,6 +101,61 @@ describe('profile workflow draft state', () => {
     expect(() => replaceProfileWorkflowDraft(state, replacement)).toThrow('same documentId');
   });
 
+  it('retains incomplete Switch conditions in Draft but refuses a strict Apply candidate', () => {
+    const initial = createProfileWorkflowState(workflowFixture());
+    const edited = updateProfileWorkflowDraft(initial, (draft) => {
+      draft.profiles.push({
+        id: 'profile-switch-draft',
+        name: 'Incomplete Switch',
+        kind: 'switch',
+        rules: [
+          {
+            id: 'rule-incomplete',
+            condition: { kind: 'host-wildcard', pattern: '' },
+            route: { kind: 'direct' },
+          },
+        ],
+        defaultRoute: { kind: 'direct' },
+      });
+    });
+
+    expect(inspectProfileWorkflow(edited).dirty).toBe(true);
+    const profile = edited.draft.profiles.find(
+      (candidate) => candidate.id === 'profile-switch-draft',
+    );
+    expect(profile?.kind).toBe('switch');
+    if (profile?.kind !== 'switch') throw new Error('fixture mismatch');
+    expect(profile.rules[0]?.condition).toEqual({ kind: 'host-wildcard', pattern: '' });
+    expect(() =>
+      createProfileWorkflowCandidate(edited, {
+        revisionId: 'revision-incomplete',
+        startedAt: '2026-07-25T08:02:00.000Z',
+        deviceId: 'device-test',
+      }),
+    ).toThrow('requires a valid ProfileSpec');
+  });
+
+  it('still rejects structurally invalid Draft values', () => {
+    const initial = createProfileWorkflowState(workflowFixture());
+    expect(() =>
+      updateProfileWorkflowDraft(initial, (draft) => {
+        draft.profiles.push({
+          id: 'profile-switch-broken',
+          name: 'Broken Switch',
+          kind: 'switch',
+          rules: [
+            {
+              id: 'rule-broken',
+              condition: { kind: 'ip', address: '', prefixLength: 0 },
+              route: { kind: 'direct' },
+            },
+          ],
+          defaultRoute: { kind: 'direct' },
+        });
+      }),
+    ).toThrow('structurally valid ProfileSpec draft');
+  });
+
   it('creates a child revision only when Apply prepares a candidate', () => {
     const initial = createProfileWorkflowState(workflowFixture());
     const edited = updateProfileWorkflowDraft(initial, (draft) => {

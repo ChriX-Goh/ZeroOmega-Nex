@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    cloneProfileSpec,
+    cloneProfileSpecDraft,
     type Condition,
     type ProfileRouteTarget,
     type ProfileSpec,
@@ -231,7 +231,7 @@
   }
 
   async function mutateRule(ruleId: string, update: (rule: SwitchRule) => void): Promise<void> {
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const targetProfile = draft.profiles.find(
       (candidate): candidate is SwitchProfile =>
         candidate.id === profileId && candidate.kind === 'switch',
@@ -245,7 +245,7 @@
   async function updateDefaultRoute(value: string): Promise<void> {
     const route = parseRoute(value);
     if (!route) return;
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const targetProfile = draft.profiles.find(
       (candidate): candidate is SwitchProfile =>
         candidate.id === profileId && candidate.kind === 'switch',
@@ -355,7 +355,7 @@
   }
 
   async function moveRuleTo(ruleId: string, targetIndex: number): Promise<void> {
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const targetProfile = draft.profiles.find(
       (candidate): candidate is SwitchProfile =>
         candidate.id === profileId && candidate.kind === 'switch',

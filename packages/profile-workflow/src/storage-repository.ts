@@ -1,4 +1,8 @@
-import { cloneProfileSpec, type ProfileSpec } from '@zeroomega-nex/profile-spec';
+import {
+  cloneProfileSpec,
+  cloneProfileSpecDraft,
+  type ProfileSpec,
+} from '@zeroomega-nex/profile-spec';
 
 import {
   PROFILE_WORKFLOW_SCHEMA_VERSION,
@@ -38,6 +42,14 @@ function parseProfileSpec(value: unknown, label: string): ProfileSpec {
     return cloneProfileSpec(value as ProfileSpec);
   } catch {
     throw new TypeError(`${label} must be a valid ProfileSpec`);
+  }
+}
+
+function parseProfileSpecDraft(value: unknown, label: string): ProfileSpec {
+  try {
+    return cloneProfileSpecDraft(value as ProfileSpec);
+  } catch {
+    throw new TypeError(`${label} must be a structurally valid ProfileSpec draft`);
   }
 }
 
@@ -120,7 +132,7 @@ export function parseProfileWorkflowState(value: unknown): ProfileWorkflowState 
     throw new TypeError('profile workflow state generation is invalid');
   }
   const applied = parseProfileSpec(state.applied, 'applied');
-  const draft = parseProfileSpec(state.draft, 'draft');
+  const draft = parseProfileSpecDraft(state.draft, 'draft');
   if (applied.documentId !== draft.documentId) {
     throw new TypeError('applied and draft document IDs do not match');
   }

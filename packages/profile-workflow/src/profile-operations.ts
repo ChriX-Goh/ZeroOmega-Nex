@@ -1,6 +1,6 @@
 import {
-  cloneProfileSpec,
-  validateProfileSpec,
+  cloneProfileSpecDraft,
+  validateProfileSpecDraft,
   type FixedProfile,
   type ProfileRouteTarget,
   type ProfileSpec,
@@ -19,7 +19,7 @@ export interface ProfileWorkflowProfileMutation {
 }
 
 function assertValidDraft(draft: ProfileSpec): void {
-  const validation = validateProfileSpec(draft);
+  const validation = validateProfileSpecDraft(draft);
   if (validation.valid) return;
   const messages = validation.issues
     .filter((entry) => entry.severity === 'error')
@@ -102,7 +102,7 @@ export function createFixedProfileDraft(
   idFactory: ProfileWorkflowIdFactory,
   preferredName = 'New profile',
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const color = PROFILE_COLORS[draft.profiles.length % PROFILE_COLORS.length] ?? PROFILE_COLORS[0];
   const profile: FixedProfile = {
@@ -128,7 +128,7 @@ export function duplicateProfileDraft(
   sourceProfileId: string,
   idFactory: ProfileWorkflowIdFactory,
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const sourceIndex = draft.profiles.findIndex((profile) => profile.id === sourceProfileId);
   const source = draft.profiles[sourceIndex];
   if (!source) throw new RangeError(`profile ${sourceProfileId} does not exist`);
@@ -187,7 +187,7 @@ export function createVirtualProfileDraft(
   idFactory: ProfileWorkflowIdFactory,
   preferredName = 'New virtual profile',
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const profile: VirtualProfile = {
     id: profileId,
@@ -216,8 +216,8 @@ export function replaceProfileReferencesDraft(
   fromProfileId: string,
   toProfileId: string,
 ): ProfileSpec {
-  if (fromProfileId === toProfileId) return cloneProfileSpec(spec);
-  const draft = cloneProfileSpec(spec);
+  if (fromProfileId === toProfileId) return cloneProfileSpecDraft(spec);
+  const draft = cloneProfileSpecDraft(spec);
   if (!draft.profiles.some((profile) => profile.id === fromProfileId)) {
     throw new RangeError(`profile ${fromProfileId} does not exist`);
   }
@@ -305,7 +305,7 @@ function referencedRuleSourceIds(spec: ProfileSpec): Set<string> {
 }
 
 export function deleteProfileDraft(spec: ProfileSpec, profileId: string): ProfileSpec {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const deleted = draft.profiles.find((profile) => profile.id === profileId);
   if (!deleted) throw new RangeError(`profile ${profileId} does not exist`);
 

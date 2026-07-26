@@ -61,29 +61,29 @@
 
 ## D. SwitchProfile 与附属 RuleList
 
-| ID   | 界面/功能        | 原版源码                                       | 原版布局与行为                           | 分类       | Nex 状态 | 翻译    | 证据/问题                                                        | 下一步                |
-| ---- | ---------------- | ---------------------------------------------- | ---------------------------------------- | ---------- | -------- | ------- | ---------------------------------------------------------------- | --------------------- |
-| D-01 | 条件帮助区       | `profile_switch.jade`                          | 基础/高级分组，可展开关闭                | MUST_MATCH | PARTIAL  | MISSING | 已恢复可展开关闭的分组帮助区；文本仍待 locale 化                 | 接入原版 locale       |
-| D-02 | 规则表格         | 同上                                           | 排序/类型/细节/结果/动作/备注列          | MUST_MATCH | DONE     | PARTIAL | 已恢复单一紧凑表格及原版列结构；组件测试与永久守卫覆盖           | 浏览器视觉巡查        |
-| D-03 | 拖动排序         | 同上                                           | drag handle 排序                         | MUST_MATCH | PARTIAL  | N/A     | 已有原生 drag handle 与键盘 Up/Down 后备；尚缺浏览器拖放 E2E     | 加 Chromium 拖放测试  |
-| D-04 | 条件类型下拉     | 同上                                           | 原版类型和分组                           | MUST_MATCH | PARTIAL  | MISSING | 已恢复基础/Host/URL/Special optgroup，并兼容现有扩展条件         | locale 与原版命名巡查 |
-| D-05 | 条件专属字段     | 同上                                           | 不同条件用专属控件                       | MUST_MATCH | PARTIAL  | MISSING | 表格内恢复 pattern、regex flags、IP、层级、星期、时段专属控件    | 验证与警告逐项对齐    |
-| D-06 | 结果情景模式列   | 同上                                           | 每规则 profile selector                  | MUST_MATCH | DONE     | PARTIAL | 每行 result profile selector 已回到表格列                        | locale 与浏览器巡查   |
-| D-07 | 删除规则         | 同上                                           | 行内删除按钮                             | MUST_MATCH | DONE     | PARTIAL | 行内删除已回到 Actions 列                                        | 补确认对话框巡查      |
-| D-08 | 复制规则         | 同上                                           | 行内 clone                               | MUST_MATCH | DONE     | PARTIAL | 行内 clone 已回到 Actions 列                                     | 浏览器巡查            |
-| D-09 | 备注列           | 同上                                           | 可按需显示/添加备注                      | MUST_MATCH | DONE     | PARTIAL | 点击备注动作展开可选 Note 列；已有备注自动显示                   | locale 与交互巡查     |
-| D-10 | 添加条件位置     | `switch_profile.coffee`、`options.coffee`      | 编辑器固定追加；Popup 插入位置由设置决定 | MUST_MATCH | PARTIAL  | PARTIAL | 编辑器现固定 push 并复制最后一条；Popup 当前站点注入尚未实现     | 实现 Popup 条件注入   |
-| D-11 | 默认情景模式行   | `profile_switch.jade`、`switch_profile.coffee` | 表格尾部独立默认行；首条规则使用默认结果 | MUST_MATCH | DONE     | PARTIAL | Default profile 已恢复；首条规则使用默认路由，后续复制上一条结果 | locale 与视觉巡查     |
-| D-12 | 图形/源码切换    | 同上                                           | Edit Source，错误显示                    | MUST_MATCH | MISSING  | MISSING | 无源码模式                                                       | 实现双向解析          |
-| D-13 | URL 条件限制警告 | 同上                                           | 明确浏览器完整 URL 限制                  | MUST_MATCH | MISSING  | MISSING | 无对应警告                                                       | 按 target 显示        |
-| D-14 | 附加 RuleList    | 同上                                           | Attach Profile 区块                      | MUST_MATCH | MISSING  | MISSING | 当前 RuleList 独立新建                                           | 重构类型关系          |
-| D-15 | 附属启用开关     | 同上                                           | 规则表中启用/禁用                        | MUST_MATCH | MISSING  | MISSING | 无                                                               | 实现                  |
-| D-16 | 附属匹配结果     | 同上                                           | profile selector                         | MUST_MATCH | MISSING  | MISSING | 无                                                               | 实现                  |
-| D-17 | 附属格式/URL     | 同上                                           | 格式、URL、帮助                          | MUST_MATCH | PARTIAL  | MISSING | 独立 editor 有近似字段                                           | 移入附属区            |
-| D-18 | 附属请求头       | 同上                                           | 空白可增删 header 行                     | MUST_MATCH | PARTIAL  | MISSING | 新增 header 已为空白，不再注入 User-Agent；附属布局未完成        | 补附属区布局与 locale |
-| D-19 | 附属立即下载     | 同上                                           | 下载状态/更新时间/错误                   | MUST_MATCH | MISSING  | MISSING | 无网络更新动作                                                   | 实现安全下载服务      |
-| D-20 | 附属规则文本     | 同上                                           | URL 时只读，否则可编辑                   | MUST_MATCH | PARTIAL  | MISSING | 当前有通用 inline/url                                            | 按原版语义重构        |
-| D-21 | 删除附属确认     | `delete_attached.jade`                         | 恢复默认引用后删除                       | MUST_MATCH | MISSING  | MISSING | 无                                                               | 实现事务              |
+| ID   | 界面/功能        | 原版源码                                       | 原版布局与行为                             | 分类       | Nex 状态 | 翻译    | 证据/问题                                                                                 | 下一步                |
+| ---- | ---------------- | ---------------------------------------------- | ------------------------------------------ | ---------- | -------- | ------- | ----------------------------------------------------------------------------------------- | --------------------- |
+| D-01 | 条件帮助区       | `profile_switch.jade`                          | 基础/高级分组，可展开关闭                  | MUST_MATCH | PARTIAL  | MISSING | 已恢复可展开关闭的分组帮助区；文本仍待 locale 化                                          | 接入原版 locale       |
+| D-02 | 规则表格         | 同上                                           | 排序/类型/细节/结果/动作/备注列            | MUST_MATCH | DONE     | PARTIAL | 已恢复单一紧凑表格及原版列结构；组件测试与永久守卫覆盖                                    | 浏览器视觉巡查        |
+| D-03 | 拖动排序         | 同上                                           | drag handle 排序                           | MUST_MATCH | PARTIAL  | N/A     | 已有原生 drag handle 与键盘 Up/Down 后备；尚缺浏览器拖放 E2E                              | 加 Chromium 拖放测试  |
+| D-04 | 条件类型下拉     | 同上                                           | 原版类型和分组                             | MUST_MATCH | PARTIAL  | MISSING | 已恢复基础/Host/URL/Special optgroup，并兼容现有扩展条件                                  | locale 与原版命名巡查 |
+| D-05 | 条件专属字段     | `profile_switch.jade`、`switch_profile.coffee` | 专属控件允许编辑中暂时无效；Apply 严格校验 | MUST_MATCH | PARTIAL  | MISSING | 空 pattern/错误正则可作为 Draft warning 保存；Apply 与 Applied 仍严格，尚缺字段级错误文案 | 补 locale 与内联错误  |
+| D-06 | 结果情景模式列   | 同上                                           | 每规则 profile selector                    | MUST_MATCH | DONE     | PARTIAL | 每行 result profile selector 已回到表格列                                                 | locale 与浏览器巡查   |
+| D-07 | 删除规则         | 同上                                           | 行内删除按钮                               | MUST_MATCH | DONE     | PARTIAL | 行内删除已回到 Actions 列                                                                 | 补确认对话框巡查      |
+| D-08 | 复制规则         | 同上                                           | 行内 clone                                 | MUST_MATCH | DONE     | PARTIAL | 行内 clone 已回到 Actions 列                                                              | 浏览器巡查            |
+| D-09 | 备注列           | 同上                                           | 可按需显示/添加备注                        | MUST_MATCH | DONE     | PARTIAL | 点击备注动作展开可选 Note 列；已有备注自动显示                                            | locale 与交互巡查     |
+| D-10 | 添加条件位置     | `switch_profile.coffee`、`options.coffee`      | 编辑器固定追加；Popup 插入位置由设置决定   | MUST_MATCH | PARTIAL  | PARTIAL | 编辑器现固定 push 并复制最后一条；Popup 当前站点注入尚未实现                              | 实现 Popup 条件注入   |
+| D-11 | 默认情景模式行   | `profile_switch.jade`、`switch_profile.coffee` | 表格尾部独立默认行；首条规则使用默认结果   | MUST_MATCH | DONE     | PARTIAL | Default profile 已恢复；首条规则使用默认路由，后续复制上一条结果                          | locale 与视觉巡查     |
+| D-12 | 图形/源码切换    | 同上                                           | Edit Source，错误显示                      | MUST_MATCH | MISSING  | MISSING | 无源码模式                                                                                | 实现双向解析          |
+| D-13 | URL 条件限制警告 | `profile_switch.jade`                          | 明确浏览器完整 URL 限制                    | MUST_MATCH | DONE     | MISSING | URL wildcard/regex 存在时已显示能力警告                                                   | 接入原版 locale       |
+| D-14 | 附加 RuleList    | 同上                                           | Attach Profile 区块                        | MUST_MATCH | MISSING  | MISSING | 当前 RuleList 独立新建                                                                    | 重构类型关系          |
+| D-15 | 附属启用开关     | 同上                                           | 规则表中启用/禁用                          | MUST_MATCH | MISSING  | MISSING | 无                                                                                        | 实现                  |
+| D-16 | 附属匹配结果     | 同上                                           | profile selector                           | MUST_MATCH | MISSING  | MISSING | 无                                                                                        | 实现                  |
+| D-17 | 附属格式/URL     | 同上                                           | 格式、URL、帮助                            | MUST_MATCH | PARTIAL  | MISSING | 独立 editor 有近似字段                                                                    | 移入附属区            |
+| D-18 | 附属请求头       | 同上                                           | 空白可增删 header 行                       | MUST_MATCH | PARTIAL  | MISSING | 新增 header 已为空白，不再注入 User-Agent；附属布局未完成                                 | 补附属区布局与 locale |
+| D-19 | 附属立即下载     | 同上                                           | 下载状态/更新时间/错误                     | MUST_MATCH | MISSING  | MISSING | 无网络更新动作                                                                            | 实现安全下载服务      |
+| D-20 | 附属规则文本     | 同上                                           | URL 时只读，否则可编辑                     | MUST_MATCH | PARTIAL  | MISSING | 当前有通用 inline/url                                                                     | 按原版语义重构        |
+| D-21 | 删除附属确认     | `delete_attached.jade`                         | 恢复默认引用后删除                         | MUST_MATCH | MISSING  | MISSING | 无                                                                                        | 实现事务              |
 
 ## E. RuleListProfile
 
@@ -185,16 +185,17 @@
 
 ## 当前结论
 
-- **明确 BROKEN**：Fixed/Switch 编辑器结构、真实备份导入、完整导出、编辑器翻译。会污染配置的 Nex 假默认值已在本切片清除。
+- **明确 BROKEN**：真实备份导入、完整导出、编辑器翻译；Fixed 主编辑器与 Switch 规则表结构已恢复。
 - **明确 MISSING**：在线恢复、单 Profile 导出、附属 RuleList 完整流程、Popup 当前站点/临时规则/网络检查；Virtual 已实现但浏览器 E2E 仍不完整。
 - **UNCERTAIN**：Gist/WebDAV/浏览器同步、FTP scheme 的现代浏览器能力；未获范围决定前不得标记 `NOT_PORTING`。
 - 当前 PR 必须继续保持 Draft，现有安装包不再作为功能完整候选。
 
 ## 更新记录
 
-| 日期       | 变更                                                                                       |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口              |
-| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证       |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义 |
-| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入   |
+| 日期       | 变更                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                  |
+| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                           |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                     |
+| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                       |
+| 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern |

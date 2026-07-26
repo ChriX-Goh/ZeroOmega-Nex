@@ -26,6 +26,12 @@ export interface ProfileSpecValidationResult {
   value?: ProfileSpec;
 }
 
+export type ProfileSpecValidationMode = 'strict' | 'draft';
+
+export interface ProfileSpecValidationOptions {
+  readonly mode?: ProfileSpecValidationMode;
+}
+
 type ProfileSpecStructureValidator = ((input: unknown) => input is ProfileSpec) & {
   errors?: readonly ErrorObject[] | null;
 };
@@ -148,7 +154,12 @@ function validateUrl(
   }
 }
 
-function validateCondition(condition: Condition, path: string, issues: ValidationIssue[]): void {
+function validateCondition(
+  condition: Condition,
+  path: string,
+  issues: ValidationIssue[],
+  severity: ValidationSeverity,
+): void {
   switch (condition.kind) {
     case 'true':
     case 'false':
@@ -156,7 +167,9 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'url-regex':
     case 'host-regex':
       if (!condition.pattern) {
-        issues.push(issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty'));
+        issues.push(
+          issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty', severity),
+        );
         return;
       }
       try {
@@ -167,6 +180,7 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
             'condition.invalid-regex',
             `${path}/pattern`,
             error instanceof Error ? error.message : 'invalid regular expression',
+            severity,
           ),
         );
       }
@@ -176,14 +190,21 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'bypass':
     case 'keyword':
       if (!condition.pattern) {
-        issues.push(issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty'));
+        issues.push(
+          issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty', severity),
+        );
       }
       return;
     case 'ip': {
       const version = ipv4(condition.address) ? 4 : ipv6(condition.address) ? 6 : 0;
       if (version === 0) {
         issues.push(
-          issue('condition.invalid-ip', `${path}/address`, 'must be an unbracketed IPv4 or IPv6'),
+          issue(
+            'condition.invalid-ip',
+            `${path}/address`,
+            'must be an unbracketed IPv4 or IPv6',
+            severity,
+          ),
         );
         return;
       }
@@ -194,6 +215,7 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
             'condition.invalid-prefix',
             `${path}/prefixLength`,
             `must be between 0 and ${maxPrefix} for IPv${version}`,
+            severity,
           ),
         );
       }
@@ -202,13 +224,20 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'host-levels':
       if (condition.min > condition.max) {
         issues.push(
-          issue('condition.invalid-range', path, 'host-level minimum must not exceed maximum'),
+          issue(
+            'condition.invalid-range',
+            path,
+            'host-level minimum must not exceed maximum',
+            severity,
+          ),
         );
       }
       return;
     case 'weekday':
       if (new Set(condition.days).size !== condition.days.length) {
-        issues.push(issue('condition.duplicate-weekday', `${path}/days`, 'days must be unique'));
+        issues.push(
+          issue('condition.duplicate-weekday', `${path}/days`, 'days must be unique', severity),
+        );
       }
       return;
     case 'time':
@@ -410,7 +439,10 @@ function validateCycles(spec: ProfileSpec, issues: ValidationIssue[]): void {
   }
 }
 
-export function validateProfileSpec(input: unknown): ProfileSpecValidationResult {
+export function validateProfileSpec(
+  input: unknown,
+  options: ProfileSpecValidationOptions = {},
+): ProfileSpecValidationResult {
   if (!validateStructure(input)) {
     return {
       valid: false,
@@ -420,6 +452,7 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
   const spec = input;
   const issues: ValidationIssue[] = [];
+  const conditionSeverity: ValidationSeverity = options.mode === 'draft' ? 'warning' : 'error';
   const profileIds = new Set(spec.profiles.map((profile) => profile.id));
   const endpointIds = new Set(spec.proxyEndpoints.map((endpoint) => endpoint.id));
   const sourceIds = new Set(spec.ruleSources.map((source) => source.id));
@@ -493,6 +526,7 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
           rule.condition,
           `/profiles/${profileIndex}/rules/${ruleIndex}/condition`,
           issues,
+          conditionSeverity,
         );
       });
     }
@@ -592,4 +626,8 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
   const valid = issues.every((entry) => entry.severity !== 'error');
   return valid ? { valid, issues, value: spec } : { valid, issues };
+}
+
+export function validateProfileSpecDraft(input: unknown): ProfileSpecValidationResult {
+  return validateProfileSpec(input, { mode: 'draft' });
 }

@@ -1,6 +1,6 @@
 import {
-  cloneProfileSpec,
-  validateProfileSpec,
+  cloneProfileSpecDraft,
+  validateProfileSpecDraft,
   type AutoDetectProfile,
   type PacProfile,
   type ProfileSpec,
@@ -14,7 +14,7 @@ import type {
 } from './profile-operations.js';
 
 function assertValidDraft(draft: ProfileSpec): void {
-  const validation = validateProfileSpec(draft);
+  const validation = validateProfileSpecDraft(draft);
   if (validation.valid) return;
   const messages = validation.issues
     .filter((entry) => entry.severity === 'error')
@@ -47,7 +47,7 @@ export function createRuleListProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const sourceId = idFactory('source');
   const name = uniqueProfileName(draft, 'New rule list');
@@ -81,7 +81,7 @@ export function createPacProfileDraft(
   idFactory: ProfileWorkflowIdFactory,
   preferredName = 'New PAC profile',
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const profile: PacProfile = {
     id: profileId,
@@ -104,7 +104,7 @@ export function createAutoDetectProfileDraft(
   spec: ProfileSpec,
   idFactory: ProfileWorkflowIdFactory,
 ): ProfileWorkflowProfileMutation {
-  const draft = cloneProfileSpec(spec);
+  const draft = cloneProfileSpecDraft(spec);
   const profileId = idFactory('profile');
   const profile: AutoDetectProfile = {
     id: profileId,

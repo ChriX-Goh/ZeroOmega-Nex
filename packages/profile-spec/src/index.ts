@@ -9,16 +9,20 @@ export { profileSpecJsonSchema } from './schema.js';
 export {
   canonicalProfileSpecValue,
   cloneProfileSpec,
+  cloneProfileSpecDraft,
   createProfileSpecRevision,
   parseProfileSpec,
   serializeProfileSpec,
+  serializeProfileSpecDraft,
   type CreateProfileSpecRevisionOptions,
   type ParseProfileSpecResult,
   type SerializeProfileSpecOptions,
 } from './serialization.js';
 export { PROFILE_SPEC_SCHEMA_VERSION } from './types.js';
-export { validateProfileSpec } from './validation.js';
+export { validateProfileSpec, validateProfileSpecDraft } from './validation.js';
 export type {
+  ProfileSpecValidationMode,
+  ProfileSpecValidationOptions,
   ProfileSpecValidationResult,
   ValidationIssue,
   ValidationSeverity,

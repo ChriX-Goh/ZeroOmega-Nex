@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    cloneProfileSpec,
+    cloneProfileSpecDraft,
     type AutoDetectProfile,
     type PacProfile,
     type ProfileRouteTarget,
@@ -54,7 +54,7 @@
   }
 
   async function mutateProfile(update: (target: AdvancedProfile, draft: ProfileSpec) => void) {
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const target = draft.profiles.find(
       (candidate): candidate is AdvancedProfile =>
         candidate.id === profileId &&
@@ -70,7 +70,7 @@
   async function mutateRuleSource(update: (target: RuleSource) => void) {
     if (!ruleSource) return;
     const sourceId = ruleSource.id;
-    const draft = cloneProfileSpec(spec);
+    const draft = cloneProfileSpecDraft(spec);
     const target = draft.ruleSources.find((source) => source.id === sourceId);
     if (!target) return;
     update(target);

@@ -41,6 +41,39 @@ describe('persistent profile workflow repository', () => {
     await expect(restarted.read()).resolves.toEqual(edited);
   });
 
+  it('persists semantically incomplete Draft conditions without weakening Applied validation', async () => {
+    const area = new MemoryArea();
+    const repository = new BrowserStorageProfileWorkflowRepository(area);
+    const initial = createProfileWorkflowState(workflowFixture());
+    expect(await repository.compareAndSwap(undefined, initial)).toBe(true);
+
+    const edited = updateProfileWorkflowDraft(initial, (draft) => {
+      draft.profiles.push({
+        id: 'profile-switch-draft',
+        name: 'Incomplete Switch',
+        kind: 'switch',
+        rules: [
+          {
+            id: 'rule-incomplete',
+            condition: { kind: 'host-wildcard', pattern: '' },
+            route: { kind: 'direct' },
+          },
+        ],
+        defaultRoute: { kind: 'direct' },
+      });
+    });
+    expect(await repository.compareAndSwap(initial.generation, edited)).toBe(true);
+    await expect(repository.read()).resolves.toEqual(edited);
+
+    const corruptApplied = {
+      ...edited,
+      applied: edited.draft,
+    };
+    expect(() => parseProfileWorkflowState(corruptApplied)).toThrow(
+      'applied must be a valid ProfileSpec',
+    );
+  });
+
   it('rejects stale generations and invalid generation increments', async () => {
     const area = new MemoryArea();
     const repository = new BrowserStorageProfileWorkflowRepository(area);
