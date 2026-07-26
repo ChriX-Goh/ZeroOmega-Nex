@@ -182,12 +182,20 @@ try {
   await attachedRow.getByLabel('Attached Rule List matching route').selectOption('system');
   const attachedConfig = options.locator('[data-attached-rule-list-config]');
   await attachedConfig.waitFor();
-  await attachedConfig
-    .getByLabel('Attached Rule List text')
-    .fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
+  const attachedText = attachedConfig.getByLabel('Attached Rule List text');
+  await attachedText.fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
+  await attachedText.press('Tab');
   const attachedHeaders = options.locator('[data-attached-rule-list-headers]');
-  await attachedHeaders.locator('summary').click();
-  await attachedHeaders.getByRole('button', { name: 'Add header', exact: true }).click();
+  const addHeader = attachedHeaders.getByRole('button', { name: 'Add header', exact: true });
+  await assertEventually(
+    async () => !(await addHeader.isDisabled()),
+    'Attached Rule List header button remained disabled after saving text',
+  );
+  const headerDetails = attachedHeaders.locator('details');
+  if (!(await headerDetails.evaluate((element) => element.open))) {
+    await headerDetails.locator('summary').click();
+  }
+  await addHeader.click();
   await options.getByLabel('Attached header 1 name').fill('X-E2E');
   await options.getByLabel('Attached header 1 value').fill('attached');
   options.once('dialog', (dialog) => dialog.accept());
