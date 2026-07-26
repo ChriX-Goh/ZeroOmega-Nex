@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** `740bd175a887dcf1c0339d0a72825864d632934e`  
 **Latest integration verification:** run `30207888281` passed full `pnpm verify` before committing the Switch add-rule semantic correction  
-**Last exact-Head verification:** `efdcb349d0e442add157b7ee53838bc5ef963816`; CI `30188324590`, Browser E2E `30188324609`, Parity Documentation `30188324589` passed  
+**Last exact-Head verification:** `12275f8b42a296e8cf6823120cf65236e3389a06`; CI `30207977729`, Browser E2E `30207977745`, Parity Documentation `30207977744` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
@@ -73,6 +73,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Unit tests, component-rendering tests, permanent UI compatibility guards, the knowledge graph, and the audit matrix were updated with the implementation.
 - Rule-table integration run `30188210782` passed full repository verification before product commit `6a147772ad5a60e9db45c12194440d5d715ce7ff`.
 - Source re-audit found and corrected two semantic mistakes in that first slice: Options insertion is always append, and later rules copy the last rule rather than always taking the default route. Correction run `30207888281` passed full repository verification before product commit `740bd175a887dcf1c0339d0a72825864d632934e`.
+- Exact-Head verification at `12275f8b42a296e8cf6823120cf65236e3389a06` passed CI `30207977729`, Browser E2E `30207977745`, and Parity Documentation `30207977744`.
 - This is a partial Switch restoration, not completion: source editing, attached Rule List, complete localization, browser drag E2E, Popup condition injection, and incomplete-condition Draft semantics remain open.
 
 ### Appearance
@@ -104,7 +105,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 - Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, system theme behavior, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, the compact Switch rule table, and separation of editor insertion from Popup insertion settings.
 - The latest Switch correction verification passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, and packaging.
-- The exact current Head still requires its own CI, Browser E2E, and Parity Documentation runs before the correction is treated as verified.
+- The correction exact Head passed CI, Chromium/Firefox E2E, and Parity Documentation.
 
 ## Remaining closure
 
@@ -126,4 +127,4 @@ Current blockers include:
 
 ## Current next action
 
-Confirm CI, Browser E2E, and Parity Documentation on the exact current PR Head. If those pass, continue with the source-backed incomplete-condition Draft architecture before implementing source editing and the attached Rule List lifecycle. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Implement source-backed incomplete-condition Draft handling: permit temporary Switch condition errors in Draft state, preserve strict validation at import/applied/Apply boundaries, then clear copied text patterns exactly like the original editor. Only after that slice passes exact-Head checks should source editing and the attached Rule List lifecycle begin. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
