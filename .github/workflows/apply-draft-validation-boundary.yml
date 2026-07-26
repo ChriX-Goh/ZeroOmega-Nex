@@ -59,6 +59,39 @@ jobs:
       - name: Enforce patch result
         if: steps.patch.outcome != 'success'
         run: exit 1
+      - name: Clarify Draft structural validation contract
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('packages/profile-spec/src/serialization.ts')
+          source = path.read_text()
+          old_signature = """function assertValidProfileSpec(
+            value: unknown,
+            operation: string,
+            validator: ProfileSpecValidator = validateProfileSpec,
+          ): asserts value is ProfileSpec {"""
+          new_signature = """function assertValidProfileSpec(
+            value: unknown,
+            operation: string,
+            validator: ProfileSpecValidator = validateProfileSpec,
+            requiredDescription = 'valid ProfileSpec',
+          ): asserts value is ProfileSpec {"""
+          old_error = "throw new InvalidProfileSpecError(`${operation} requires a valid ProfileSpec`, result.issues);"
+          new_error = "throw new InvalidProfileSpecError(`${operation} requires a ${requiredDescription}`, result.issues);"
+          old_call = "assertValidProfileSpec(value, 'cloneProfileSpecDraft', validateProfileSpecDraft);"
+          new_call = """assertValidProfileSpec(
+            value,
+            'cloneProfileSpecDraft',
+            validateProfileSpecDraft,
+            'structurally valid ProfileSpec draft',
+          );"""
+          for old, new in ((old_signature, new_signature), (old_error, new_error), (old_call, new_call)):
+            if source.count(old) != 1:
+              raise SystemExit(f'serialization correction mismatch: {old!r} -> {source.count(old)}')
+            source = source.replace(old, new)
+          path.write_text(source)
+          PY
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
