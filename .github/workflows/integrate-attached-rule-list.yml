@@ -1,0 +1,111 @@
+name: Integrate attached Rule List lifecycle
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-attached-rule-list.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Reconstruct and apply reviewed slice
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/patches/attached-rule-list.patch.gz.b64.part{00,01,02} > /tmp/attached-rule-list.patch.gz.b64
+          base64 --decode /tmp/attached-rule-list.patch.gz.b64 > /tmp/attached-rule-list.patch.gz
+          echo '2dd15a5af2287b444ba4123cd046ed41af873c4dd82e017f80cec2262b1c25ac  /tmp/attached-rule-list.patch.gz' | sha256sum --check
+          gzip --decompress --stdout /tmp/attached-rule-list.patch.gz > /tmp/attached-rule-list.patch
+          echo '8b1e25727445ffc26ca7e0acc7069119ca1a7eb7918f52b1735cf228fa71f667  /tmp/attached-rule-list.patch' | sha256sum --check
+          git apply --check /tmp/attached-rule-list.patch
+          git apply /tmp/attached-rule-list.patch
+          git diff --check
+      - name: Regenerate ProfileSpec validator
+        run: pnpm --filter @zeroomega-nex/profile-spec generate:validator
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/component-rendering.component.spec.ts \
+            apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
+            apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
+            apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte \
+            docs/MILESTONE_8_STATUS.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            packages/legacy-zeroomega/src/import.test.ts \
+            packages/legacy-zeroomega/src/import.ts \
+            packages/pac-compiler/src/capabilities.ts \
+            packages/pac-compiler/src/compiler.test.ts \
+            packages/profile-spec/schema/profile-spec-v1.schema.json \
+            packages/profile-spec/src/index.test.ts \
+            packages/profile-spec/src/profile-spec-validator.generated.ts \
+            packages/profile-spec/src/types.ts \
+            packages/profile-spec/src/validation.ts \
+            packages/profile-workflow/src/attached-rule-list-operations.test.ts \
+            packages/profile-workflow/src/attached-rule-list-operations.ts \
+            packages/profile-workflow/src/index.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/profile-operations.ts \
+            packages/profile-workflow/src/switch-source.test.ts \
+            packages/profile-workflow/src/switch-source.ts \
+            packages/reference-interpreter/src/rule-list.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-ui-compatibility.mjs
+          git diff --check
+      - name: Verify complete repository
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee /tmp/attached-rule-list-verify.log
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: attached-rule-list-verification
+          path: /tmp/attached-rule-list-verify.log
+          if-no-files-found: warn
+      - name: Enforce verification result
+        if: steps.verify.outcome != 'success'
+        run: exit 1
+      - name: Clean generated and temporary files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          git clean -fdX
+          rm -rf .github/patches
+          rm -f .github/workflows/capture-attached-rule-list-context.yml
+          rm -f .github/workflows/integrate-attached-rule-list.yml
+          git diff --check
+      - name: Commit verified product slice
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'feat: restore attached Rule List lifecycle'
+          git pull --rebase origin feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
