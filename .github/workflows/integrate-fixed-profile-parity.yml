@@ -75,40 +75,42 @@ jobs:
                   raise SystemExit(f'guard merge mismatch for {old!r}: {text.count(old)}')
               text = text.replace(old, new)
 
-          anchor = """  [
-            ['Automatic', 'Light', 'Dark'].every((label) => themePanel.includes(label)),
-            'Options must provide Automatic, Light, and Dark appearance modes.',
-          ],
-          """
-          addition = anchor + """  [
-            ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
-              fixedProfile.includes(`key: '${scheme}'`),
-            ) &&
-              fixedProfile.includes('Show Advanced') &&
-              fixedProfile.includes('Proxy Authentication') &&
-              fixedProfile.includes('fallbackPlaceholder'),
-            'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
-          ],
-          [
-            profileOperations.includes('proxyByScheme: {}') &&
-              profileOperations.includes("pattern: '[::1]'") &&
-              !profileOperations
-                .slice(
-                  profileOperations.indexOf('export function createFixedProfileDraft'),
-                  profileOperations.indexOf('export function duplicateProfileDraft'),
-                )
-                .includes("host: '127.0.0.1'"),
-            'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',
-          ],
-          [
-            runtime.includes('initialProfile.proxyByScheme = {}') &&
-              runtime.includes('initial.proxyEndpoints = []'),
-            'Fresh browser installation must not turn an example proxy server into user configuration.',
-          ],
-          """
-          if text.count(anchor) != 1:
-              raise SystemExit(f'guard requirement anchor mismatch: {text.count(anchor)}')
-          path.write_text(text.replace(anchor, addition))
+          marker = "\n".join([
+              "  [",
+              "    optionsApp.includes('class=\"settings-section\"'),",
+              "    'Options profile pages must use familiar flat settings sections.',",
+              "  ],",
+          ])
+          fixed_requirements = "\n".join([
+              "  [",
+              "    ['fallback', 'http', 'https', 'ftp'].every((scheme) =>",
+              "      fixedProfile.includes(`key: '${scheme}'`),",
+              "    ) &&",
+              "      fixedProfile.includes('Show Advanced') &&",
+              "      fixedProfile.includes('Proxy Authentication') &&",
+              "      fixedProfile.includes('fallbackPlaceholder'),",
+              "    'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',",
+              "  ],",
+              "  [",
+              "    profileOperations.includes('proxyByScheme: {}') &&",
+              "      profileOperations.includes(\"pattern: '[::1]'\") &&",
+              "      !profileOperations",
+              "        .slice(",
+              "          profileOperations.indexOf('export function createFixedProfileDraft'),",
+              "          profileOperations.indexOf('export function duplicateProfileDraft'),",
+              "        )",
+              "        .includes(\"host: '127.0.0.1'\"),",
+              "    'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',",
+              "  ],",
+              "  [",
+              "    runtime.includes('initialProfile.proxyByScheme = {}') &&",
+              "      runtime.includes('initial.proxyEndpoints = []'),",
+              "    'Fresh browser installation must not turn an example proxy server into user configuration.',",
+              "  ],",
+          ])
+          if text.count(marker) != 1:
+              raise SystemExit(f'guard requirement marker mismatch: {text.count(marker)}')
+          path.write_text(text.replace(marker, fixed_requirements + '\n' + marker))
           PY
       - name: Format integrated slice
         run: |
