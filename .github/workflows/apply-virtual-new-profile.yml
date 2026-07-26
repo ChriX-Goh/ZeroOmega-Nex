@@ -54,25 +54,30 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
+
           path = Path('packages/profile-workflow/src/profile-operations.ts')
           text = path.read_text()
-          old = """  draft.settings.startup.route = replaceRouteReference(
-            draft.settings.startup.route,
-            fromProfileId,
-            toProfileId,
-          );
-          """
-          new = """  const startupRoute = replaceRouteReference(
-            draft.settings.startup.route,
-            fromProfileId,
-            toProfileId,
-          );
-          if (startupRoute === undefined) delete draft.settings.startup.route;
-          else draft.settings.startup.route = startupRoute;
-          """
-          if text.count(old) != 1:
-              raise SystemExit('startup route rewrite anchor missing')
-          path.write_text(text.replace(old, new, 1))
+          pattern = re.compile(
+              r"  draft\.settings\.startup\.route = replaceRouteReference\(\n"
+              r"    draft\.settings\.startup\.route,\n"
+              r"    fromProfileId,\n"
+              r"    toProfileId,\n"
+              r"  \);\n"
+          )
+          replacement = (
+              "  const startupRoute = replaceRouteReference(\n"
+              "    draft.settings.startup.route,\n"
+              "    fromProfileId,\n"
+              "    toProfileId,\n"
+              "  );\n"
+              "  if (startupRoute === undefined) delete draft.settings.startup.route;\n"
+              "  else draft.settings.startup.route = startupRoute;\n"
+          )
+          text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit(f'startup route rewrite count was {count}')
+          path.write_text(text)
           PY
 
       - name: Generate CSP-safe validator
