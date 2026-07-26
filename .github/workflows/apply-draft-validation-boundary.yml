@@ -43,10 +43,10 @@ jobs:
             done > /tmp/draft-validation.patch.gz.b64
             base64 --decode /tmp/draft-validation.patch.gz.b64 > /tmp/draft-validation.patch.gz
             sha256sum /tmp/draft-validation.patch.gz
-            echo 'ef93d5ee5781b90c5688bd9c9ffb357aa7a407500ed54946a5815099a4d5ae88  /tmp/draft-validation.patch.gz' | sha256sum --check
+            echo '412ffb0e3b3c8c9ccaf44a5da9bfcb3fd38e44497f30dd7ef97c3e0091617d9a  /tmp/draft-validation.patch.gz' | sha256sum --check
             gzip --decompress --stdout /tmp/draft-validation.patch.gz > /tmp/draft-validation.patch
             sha256sum /tmp/draft-validation.patch
-            echo '19f3f68bcf66d8146d055e4877ce6f0642d496d360a6db6b740fb238aeeb2483  /tmp/draft-validation.patch' | sha256sum --check
+            echo '213ffb83ecfbb83163fe313f43cf3868dc6188e348d9773daeb0df9eb31a828c  /tmp/draft-validation.patch' | sha256sum --check
             git apply --check --verbose /tmp/draft-validation.patch
             git apply /tmp/draft-validation.patch
           } 2>&1 | tee /tmp/draft-validation-patch.log
