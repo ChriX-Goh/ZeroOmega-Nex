@@ -1,0 +1,150 @@
+name: Integrate Fixed Profile parity
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-fixed-profile-parity.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove accidentally committed build outputs
+        run: rm -rf browser-builds browser-builds.tar.gz
+      - name: Apply reviewed Fixed Profile patch with merged guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/patches/fixed-profile-parity.part{00,01,02,03} > /tmp/fixed-profile-parity.b64
+          echo '320f779fb8d856a1b19c997c6da31f8909d0cb7d243ef3074339d4b23a032b65  /tmp/fixed-profile-parity.b64' | sha256sum --check
+          base64 --decode /tmp/fixed-profile-parity.b64 | gzip --decompress --stdout > /tmp/fixed-profile-parity.patch
+          echo '34fe41b7393fd3f80bacc6e03414f1a184dc6e4f0b2515925f7a4df6a95d313e  /tmp/fixed-profile-parity.patch' | sha256sum --check
+          git apply --check --exclude=scripts/validate-ui-compatibility.mjs /tmp/fixed-profile-parity.patch
+          git apply --exclude=scripts/validate-ui-compatibility.mjs /tmp/fixed-profile-parity.patch
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/validate-ui-compatibility.mjs')
+          text = path.read_text()
+          replacements = [
+              (
+                  "const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';\n",
+                  "const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';\nconst fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';\n",
+              ),
+              (
+                  "const advancedProfileOperationsPath =\n  'packages/profile-workflow/src/advanced-profile-operations.ts';\n",
+                  "const advancedProfileOperationsPath =\n  'packages/profile-workflow/src/advanced-profile-operations.ts';\nconst profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';\nconst runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';\n",
+              ),
+              ("  themePanel,\n  optionsHtml,", "  themePanel,\n  fixedProfile,\n  optionsHtml,"),
+              (
+                  "  advancedProfileOperations,\n] = await Promise.all([",
+                  "  advancedProfileOperations,\n  profileOperations,\n  runtime,\n] = await Promise.all([",
+              ),
+              (
+                  "  readFile(themePanelPath, 'utf8'),\n  readFile(optionsHtmlPath, 'utf8'),",
+                  "  readFile(themePanelPath, 'utf8'),\n  readFile(fixedProfilePath, 'utf8'),\n  readFile(optionsHtmlPath, 'utf8'),",
+              ),
+              (
+                  "  readFile(advancedProfileOperationsPath, 'utf8'),\n]);",
+                  "  readFile(advancedProfileOperationsPath, 'utf8'),\n  readFile(profileOperationsPath, 'utf8'),\n  readFile(runtimePath, 'utf8'),\n]);",
+              ),
+          ]
+          for old, new in replacements:
+              if text.count(old) != 1:
+                  raise SystemExit(f'guard merge mismatch for {old!r}: {text.count(old)}')
+              text = text.replace(old, new)
+
+          anchor = """  [
+            ['Automatic', 'Light', 'Dark'].every((label) => themePanel.includes(label)),
+            'Options must provide Automatic, Light, and Dark appearance modes.',
+          ],
+          """
+          addition = anchor + """  [
+            ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
+              fixedProfile.includes(`key: '${scheme}'`),
+            ) &&
+              fixedProfile.includes('Show Advanced') &&
+              fixedProfile.includes('Proxy Authentication') &&
+              fixedProfile.includes('fallbackPlaceholder'),
+            'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
+          ],
+          [
+            profileOperations.includes('proxyByScheme: {}') &&
+              profileOperations.includes("pattern: '[::1]'") &&
+              !profileOperations
+                .slice(
+                  profileOperations.indexOf('export function createFixedProfileDraft'),
+                  profileOperations.indexOf('export function duplicateProfileDraft'),
+                )
+                .includes("host: '127.0.0.1'"),
+            'New Fixed Profiles must begin without an example proxy endpoint and retain the original local bypass defaults.',
+          ],
+          [
+            runtime.includes('initialProfile.proxyByScheme = {}') &&
+              runtime.includes('initial.proxyEndpoints = []'),
+            'Fresh browser installation must not turn an example proxy server into user configuration.',
+          ],
+          """
+          if text.count(anchor) != 1:
+              raise SystemExit(f'guard requirement anchor mismatch: {text.count(anchor)}')
+          path.write_text(text.replace(anchor, addition))
+          PY
+      - name: Format integrated slice
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/component-rendering.component.spec.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/FixedProfileEditor.svelte \
+            apps/extension/src/lib/i18n.test.ts \
+            apps/extension/src/lib/i18n.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            packages/profile-workflow/src/commands-import.test.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/profile-operations.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+      - name: Verify complete repository
+        run: pnpm verify
+      - name: Remove generated and temporary integration files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          rm -f fixed-profile-patch.log fixed-profile-verify.log
+          rm -rf .github/patches
+          rm -f .github/fixed-profile-parity-trigger.txt
+          rm -f .github/workflows/apply-default-integrity-slice.yml
+          rm -f .github/workflows/diagnose-default-integrity-slice.yml
+          rm -f .github/workflows/apply-fixed-profile-parity.yml
+          rm -f .github/workflows/export-fixed-profile-patch.yml
+          rm -f .github/workflows/integrate-fixed-profile-parity.yml
+          git diff --check
+      - name: Commit verified integrated slice
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'feat: restore original Fixed Profile editor'
+          git push origin HEAD:feat/m8-profile-workflow
