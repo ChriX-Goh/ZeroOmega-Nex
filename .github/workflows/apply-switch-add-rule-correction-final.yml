@@ -1,0 +1,205 @@
+name: Apply final Switch add-rule correction
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-switch-add-rule-correction-final.yml
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply line-based source correction
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_function_segment(path, start_text, end_text, replacement):
+              target = Path(path)
+              lines = target.read_text().splitlines()
+              start = next(i for i, line in enumerate(lines) if line.strip() == start_text)
+              end = next(i for i in range(start, len(lines)) if lines[i].strip() == end_text)
+              indent = lines[start][:-len(lines[start].lstrip())]
+              rendered = [indent + line if line else '' for line in replacement]
+              lines[start:end + 1] = rendered
+              target.write_text('\n'.join(lines) + '\n')
+
+          replace_function_segment(
+              'packages/profile-workflow/src/switch-operations.ts',
+              'const rule: SwitchRule = {',
+              'else profile.rules.unshift(rule);',
+              [
+                  'const template = profile.rules.at(-1);',
+                  'const rule: SwitchRule =',
+                  '  template === undefined',
+                  '    ? {',
+                  '        id: ruleId,',
+                  '        condition: createDefaultSwitchCondition(conditionKind),',
+                  '        route: structuredClone(profile.defaultRoute),',
+                  '      }',
+                  '    : {',
+                  '        ...structuredClone(template),',
+                  '        id: ruleId,',
+                  '      };',
+                  'profile.rules.push(rule);',
+              ],
+          )
+
+          test_path = Path('packages/profile-workflow/src/switch-operations.test.ts')
+          test_lines = test_path.read_text().splitlines()
+          title = "it('uses the default result profile and respects top-or-bottom insertion settings', () => {"
+          start = next(i for i, line in enumerate(test_lines) if line.strip() == title)
+          end = next(i for i in range(start + 1, len(test_lines)) if test_lines[i].startswith('  it('))
+          replacement = [
+              "  it('appends editor-added rules and copies the previous rule after the first row', () => {",
+              '    const ids = deterministicIds();',
+              '    const created = createSwitchProfileDraft(workflowFixture(), ids);',
+              '    const profile = switchProfile(created.draft, created.profileId);',
+              "    profile.defaultRoute = { kind: 'system' };",
+              '',
+              "    const first = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');",
+              '    const firstProfile = switchProfile(first.draft, created.profileId);',
+              "    expect(firstProfile.rules[0]?.route).toEqual({ kind: 'system' });",
+              "    firstProfile.rules[0]!.route = { kind: 'direct' };",
+              "    firstProfile.rules[0]!.note = 'template note';",
+              '',
+              '    first.draft.settings.interface.addConditionsToBottom = false;',
+              "    const second = addSwitchRuleDraft(first.draft, created.profileId, ids, 'url-wildcard');",
+              '    const secondProfile = switchProfile(second.draft, created.profileId);',
+              '',
+              '    expect(secondProfile.rules.map((rule) => rule.id)).toEqual([',
+              '      first.ruleId,',
+              '      second.ruleId,',
+              '    ]);',
+              '    expect(secondProfile.rules[1]).toMatchObject({',
+              '      condition: secondProfile.rules[0]?.condition,',
+              "      route: { kind: 'direct' },",
+              "      note: 'template note',",
+              '    });',
+              '    expect(secondProfile.rules[1]).not.toBe(secondProfile.rules[0]);',
+              '  });',
+              '',
+          ]
+          test_lines[start:end] = replacement
+          test_path.write_text('\n'.join(test_lines) + '\n')
+
+          guard_path = Path('scripts/validate-ui-compatibility.mjs')
+          guard_lines = guard_path.read_text().splitlines()
+          runtime_path_index = guard_lines.index(
+              "const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';"
+          )
+          guard_lines.insert(
+              runtime_path_index + 1,
+              "const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';",
+          )
+          runtime_var_index = guard_lines.index('  runtime,')
+          guard_lines.insert(runtime_var_index + 1, '  switchOperations,')
+          runtime_read_index = guard_lines.index("  readFile(runtimePath, 'utf8'),")
+          guard_lines.insert(runtime_read_index + 1, "  readFile(switchOperationsPath, 'utf8'),")
+          requirement_index = next(
+              i
+              for i, line in enumerate(guard_lines)
+              if line.strip() == "profileOperations.includes('proxyByScheme: {}') &&"
+          ) - 1
+          requirement = [
+              '  [',
+              "    switchOperations.includes('const template = profile.rules.at(-1);') &&",
+              "      switchOperations.includes('...structuredClone(template)') &&",
+              "      switchOperations.includes('profile.rules.push(rule);') &&",
+              '      !switchOperations',
+              '        .slice(',
+              "          switchOperations.indexOf('export function addSwitchRuleDraft'),",
+              "          switchOperations.indexOf('export function duplicateSwitchRuleDraft'),",
+              '        )',
+              "        .includes('addConditionsToBottom'),",
+              "    'Options-added Switch rules must append and copy the previous rule; the Popup insertion preference must not control the editor button.',",
+              '  ],',
+          ]
+          guard_lines[requirement_index:requirement_index] = requirement
+          guard_path.write_text('\n'.join(guard_lines) + '\n')
+
+          knowledge_path = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          knowledge = knowledge_path.read_text()
+          knowledge = knowledge.replace(
+              '- 新增条件插入顶部或底部由界面设置决定。',
+              '- Options 编辑器的“添加条件”始终追加到底部：第一条使用默认情景模式，之后复制最后一条规则作为模板。\n- `-addConditionsToBottom` 只控制 Popup/当前站点条件注入使用 `push` 还是 `unshift`，不得复用于编辑器按钮。',
+          )
+          knowledge = knowledge.replace(
+              '- 已提供原生拖动 handle 与键盘 Up/Down 后备；新增条件按 `addConditionsToBottom` 插入顶部或底部，并继承表格尾部默认路由。',
+              '- 已提供原生拖动 handle 与键盘 Up/Down 后备；编辑器新增规则固定追加，第一条使用默认路由，后续复制最后一条规则。\n- 原版复制文本条件后会清空 `pattern`，但当前工作流仍要求 Draft 始终通过完整语义校验；该差异必须在“可保存无效 Draft、Apply 严格拒绝”的后续切片解决，不能用示例值伪装完成。',
+          )
+          knowledge_path.write_text(knowledge)
+
+          audit_path = Path('docs/UI_AUDIT_MATRIX.md')
+          audit_lines = audit_path.read_text().splitlines()
+          for i, line in enumerate(audit_lines):
+              if line.startswith('| D-10 |'):
+                  audit_lines[i] = '| D-10 | 添加条件位置     | `switch_profile.coffee`、`options.coffee` | 编辑器固定追加；Popup 插入位置由设置决定 | MUST_MATCH | PARTIAL  | PARTIAL | 编辑器现固定 push 并复制最后一条；Popup 当前站点注入尚未实现 | 实现 Popup 条件注入 |'
+              elif line.startswith('| D-11 |'):
+                  audit_lines[i] = '| D-11 | 默认情景模式行   | `profile_switch.jade`、`switch_profile.coffee` | 表格尾部独立默认行；首条规则使用默认结果 | MUST_MATCH | DONE     | PARTIAL | Default profile 已恢复；首条规则使用默认路由，后续复制上一条结果 | locale 与视觉巡查 |'
+          history = '| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义 |'
+          if history in audit_lines:
+              audit_lines.insert(
+                  audit_lines.index(history) + 1,
+                  '| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入 |',
+              )
+          audit_path.write_text('\n'.join(audit_lines) + '\n')
+
+          status_path = Path('docs/MILESTONE_8_STATUS.md')
+          status = status_path.read_text()
+          status = status.replace(
+              '- New rules inherit the Switch profile\'s current default route and honor `addConditionsToBottom` for top-or-bottom insertion.',
+              '- The Options editor always appends a new rule. The first rule uses the current default route; later rows copy the final rule as their template.\n- `addConditionsToBottom` belongs to Popup/current-site condition injection and no longer changes the Options editor button.',
+          )
+          status = status.replace(
+              '- source-backed blank/default values for newly added Switch conditions,',
+              '- source-backed incomplete-condition drafts: original text rules clear the copied pattern, while Nex still requires every Draft to be semantically valid,\n- Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,',
+          )
+          status_path.write_text(status)
+          PY
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/switch-operations.ts \
+            packages/profile-workflow/src/switch-operations.test.ts \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md
+      - name: Verify repository
+        run: pnpm verify
+      - name: Clean generated and temporary files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          rm -f .github/workflows/correct-switch-add-rule-semantics.yml
+          rm -f .github/workflows/run-correct-switch-add-rule-semantics.yml
+          rm -f .github/workflows/apply-switch-add-rule-correction-final.yml
+          git diff --check
+      - name: Commit verified correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'fix: align Switch editor add-rule semantics'
+          git push origin HEAD:feat/m8-profile-workflow
