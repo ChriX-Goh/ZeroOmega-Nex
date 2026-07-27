@@ -3,6 +3,9 @@ import { readFile } from 'node:fs/promises';
 const popupAppPath = 'apps/extension/src/entrypoints/popup/App.svelte';
 const popupStylePath = 'apps/extension/src/entrypoints/popup/style.css';
 const currentSitePath = 'apps/extension/src/lib/current-site.ts';
+const proxyOwnershipCorePath = 'packages/browser-adapters/src/ownership.ts';
+const proxyOwnershipRuntimePath = 'apps/extension/src/lib/proxy-ownership-runtime.ts';
+const proxyOwnershipClientPath = 'apps/extension/src/lib/proxy-ownership-client.ts';
 const popupTemporaryRulesPath = 'packages/profile-workflow/src/popup-temporary-rules.ts';
 const popupTemporaryRuntimePath = 'apps/extension/src/lib/popup-temporary-rule-runtime.ts';
 const sessionSnapshotRepositoryPath = 'apps/extension/src/lib/session-snapshot-repository.ts';
@@ -48,6 +51,9 @@ const [
   popupApp,
   popupStyle,
   currentSite,
+  proxyOwnershipCore,
+  proxyOwnershipRuntime,
+  proxyOwnershipClient,
   popupTemporaryRules,
   popupTemporaryRuntime,
   sessionSnapshotRepository,
@@ -88,6 +94,9 @@ const [
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
   readFile(currentSitePath, 'utf8'),
+  readFile(proxyOwnershipCorePath, 'utf8'),
+  readFile(proxyOwnershipRuntimePath, 'utf8'),
+  readFile(proxyOwnershipClientPath, 'utf8'),
   readFile(popupTemporaryRulesPath, 'utf8'),
   readFile(popupTemporaryRuntimePath, 'utf8'),
   readFile(sessionSnapshotRepositoryPath, 'utf8'),
@@ -146,6 +155,20 @@ const requirements = [
   [
     popupApp.includes('class="popup-footer"'),
     'Popup must retain the familiar bottom options action area.',
+  ],
+  [
+    popupApp.includes('data-popup-proxy-not-controllable') &&
+      popupApp.includes('data-popup-manage-extensions') &&
+      popupApp.includes('loadProxyOwnership()') &&
+      popupApp.includes("'chrome://extensions/'") &&
+      popupApp.includes("'about:addons'") &&
+      proxyOwnershipCore.includes("reason: 'app'") &&
+      proxyOwnershipCore.includes("reason: 'policy'") &&
+      proxyOwnershipCore.includes("reason: 'disabled'") &&
+      proxyOwnershipRuntime.includes('if (!isProxyOwnershipCommand(message)) return undefined;') &&
+      !proxyOwnershipRuntime.includes('const listener = async') &&
+      proxyOwnershipClient.includes('PROXY_OWNERSHIP_MESSAGE_CHANNEL'),
+    'Popup must fail closed when another extension, policy, or missing browser capability prevents proxy control, and every ownership message listener must synchronously reject unrelated channels.',
   ],
   [
     popupApp.includes('data-popup-temporary-rule') &&

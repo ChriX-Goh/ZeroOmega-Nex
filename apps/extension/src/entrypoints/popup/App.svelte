@@ -30,6 +30,11 @@
   import { translate } from '../../lib/i18n';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import {
+    sendProxyOwnershipCommand,
+    type ProxyOwnershipBlockReason,
+    type ProxyOwnershipView,
+  } from '../../lib/proxy-ownership-client';
+  import {
     sendPopupTemporaryRuleCommand,
     type PopupTemporaryRuleCommandResponse,
   } from '../../lib/popup-temporary-rule-client';
@@ -66,6 +71,7 @@
   let runtime: ProfileWorkflowRuntimeView | undefined;
   let currentSite: CurrentSiteInfo | undefined;
   let temporaryRuleView: PopupTemporaryRuleView | undefined;
+  let proxyOwnership: ProxyOwnershipView | undefined;
   let loading = true;
   let switching = false;
   let addingCondition = false;
@@ -73,6 +79,7 @@
   let settingTemporaryRule = false;
   let openingSettings = false;
   let openingTemporaryRules = false;
+  let openingExtensionManager = false;
   let conditionFormOpen = false;
   let conditionKind: PopupConditionKind = 'host-wildcard';
   let conditionPattern = '';
@@ -256,6 +263,58 @@
     acceptTemporaryRuleResponse(await sendPopupTemporaryRuleCommand({ action: 'get' }));
   }
 
+  async function loadProxyOwnership(): Promise<void> {
+    const response = await sendProxyOwnershipCommand();
+    if (response.ok) {
+      proxyOwnership = response.view;
+      return;
+    }
+    proxyOwnership = {
+      family: 'chromium',
+      controlLevel: 'not-controllable',
+      blocked: true,
+      reason: 'unknown',
+    };
+    errorMessage = response.message;
+  }
+
+  function ownershipMessage(reason: ProxyOwnershipBlockReason | undefined): string {
+    if (reason === 'app') {
+      return translate(
+        'Another application is controlling proxy settings. Disable or remove the conflicting application.',
+      );
+    }
+    if (reason === 'policy') {
+      return translate(
+        'Proxy settings are enforced by local policy and cannot be changed. Contact your administrator.',
+      );
+    }
+    if (reason === 'disabled') {
+      return translate(
+        'ZeroOmega cannot control proxy settings because a required browser permission is disabled.',
+      );
+    }
+    return translate('ZeroOmega cannot inspect or change the browser proxy settings.');
+  }
+
+  async function openExtensionManager(): Promise<void> {
+    if (!proxyOwnership || openingExtensionManager) return;
+    openingExtensionManager = true;
+    errorMessage = '';
+    try {
+      const url = proxyOwnership.family === 'firefox' ? 'about:addons' : 'chrome://extensions/';
+      await browser.tabs.create({ url });
+      window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+      openingExtensionManager = false;
+    }
+  }
+
+  function closePopup(): void {
+    window.close();
+  }
+
   async function loadCurrentSite(): Promise<void> {
     const requested = new URLSearchParams(window.location.search).get('activeTabId');
     const explicitTabId = requested && /^\d+$/u.test(requested) ? Number(requested) : undefined;
@@ -265,7 +324,12 @@
   async function loadPopup(): Promise<void> {
     loading = true;
     try {
-      await Promise.all([loadWorkflow(), loadCurrentSite(), loadTemporaryRules()]);
+      await Promise.all([
+        loadWorkflow(),
+        loadCurrentSite(),
+        loadTemporaryRules(),
+        loadProxyOwnership(),
+      ]);
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
@@ -449,6 +513,30 @@
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
       <p class="settings-error" role="status">Loading applied profiles…</p>
+    {:else if proxyOwnership?.blocked}
+      <section
+        class="proxy-not-controllable"
+        data-popup-proxy-not-controllable
+        data-reason={proxyOwnership.reason ?? 'unknown'}
+        aria-live="assertive"
+      >
+        <p class="proxy-control-message">{ownershipMessage(proxyOwnership.reason)}</p>
+        <p class="proxy-control-details">
+          {translate('ZeroOmega cannot switch profiles until this problem is resolved.')}
+        </p>
+        <div class="proxy-control-actions">
+          <button type="button" onclick={closePopup}>{translate('Cancel')}</button>
+          <button
+            type="button"
+            class="primary"
+            data-popup-manage-extensions
+            disabled={openingExtensionManager}
+            onclick={() => void openExtensionManager()}
+          >
+            {translate('Manage extensions')}
+          </button>
+        </div>
+      </section>
     {:else if !state?.applied.settings.quickSwitch.enabled}
       <p class="settings-error" role="status">Quick switching is disabled in Options.</p>
     {:else if items.length === 0}
@@ -512,7 +600,7 @@
     {/if}
   </section>
 
-  {#if !loading && currentSite && temporaryResultItems.length > 0}
+  {#if !loading && !proxyOwnership?.blocked && currentSite && temporaryResultItems.length > 0}
     <section class="temporary-rule-action" data-popup-temporary-rule aria-label="Temporary rules">
       <label>
         Temporary profile for {currentSite.domain}
@@ -541,7 +629,7 @@
     </section>
   {/if}
 
-  {#if !loading && currentSite && activeSwitch && resultItems.length > 0}
+  {#if !loading && !proxyOwnership?.blocked && currentSite && activeSwitch && resultItems.length > 0}
     {#if conditionFormOpen}
       <form
         class="condition-form"

@@ -90,6 +90,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
+- Proxy ownership blocking now distinguishes other-extension, policy, missing-capability, and unknown states; it hides all switching/current-site actions and provides the original management escape hatch. System-mode external configuration import remains separate.
 - Result-profile exact Head `d2547783b0312730a6549b8a226e24e3d7fe3f35`: CI `30268356045`, Browser E2E `30268358492`, Parity Documentation `30268356077`.
 
 ## Automated acceptance state
@@ -108,9 +109,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup external-ownership and bounded diagnostic functions,
+- Popup System-mode external Fixed/PAC import and bounded diagnostic functions,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Proceed to the Popup external-extension ownership state, then bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to System-mode external Fixed/PAC import, then bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

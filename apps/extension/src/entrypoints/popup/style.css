@@ -129,6 +129,55 @@ button {
   cursor: default;
 }
 
+.proxy-not-controllable {
+  display: grid;
+  gap: 9px;
+  padding: 14px 12px;
+}
+
+.proxy-not-controllable p {
+  margin: 0;
+}
+
+.proxy-control-message {
+  color: var(--popup-error-text);
+  font-weight: 600;
+}
+
+.proxy-control-details {
+  color: var(--popup-muted);
+  font-size: 12px;
+}
+
+.proxy-control-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.proxy-control-actions button {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-footer);
+  color: var(--popup-text);
+  cursor: pointer;
+}
+
+.proxy-control-actions button.primary {
+  border-color: var(--popup-accent);
+}
+
+.proxy-control-actions button:hover:not(:disabled) {
+  background: var(--popup-hover);
+}
+
+.proxy-control-actions button:focus-visible {
+  outline: 3px solid var(--popup-focus);
+  outline-offset: 1px;
+}
+
 .profile-divider {
   height: 1px;
   margin: 5px 10px;

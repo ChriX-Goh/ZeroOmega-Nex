@@ -67,6 +67,12 @@ export {
 } from './firefox.js';
 export { MemorySnapshotActivationRepository } from './memory-repository.js';
 export {
+  inspectProxyOwnership,
+  proxyOwnershipFromCapabilities,
+  type ProxyOwnershipBlockReason,
+  type ProxyOwnershipView,
+} from './ownership.js';
+export {
   listPacSnapshotHistory,
   type PacSnapshotHistoryEntry,
   type SnapshotHistoryRepository,

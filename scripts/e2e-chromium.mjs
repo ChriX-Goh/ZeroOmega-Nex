@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -9,6 +9,26 @@ import { chromium } from '@playwright/test';
 const extensionPath = resolve('dist/chrome-mv3');
 const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
+const conflictUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-user-'));
+const conflictExtensionPath = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-ext-'));
+await mkdir(conflictExtensionPath, { recursive: true });
+await writeFile(
+  resolve(conflictExtensionPath, 'manifest.json'),
+  JSON.stringify({
+    manifest_version: 3,
+    name: 'Proxy Ownership Conflict E2E',
+    version: '1.0.0',
+    permissions: ['proxy'],
+    background: { service_worker: 'background.js' },
+  }),
+);
+await writeFile(
+  resolve(conflictExtensionPath, 'background.js'),
+  `const claim = async () => chrome.proxy.settings.set({ value: { mode: 'direct' }, scope: 'regular' });
+void claim();
+setInterval(() => void claim(), 250);
+`,
+);
 let remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
 let receivedRuleHeader = '';
 let ruleRequestCount = 0;
@@ -30,6 +50,7 @@ if (!ruleAddress || typeof ruleAddress === 'string')
   throw new Error('Rule List test server failed');
 const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
 let context;
+let conflictContext;
 
 try {
   context = await chromium.launchPersistentContext(userDataDir, {
@@ -450,11 +471,58 @@ try {
   await attachRuleList.waitFor();
   assert.equal(await options.locator('[data-attached-rule-list-row]').count(), 0);
 
+  conflictContext = await chromium.launchPersistentContext(conflictUserDataDir, {
+    channel: 'chromium',
+    headless: true,
+    locale: 'zh-CN',
+    args: [
+      `--disable-extensions-except=${extensionPath},${conflictExtensionPath}`,
+      `--load-extension=${extensionPath},${conflictExtensionPath}`,
+    ],
+  });
+  let conflictWorker;
+  await assertEventually(async () => {
+    for (const candidate of conflictContext.serviceWorkers()) {
+      const name = await candidate
+        .evaluate(() => chrome.runtime.getManifest().name)
+        .catch(() => '');
+      if (name === 'Proxy Ownership Conflict E2E') {
+        conflictWorker = candidate;
+        return true;
+      }
+    }
+    return false;
+  }, 'Conflicting proxy extension service worker was not resolved');
+  await assertEventually(
+    async () =>
+      conflictWorker.evaluate(
+        async () =>
+          (await chrome.proxy.settings.get({ incognito: false })).levelOfControl ===
+          'controlled_by_this_extension',
+      ),
+    'Conflicting extension did not obtain proxy control',
+  );
+  const blockedPopup = await conflictContext.newPage();
+  await blockedPopup.goto(`chrome-extension://${extensionId}/popup.html`);
+  const ownershipBlocker = blockedPopup.locator(
+    '[data-popup-proxy-not-controllable][data-reason="app"]',
+  );
+  await ownershipBlocker.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await ownershipBlocker.innerText(), /其他应用正在控制代理设置/u);
+  await ownershipBlocker.locator('[data-popup-manage-extensions]').waitFor();
+  assert.equal(await blockedPopup.locator('.profile-row').count(), 0);
+  assert.equal(await blockedPopup.locator('[data-popup-temporary-rule]').count(), 0);
+  assert.equal(await blockedPopup.locator('[data-popup-add-current-site]').count(), 0);
+  await blockedPopup.close();
+
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
+  await conflictContext?.close();
   await context?.close();
   await new Promise((resolveClose) => ruleServer.close(resolveClose));
   await rm(userDataDir, { recursive: true, force: true });
+  await rm(conflictUserDataDir, { recursive: true, force: true });
+  await rm(conflictExtensionPath, { recursive: true, force: true });
 }
 
 async function assertEventually(check, message, timeout = 15_000) {

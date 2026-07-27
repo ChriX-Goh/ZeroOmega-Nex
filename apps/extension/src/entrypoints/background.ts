@@ -20,10 +20,16 @@ import {
   currentProxyAuthenticationApi,
   ProxyAuthenticationRuntimeManager,
 } from '../lib/proxy-auth-runtime';
+import {
+  currentProxyOwnershipRuntimeApi,
+  registerProxyOwnershipRuntime,
+  type RegisteredProxyOwnershipRuntime,
+} from '../lib/proxy-ownership-runtime';
 
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
+let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
 
 async function restoreProxyRuntime(
   manager: ProxyAuthenticationRuntimeManager,
@@ -71,6 +77,7 @@ export default defineBackground(() => {
     `[${productIdentity.name}] background initialized for ${productIdentity.milestone}.`,
   );
 
+  proxyOwnershipRuntime?.dispose();
   popupTemporaryRuleRuntime?.dispose();
   profileWorkflowRuntime?.dispose();
   authenticationManager?.dispose();
@@ -92,6 +99,7 @@ export default defineBackground(() => {
   popupTemporaryRuleRuntime = temporaryRuleCoordinator
     ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
     : undefined;
+  proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
 
   void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
     (error: unknown) => {

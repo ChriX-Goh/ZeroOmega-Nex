@@ -78,6 +78,29 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Operation failed': { 'zh-CN': '操作失败', 'zh-TW': '操作失敗' },
   Direct: { 'zh-CN': '直接连接', 'zh-TW': '直接連線' },
   'System Proxy': { 'zh-CN': '系统代理', 'zh-TW': '系統代理' },
+  'Another application is controlling proxy settings. Disable or remove the conflicting application.':
+    {
+      'zh-CN': '其他应用正在控制代理设置。请禁用或者卸载发生冲突的应用。',
+      'zh-TW': '其他應用程式正在控制 Proxy 設定。請停用或移除發生衝突的應用程式。',
+    },
+  'Proxy settings are enforced by local policy and cannot be changed. Contact your administrator.':
+    {
+      'zh-CN': '代理设置被本地策略强制指定，无法修改。请联系系统管理员。',
+      'zh-TW': 'Proxy 設定由本機原則強制指定，無法修改。請聯絡系統管理員。',
+    },
+  'ZeroOmega cannot control proxy settings because a required browser permission is disabled.': {
+    'zh-CN': '浏览器所需权限已关闭，ZeroOmega 无法控制代理设置。',
+    'zh-TW': '瀏覽器所需權限已關閉，ZeroOmega 無法控制 Proxy 設定。',
+  },
+  'ZeroOmega cannot inspect or change the browser proxy settings.': {
+    'zh-CN': 'ZeroOmega 无法检查或修改浏览器代理设置。',
+    'zh-TW': 'ZeroOmega 無法檢查或修改瀏覽器 Proxy 設定。',
+  },
+  'ZeroOmega cannot switch profiles until this problem is resolved.': {
+    'zh-CN': '如果不解决以上问题，则无法使用 ZeroOmega 切换代理。',
+    'zh-TW': '若不解決以上問題，則無法使用 ZeroOmega 切換 Proxy。',
+  },
+  'Manage extensions': { 'zh-CN': '管理扩展', 'zh-TW': '管理擴充功能' },
   'Missing profile': { 'zh-CN': '情景模式不存在', 'zh-TW': '情景模式不存在' },
   Options: { 'zh-CN': '选项', 'zh-TW': '選項' },
   'Opening…': { 'zh-CN': '正在打开…', 'zh-TW': '正在開啟…' },
