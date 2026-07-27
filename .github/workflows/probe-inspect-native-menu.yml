@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - .github/workflows/probe-inspect-native-menu.yml
+      - scripts/probe-inspect-native-menu.mjs
+      - scripts/probe-inspect-native-menu-atspi.py
 
 permissions:
   contents: read
