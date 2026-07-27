@@ -314,6 +314,79 @@ try {
   await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
+  await options.getByRole('button', { name: 'rule-switchy', exact: true }).click();
+  const independentRuleEditor = options.locator('[data-rule-list-profile-editor]');
+  await independentRuleEditor.waitFor({ state: 'visible', timeout: 20_000 });
+  await independentRuleEditor.getByRole('heading', { name: 'Rule List Config' }).waitFor();
+  assert.equal(
+    await independentRuleEditor.getByLabel('Rule List match profile').inputValue(),
+    await independentRuleEditor
+      .getByLabel('Rule List match profile')
+      .locator('option', { hasText: 'fixed' })
+      .getAttribute('value'),
+  );
+  assert.equal(
+    await independentRuleEditor.getByLabel('Rule List default profile').inputValue(),
+    'direct',
+  );
+  assert.equal(
+    await independentRuleEditor.getByRole('radio', { name: 'Switchy' }).isChecked(),
+    true,
+  );
+  const independentUrl = independentRuleEditor.getByRole('textbox', {
+    name: 'Rule List URL',
+    exact: true,
+  });
+  await independentUrl.fill(remoteRuleUrl);
+  await independentUrl.press('Tab');
+  const independentDownload = independentRuleEditor.locator(
+    '[data-independent-rule-source-update-now]',
+  );
+  await assertEventually(
+    async () => !(await independentDownload.isDisabled()),
+    'Independent Rule List download button remained disabled after saving the URL',
+  );
+  await independentDownload.click();
+  const independentStatus = independentRuleEditor.locator(
+    '[data-independent-rule-source-update-status]',
+  );
+  await independentStatus.filter({ hasText: 'Last updated' }).waitFor({ timeout: 20_000 });
+  const independentText = independentRuleEditor.getByLabel('Rule List text');
+  assert.equal(await independentText.inputValue(), remoteRuleText);
+  assert.equal(await independentText.isEditable(), false);
+  await independentRuleEditor.getByRole('button', { name: 'Clear Rule List URL' }).click();
+  await assertEventually(
+    async () =>
+      (await independentRuleEditor
+        .getByRole('textbox', { name: 'Rule List URL', exact: true })
+        .inputValue()) === '',
+    'Clearing the independent Rule List URL did not return to inline mode',
+  );
+  assert.equal(await independentText.isEditable(), true);
+  assert.equal(await independentText.inputValue(), remoteRuleText);
+  await independentText.fill('[SwitchyOmega Conditions]\n@with result\n\n* +direct\n');
+  await independentText.press('Tab');
+  const independentApply = options.locator('.nav-group.actions button.primary');
+  await assertEventually(
+    async () => !(await independentApply.isDisabled()),
+    'Independent Rule List changes did not reach the Options Draft',
+  );
+  await independentApply.click();
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const state = (await chrome.storage.local.get(key))[key];
+        return (
+          state !== undefined &&
+          state.pendingApply === undefined &&
+          JSON.stringify(state.draft) === JSON.stringify(state.applied)
+        );
+      }),
+    'Independent Rule List Apply did not commit the Draft to Applied state',
+    20_000,
+  );
+
   const resultPopup = await context.newPage();
   await resultPopup.goto(`chrome-extension://${extensionId}/popup.html`);
   const switchResult = resultPopup.getByLabel('Result profile for switch');

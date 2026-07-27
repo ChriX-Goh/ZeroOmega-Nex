@@ -58,6 +58,8 @@ const legacyExportPath = 'packages/legacy-zeroomega/src/export.ts';
 const chromiumE2ePath = 'scripts/e2e-chromium.mjs';
 const originalBackupProvenancePath =
   'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json';
+const independentRuleListEditorPath =
+  'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte';
 
 const [
   popupApp,
@@ -159,14 +161,21 @@ const [
   readFile(inspectRuntimePath, 'utf8'),
 ]);
 
-const [nativeInspectE2e, browserE2eWorkflow, legacyExport, chromiumE2e, originalBackupProvenance] =
-  await Promise.all([
-    readFile(nativeInspectE2ePath, 'utf8'),
-    readFile(browserE2eWorkflowPath, 'utf8'),
-    readFile(legacyExportPath, 'utf8'),
-    readFile(chromiumE2ePath, 'utf8'),
-    readFile(originalBackupProvenancePath, 'utf8'),
-  ]);
+const [
+  nativeInspectE2e,
+  browserE2eWorkflow,
+  legacyExport,
+  chromiumE2e,
+  originalBackupProvenance,
+  independentRuleListEditor,
+] = await Promise.all([
+  readFile(nativeInspectE2ePath, 'utf8'),
+  readFile(browserE2eWorkflowPath, 'utf8'),
+  readFile(legacyExportPath, 'utf8'),
+  readFile(chromiumE2ePath, 'utf8'),
+  readFile(originalBackupProvenancePath, 'utf8'),
+  readFile(independentRuleListEditorPath, 'utf8'),
+]);
 
 const requirements = [
   [
@@ -327,6 +336,25 @@ const requirements = [
         '8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19',
       ),
     'Full Options export must use the original schema-v2 JSON/MIME/filename contract, omit secrets, apply Draft work first, preserve a pinned original-generated fixture, and pass export-clear-import-export Chromium E2E.',
+  ],
+  [
+    optionsApp.includes("import RuleListProfileEditor from './RuleListProfileEditor.svelte'") &&
+      optionsApp.includes("selectedProfile.kind === 'rule-list'") &&
+      optionsApp.includes('onGetRuleSourceUpdateStatus={getRuleSourceUpdateStatus}') &&
+      optionsApp.includes('onUpdateRuleSource={updateRuleSource}') &&
+      independentRuleListEditor.includes('data-rule-list-profile-editor') &&
+      independentRuleListEditor.includes('data-rule-list-config') &&
+      independentRuleListEditor.includes('data-rule-list-url-section') &&
+      independentRuleListEditor.includes('data-rule-list-text-section') &&
+      independentRuleListEditor.includes('data-independent-rule-source-update-now') &&
+      independentRuleListEditor.includes("readonly={source.location.kind === 'url'}") &&
+      independentRuleListEditor.includes('target.location = url') &&
+      !independentRuleListEditor.includes('Source type') &&
+      !independentRuleListEditor.includes('Update interval (minutes)') &&
+      chromiumE2e.includes("getByRole('button', { name: 'rule-switchy', exact: true })") &&
+      chromiumE2e.includes('data-independent-rule-source-update-now') &&
+      chromiumE2e.includes("getByRole('button', { name: 'Clear Rule List URL' })"),
+    'Independent Rule List profiles must use the original Config/URL/Text page, presence-of-URL mode switching, existing bounded downloader/status path, read-only downloaded text, and real Chromium interaction coverage.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),

@@ -13,8 +13,8 @@ import { describe, expect, it } from 'vitest';
 
 import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte';
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
+import RuleListProfileEditor from './entrypoints/options/RuleListProfileEditor.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
-import AdvancedProfileEditor from './entrypoints/options/AdvancedProfileEditor.svelte';
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
 import SnapshotHistoryPanel from './entrypoints/options/SnapshotHistoryPanel.svelte';
 import SwitchProfileEditor from './entrypoints/options/SwitchProfileEditor.svelte';
@@ -170,9 +170,16 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Delete attached Rule List');
   });
 
-  it('renders the Rule List source and routing editors', () => {
+  it('renders the original independent Rule List sections and update controls', () => {
     const mutation = createRuleListProfileDraft(baseSpec(), idFactory());
-    const { body } = render(AdvancedProfileEditor, {
+    const source = mutation.draft.ruleSources.at(-1);
+    if (!source) throw new Error('Rule List source was not created');
+    source.location = {
+      kind: 'url',
+      url: 'https://rules.example.invalid/component.txt',
+      content: 'cached independent rules',
+    };
+    const { body } = render(RuleListProfileEditor, {
       props: {
         spec: mutation.draft,
         profileId: mutation.profileId,
@@ -181,11 +188,19 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       },
     });
 
-    expect(body).toContain('Rule source');
-    expect(body).toContain('Update interval (minutes)');
-    expect(body).toContain('aria-label="Inline rule source"');
-    expect(body).toContain('Matching rules use');
-    expect(body).toContain('Default route');
+    expect(body).toContain('data-rule-list-profile-editor');
+    expect(body).toContain('Rule List Config');
+    expect(body).toContain('Rule List URL');
+    expect(body).toContain('Rule List Text');
+    expect(body).toContain('aria-label="Rule List match profile"');
+    expect(body).toContain('aria-label="Rule List default profile"');
+    expect(body).toContain('aria-label="Rule List URL"');
+    expect(body).toContain('data-independent-rule-source-update-now');
+    expect(body).toContain('data-independent-rule-source-update-status');
+    expect(body).toContain('readonly');
+    expect(body).toContain('cached independent rules');
+    expect(body).not.toContain('Source name');
+    expect(body).not.toContain('Update interval (minutes)');
   });
 
   it('renders the inactive legacy import review entry point without secret values', () => {

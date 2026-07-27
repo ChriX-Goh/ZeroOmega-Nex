@@ -317,7 +317,9 @@
               </select>
               <input
                 aria-label={`Rule List header ${index + 1} value`}
-                value={header.value.kind === 'literal' ? header.value.value : header.value.secretRef}
+                value={header.value.kind === 'literal'
+                  ? header.value.value
+                  : header.value.secretRef}
                 {disabled}
                 onchange={(event) => updateHeaderValue(index, valueFrom(event))}
               />
@@ -335,13 +337,20 @@
         <button
           type="button"
           data-independent-rule-source-update-now
-          disabled={disabled || updateLoading || source.location.kind !== 'url' || !source.location.url}
+          disabled={disabled ||
+            updateLoading ||
+            source.location.kind !== 'url' ||
+            !source.location.url}
           onclick={downloadNow}
         >
           {updateLoading ? 'Downloading…' : 'Download now'}
         </button>
         {#if source.location.kind === 'url'}
-          <p class:stale={updateView?.stale} role="status" data-independent-rule-source-update-status>
+          <p
+            class:stale={updateView?.stale}
+            role="status"
+            data-independent-rule-source-update-status
+          >
             {updateSummary(updateView)}
           </p>
         {/if}

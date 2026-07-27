@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `5a4782f17d0f2e55ec389f46231a639bc5e5b40e`  
-**Latest integration verification:** run `30300955079` validates original-compatible Options export, pinned original fixture, secret omission, and Chromium export→clear→import→export equivalence with full `pnpm verify` and browser regression  
+**Current product implementation head:** independent Rule List editor product commit containing this document  
+**Latest integration verification:** run `30303532476` validates the original independent Rule List Config/URL/Text editor, bounded remote update, URL-clear inline restoration, and Chromium interaction with full `pnpm verify` and regression  
 **Last completed exact-Head verification:** `43361d20e065fc83c0fadf54b19ef787df8700f7`; CI `30301191730`, Browser E2E `30301191783`, Parity Documentation `30301191992` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
@@ -101,6 +101,15 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
 - Native Inspect context-menu E2E integration: run `30297644740`, product commit `944644f3d4588e70429de65224402d8bdc37863a`.
 
+### Independent imported Rule List editor
+
+- Independent imported Rule List profiles now use the original three-section page: Rule List Config, Rule List URL, and Rule List Text.
+- Match/default route selectors and AutoProxy/Switchy radio controls are separated from source location. Presence of a URL defines remote mode; clearing it keeps cached text and returns to editable inline mode.
+- Remote text is read-only, uses the already verified optional host-permission/background downloader, secret-header resolution, 10-second/4 MiB bounds, CAS conflict protection, update status, and failure-preserves-cache behavior.
+- Hidden attached Rule Lists remain owned and edited through their parent Switch; no ownership or detach transaction is shared with the independent editor.
+- Component tests and Chromium E2E cover the structure, imported `rule-switchy` navigation, real local HTTP download, update status, read-only cache, URL clear, and inline editing.
+- Integration run `30303532476`; product commit containing this document.
+
 ### Original-compatible Options export and backup round trip
 
 - Export first commits the active editor and, when Draft differs from Applied, requires the same Apply transaction before producing a file.
@@ -132,11 +141,11 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Switch source-editor localization, browser interaction coverage, and edit-mode persistence across reloads,
 - complete Switch localization and Chromium drag-order E2E,
-- dedicated imported Rule List and PAC download/update semantics,
+- PAC URL/download/cache/authentication semantics,
 - Virtual browser E2E creation and reference-migration coverage,
 - complete Simplified/Traditional Chinese coverage,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Rebuild the dedicated imported Rule List and PAC download/update/read-only/authentication semantics, then continue Virtual browser coverage and complete localization. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Extend the PAC model with remote-script cache/update state, then rebuild its original URL/headers/download/read-only/file-warning/authentication editor and browser coverage. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

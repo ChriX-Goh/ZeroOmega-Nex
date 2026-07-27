@@ -52,6 +52,7 @@
   import FixedProfileEditor from './FixedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
   import NewProfileDialog from './NewProfileDialog.svelte';
+  import RuleListProfileEditor from './RuleListProfileEditor.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
   import ThemePanel from './ThemePanel.svelte';
@@ -1234,7 +1235,16 @@
           disabled={saving || view?.busy === true}
           onReplaceDraft={replaceDraft}
         />
-      {:else if selectedProfile.kind === 'rule-list' || selectedProfile.kind === 'pac' || selectedProfile.kind === 'auto-detect'}
+      {:else if selectedProfile.kind === 'rule-list'}
+        <RuleListProfileEditor
+          spec={state.draft}
+          profileId={selectedProfile.id}
+          disabled={saving || view?.busy === true}
+          onReplaceDraft={replaceDraft}
+          onGetRuleSourceUpdateStatus={getRuleSourceUpdateStatus}
+          onUpdateRuleSource={updateRuleSource}
+        />
+      {:else if selectedProfile.kind === 'pac' || selectedProfile.kind === 'auto-detect'}
         <AdvancedProfileEditor
           spec={state.draft}
           profileId={selectedProfile.id}

@@ -87,16 +87,16 @@
 
 ## E. RuleListProfile
 
-| ID   | 界面/功能        | 原版源码                 | 原版布局与行为             | 分类       | Nex 状态 | 翻译     | 证据/问题                                                  | 下一步          |
-| ---- | ---------------- | ------------------------ | -------------------------- | ---------- | -------- | -------- | ---------------------------------------------------------- | --------------- |
-| E-01 | 普通新建入口     | `new_profile.jade`       | 不在普通新建四类中         | MUST_MATCH | DONE     | COMPLETE | 已从新建模态框移除，导入数据仍兼容                         | 保持回归测试    |
-| E-02 | 独立编辑页       | `profile_rule_list.jade` | 导入/附属后可见            | MUST_MATCH | PARTIAL  | MISSING  | 有 Advanced editor，但结构不同                             | 重建专属模板    |
-| E-03 | 匹配情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 matchRoute                                              | 对齐名称和布局  |
-| E-04 | 默认情景模式     | 同上                     | profile selector           | MUST_MATCH | PARTIAL  | MISSING  | 有 defaultRoute                                            | 对齐            |
-| E-05 | 格式单选         | 同上                     | 原版格式列表               | MUST_MATCH | PARTIAL  | PARTIAL  | 只有 AutoProxy/Switchy                                     | 核对全部 format |
-| E-06 | URL 与清除       | 同上                     | URL input                  | MUST_MATCH | PARTIAL  | MISSING  | URL 模式已从空值开始，不再写入 invalid URL；专属布局仍不同 | 重建专属模板    |
-| E-07 | 立即下载         | 同上                     | 下载按钮                   | MUST_MATCH | MISSING  | MISSING  | 无                                                         | 实现            |
-| E-08 | 规则文本只读语义 | 同上                     | 有 URL 只读，无 URL 可编辑 | MUST_MATCH | PARTIAL  | MISSING  | 切换位置不再写示例正文；URL 只读与下载状态仍待重构         | 完成状态关系    |
+| ID   | 界面/功能        | 原版源码                 | 原版布局与行为             | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                     | 下一步                        |
+| ---- | ---------------- | ------------------------ | -------------------------- | ---------- | -------- | -------- | ----------------------------------------------------------------------------- | ----------------------------- |
+| E-01 | 普通新建入口     | `new_profile.jade`       | 不在普通新建四类中         | MUST_MATCH | DONE     | COMPLETE | 已从新建模态框移除，导入数据仍兼容                                            | 保持回归测试                  |
+| E-02 | 独立编辑页       | `profile_rule_list.jade` | 导入/附属后可见            | MUST_MATCH | DONE     | PARTIAL  | 独立导入类型使用 Config / URL / Text 三段原版结构；附属类型仍由父 Switch 管理 | 补完整 locale 与 Firefox 巡查 |
+| E-03 | 匹配情景模式     | 同上                     | profile selector           | MUST_MATCH | DONE     | PARTIAL  | 独立编辑页已有 match profile selector，排除自身与隐藏附属类型                 | 补 locale                     |
+| E-04 | 默认情景模式     | 同上                     | profile selector           | MUST_MATCH | DONE     | PARTIAL  | 独立编辑页已有 default profile selector，浏览器 E2E 验证                      | 补 locale                     |
+| E-05 | 格式单选         | 同上                     | 原版格式列表               | MUST_MATCH | DONE     | PARTIAL  | AutoProxy / Switchy radio 已恢复；导入旧专用类型仍归一化                      | 补原版命名 locale             |
+| E-06 | URL 与清除       | 同上                     | URL input                  | MUST_MATCH | DONE     | PARTIAL  | URL 存在即 remote 模式；Clear 保留缓存并返回 inline；Chromium E2E 覆盖        | 补 locale                     |
+| E-07 | 立即下载         | 同上                     | 下载按钮                   | MUST_MATCH | DONE     | PARTIAL  | 复用已验证后台权限/边界/CAS 下载器与状态；Chromium 真实 HTTP 下载覆盖         | 补 Firefox 与 locale          |
+| E-08 | 规则文本只读语义 | 同上                     | 有 URL 只读，无 URL 可编辑 | MUST_MATCH | DONE     | PARTIAL  | URL 时缓存文本只读，清除后同一内容恢复可编辑；组件与 Chromium E2E 覆盖        | 补 locale                     |
 
 ## F. PacProfile 与 VirtualProfile
 
