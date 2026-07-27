@@ -70,6 +70,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Options consumes validated local workflow-state change payloads synchronously, keeping its generation current without inserting a command between chained operations such as import-and-apply.
 - The persistent Switch source editor is not remounted by background updates, so local source text remains while the backing spec receives new cached Rule Source state.
 - Chromium E2E covers local HTTP manual download with a custom header, forced alarm refresh to a second payload, state synchronization, continued editing, and successful detach afterward.
+- Popup current-site persistence now uses activeTab plus a public-suffix parser, original condition suggestions, valid result-route filtering, duplicate replacement, top/bottom insertion, and a verified Apply that keeps the active Switch route. Dirty Options Draft state blocks the command rather than being overwritten.
 - Core lifecycle integration: run `30232967645`, product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
 - Manual update integration: run `30235776499`, product commit `d9419f7303e40c11fca44bea3fb54df9913ce950`.
 - Automatic scheduler integration: run `30242780330`, product commit `508b6471682d33c658c2efddc55923ed510fec24`.
@@ -86,7 +87,6 @@ Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte er
 PR #11 is not a replacement release candidate. Current blockers include:
 
 - Switch source-editor localization, browser interaction coverage, and edit-mode persistence across reloads,
-- Popup/current-site condition injection and `addConditionsToBottom` ordering,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
 - Virtual browser E2E creation and reference-migration coverage,
@@ -97,4 +97,4 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Proceed to the source-backed Popup/current-site condition-injection slice and implement `addConditionsToBottom` ordering, unless a repository audit identifies a stricter dependency. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to the next Popup parity slice: temporary current-site rules or Switch/Virtual result-profile controls, selected by source dependency audit. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

@@ -144,6 +144,99 @@ button {
   stroke-linejoin: round;
 }
 
+.current-site-action {
+  padding: 7px 10px;
+  border-top: 1px solid var(--popup-border);
+}
+
+.current-site-action button,
+.scope-button,
+.condition-actions button {
+  min-height: 30px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-footer);
+  color: var(--popup-text);
+  cursor: pointer;
+}
+
+.current-site-action button {
+  width: 100%;
+}
+
+.condition-form {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--popup-border);
+}
+
+.condition-form h2,
+.condition-domain {
+  margin: 0;
+}
+
+.condition-form h2 {
+  font-size: 14px;
+}
+
+.condition-domain {
+  overflow: hidden;
+  color: var(--popup-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.condition-form label {
+  display: grid;
+  gap: 3px;
+  color: var(--popup-muted);
+  font-size: 11px;
+}
+
+.condition-form input,
+.condition-form select {
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 6px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-bg);
+  color: var(--popup-text);
+  font: inherit;
+}
+
+.scope-button {
+  padding: 4px 7px;
+  text-align: left;
+}
+
+.condition-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.condition-actions button {
+  padding: 4px 10px;
+}
+
+.current-site-action button:hover,
+.scope-button:hover,
+.condition-actions button:hover:not(:disabled) {
+  background: var(--popup-hover);
+}
+
+.current-site-action button:focus-visible,
+.scope-button:focus-visible,
+.condition-form input:focus-visible,
+.condition-form select:focus-visible,
+.condition-actions button:focus-visible {
+  outline: 3px solid var(--popup-focus);
+  outline-offset: 1px;
+}
+
 .popup-footer {
   display: flex;
   align-items: center;

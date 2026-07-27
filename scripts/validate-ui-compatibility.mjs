@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 const popupAppPath = 'apps/extension/src/entrypoints/popup/App.svelte';
 const popupStylePath = 'apps/extension/src/entrypoints/popup/style.css';
+const currentSitePath = 'apps/extension/src/lib/current-site.ts';
 const optionsAppPath = 'apps/extension/src/entrypoints/options/App.svelte';
 const optionsStylePath = 'apps/extension/src/entrypoints/options/style.css';
 const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
@@ -28,6 +29,7 @@ const ruleSourceDownloaderPath = 'apps/extension/src/lib/rule-source-downloader.
 const ruleSourceSchedulerPath = 'apps/extension/src/lib/rule-source-scheduler.ts';
 const ruleSourceUpdatePath = 'packages/profile-workflow/src/rule-source-update.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
+const popupConditionPath = 'packages/profile-workflow/src/popup-condition.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
 const attachedRuleListOperationsPath =
   'packages/profile-workflow/src/attached-rule-list-operations.ts';
@@ -41,6 +43,7 @@ const storageRepositoryPath = 'packages/profile-workflow/src/storage-repository.
 const [
   popupApp,
   popupStyle,
+  currentSite,
   optionsApp,
   optionsStyle,
   snapshotHistory,
@@ -64,6 +67,7 @@ const [
   ruleSourceScheduler,
   ruleSourceUpdate,
   switchOperations,
+  popupCondition,
   switchSource,
   attachedRuleListOperations,
   profileSpecTypes,
@@ -75,6 +79,7 @@ const [
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
+  readFile(currentSitePath, 'utf8'),
   readFile(optionsAppPath, 'utf8'),
   readFile(optionsStylePath, 'utf8'),
   readFile(snapshotHistoryPath, 'utf8'),
@@ -98,6 +103,7 @@ const [
   readFile(ruleSourceSchedulerPath, 'utf8'),
   readFile(ruleSourceUpdatePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
+  readFile(popupConditionPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
   readFile(attachedRuleListOperationsPath, 'utf8'),
   readFile(profileSpecTypesPath, 'utf8'),
@@ -128,6 +134,22 @@ const requirements = [
   [
     popupApp.includes('class="popup-footer"'),
     'Popup must retain the familiar bottom options action area.',
+  ],
+  [
+    popupApp.includes('data-popup-add-current-site') &&
+      popupApp.includes('data-popup-condition-form') &&
+      popupApp.includes("action: 'add-current-site-condition'") &&
+      popupApp.includes('listPopupConditionResultRoutes') &&
+      currentSite.includes("import { parse } from 'tldts'") &&
+      currentSite.includes('allowPrivateDomains: true') &&
+      currentSite.includes('parsedDomain.domain ?? hostname') &&
+      currentSite.includes('suggestCurrentSiteCondition') &&
+      popupCondition.includes('draft.settings.interface.addConditionsToBottom') &&
+      popupCondition.includes('profile.rules.unshift(rule)') &&
+      popupCondition.includes('profile.rules.push(rule)') &&
+      popupCondition.includes('popupConditionTag(input.condition)') &&
+      manifest.includes("'activeTab'"),
+    'Popup must derive the current site with the public suffix list, add typed conditions only to the active Switch Profile, deduplicate by condition, honor top/bottom ordering, and use least-privilege activeTab access.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),
@@ -275,7 +297,7 @@ const requirements = [
     'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
   ],
   [
-    manifest.includes("permissions: ['proxy', 'storage', 'alarms']") &&
+    manifest.includes("permissions: ['proxy', 'storage', 'alarms', 'activeTab']") &&
       runtime.includes('registerRuleSourceScheduler') &&
       ruleSourceScheduler.includes(
         "RULE_SOURCE_UPDATE_ALARM_NAME = 'zeroomega-nex/rule-source-update-scan'",

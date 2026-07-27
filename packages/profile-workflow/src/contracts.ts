@@ -149,7 +149,7 @@ export interface ProfileWorkflowActivationDriver {
     candidate: ProfileSpec,
     startRoute?: ProfileRouteTarget,
   ): Promise<ProfileWorkflowActivationResult>;
-  rollback(previousApplied: ProfileSpec): Promise<void>;
+  rollback(previousApplied: ProfileSpec, startRoute?: ProfileRouteTarget): Promise<void>;
   inspectRuntime?(): Promise<ProfileWorkflowRuntimeView>;
 }
 
@@ -159,6 +159,7 @@ export interface ProfileWorkflowApplyContext {
   readonly startedAt: string;
   readonly completedAt: string;
   readonly deviceId?: string;
+  readonly startRoute?: ProfileRouteTarget;
 }
 
 export type ProfileWorkflowApplyResult =

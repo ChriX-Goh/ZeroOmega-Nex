@@ -50,7 +50,12 @@ for (const file of manifestFiles) {
     : [];
   const gecko = manifest.browser_specific_settings?.gecko;
 
-  assertExactSet(permissions, ['proxy', 'storage', 'alarms'], 'required permissions', file);
+  assertExactSet(
+    permissions,
+    ['proxy', 'storage', 'alarms', 'activeTab'],
+    'required permissions',
+    file,
+  );
   assertExactSet(
     optionalPermissions,
     gecko ? ['webRequest', 'webRequestBlocking'] : ['webRequest', 'webRequestAuthProvider'],
@@ -93,7 +98,7 @@ for (const file of manifestFiles) {
   }
 
   console.log(
-    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage/alarms required, auth optional, no global host access.`,
+    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage/alarms/activeTab required, auth optional, no global host access.`,
   );
 }
 

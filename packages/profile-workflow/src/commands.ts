@@ -1,6 +1,7 @@
 import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 
 import { applyProfileWorkflow } from './apply.js';
+import { addPopupConditionDraft, type PopupSiteCondition } from './popup-condition.js';
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
@@ -96,6 +97,15 @@ export type ProfileWorkflowCommand =
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'activate-route';
       readonly expectedAppliedRevisionId: string;
+      readonly route: ProfileRouteTarget;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'add-current-site-condition';
+      readonly expectedAppliedRevisionId: string;
+      readonly switchProfileId: string;
+      readonly ruleId: string;
+      readonly condition: PopupSiteCondition;
       readonly route: ProfileRouteTarget;
     };
 
@@ -239,6 +249,23 @@ function validRoute(value: unknown): value is ProfileRouteTarget {
   );
 }
 
+function validPopupCondition(value: unknown): value is PopupSiteCondition {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const condition = value as Record<string, unknown>;
+  if (typeof condition.pattern !== 'string' || condition.pattern.length === 0) return false;
+  switch (condition.kind) {
+    case 'host-wildcard':
+    case 'host-regex':
+    case 'url-wildcard':
+    case 'url-regex':
+      return true;
+    case 'keyword':
+      return condition.httpOnly === true;
+    default:
+      return false;
+  }
+}
+
 function validSecretMaterials(value: unknown): value is readonly ProfileWorkflowSecretMaterial[] {
   return (
     Array.isArray(value) &&
@@ -357,6 +384,17 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         record.expectedAppliedRevisionId.length > 0 &&
         validRoute(record.route)
       );
+    case 'add-current-site-condition':
+      return (
+        typeof record.expectedAppliedRevisionId === 'string' &&
+        record.expectedAppliedRevisionId.length > 0 &&
+        typeof record.switchProfileId === 'string' &&
+        record.switchProfileId.length > 0 &&
+        typeof record.ruleId === 'string' &&
+        record.ruleId.length > 0 &&
+        validPopupCondition(record.condition) &&
+        validRoute(record.route)
+      );
     default:
       return false;
   }
@@ -417,6 +455,88 @@ export async function executeProfileWorkflowCommand(
     return update === undefined
       ? failure('invalid', `Rule Source ${command.sourceId} is not a remote URL source`, state)
       : responseWithRuleSourceUpdate(state, update);
+  }
+
+  if (command.action === 'add-current-site-condition') {
+    if (state.applied.revision.id !== command.expectedAppliedRevisionId) {
+      return failure(
+        'conflict',
+        `expected applied revision ${command.expectedAppliedRevisionId}, current revision is ${state.applied.revision.id}`,
+        state,
+      );
+    }
+    if (state.pendingApply) {
+      return failure('busy', 'profile workflow is busy applying another revision', state);
+    }
+    if (!applyService) {
+      return failure('invalid', 'profile workflow Apply service is unavailable', state);
+    }
+    if (inspectProfileWorkflow(state).dirty) {
+      return failure(
+        'invalid',
+        'Apply or discard Options changes before adding a current-site condition from Popup',
+        state,
+      );
+    }
+    const runtime = await runtimeView(applyService);
+    const activeRoute = runtime?.activeRoute;
+    if (activeRoute?.kind !== 'profile' || activeRoute.profileId !== command.switchProfileId) {
+      return failure(
+        'invalid',
+        'current-site conditions can only be added to the active Switch Profile',
+        state,
+      );
+    }
+    const activeProfile = state.applied.profiles.find(
+      (profile) => profile.id === command.switchProfileId,
+    );
+    if (!activeProfile || activeProfile.kind !== 'switch' || activeProfile.enabled === false) {
+      return failure('invalid', 'the active profile is not an enabled Switch Profile', state);
+    }
+
+    let edited: ProfileWorkflowState;
+    try {
+      const draft = addPopupConditionDraft(state.applied, {
+        switchProfileId: command.switchProfileId,
+        ruleId: command.ruleId,
+        condition: command.condition,
+        route: command.route,
+      });
+      edited = replaceProfileWorkflowDraft(state, draft);
+    } catch (error) {
+      return failure('invalid', errorMessage(error), state);
+    }
+    try {
+      if (!(await repository.compareAndSwap(state.generation, edited))) {
+        const current = await repository.read();
+        return failure(
+          'conflict',
+          'profile workflow changed before the Popup condition could be persisted',
+          current,
+        );
+      }
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
+
+    const result = await applyProfileWorkflow(repository, applyService.driver, {
+      ...applyService.createContext(edited),
+      startRoute: activeRoute,
+    });
+    if (result.status === 'applied') {
+      return response(result.state, result.snapshotId, await runtimeView(applyService));
+    }
+    return failure(
+      result.status === 'busy'
+        ? 'busy'
+        : result.status === 'conflict'
+          ? 'conflict'
+          : result.status === 'failed'
+            ? 'apply-failed'
+            : 'invalid',
+      result.message,
+      result.state,
+    );
   }
 
   if (command.action === 'activate-route') {

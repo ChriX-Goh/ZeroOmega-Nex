@@ -8,7 +8,9 @@ const icons = {
 } as const;
 
 const ruleSourceE2eHostPermissions =
-  process.env.ZEROOMEGA_RULE_SOURCE_E2E === '1' ? ['http://127.0.0.1/*'] : [];
+  process.env.ZEROOMEGA_RULE_SOURCE_E2E === '1'
+    ? ['http://127.0.0.1/*', 'https://*.example.co.uk/*']
+    : [];
 
 export default defineConfig({
   srcDir: 'src',
@@ -21,7 +23,7 @@ export default defineConfig({
     default_locale: 'en',
     version: '0.0.1',
     icons,
-    permissions: ['proxy', 'storage', 'alarms'],
+    permissions: ['proxy', 'storage', 'alarms', 'activeTab'],
     optional_permissions:
       browser === 'firefox'
         ? ['webRequest', 'webRequestBlocking']

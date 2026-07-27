@@ -61,6 +61,13 @@ export {
 } from './import-acceptance.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
+  addPopupConditionDraft,
+  listPopupConditionResultRoutes,
+  popupConditionTag,
+  type AddPopupConditionInput,
+  type PopupSiteCondition,
+} from './popup-condition.js';
+export {
   createFixedProfileDraft,
   createVirtualProfileDraft,
   deleteProfileDraft,

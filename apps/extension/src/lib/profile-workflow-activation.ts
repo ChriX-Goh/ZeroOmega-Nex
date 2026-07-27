@@ -312,8 +312,8 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
     return this.#activateSpec(candidate, startRoute);
   }
 
-  async rollback(previousApplied: ProfileSpec): Promise<void> {
-    await this.#activateSpec(previousApplied, previousApplied.settings.startup.route);
+  async rollback(previousApplied: ProfileSpec, startRoute?: ProfileRouteTarget): Promise<void> {
+    await this.#activateSpec(previousApplied, startRoute ?? previousApplied.settings.startup.route);
   }
 
   async inspectRuntime(): Promise<ProfileWorkflowRuntimeView> {

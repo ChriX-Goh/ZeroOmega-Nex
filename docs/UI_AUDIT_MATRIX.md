@@ -72,7 +72,7 @@
 | D-07 | 删除规则         | 同上                                           | 行内删除按钮                               | MUST_MATCH | DONE     | PARTIAL | 行内删除已回到 Actions 列                                                                                                                                                                                                               | 补确认对话框巡查       |
 | D-08 | 复制规则         | 同上                                           | 行内 clone；备注原样复制                   | MUST_MATCH | DONE     | PARTIAL | 行内 clone 已回到 Actions 列；不再给备注添加 Nex-only `copy` 后缀                                                                                                                                                                       | 浏览器巡查             |
 | D-09 | 备注列           | 同上                                           | 可按需显示/添加备注                        | MUST_MATCH | DONE     | PARTIAL | 点击备注动作展开可选 Note 列；已有备注自动显示                                                                                                                                                                                          | locale 与交互巡查      |
-| D-10 | 添加条件位置     | `switch_profile.coffee`、`options.coffee`      | 编辑器固定追加；Popup 插入位置由设置决定   | MUST_MATCH | PARTIAL  | PARTIAL | 编辑器现固定 push 并复制最后一条；Popup 当前站点注入尚未实现                                                                                                                                                                            | 实现 Popup 条件注入    |
+| D-10 | 添加条件位置     | `switch_profile.coffee`、`options.coffee`      | 编辑器固定追加；Popup 插入位置由设置决定   | MUST_MATCH | DONE     | PARTIAL | Options 仍固定追加；Popup 当前站点规则按 `addConditionsToBottom` 顶部/底部插入并先去重，单测与 Chromium E2E 覆盖                                                                                                                        | locale 与视觉巡查      |
 | D-11 | 默认情景模式行   | `profile_switch.jade`、`switch_profile.coffee` | 表格尾部独立默认行；首条规则使用默认结果   | MUST_MATCH | DONE     | PARTIAL | Default profile 已恢复；首条规则使用默认路由，后续复制上一条结果                                                                                                                                                                        | locale 与视觉巡查      |
 | D-12 | 图形/源码切换    | 同上                                           | Edit Source，错误显示                      | MUST_MATCH | DONE     | PARTIAL | 已实现原版 result-enabled 双向 compose/parse、行级错误及 Apply/导航守卫                                                                                                                                                                 | locale、重载持久化 E2E |
 | D-13 | URL 条件限制警告 | `profile_switch.jade`                          | 明确浏览器完整 URL 限制                    | MUST_MATCH | DONE     | MISSING | URL wildcard/regex 存在时已显示能力警告                                                                                                                                                                                                 | 接入原版 locale        |
@@ -154,19 +154,19 @@
 
 ## I. Popup 与辅助页面
 
-| ID   | 界面/功能          | 原版源码           | 原版布局与行为               | 分类       | Nex 状态 | 翻译     | 证据/问题       | 下一步                    |
-| ---- | ------------------ | ------------------ | ---------------------------- | ---------- | -------- | -------- | --------------- | ------------------------- |
-| I-01 | Direct/System 顶部 | `popup*`           | 内置项优先                   | MUST_MATCH | DONE     | COMPLETE | E2E 已有        | 保持                      |
-| I-02 | 用户情景模式顺序   | `popup*`           | 按配置顺序                   | MUST_MATCH | DONE     | COMPLETE | E2E 已有        | 保持                      |
-| I-03 | 类型图标/颜色      | `popup*`           | 识别类型与颜色               | MUST_MATCH | DONE     | N/A      | 已实现          | 保持                      |
-| I-04 | 结果情景模式       | popup controller   | Switch/Virtual 结果显示/选择 | MUST_MATCH | MISSING  | MISSING  | 无              | 实现 runtime result model |
-| I-05 | 当前网站添加条件   | popup              | 对当前 tab 快速加规则        | MUST_MATCH | MISSING  | MISSING  | 无              | 权限+typed mutation       |
-| I-06 | 临时规则           | `popup/temp_rules` | 非持久临时覆盖               | MUST_MATCH | MISSING  | MISSING  | 无              | 定义生命周期              |
-| I-07 | 外部扩展控制状态   | popup/target       | 显示 external profile        | MUST_MATCH | MISSING  | MISSING  | 无              | 读取 proxy ownership      |
-| I-08 | 请求错误列表       | popup/network      | 有界错误/请求查看            | MUST_MATCH | MISSING  | MISSING  | 无              | 安全设计后实现            |
-| I-09 | Inspect 菜单       | popup/network      | 可配置显示                   | MUST_MATCH | MISSING  | MISSING  | flag 有但功能无 | 实现或明确 capability     |
-| I-10 | Popup 主题         | 原版+Nex 决策      | 允许 Nex 现代主题            | REFERENCE  | DONE     | N/A      | 自动/浅/深已有  | 保持                      |
-| I-11 | Popup 尺寸/像素    | CSS                | 可参考，非像素复制           | REFERENCE  | PARTIAL  | N/A      | 当前主题认可    | 功能优先                  |
+| ID   | 界面/功能          | 原版源码           | 原版布局与行为               | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                         | 下一步                    |
+| ---- | ------------------ | ------------------ | ---------------------------- | ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------- | ------------------------- |
+| I-01 | Direct/System 顶部 | `popup*`           | 内置项优先                   | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                          | 保持                      |
+| I-02 | 用户情景模式顺序   | `popup*`           | 按配置顺序                   | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                          | 保持                      |
+| I-03 | 类型图标/颜色      | `popup*`           | 识别类型与颜色               | MUST_MATCH | DONE     | N/A      | 已实现                                                                                            | 保持                      |
+| I-04 | 结果情景模式       | popup controller   | Switch/Virtual 结果显示/选择 | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                | 实现 runtime result model |
+| I-05 | 当前网站添加条件   | popup              | 对当前 tab 快速加规则        | MUST_MATCH | DONE     | PARTIAL  | activeTab + PSL 域名建议、五类条件、合法结果、后台验证 Apply、脏 Draft 保护及 Chromium E2E 已实现 | locale 与多级子域巡查     |
+| I-06 | 临时规则           | `popup/temp_rules` | 非持久临时覆盖               | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                | 定义生命周期              |
+| I-07 | 外部扩展控制状态   | popup/target       | 显示 external profile        | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                | 读取 proxy ownership      |
+| I-08 | 请求错误列表       | popup/network      | 有界错误/请求查看            | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                | 安全设计后实现            |
+| I-09 | Inspect 菜单       | popup/network      | 可配置显示                   | MUST_MATCH | MISSING  | MISSING  | flag 有但功能无                                                                                   | 实现或明确 capability     |
+| I-10 | Popup 主题         | 原版+Nex 决策      | 允许 Nex 现代主题            | REFERENCE  | DONE     | N/A      | 自动/浅/深已有                                                                                    | 保持                      |
+| I-11 | Popup 尺寸/像素    | CSS                | 可参考，非像素复制           | REFERENCE  | PARTIAL  | N/A      | 当前主题认可                                                                                      | 功能优先                  |
 
 ## J. 测试与证据门槛
 

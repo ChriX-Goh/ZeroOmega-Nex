@@ -58,7 +58,7 @@ async function rollbackAfterCommitFailure(
   message: string,
 ): Promise<ProfileWorkflowApplyResult> {
   try {
-    await driver.rollback(initial.applied);
+    await driver.rollback(initial.applied, context.startRoute);
     const record: ProfileWorkflowApplyRecord = {
       status: 'failed',
       applyId: context.applyId,
@@ -145,7 +145,7 @@ export async function applyProfileWorkflow(
 
   let activation: ProfileWorkflowActivationResult;
   try {
-    activation = await driver.activate(candidate);
+    activation = await driver.activate(candidate, context.startRoute);
   } catch (error) {
     const message = errorMessage(error);
     const record: ProfileWorkflowApplyRecord = {

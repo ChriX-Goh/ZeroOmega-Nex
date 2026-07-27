@@ -186,6 +186,49 @@ try {
   await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
+  const currentSiteUrl = 'https://www.dev.example.co.uk/current-site';
+  await context.route(currentSiteUrl, (route) =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Current site</title>' }),
+  );
+  const currentSitePage = await context.newPage();
+  await currentSitePage.goto(currentSiteUrl);
+  await currentSitePage.bringToFront();
+  const currentSiteTabId = await worker.evaluate(
+    async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id,
+  );
+  assert.equal(typeof currentSiteTabId, 'number', 'Current-site tab ID was not resolved');
+  const conditionPopup = await context.newPage();
+  await conditionPopup.goto(
+    `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
+  );
+  const addCurrentSite = conditionPopup.locator('[data-popup-add-current-site]');
+  await addCurrentSite.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await addCurrentSite.innerText(), /example\.co\.uk/u);
+  await addCurrentSite.click();
+  const conditionForm = conditionPopup.locator('[data-popup-condition-form]');
+  await conditionForm.waitFor();
+  assert.equal(
+    await conditionForm.getByLabel('Current site condition pattern').inputValue(),
+    '*.example.co.uk',
+  );
+  await conditionForm.getByLabel('Current site result profile').selectOption({ label: 'fixed' });
+  await conditionForm.getByRole('button', { name: 'Add condition', exact: true }).click();
+  await assertEventually(async () => {
+    const popupStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
+    const workflow = popupStorage['zeroomega-nex/profile-workflow/v1/state'];
+    const switchProfile = workflow?.applied?.profiles?.find((profile) => profile.name === 'switch');
+    return (
+      switchProfile?.rules?.[0]?.condition?.kind === 'host-wildcard' &&
+      switchProfile.rules[0].condition.pattern === '*.example.co.uk'
+    );
+  }, 'Popup current-site condition was not applied at the top of the active Switch Profile');
+  const popupRuntime = await worker.evaluate(async () => chrome.storage.local.get(null));
+  const popupWorkflow = popupRuntime['zeroomega-nex/profile-workflow/v1/state'];
+  assert.equal(popupWorkflow.applied.revision.id, popupWorkflow.draft.revision.id);
+  await conditionPopup.close().catch(() => undefined);
+  await currentSitePage.close();
+  await options.bringToFront();
+
   await options.getByRole('button', { name: 'switch', exact: true }).click();
   const attachRuleList = options.getByRole('button', { name: /Attach Rule List/u });
   try {
