@@ -1,7 +1,7 @@
 from pathlib import Path
 
-ui = Path('.github/patches/apply-pac-remote-ui.py')
-text = ui.read_text()
+editor = Path('apps/extension/src/entrypoints/options/PacProfileEditor.svelte')
+text = editor.read_text()
 old = '''    const route =
       value === ''
         ? undefined
@@ -16,7 +16,10 @@ new = '''    const route: ProfileRouteTarget | undefined =
 '''
 if text.count(old) != 1:
     raise SystemExit(f'expected one PAC fallback route declaration, found {text.count(old)}')
-text = text.replace(old, new, 1)
+editor.write_text(text.replace(old, new, 1))
+
+component = Path('apps/extension/src/component-rendering.component.spec.ts')
+text = component.read_text()
 old = '''  createFixedProfileDraft,
   createRuleListProfileDraft,
 '''
@@ -26,4 +29,4 @@ new = '''  createFixedProfileDraft,
 '''
 if text.count(old) != 1:
     raise SystemExit(f'expected one component operation import anchor, found {text.count(old)}')
-ui.write_text(text.replace(old, new, 1))
+component.write_text(text.replace(old, new, 1))
