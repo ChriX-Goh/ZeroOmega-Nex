@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MemoryProfileWorkflowRepository,
+  createDefaultProfileSpec,
   createProfileWorkflowState,
   type ProfileWorkflowRuleSourceUpdateService,
 } from '@zeroomega-nex/profile-workflow';
-import { workflowFixture } from '@zeroomega-nex/profile-workflow/test-fixture';
 
 import {
   RULE_SOURCE_UPDATE_ALARM_NAME,
@@ -58,7 +58,12 @@ class FakeSchedulerApi implements RuleSourceSchedulerApi {
 }
 
 function scheduledState() {
-  const spec = workflowFixture();
+  const spec = createDefaultProfileSpec({
+    documentId: 'document-scheduler',
+    revisionId: 'revision-scheduler',
+    createdAt: '2026-07-27T00:00:00.000Z',
+    deviceId: 'device-scheduler',
+  });
   spec.settings.ruleSourceUpdateIntervalMinutes = 60;
   spec.ruleSources.push({
     id: 'source-scheduled',
