@@ -6,7 +6,7 @@ def replace_once(path: str, old: str, new: str) -> None:
     text = target.read_text()
     count = text.count(old)
     if count != 1:
-        raise SystemExit(f'{path}: expected one match, found {count}')
+        raise SystemExit(f'{path}: expected one match, found {count}: {old[:120]!r}')
     target.write_text(text.replace(old, new))
 
 
@@ -143,9 +143,12 @@ replace_once(
 """,
 )
 
-# Correct the staged activation import and use the exported profile-ID prefix.
 patch = Path('.github/patches/apply-popup-temporary-rules-runtime.py')
 text = patch.read_text()
+text = text.replace(
+    "raise SystemExit(f'{path}: expected one match, found {count}')",
+    "raise SystemExit(f'{path}: expected one match, found {count}: {old[:120]!r}')",
+)
 old_import = """import {
   isPopupTemporarySnapshotId,
   popupTemporarySnapshotId,
