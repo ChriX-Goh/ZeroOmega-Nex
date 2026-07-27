@@ -1,0 +1,111 @@
+name: Integrate Rule Source background updates
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-rule-source-update.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply reviewed Rule Source update slice
+        run: |
+          python .github/patches/apply-rule-source-core.py
+          python .github/patches/apply-rule-source-ui.py
+          python .github/patches/apply-rule-source-e2e-docs.py
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/contracts.ts \
+            packages/profile-workflow/src/storage-repository.ts \
+            packages/profile-workflow/src/index.ts \
+            packages/profile-workflow/src/commands.ts \
+            packages/profile-workflow/src/rule-source-update.ts \
+            packages/profile-workflow/src/rule-source-update.test.ts \
+            packages/profile-workflow/src/rule-source-update-command.test.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            apps/extension/src/lib/profile-workflow-client.ts \
+            apps/extension/src/lib/rule-source-downloader.ts \
+            apps/extension/src/lib/rule-source-downloader.test.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
+            apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md
+          git diff --check
+      - name: Verify complete repository
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee /tmp/rule-source-update-verify.log
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-source-update-verification
+          path: /tmp/rule-source-update-verify.log
+          if-no-files-found: warn
+      - name: Enforce verification result
+        if: steps.verify.outcome != 'success'
+        run: exit 1
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Chromium extension E2E
+        id: chromium
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm build:chromium
+          pnpm test:e2e:chromium 2>&1 | tee /tmp/rule-source-update-chromium.log
+      - name: Upload Chromium diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-source-update-chromium
+          path: /tmp/rule-source-update-chromium.log
+          if-no-files-found: warn
+      - name: Enforce Chromium result
+        if: steps.chromium.outcome != 'success'
+        run: exit 1
+      - name: Clean temporary integration files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          git clean -fdX
+          rm -rf .github/patches
+          rm -f .github/workflows/integrate-rule-source-update.yml
+          git diff --check
+      - name: Commit verified product slice
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'feat: add safe Rule Source background updates'
+          git pull --rebase origin feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
