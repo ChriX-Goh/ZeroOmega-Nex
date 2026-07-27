@@ -1,4 +1,4 @@
-# generator revision 3
+# generator revision 4
 name: Integrate Rule Source background updates
 
 on:
@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - .github/workflows/integrate-rule-source-update.yml
+      - .github/patches/**
+      - apps/extension/src/lib/rule-source-downloader.ts
 
 permissions:
   contents: write
