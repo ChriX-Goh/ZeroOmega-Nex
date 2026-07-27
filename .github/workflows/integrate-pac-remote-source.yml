@@ -46,6 +46,7 @@ jobs:
             python .github/patches/apply-pac-remote-workflow.py
             python .github/patches/apply-pac-remote-ui.py
             python .github/patches/fix-pac-remote-types.py
+            python .github/patches/fix-pac-remote-component-expectation.py
             python .github/patches/fix-pac-remote-validator-loads.py
             pnpm --filter @zeroomega-nex/profile-spec generate:validator
           } 2>&1 | tee pac-remote-apply.log
@@ -80,6 +81,7 @@ jobs:
             .github/patches/fix-pac-remote-validator-path.py \
             .github/patches/fix-pac-remote-validator-loads.py \
             .github/patches/fix-pac-remote-types.py \
+            .github/patches/fix-pac-remote-component-expectation.py \
             .github/patches/apply-pac-remote-model.py \
             .github/patches/apply-pac-remote-workflow.py \
             .github/patches/apply-pac-remote-ui.py \
