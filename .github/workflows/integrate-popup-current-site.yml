@@ -1,4 +1,4 @@
-# revision 3
+# revision 4
 name: Integrate Popup current-site conditions
 
 on:
@@ -43,6 +43,7 @@ jobs:
             python .github/patches/apply-popup-current-site.py
             python .github/patches/fix-popup-current-site-regex.py
             python .github/patches/fix-popup-ui-guards.py
+            python .github/patches/fix-popup-regex-string-escapes.py
           } 2>&1 | tee /tmp/popup-current-site-apply.log
       - name: Upload patch diagnostics
         if: always()
