@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `508b6471682d33c658c2efddc55923ed510fec24`  
-**Latest integration verification:** run `30242780330` passed full `pnpm verify` and Chromium scheduler E2E before committing the automatic Rule Source scheduler and cross-context Options synchronization  
-**Last completed exact-Head verification:** `6674426ed9057e7058202c14c90ea6d060d3dd06`; CI `30235908800`, Browser E2E `30235908820`, Parity Documentation `30235908801` passed  
+**Current product implementation head:** `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`  
+**Latest integration verification:** run `30245478398` passed full `pnpm verify` and Chromium current-site E2E before committing Popup condition injection and `addConditionsToBottom` ordering  
+**Last completed exact-Head verification:** `352b29294e409ff4aa6f15684341d28b90686032`; CI `30243118765`, Browser E2E `30243118764`, Parity Documentation `30243118777` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -70,15 +70,25 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Options consumes validated local workflow-state change payloads synchronously, keeping its generation current without inserting a command between chained operations such as import-and-apply.
 - The persistent Switch source editor is not remounted by background updates, so local source text remains while the backing spec receives new cached Rule Source state.
 - Chromium E2E covers local HTTP manual download with a custom header, forced alarm refresh to a second payload, state synchronization, continued editing, and successful detach afterward.
-- Popup current-site persistence now uses activeTab plus a public-suffix parser, original condition suggestions, valid result-route filtering, duplicate replacement, top/bottom insertion, and a verified Apply that keeps the active Switch route. Dirty Options Draft state blocks the command rather than being overwritten.
 - Core lifecycle integration: run `30232967645`, product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
 - Manual update integration: run `30235776499`, product commit `d9419f7303e40c11fca44bea3fb54df9913ce950`.
 - Automatic scheduler integration: run `30242780330`, product commit `508b6471682d33c658c2efddc55923ed510fec24`.
-- Last completed exact Head for this area before the scheduler slice: `6674426ed9057e7058202c14c90ea6d060d3dd06`; CI `30235908800`, Browser E2E `30235908820`, Parity Documentation `30235908801`.
+- Scheduler exact Head `352b29294e409ff4aa6f15684341d28b90686032`: CI `30243118765`, Browser E2E `30243118764`, Parity Documentation `30243118777`.
+
+### Popup current-site conditions
+
+- Popup reads only the invoking tab through `activeTab`; production builds do not receive global host access.
+- Public Suffix List parsing derives base domains and subdomain scopes, including multi-label suffixes such as `co.uk`, private suffixes, IPv4, and IPv6.
+- The original five permanent condition choices are restored: Host wildcard/regex, URL wildcard/regex, and URL keyword.
+- Result routes exclude hidden, disabled, self-referencing, and cycle-producing profiles.
+- A duplicate condition tag replaces the earlier rule; `addConditionsToBottom` controls top or bottom insertion.
+- The typed background command accepts only the currently active enabled Switch Profile, rejects unapplied Options Draft work, runs normal verified Apply, and keeps the active Switch route.
+- Chromium E2E creates `*.example.co.uk`, verifies top insertion in Applied state, then continues the attached Rule List workflow.
+- Integration run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 
 ## Automated acceptance state
 
-The latest scheduler integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, 343+ unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium real-browser scheduler interaction.
+The latest Popup integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium current-site interaction E2E.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
@@ -92,7 +102,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup result-profile, current-site, temporary-rule, external-ownership, and bounded diagnostic functions,
+- Popup result-profile, temporary-rule, external-ownership, and bounded diagnostic functions,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
