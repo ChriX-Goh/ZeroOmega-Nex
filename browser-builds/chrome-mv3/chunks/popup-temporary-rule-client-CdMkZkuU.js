@@ -1,1 +1,0 @@
-import{s as e}from"./ui-theme-AXQqDUh6.js";var t=`zeroomega-nex/popup-temporary-rules/v1`;async function n(n){let r=await e.runtime.sendMessage({channel:t,...n});return r===void 0?{ok:!1,code:`storage-failure`,message:`temporary rule runtime did not respond`}:r}export{n as t};
