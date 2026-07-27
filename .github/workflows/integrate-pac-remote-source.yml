@@ -41,6 +41,7 @@ jobs:
           set -o pipefail
           {
             set -x
+            python .github/patches/fix-pac-remote-validator-path.py
             python .github/patches/apply-pac-remote-model.py
             python .github/patches/apply-pac-remote-workflow.py
             python .github/patches/apply-pac-remote-ui.py
@@ -74,6 +75,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-pac-remote-source.yml
           rm -f \
+            .github/patches/fix-pac-remote-validator-path.py \
             .github/patches/apply-pac-remote-model.py \
             .github/patches/apply-pac-remote-workflow.py \
             .github/patches/apply-pac-remote-ui.py \
