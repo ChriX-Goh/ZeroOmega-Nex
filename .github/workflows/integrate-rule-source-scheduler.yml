@@ -1,4 +1,4 @@
-# revision 5
+# revision 6
 name: Integrate automatic Rule Source scheduler
 
 on:
@@ -46,14 +46,18 @@ jobs:
             python .github/patches/fix-scheduler-coalescing-test.py
             python .github/patches/fix-scheduler-manifest-inspection.py
             python .github/patches/add-scheduler-e2e-diagnostics.py
+            python .github/patches/fix-options-workflow-storage-sync.py
             pnpm exec prettier --write \
               packages/profile-workflow/src/rule-source-update.ts \
               packages/profile-workflow/src/rule-source-schedule.test.ts \
               packages/profile-workflow/src/index.ts \
               apps/extension/wxt.config.ts \
               apps/extension/src/lib/profile-workflow-runtime.ts \
+              apps/extension/src/lib/profile-workflow-client.ts \
+              apps/extension/src/lib/profile-workflow-client.test.ts \
               apps/extension/src/lib/rule-source-scheduler.ts \
               apps/extension/src/lib/rule-source-scheduler.test.ts \
+              apps/extension/src/entrypoints/options/App.svelte \
               scripts/e2e-chromium.mjs \
               scripts/inspect-manifests.mjs \
               scripts/validate-ui-compatibility.mjs \
