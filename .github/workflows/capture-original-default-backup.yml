@@ -59,7 +59,14 @@ jobs:
             'utf8',
           );
           NODE
-          node -e "const x=require('./fixtures/zeroomega-v2/original-default-v3.5.0.bak'); if(x['+proxy']?.profileType!=='FixedProfile'||x['+auto switch']?.profileType!=='SwitchProfile') process.exit(1)"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const x = JSON.parse(fs.readFileSync('fixtures/zeroomega-v2/original-default-v3.5.0.bak', 'utf8'));
+          if (
+            x['+proxy']?.profileType !== 'FixedProfile' ||
+            x['+auto switch']?.profileType !== 'SwitchProfile'
+          ) process.exit(1);
+          NODE
       - name: Commit generated fixture and provenance
         run: |
           cat > fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json <<'JSON'
