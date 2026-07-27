@@ -1,4 +1,4 @@
-# integration revision 3
+# integration revision 4
 name: Integrate raw PAC activation
 
 on:
@@ -46,6 +46,7 @@ jobs:
             python .github/patches/apply-pac-auth-model.py
             python .github/patches/apply-pac-auth-runtime.py
             python .github/patches/apply-raw-pac-activation.py
+            python .github/patches/fix-raw-pac-ui-component-anchor.py
             python .github/patches/apply-raw-pac-ui-e2e-docs.py
             pnpm --filter @zeroomega-nex/profile-spec generate:validator
           } 2>&1 | tee raw-pac-apply.log
@@ -81,6 +82,7 @@ jobs:
             .github/patches/apply-pac-auth-model.py \
             .github/patches/apply-pac-auth-runtime.py \
             .github/patches/apply-raw-pac-activation.py \
+            .github/patches/fix-raw-pac-ui-component-anchor.py \
             .github/patches/apply-raw-pac-ui-e2e-docs.py \
             raw-pac-apply.log \
             raw-pac-verify.log \
