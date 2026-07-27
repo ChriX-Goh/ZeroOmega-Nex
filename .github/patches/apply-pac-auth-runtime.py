@@ -38,6 +38,15 @@ replace_once(
       readonly username: string;
       readonly passwordSecretRef: string;
     };
+
+type EndpointProxyAuthenticationBinding = Extract<
+  ProxyAuthenticationBinding,
+  { readonly endpointId: string }
+>;
+type AllProxyAuthenticationBinding = Extract<
+  ProxyAuthenticationBinding,
+  { readonly scope: 'all-proxies' }
+>;
 ''',
 )
 replace_once(
@@ -48,7 +57,7 @@ replace_once(
 ): boolean {
 ''',
     '''function protocolMatches(
-  binding: Extract<ProxyAuthenticationBinding, { readonly endpointId: string }>,
+  binding: EndpointProxyAuthenticationBinding,
   proxyInfo: ProxyAuthenticationProxyInfo | undefined,
 ): boolean {
 ''',
@@ -71,20 +80,18 @@ replace_once(
     const host = normalizeProxyHost(endpoint.host);
     const available = await this.#bindings.getBindings();
     const exact = available.filter(
-      (binding): binding is Extract<ProxyAuthenticationBinding, { readonly endpointId: string }> =>
+      (binding): binding is EndpointProxyAuthenticationBinding =>
         binding.scope !== 'all-proxies' &&
         normalizeProxyHost(binding.host) === host &&
         binding.port === endpoint.port &&
         protocolMatches(binding, challenge.proxyInfo),
     );
-    const bindings =
+    const bindings: readonly ProxyAuthenticationBinding[] =
       exact.length > 0
         ? exact
         : available.filter(
-            (binding): binding is Extract<
-              ProxyAuthenticationBinding,
-              { readonly scope: 'all-proxies' }
-            > => binding.scope === 'all-proxies',
+            (binding): binding is AllProxyAuthenticationBinding =>
+              binding.scope === 'all-proxies',
           );
     if (bindings.length !== 1) return undefined;
 
@@ -151,16 +158,20 @@ replace_once(
       endpointIds.add(binding.endpointId);
     }
 ''',
-    '''    const identities = new Set<string>();
+    '''    const endpointIds = new Set<string>();
+    const allProxyProfileIds = new Set<string>();
     for (const binding of bindings) {
-      const identity =
-        binding.scope === 'all-proxies'
-          ? `all-proxies:${binding.profileId}`
-          : `endpoint:${binding.endpointId}`;
-      if (identities.has(identity)) {
-        throw new TypeError(`duplicate proxy authentication binding ${identity}`);
+      if (binding.scope === 'all-proxies') {
+        if (allProxyProfileIds.has(binding.profileId)) {
+          throw new TypeError(`duplicate all-proxy authentication profile ${binding.profileId}`);
+        }
+        allProxyProfileIds.add(binding.profileId);
+        continue;
       }
-      identities.add(identity);
+      if (endpointIds.has(binding.endpointId)) {
+        throw new TypeError(`duplicate proxy authentication endpoint ${binding.endpointId}`);
+      }
+      endpointIds.add(binding.endpointId);
     }
 ''',
 )
@@ -201,10 +212,10 @@ replace_once(
 ''',
 )
 
-# Tests for wildcard precedence and persistence.
+# Tests for wildcard precedence and ambiguity.
 auth_test = Path('packages/browser-adapters/src/authentication.test.ts')
 text = auth_test.read_text()
-anchor = "  it('ignores origin authentication challenges', async () => {"
+anchor = "  it('ignores ordinary website authentication and unsupported schemes', async () => {"
 coverage = r'''  it('uses one PAC all-proxy credential only when no exact endpoint binding matches', async () => {
     const handler = new ProxyAuthenticationHandler(
       {
@@ -227,7 +238,11 @@ coverage = r'''  it('uses one PAC all-proxy credential only when no exact endpoi
       },
       {
         getSecret: async (ref) =>
-          ref === 'secret-pac-all' ? 'pac-password' : ref === 'secret-exact' ? 'exact-password' : undefined,
+          ref === 'secret-pac-all'
+            ? 'pac-password'
+            : ref === 'secret-exact'
+              ? 'exact-password'
+              : undefined,
       },
     );
 
@@ -287,21 +302,44 @@ if text.count(anchor) != 1:
     raise SystemExit('PAC auth handler test insertion anchor missing')
 auth_test.write_text(text.replace(anchor, coverage + anchor, 1))
 
+# Existing endpoint-list expectations must narrow the union.
+replace_once(
+    'packages/browser-adapters/src/authentication-plan.test.ts',
+    '''    expect(plan.bindings.map((binding) => binding.endpointId)).toEqual([
+      'endpoint-primary',
+      'endpoint-secondary',
+    ]);
+    expect(plan.bindings[1]?.username).toBe('');
+    expect(plan.bindings.map((binding) => binding.endpointId)).not.toContain(
+      'endpoint-unreachable',
+    );
+''',
+    '''    const endpointBindings = plan.bindings.filter(
+      (binding): binding is Extract<typeof binding, { readonly endpointId: string }> =>
+        binding.scope !== 'all-proxies',
+    );
+    expect(endpointBindings.map((binding) => binding.endpointId)).toEqual([
+      'endpoint-primary',
+      'endpoint-secondary',
+    ]);
+    expect(endpointBindings[1]?.username).toBe('');
+    expect(endpointBindings.map((binding) => binding.endpointId)).not.toContain(
+      'endpoint-unreachable',
+    );
+''',
+)
+
 plan_test = Path('packages/browser-adapters/src/authentication-plan.test.ts')
 text = plan_test.read_text()
-anchor = "  it('returns an empty plan for Direct',"
-if anchor not in text:
-    # use the end of describe instead; different wording is acceptable.
-    anchor = '\n});\n'
-    coverage = r'''
-  it('creates one all-proxy binding for a directly selected PAC and ignores fallback endpoints', () => {
-    const spec = authenticatedSpec();
+anchor = "  it('terminates safely when an invalid cyclic profile graph is supplied', () => {"
+coverage = r'''  it('creates one all-proxy binding for a directly selected PAC and ignores fallback endpoints', () => {
+    const spec = profileSpec();
     spec.profiles.push({
       id: 'pac-auth-all',
       name: 'PAC auth all',
       kind: 'pac',
       source: { kind: 'inline', script: "function FindProxyForURL() { return 'DIRECT'; }" },
-      fallbackRoute: { kind: 'profile', profileId: spec.profiles[0]!.id },
+      fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
       credential: {
         username: 'pac-user',
         passwordSecretRef: 'secret-pac-all',
@@ -321,9 +359,34 @@ if anchor not in text:
       unsupported: [],
     });
   });
+
 '''
-    if text.count(anchor) != 1:
-        raise SystemExit('PAC auth plan test closing anchor missing')
-    plan_test.write_text(text.replace(anchor, coverage + anchor, 1))
-else:
-    raise SystemExit('unexpected authentication-plan test anchor path')
+if text.count(anchor) != 1:
+    raise SystemExit('PAC auth plan test insertion anchor missing')
+plan_test.write_text(text.replace(anchor, coverage + anchor, 1))
+
+# Storage round-trip for PAC wildcard binding.
+storage_test = Path('packages/browser-adapters/src/authentication-storage.test.ts')
+text = storage_test.read_text()
+anchor = "  it('rejects duplicate endpoints and invalid records', async () => {"
+coverage = r'''  it('persists one PAC all-proxy binding without storing its secret inline', async () => {
+    const area = new MemoryArea();
+    const repository = new BrowserStorageProxyAuthenticationRepository(area);
+    const pacBinding = {
+      scope: 'all-proxies' as const,
+      profileId: 'pac-all',
+      username: 'pac-user',
+      passwordSecretRef: 'secret/pac-all',
+    };
+    await repository.putBindings([pacBinding]);
+    await repository.putSecret(pacBinding.passwordSecretRef, secretValue);
+    await expect(repository.getBindings()).resolves.toEqual([pacBinding]);
+    expect(JSON.stringify(area.values.get('zeroomega-nex/proxy-auth/v1/bindings'))).not.toContain(
+      secretValue,
+    );
+  });
+
+'''
+if text.count(anchor) != 1:
+    raise SystemExit('PAC auth storage test insertion anchor missing')
+storage_test.write_text(text.replace(anchor, coverage + anchor, 1))
