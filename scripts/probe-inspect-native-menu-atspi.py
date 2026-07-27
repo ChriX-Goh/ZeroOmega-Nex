@@ -39,7 +39,7 @@ def describe(node):
 def walk(node, depth=0, seen=None):
     if seen is None:
         seen = set()
-    identity = safe(lambda: node.get_object_locale(), '') + repr(node)
+    identity = repr(node)
     if identity in seen or depth > 30:
         return
     seen.add(identity)
