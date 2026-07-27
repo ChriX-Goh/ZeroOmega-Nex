@@ -81,7 +81,6 @@ try {
 
   await page.locator('#inspect-target').click({ button: 'right' });
   await new Promise((resolveWait) => setTimeout(resolveWait, 800));
-  await run('xdotool', ['getactivewindow', 'getwindowname']);
   await run('scrot', ['inspect-native-menu-before.png']);
   await run('xdotool', ['key', '--clearmodifiers', 'End', 'Up', 'Return']);
 
