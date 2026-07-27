@@ -8,6 +8,10 @@ function byteLength(content: string): number {
   return new TextEncoder().encode(content).byteLength;
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 async function readBoundedBody(
   response: Response,
   maxBytes: number,
@@ -67,12 +71,10 @@ export class BrowserRuleSourceDownloader implements ProfileWorkflowRuleSourceDow
       }
       return await readBoundedBody(response, request.maxBytes);
     } catch (error) {
-      if (controller.signal.aborted) {
-        throw new Error(`Rule Source download timed out after ${request.timeoutMs} ms`, {
-          cause: error,
-        });
-      }
-      throw error;
+      const message = controller.signal.aborted
+        ? `Rule Source download timed out after ${request.timeoutMs} ms`
+        : errorMessage(error);
+      throw new Error(message, { cause: error });
     } finally {
       clearTimeout(timer);
     }
