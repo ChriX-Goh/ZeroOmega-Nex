@@ -38,7 +38,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python .github/patches/apply-popup-result-profile.py 2>&1 | tee /tmp/popup-result-apply.log
+          {
+            python .github/patches/fix-popup-result-patch.py
+            python .github/patches/apply-popup-result-profile.py
+          } 2>&1 | tee /tmp/popup-result-apply.log
       - name: Upload patch diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,6 +143,7 @@ jobs:
           rm -rf browser-builds browser-builds.tar.gz
           git clean -fdX
           rm -f .github/patches/apply-popup-result-profile.py
+          rm -f .github/patches/fix-popup-result-patch.py
           rmdir .github/patches 2>/dev/null || true
           rm -f .github/workflows/integrate-popup-result-profile.yml
           git diff --check
