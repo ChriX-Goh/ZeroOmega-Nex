@@ -106,6 +106,29 @@ replace_once(
     '| D-19 | 附属立即下载     | 同上                                           | 下载状态/更新时间/错误                     | MUST_MATCH | MISSING  | MISSING | 本切片只保留 URL 缓存和只读语义，尚无后台安全下载、时间戳与错误状态                                                                | 下一切片实现           |',
     'D-19 generator text',
 )
+replace_once(
+    docs,
+    '''  await downloadNow.click();
+  await options
+    .locator('[data-rule-source-update-status]')
+    .filter({ hasText: 'Last updated' })
+    .waitFor({ timeout: 20_000 });
+''',
+    '''  await downloadNow.click();
+  const ruleUpdateStatus = options.locator('[data-rule-source-update-status]');
+  try {
+    await ruleUpdateStatus.filter({ hasText: 'Last updated' }).waitFor({ timeout: 20_000 });
+  } catch (error) {
+    console.error(`[Rule Source update status] ${await ruleUpdateStatus.innerText()}`);
+    console.error(`[Rule Source alerts] ${JSON.stringify(await options.getByRole('alert').allInnerTexts())}`);
+    console.error(`[Rule Source server header] ${receivedRuleHeader || '<none>'}`);
+    const updateStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
+    console.error(`[Rule Source storage] ${JSON.stringify(updateStorage)}`);
+    throw error;
+  }
+''',
+    'Chromium Rule Source diagnostics',
+)
 
 update = Path('packages/profile-workflow/src/rule-source-update.ts')
 replace_once(
