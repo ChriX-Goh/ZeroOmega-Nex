@@ -20,6 +20,16 @@ def replace_line(path: str, prefix: str, replacement: str) -> None:
     file.write_text('\n'.join(lines) + '\n')
 
 
+def remove_line(path: str, exact: str) -> None:
+    file = Path(path)
+    lines = file.read_text().splitlines()
+    matches = [index for index, line in enumerate(lines) if line == exact]
+    if len(matches) != 1:
+        raise SystemExit(f'{path}: expected one exact line {exact!r}, found {len(matches)}')
+    del lines[matches[0]]
+    file.write_text('\n'.join(lines) + '\n')
+
+
 # Core due-source enumeration uses lastAttemptAt, so failed sources do not retry every minute.
 replace_once(
     'packages/profile-workflow/src/rule-source-update.ts',
@@ -259,10 +269,9 @@ replace_line(
     '- Automatic interval scheduling remains separate.',
     '- Automatic interval scheduling now uses one coalesced alarm, scans on startup, retries only after each source interval, and skips origins without prior permission. Chromium E2E triggers the real alarm and verifies a second cached-content refresh.',
 )
-replace_line(
+remove_line(
     'docs/MILESTONE_8_STATUS.md',
     '- attached Rule List automatic interval scheduling and startup/due-source refresh,',
-    '- dedicated imported Rule List and PAC download/update semantics,',
 )
 replace_line(
     'docs/MILESTONE_8_STATUS.md',
@@ -276,10 +285,8 @@ needle = '- “立即下载”由后台网络服务执行：'
 matches = [index for index, line in enumerate(lines) if line.startswith(needle)]
 if len(matches) != 1:
     raise SystemExit(f'knowledge Rule Source line mismatch: {len(matches)}')
-lines[matches[0]] = (
-    lines[matches[0]].replace(
-        '自动按 interval 调度仍是独立缺口。',
-        '自动更新使用单一 alarms 扫描器：后台启动立即扫描，之后每分钟检查；每个源按 lastAttempt 与自身/全局 interval 判定到期，失败不会每分钟轰炸；无既有 host permission 时静默跳过，不在后台请求权限。',
-    )
+lines[matches[0]] = lines[matches[0]].replace(
+    '自动按 interval 调度仍是独立缺口。',
+    '自动更新使用单一 alarms 扫描器：后台启动立即扫描，之后每分钟检查；每个源按 lastAttempt 与自身/全局 interval 判定到期，失败不会每分钟轰炸；无既有 host permission 时静默跳过，不在后台请求权限。',
 )
 knowledge.write_text('\n'.join(lines) + '\n')
