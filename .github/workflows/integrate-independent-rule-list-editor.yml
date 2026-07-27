@@ -37,7 +37,14 @@ jobs:
       - name: Apply independent Rule List editor slice
         env:
           INTEGRATION_RUN_ID: ${{ github.run_id }}
-        run: python .github/patches/apply-independent-rule-list-editor.py
+        run: |
+          set -o pipefail
+          {
+            set -x
+            python .github/patches/prepare-independent-rule-list-e2e-anchor.py
+            python .github/patches/fix-independent-rule-list-patch-anchor.py
+            python .github/patches/apply-independent-rule-list-editor.py
+          } 2>&1 | tee independent-rule-list-apply.log
       - name: Format product slice
         run: pnpm format
       - name: Verify repository
@@ -67,6 +74,9 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-independent-rule-list-editor.yml
           rm -f \
             .github/patches/apply-independent-rule-list-editor.py \
+            .github/patches/prepare-independent-rule-list-e2e-anchor.py \
+            .github/patches/fix-independent-rule-list-patch-anchor.py \
+            independent-rule-list-apply.log \
             independent-rule-list-verify.log \
             independent-rule-list-e2e.log
           git config user.name github-actions[bot]
