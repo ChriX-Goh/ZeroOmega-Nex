@@ -23,7 +23,7 @@ export default defineConfig({
     default_locale: 'en',
     version: '0.0.1',
     icons,
-    permissions: ['proxy', 'storage', 'alarms', 'activeTab'],
+    permissions: ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus'],
     optional_permissions:
       browser === 'firefox'
         ? ['webRequest', 'webRequestBlocking']

@@ -318,6 +318,9 @@ graph TD
 - Nex 的控制权阻断直接读取浏览器适配层 capability，不把有效代理值传给 Popup。`controlled-by-other-extension` 映射 `app`，`not-controllable` 映射 `policy`，缺少 Firefox 必需权限映射 `disabled`，检查异常映射 `unknown`；阻断时不渲染切换、结果、永久条件或临时规则入口。
 - System 为逻辑活动路由、界面设置允许显示且 Chromium 当前有效配置可导入时，后台把 `auto_detect` 转为 WPAD PAC URL，把 `pac_script` 转为 URL/inline PAC，把 `fixed_servers` 的 single/fallback/HTTP/HTTPS/FTP 与 bypass 转为 Fixed；`singleProxy` 覆盖 fallback，`<local>` 去重等价本地主机。与现有 Profile 完全一致时不显示重复外部行。Popup 只收到 `fixed|pac` 与建议名称，不接收主机、端口或 PAC 正文。
 - 外部行按原版使用内联名称表单；空名称、以下划线开头和重名均拒绝。保存命令只带名称和 Applied revision，后台重新读取有效配置、拒绝脏 Draft/非 System/并发变化，CAS 写入后走正常 verified Apply 并立即启用。原版解析实现位于 Chromium target；Firefox 不伪造未有源码依据的 external import。
+- Inspect 菜单不是普通页面导航：原版只为 frame、link、image/video/audio 创建上下文菜单，目标限 HTTP/HTTPS/FTP。点击与当前 tab URL 相同的目标会清除检查态；其他目标保存为 inspect URL，并在该 tab 的工具栏徽标显示 `#`，随后 Popup 以该 URL 计算当前网站操作。
+- Nex 的 Inspect 菜单由 Applied `showInspectMenu` 驱动；菜单关闭时移除全部三个入口。目标 URL 仅按 tab 写入 `storage.session`，10 分钟后过期，tab 关闭即删除；不进入 ProfileSpec、持久存储、日志或普通命令响应。Popup 只读取对应 tab 的目标，用它替换当前网站上下文，永久条件与临时规则继续走既有后台验证边界。
+- 当前 Nex 已恢复菜单、session 生命周期、`#` 徽标和 Popup 目标切换；原版 action-for-URL 的结果颜色/标题计算及真实浏览器右键交互 E2E 尚未完成，因此 Inspect 保持 `PARTIAL`。
 - 请求错误与网络检查页面。
 - Options 入口和键盘操作。
 

@@ -89,6 +89,8 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Proxy ownership inspection remains background-owned and returns only capability/control metadata, never the effective proxy value. Another extension, local policy, missing Firefox capability, and inspection failure map to distinct `app`, `policy`, `disabled`, and `unknown` blockers.
 - A blocked Popup hides profiles, result selectors, permanent current-site conditions, and temporary rules, while preserving the original-style Cancel and Manage Extensions escape controls.
 - System-mode external import converts Chromium auto-detect, PAC URL/inline, and fixed-server settings in the background; normalizes single/fallback and per-scheme servers plus bypass; suppresses exact existing matches; validates original naming rules; and imports through CAS plus normal verified Apply before immediately activating the resulting profile.
+- Inspect menus for frame, link, and media targets are reconciled from Applied `showInspectMenu`; valid web targets are kept per tab in session storage, expire after 10 minutes, display a `#` toolbar badge, and replace the Popup current-site context without entering persistent configuration.
+- Inspect-menu integration: run `30289377957` verifies repository contracts and Chromium regression E2E before the product commit.
 - Popup receives only the external profile kind and suggested label; proxy hosts, ports, and PAC script contents stay background-owned.
 - Chromium E2E switches through the real Popup to System, writes a valid external `fixed_servers` configuration, verifies reserved-name rejection, imports the exact Fixed endpoints and bypass data, confirms Draft equals Applied, and verifies the active snapshot starts at the imported profile.
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
@@ -114,9 +116,10 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup bounded diagnostic functions,
+- Popup bounded request-error diagnostics and the full network-inspection page,
+- Inspect result-route badge color/title evaluation and a real browser context-menu E2E,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Proceed to bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to bounded request-error diagnostics and the network inspection page. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

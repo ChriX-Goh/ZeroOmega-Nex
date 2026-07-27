@@ -23,11 +23,13 @@
   import {
     currentSiteDomainForLevel,
     inspectActiveCurrentSite,
+    inspectCurrentSiteUrl,
     suggestCurrentSiteCondition,
     type CurrentSiteInfo,
     type PopupConditionKind,
   } from '../../lib/current-site';
   import { translate } from '../../lib/i18n';
+  import { sendInspectCommand } from '../../lib/inspect-client';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import {
     sendProxyOwnershipCommand,
@@ -70,6 +72,7 @@
   let state: ProfileWorkflowState | undefined;
   let runtime: ProfileWorkflowRuntimeView | undefined;
   let currentSite: CurrentSiteInfo | undefined;
+  let inspectingContextTarget = false;
   let temporaryRuleView: PopupTemporaryRuleView | undefined;
   let proxyOwnership: ProxyOwnershipView | undefined;
   let loading = true;
@@ -366,7 +369,16 @@
   async function loadCurrentSite(): Promise<void> {
     const requested = new URLSearchParams(window.location.search).get('activeTabId');
     const explicitTabId = requested && /^\d+$/u.test(requested) ? Number(requested) : undefined;
-    currentSite = await inspectActiveCurrentSite(explicitTabId);
+    const activeSite = await inspectActiveCurrentSite(explicitTabId);
+    currentSite = activeSite;
+    inspectingContextTarget = false;
+    if (activeSite?.tabId === undefined) return;
+    const response = await sendInspectCommand(activeSite.tabId);
+    if (!response.ok || !response.view.url) return;
+    const inspected = inspectCurrentSiteUrl(response.view.url, activeSite.tabId);
+    if (!inspected) return;
+    currentSite = inspected;
+    inspectingContextTarget = true;
   }
 
   async function loadPopup(): Promise<void> {
@@ -706,6 +718,13 @@
       {/if}
     {/if}
   </section>
+
+  {#if !loading && !proxyOwnership?.blocked && inspectingContextTarget && currentSite}
+    <section class="inspect-target" data-popup-inspect-target aria-live="polite">
+      <strong>Inspecting context target</strong>
+      <span>{currentSite.hostname}</span>
+    </section>
+  {/if}
 
   {#if !loading && !proxyOwnership?.blocked && currentSite && temporaryResultItems.length > 0}
     <section class="temporary-rule-action" data-popup-temporary-rule aria-label="Temporary rules">

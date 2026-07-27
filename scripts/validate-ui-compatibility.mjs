@@ -388,7 +388,7 @@ const requirements = [
     'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
   ],
   [
-    manifest.includes("permissions: ['proxy', 'storage', 'alarms', 'activeTab']") &&
+    manifest.includes("permissions: ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus']") &&
       runtime.includes('registerRuleSourceScheduler') &&
       ruleSourceScheduler.includes(
         "RULE_SOURCE_UPDATE_ALARM_NAME = 'zeroomega-nex/rule-source-update-scan'",

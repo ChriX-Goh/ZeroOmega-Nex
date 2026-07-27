@@ -3,6 +3,11 @@ import { productIdentity } from '@zeroomega-nex/core-contracts';
 import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
+import {
+  currentInspectRuntimeApi,
+  registerInspectRuntime,
+  type RegisteredInspectRuntime,
+} from '../lib/inspect-runtime';
 import { BrowserProfileWorkflowActivationDriver } from '../lib/profile-workflow-activation';
 import {
   currentProfileWorkflowRuntimeApi,
@@ -27,6 +32,7 @@ import {
 } from '../lib/proxy-ownership-runtime';
 
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
+let inspectRuntime: RegisteredInspectRuntime | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
@@ -77,6 +83,7 @@ export default defineBackground(() => {
     `[${productIdentity.name}] background initialized for ${productIdentity.milestone}.`,
   );
 
+  inspectRuntime?.dispose();
   proxyOwnershipRuntime?.dispose();
   popupTemporaryRuleRuntime?.dispose();
   profileWorkflowRuntime?.dispose();
@@ -100,6 +107,7 @@ export default defineBackground(() => {
     ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
     : undefined;
   proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
+  inspectRuntime = registerInspectRuntime(currentInspectRuntimeApi());
 
   void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
     (error: unknown) => {

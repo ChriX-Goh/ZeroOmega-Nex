@@ -154,19 +154,19 @@
 
 ## I. Popup 与辅助页面
 
-| ID   | 界面/功能          | 原版源码           | 原版布局与行为                 | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                        | 下一步                 |
-| ---- | ------------------ | ------------------ | ------------------------------ | ---------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| I-01 | Direct/System 顶部 | `popup*`           | 内置项优先                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                         | 保持                   |
-| I-02 | 用户情景模式顺序   | `popup*`           | 按配置顺序                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                         | 保持                   |
-| I-03 | 类型图标/颜色      | `popup*`           | 识别类型与颜色                 | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                           | 保持                   |
-| I-04 | 结果情景模式       | popup controller   | Switch/Virtual 结果显示/选择   | MUST_MATCH | DONE     | PARTIAL  | Popup 行显示当前结果；合法结果选择通过后台验证 Apply 写入 Switch defaultRoute/Virtual targetRoute，并保持活动路由；单测与 Chromium E2E 覆盖                                      | locale 与视觉巡查      |
-| I-05 | 当前网站添加条件   | popup              | 对当前 tab 快速加规则          | MUST_MATCH | DONE     | PARTIAL  | activeTab + PSL 域名建议、五类条件、合法结果、后台验证 Apply、脏 Draft 保护及 Chromium E2E 已实现                                                                                | locale 与多级子域巡查  |
-| I-06 | 临时规则           | `popup/temp_rules` | 非持久临时覆盖                 | MUST_MATCH | DONE     | PARTIAL  | session-only 状态与 PAC snapshot、当前域切换、跨 worker 保留/浏览器重启清理、活动路由叠加及独立管理页已实现；单测与 Chromium E2E 覆盖                                            | locale 与 Firefox 交互 |
-| I-07 | 外部扩展控制状态   | popup/target       | 阻断页 + external profile 导入 | MUST_MATCH | DONE     | COMPLETE | 控制权阻断与管理入口已验证；System 下 Chromium auto-detect/PAC/fixed 转换、精确匹配去重、原版命名校验、后台原子导入并立即启用已有单测和 Chromium E2E；Firefox 原版无对应解析实现 | 保持守卫               |
-| I-08 | 请求错误列表       | popup/network      | 有界错误/请求查看              | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                                                                                               | 安全设计后实现         |
-| I-09 | Inspect 菜单       | popup/network      | 可配置显示                     | MUST_MATCH | MISSING  | MISSING  | flag 有但功能无                                                                                                                                                                  | 实现或明确 capability  |
-| I-10 | Popup 主题         | 原版+Nex 决策      | 允许 Nex 现代主题              | REFERENCE  | DONE     | N/A      | 自动/浅/深已有                                                                                                                                                                   | 保持                   |
-| I-11 | Popup 尺寸/像素    | CSS                | 可参考，非像素复制             | REFERENCE  | PARTIAL  | N/A      | 当前主题认可                                                                                                                                                                     | 功能优先               |
+| ID   | 界面/功能          | 原版源码           | 原版布局与行为                 | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                        | 下一步                          |
+| ---- | ------------------ | ------------------ | ------------------------------ | ---------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| I-01 | Direct/System 顶部 | `popup*`           | 内置项优先                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                         | 保持                            |
+| I-02 | 用户情景模式顺序   | `popup*`           | 按配置顺序                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                         | 保持                            |
+| I-03 | 类型图标/颜色      | `popup*`           | 识别类型与颜色                 | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                           | 保持                            |
+| I-04 | 结果情景模式       | popup controller   | Switch/Virtual 结果显示/选择   | MUST_MATCH | DONE     | PARTIAL  | Popup 行显示当前结果；合法结果选择通过后台验证 Apply 写入 Switch defaultRoute/Virtual targetRoute，并保持活动路由；单测与 Chromium E2E 覆盖                                      | locale 与视觉巡查               |
+| I-05 | 当前网站添加条件   | popup              | 对当前 tab 快速加规则          | MUST_MATCH | DONE     | PARTIAL  | activeTab + PSL 域名建议、五类条件、合法结果、后台验证 Apply、脏 Draft 保护及 Chromium E2E 已实现                                                                                | locale 与多级子域巡查           |
+| I-06 | 临时规则           | `popup/temp_rules` | 非持久临时覆盖                 | MUST_MATCH | DONE     | PARTIAL  | session-only 状态与 PAC snapshot、当前域切换、跨 worker 保留/浏览器重启清理、活动路由叠加及独立管理页已实现；单测与 Chromium E2E 覆盖                                            | locale 与 Firefox 交互          |
+| I-07 | 外部扩展控制状态   | popup/target       | 阻断页 + external profile 导入 | MUST_MATCH | DONE     | COMPLETE | 控制权阻断与管理入口已验证；System 下 Chromium auto-detect/PAC/fixed 转换、精确匹配去重、原版命名校验、后台原子导入并立即启用已有单测和 Chromium E2E；Firefox 原版无对应解析实现 | 保持守卫                        |
+| I-08 | 请求错误列表       | popup/network      | 有界错误/请求查看              | MUST_MATCH | MISSING  | MISSING  | 无                                                                                                                                                                               | 安全设计后实现                  |
+| I-09 | Inspect 菜单       | popup/network      | 可配置显示                     | MUST_MATCH | PARTIAL  | PARTIAL  | Applied flag 驱动 frame/link/media 菜单；HTTP/HTTPS/FTP 目标按 tab session 保存，`#` 徽标提示，Popup 改用该 URL；单测覆盖启停、清除、tab 生命周期                                | 补结果颜色/标题与浏览器右键 E2E |
+| I-10 | Popup 主题         | 原版+Nex 决策      | 允许 Nex 现代主题              | REFERENCE  | DONE     | N/A      | 自动/浅/深已有                                                                                                                                                                   | 保持                            |
+| I-11 | Popup 尺寸/像素    | CSS                | 可参考，非像素复制             | REFERENCE  | PARTIAL  | N/A      | 当前主题认可                                                                                                                                                                     | 功能优先                        |
 
 ## J. 测试与证据门槛
 
@@ -186,7 +186,7 @@
 ## 当前结论
 
 - **明确 BROKEN**：真实备份导入、完整导出、编辑器翻译；Fixed 主编辑器与 Switch 规则表结构已恢复。
-- **明确 MISSING**：在线恢复、单 Profile 导出、Popup 临时规则/网络检查；Virtual 已实现但浏览器创建 E2E 仍不完整。
+- **明确 MISSING**：在线恢复、单 Profile 导出、Popup 请求错误/网络检查；Inspect 菜单已恢复核心生命周期但仍缺结果标题与真实右键 E2E；Virtual 已实现但浏览器创建 E2E 仍不完整。
 - **UNCERTAIN**：Gist/WebDAV/浏览器同步、FTP scheme 的现代浏览器能力；未获范围决定前不得标记 `NOT_PORTING`。
 - 当前 PR 必须继续保持 Draft，现有安装包不再作为功能完整候选。
 
