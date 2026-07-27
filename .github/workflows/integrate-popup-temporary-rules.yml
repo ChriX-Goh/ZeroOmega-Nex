@@ -1,4 +1,4 @@
-# revision 13
+# revision 14
 name: Integrate Popup temporary rules
 
 on:
@@ -49,6 +49,7 @@ jobs:
             python .github/patches/apply-popup-temporary-rules-coordinator.py
             python .github/patches/apply-popup-temporary-rules-ui.py
             python .github/patches/apply-popup-temporary-rules-evidence.py
+            python .github/patches/apply-popup-temporary-manager-diagnostics.py
           } 2>&1 | tee /tmp/popup-temporary-apply.log
       - name: Upload patch diagnostics
         if: always()
