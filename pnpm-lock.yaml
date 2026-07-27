@@ -58,6 +58,9 @@ importers:
       '@zeroomega-nex/profile-workflow':
         specifier: workspace:*
         version: link:../../packages/profile-workflow
+      '@zeroomega-nex/reference-interpreter':
+        specifier: workspace:*
+        version: link:../../packages/reference-interpreter
       tldts:
         specifier: 7.4.9
         version: 7.4.9

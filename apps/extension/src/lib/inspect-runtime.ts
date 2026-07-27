@@ -1,8 +1,12 @@
+import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 import {
   BrowserStorageProfileWorkflowRepository,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
+import { evaluateProfileGraph, type GraphDecision } from '@zeroomega-nex/reference-interpreter';
 import { browser } from 'wxt/browser';
+
+import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 
 import {
   isInspectCommand,
@@ -99,7 +103,9 @@ export interface InspectRuntimeApi {
     }): Promise<void> | void;
     setTitle(details: { readonly tabId: number; readonly title: string }): Promise<void> | void;
   };
-  readonly i18n?: { getMessage(name: string): string };
+  readonly i18n?: {
+    getMessage(name: string, substitutions?: string | readonly string[]): string;
+  };
   readonly runtime: { readonly onMessage: InspectMessageEvent };
   readonly storage: {
     readonly local: ProfileWorkflowStorageArea;
@@ -109,8 +115,24 @@ export interface InspectRuntimeApi {
   readonly tabs: { readonly onRemoved: InspectTabRemovedEvent };
 }
 
+export interface InspectRoutePresentation {
+  readonly kind: 'direct' | 'system' | 'profile';
+  readonly name: string;
+}
+
+export interface InspectResultPresentation {
+  readonly current: InspectRoutePresentation;
+  readonly result: InspectRoutePresentation;
+  readonly color: string;
+}
+
 export interface InspectRuntimeOptions {
   readonly readEnabled?: () => Promise<boolean>;
+  readonly readActiveRoute?: () => Promise<ProfileRouteTarget | undefined>;
+  readonly evaluatePresentation?: (
+    url: string,
+    tabUrl: string | undefined,
+  ) => Promise<InspectResultPresentation | undefined>;
   readonly now?: () => number;
 }
 
@@ -167,6 +189,117 @@ function supportedUrl(value: string): boolean {
   }
 }
 
+function builtInColor(spec: ProfileSpec, kind: 'direct' | 'system'): string {
+  return (
+    spec.settings.interface.builtInProfiles?.[kind]?.color ??
+    (kind === 'direct' ? '#bdbdbd' : '#616161')
+  );
+}
+
+function routePresentation(
+  spec: ProfileSpec,
+  route: ProfileRouteTarget,
+): InspectRoutePresentation & { readonly color: string } {
+  if (route.kind === 'direct') {
+    return { kind: 'direct', name: 'Direct', color: builtInColor(spec, 'direct') };
+  }
+  if (route.kind === 'system') {
+    return { kind: 'system', name: 'System Proxy', color: builtInColor(spec, 'system') };
+  }
+  const profile = spec.profiles.find((candidate) => candidate.id === route.profileId);
+  return {
+    kind: 'profile',
+    name: profile?.name ?? route.profileId,
+    color: profile?.color ?? '#90a4ae',
+  };
+}
+
+function currentRoutePresentation(
+  spec: ProfileSpec,
+  route: ProfileRouteTarget,
+): InspectRoutePresentation & { readonly color: string } {
+  const current = routePresentation(spec, route);
+  if (route.kind !== 'profile') return current;
+  const profile = spec.profiles.find((candidate) => candidate.id === route.profileId);
+  if (profile?.kind !== 'virtual') return current;
+  const target = routePresentation(spec, profile.targetRoute);
+  return { ...current, name: `${current.name} [${target.name}]`, color: target.color };
+}
+
+function lastEnteredProfilePresentation(
+  spec: ProfileSpec,
+  decision: GraphDecision,
+): (InspectRoutePresentation & { readonly color: string }) | undefined {
+  for (let index = decision.trace.length - 1; index >= 0; index -= 1) {
+    const entry = decision.trace[index];
+    if (entry?.action !== 'enter-profile' || !entry.profileId) continue;
+    return routePresentation(spec, { kind: 'profile', profileId: entry.profileId });
+  }
+  return undefined;
+}
+
+export function evaluateInspectResultPresentation(
+  spec: ProfileSpec,
+  startRoute: ProfileRouteTarget,
+  urlValue: string,
+  now = Date.now(),
+): InspectResultPresentation {
+  const url = new URL(urlValue);
+  const local = new Date(now);
+  const request = {
+    url: url.href,
+    host: url.hostname,
+    scheme: url.protocol.slice(0, -1),
+    ...(url.port ? { port: Number(url.port) } : {}),
+    localWeekday: local.getDay(),
+    localHour: local.getHours(),
+  };
+  const decision = evaluateProfileGraph(spec, startRoute, request);
+  const current = currentRoutePresentation(spec, startRoute);
+  let result: InspectRoutePresentation & { readonly color: string } =
+    lastEnteredProfilePresentation(spec, decision) ?? current;
+  if (decision.status === 'resolved') {
+    if (decision.route.kind === 'direct') result = routePresentation(spec, { kind: 'direct' });
+    else if (decision.route.kind === 'system') result = routePresentation(spec, { kind: 'system' });
+  }
+  return {
+    current: { kind: current.kind, name: current.name },
+    result: { kind: result.kind, name: result.name },
+    color: result.color,
+  };
+}
+
+async function readActiveRouteFromBrowser(): Promise<ProfileRouteTarget | undefined> {
+  const runtime = currentBrowserProxyRuntime();
+  try {
+    const state = await runtime.repository.getState();
+    if (state.activeBuiltInMode) return { kind: state.activeBuiltInMode };
+    if (!state.activeSnapshotId) return undefined;
+    return (await runtime.repository.getSnapshot(state.activeSnapshotId))?.startRoute;
+  } finally {
+    runtime.dispose();
+  }
+}
+
+function localizedRouteName(api: InspectRuntimeApi, route: InspectRoutePresentation): string {
+  const key =
+    route.kind === 'direct' ? 'routeDirect' : route.kind === 'system' ? 'routeSystem' : '';
+  if (!key) return route.name;
+  const localized = api.i18n?.getMessage(key);
+  return localized && localized !== key ? localized : route.name;
+}
+
+function routeSummary(api: InspectRuntimeApi, presentation: InspectResultPresentation): string {
+  const current = localizedRouteName(api, presentation.current);
+  const result = localizedRouteName(api, presentation.result);
+  const localizedExtensionName = api.i18n?.getMessage('extensionName');
+  const extensionName =
+    localizedExtensionName && localizedExtensionName !== 'extensionName'
+      ? localizedExtensionName
+      : 'ZeroOmega Nex';
+  return `${extensionName} — ${current === result ? current : `${current} → ${result}`}`;
+}
+
 function urlForMenu(info: InspectContextMenuInfo): string | undefined {
   const id = String(info.menuItemId);
   if (id === INSPECT_MENU_IDS.frame) return info.frameUrl;
@@ -175,7 +308,12 @@ function urlForMenu(info: InspectContextMenuInfo): string | undefined {
   return undefined;
 }
 
-function inspectTitle(url: string, tabUrl: string | undefined): string {
+function inspectTitle(
+  api: InspectRuntimeApi,
+  url: string,
+  tabUrl: string | undefined,
+  presentation: InspectResultPresentation | undefined,
+): string {
   const target = new URL(url);
   let display = target.hostname;
   try {
@@ -184,7 +322,10 @@ function inspectTitle(url: string, tabUrl: string | undefined): string {
   } catch {
     // The target itself was already validated. A malformed tab URL only affects display shortening.
   }
-  return `Inspect ${display}`;
+  const key = 'browserActionTitleInspect';
+  const localized = api.i18n?.getMessage(key, display);
+  const heading = localized && localized !== key ? localized : `[Inspect] ${display}`;
+  return presentation ? `${heading}\n${routeSummary(api, presentation)}` : heading;
 }
 
 async function clearBadge(api: InspectRuntimeApi, tabId: number): Promise<void> {
@@ -217,6 +358,7 @@ async function storeEntry(
   url: string,
   tabUrl: string | undefined,
   now: () => number,
+  presentation: InspectResultPresentation | undefined,
 ): Promise<void> {
   const state = await readState(api.storage.session);
   const inspectedAt = new Date(now()).toISOString();
@@ -226,8 +368,12 @@ async function storeEntry(
   });
   await Promise.all([
     Promise.resolve(api.action.setBadgeText({ tabId, text: '#' })),
-    Promise.resolve(api.action.setBadgeBackgroundColor({ tabId, color: '#607d8b' })),
-    Promise.resolve(api.action.setTitle({ tabId, title: inspectTitle(url, tabUrl) })),
+    Promise.resolve(
+      api.action.setBadgeBackgroundColor({ tabId, color: presentation?.color ?? '#607d8b' }),
+    ),
+    Promise.resolve(
+      api.action.setTitle({ tabId, title: inspectTitle(api, url, tabUrl, presentation) }),
+    ),
   ]);
 }
 
@@ -292,6 +438,16 @@ export function registerInspectRuntime(
   const readEnabled =
     options.readEnabled ??
     (async () => (await repository.read())?.applied.settings.interface.showInspectMenu === true);
+  const readActiveRoute = options.readActiveRoute ?? readActiveRouteFromBrowser;
+  const evaluatePresentation =
+    options.evaluatePresentation ??
+    (async (url: string) => {
+      const workflow = await repository.read();
+      if (!workflow) return undefined;
+      const activeRoute = await readActiveRoute();
+      if (!activeRoute) return undefined;
+      return evaluateInspectResultPresentation(workflow.applied, activeRoute, url, now());
+    });
   let disposed = false;
   let enabled = false;
   let reconciliation = Promise.resolve();
@@ -312,9 +468,19 @@ export function registerInspectRuntime(
     if (!enabled || tab.id === undefined) return;
     const url = urlForMenu(info);
     if (!url || !supportedUrl(url)) return;
-    void (
-      url === tab.url ? removeEntry(api, tab.id) : storeEntry(api, tab.id, url, tab.url, now)
-    ).catch((error: unknown) => console.error('Unable to store inspected URL.', error));
+    void (async () => {
+      if (url === tab.url) {
+        await removeEntry(api, tab.id!);
+        return;
+      }
+      let presentation: InspectResultPresentation | undefined;
+      try {
+        presentation = await evaluatePresentation(url, tab.url);
+      } catch (error) {
+        console.warn('Unable to evaluate inspected URL result route.', error);
+      }
+      await storeEntry(api, tab.id!, url, tab.url, now, presentation);
+    })().catch((error: unknown) => console.error('Unable to store inspected URL.', error));
   };
 
   const messageListener = (message: unknown): Promise<InspectCommandResponse> | undefined => {

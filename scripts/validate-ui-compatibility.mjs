@@ -51,6 +51,7 @@ const storageRepositoryPath = 'packages/profile-workflow/src/storage-repository.
 const requestDiagnosticsModelPath = 'apps/extension/src/lib/request-diagnostics-model.ts';
 const requestDiagnosticsRuntimePath = 'apps/extension/src/lib/request-diagnostics-runtime.ts';
 const requestDiagnosticsPagePath = 'apps/extension/src/entrypoints/network/App.svelte';
+const inspectRuntimePath = 'apps/extension/src/lib/inspect-runtime.ts';
 
 const [
   popupApp,
@@ -100,6 +101,7 @@ const [
   requestDiagnosticsModel,
   requestDiagnosticsRuntime,
   requestDiagnosticsPage,
+  inspectRuntime,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -148,6 +150,7 @@ const [
   readFile(requestDiagnosticsModelPath, 'utf8'),
   readFile(requestDiagnosticsRuntimePath, 'utf8'),
   readFile(requestDiagnosticsPagePath, 'utf8'),
+  readFile(inspectRuntimePath, 'utf8'),
 ]);
 
 const requirements = [
@@ -266,6 +269,14 @@ const requirements = [
       requestDiagnosticsPage.includes('<code>{record.url}</code>') &&
       !requestDiagnosticsPage.includes('<a href={record.url}'),
     'Request diagnostics must be explicit browser-session monitoring with bounded session storage, summary-only Popup data, sanitized URLs, and a non-navigating inspection page.',
+  ],
+  [
+    inspectRuntime.includes('evaluateInspectResultPresentation') &&
+      inspectRuntime.includes('evaluateProfileGraph') &&
+      inspectRuntime.includes('browserActionTitleInspect') &&
+      inspectRuntime.includes('presentation?.color') &&
+      !inspectRuntime.includes("color: '#607d8b' }"),
+    'Inspect must evaluate the active route for the target URL, use the result-profile badge color, and keep the original two-line Inspect title shape.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),

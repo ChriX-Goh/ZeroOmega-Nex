@@ -16,5 +16,19 @@
   },
   "contextMenuInspectElement": {
     "message": "Inspect media"
+  },
+  "browserActionTitleInspect": {
+    "message": "[Inspect] $URL$",
+    "placeholders": {
+      "url": {
+        "content": "$1"
+      }
+    }
+  },
+  "routeDirect": {
+    "message": "Direct"
+  },
+  "routeSystem": {
+    "message": "System Proxy"
   }
 }

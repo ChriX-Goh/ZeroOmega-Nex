@@ -1,7 +1,9 @@
+import { createDefaultProfileSpec } from '@zeroomega-nex/profile-workflow';
 import { describe, expect, it } from 'vitest';
 
 import {
   INSPECT_MENU_IDS,
+  evaluateInspectResultPresentation,
   registerInspectRuntime,
   type InspectRuntimeApi,
 } from './inspect-runtime';
@@ -14,6 +16,7 @@ function fakeApi() {
   const session: Record<string, unknown> = {};
   const menus: { id: string; title: string; contexts: readonly string[] }[] = [];
   const badgeCalls: unknown[] = [];
+  const badgeColorCalls: unknown[] = [];
   const titleCalls: unknown[] = [];
   let clickListener:
     | ((info: Record<string, unknown>, tab: Record<string, unknown>) => void)
@@ -61,7 +64,9 @@ function fakeApi() {
       setBadgeText(details: unknown) {
         badgeCalls.push(details);
       },
-      setBadgeBackgroundColor() {},
+      setBadgeBackgroundColor(details: unknown) {
+        badgeColorCalls.push(details);
+      },
       setTitle(details: unknown) {
         titleCalls.push(details);
       },
@@ -105,6 +110,7 @@ function fakeApi() {
     api,
     menus,
     badgeCalls,
+    badgeColorCalls,
     titleCalls,
     click: (info: Record<string, unknown>, tab: Record<string, unknown>) =>
       clickListener?.(info, tab),
@@ -140,6 +146,11 @@ describe('inspect runtime', () => {
     const runtime = registerInspectRuntime(fake.api, {
       readEnabled: async () => true,
       now: () => now,
+      evaluatePresentation: async () => ({
+        current: { kind: 'profile', name: 'Work' },
+        result: { kind: 'direct', name: 'Direct' },
+        color: '#bdbdbd',
+      }),
     });
     await runtime.ready;
     fake.click(
@@ -162,8 +173,42 @@ describe('inspect runtime', () => {
       },
     });
     expect(fake.badgeCalls).toContainEqual({ tabId: 7, text: '#' });
-    expect(fake.titleCalls).toContainEqual({ tabId: 7, title: 'Inspect cdn.example.test' });
+    expect(fake.badgeColorCalls).toContainEqual({ tabId: 7, color: '#bdbdbd' });
+    expect(fake.titleCalls).toContainEqual({
+      tabId: 7,
+      title: '[Inspect] cdn.example.test\nZeroOmega Nex — Work → Direct',
+    });
     runtime.dispose();
+  });
+
+  it('evaluates the original result-profile badge color for inspected URLs', () => {
+    const spec = createDefaultProfileSpec({
+      documentId: 'document-inspect',
+      revisionId: 'revision-inspect',
+      createdAt: '2026-07-27T18:00:00.000Z',
+    });
+    expect(
+      evaluateInspectResultPresentation(
+        spec,
+        { kind: 'profile', profileId: 'profile-default-proxy' },
+        'https://remote.example.test/file.js',
+      ),
+    ).toEqual({
+      current: { kind: 'profile', name: 'Proxy' },
+      result: { kind: 'profile', name: 'Proxy' },
+      color: '#64b5f6',
+    });
+    expect(
+      evaluateInspectResultPresentation(
+        spec,
+        { kind: 'profile', profileId: 'profile-default-proxy' },
+        'http://localhost/file.js',
+      ),
+    ).toEqual({
+      current: { kind: 'profile', name: 'Proxy' },
+      result: { kind: 'direct', name: 'Direct' },
+      color: '#bdbdbd',
+    });
   });
 
   it('clears the inspected target for the page URL and when the tab closes', async () => {

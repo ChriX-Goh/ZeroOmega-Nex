@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `e751e21fdb22efc652b3de23860276089319dd29`  
-**Latest integration verification:** run `30293423052` validates the bounded request-diagnostics product commit with full `pnpm verify`, an E2E-host Chromium build, and the complete Chromium regression suite  
+**Current product implementation head:** Inspect result-presentation product commit containing this document  
+**Latest integration verification:** run `30294936789` validates Inspect result-route badge/title evaluation with full `pnpm verify`, Chromium/Firefox builds, and the complete Chromium regression suite  
 **Last completed exact-Head verification:** `fe35f31ec5d16aa02ed59fcd04d9c9eab50d6154`; CI `30289903445`, Browser E2E `30289903778`, Parity Documentation `30289903666` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
@@ -97,6 +97,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Proxy-ownership integration: run `30283438960`, product commit `af25f7c2c2af5d305c3b06d2ee385a425763eb05`.
 - External-profile integration: run `30286217338`, product commit `e4c11f6684346510e44b1961b277159b5b13e854`.
 - Inspect-menu integration: run `30289377957`, product commit `e305394dae78ce98fa359f5ddc3521ed01675fe9`.
+- Inspect result-presentation integration: run `30294936789`; product commit containing this document.
 
 ### Bounded request diagnostics and network inspection
 
@@ -123,9 +124,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Inspect result-route badge color/title evaluation and a real browser context-menu E2E,
+- a real native browser context-menu interaction E2E for Inspect,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Complete Inspect result-route badge color/title evaluation and a real Chromium context-menu interaction E2E, then continue the remaining profile/export/localization blockers. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Add a real native Chromium context-menu interaction E2E for Inspect, then continue the remaining profile/export/localization blockers. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

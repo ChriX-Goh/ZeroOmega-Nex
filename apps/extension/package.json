@@ -18,7 +18,8 @@
     "@zeroomega-nex/pac-compiler": "workspace:*",
     "@zeroomega-nex/profile-spec": "workspace:*",
     "@zeroomega-nex/profile-workflow": "workspace:*",
-    "tldts": "7.4.9"
+    "tldts": "7.4.9",
+    "@zeroomega-nex/reference-interpreter": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.2.0",

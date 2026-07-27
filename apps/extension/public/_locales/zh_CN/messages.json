@@ -16,5 +16,19 @@
   },
   "contextMenuInspectElement": {
     "message": "检查媒体"
+  },
+  "browserActionTitleInspect": {
+    "message": "[检查] $URL$",
+    "placeholders": {
+      "url": {
+        "content": "$1"
+      }
+    }
+  },
+  "routeDirect": {
+    "message": "直接连接"
+  },
+  "routeSystem": {
+    "message": "系统代理"
   }
 }
