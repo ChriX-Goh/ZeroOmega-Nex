@@ -1,4 +1,4 @@
-# revision 2
+# revision 3
 name: Integrate automatic Rule Source scheduler
 
 on:
@@ -43,6 +43,7 @@ jobs:
           set -o pipefail
           {
             python .github/patches/apply-rule-source-scheduler.py
+            python .github/patches/fix-scheduler-coalescing-test.py
             pnpm exec prettier --write \
               packages/profile-workflow/src/rule-source-update.ts \
               packages/profile-workflow/src/rule-source-schedule.test.ts \
