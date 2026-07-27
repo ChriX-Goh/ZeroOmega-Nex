@@ -56,6 +56,29 @@ replace_once(
 ''',
     'Rule Source update View contract',
 )
+replace_once(
+    core,
+    '''  readonly permissions?: {
+    contains(permissions: { origins: string[] }): Promise<boolean>;
+    request(permissions: { origins: string[] }): Promise<boolean>;
+  };
+''',
+    '''  readonly permissions?: {
+    request(permissions: { origins: string[] }): Promise<boolean>;
+  };
+''',
+    'permission client API',
+)
+replace_once(
+    core,
+    '''  const permissions = { origins: [origin] };
+  if (await api.permissions.contains(permissions)) return true;
+  return api.permissions.request(permissions);
+''',
+    '''  return api.permissions.request({ origins: [origin] });
+''',
+    'permission request user gesture',
+)
 
 ui = Path('.github/patches/apply-rule-source-ui.py')
 replace_once(
