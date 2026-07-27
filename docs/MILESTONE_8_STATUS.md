@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** native Inspect E2E product commit containing this document  
+**Current product implementation head:** `944644f3d4588e70429de65224402d8bdc37863a`  
 **Latest integration verification:** run `30297644740` validates the real headed Chromium Inspect context-menu path with full `pnpm verify`, complete Chromium regression, and native-menu session/badge/title assertions  
-**Last completed exact-Head verification:** `d155644f5fe7a691fb27a84b16cd55ca58990cd0`; CI `30293711901`, Browser E2E `30293710585`, Parity Documentation `30293710591` passed  
+**Last completed exact-Head verification:** `44a08676f14b048541405d1e820c1f48ba2f921c`; CI `30298264968`, Browser E2E `30298264936`, Parity Documentation `30298264875` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -99,7 +99,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - External-profile integration: run `30286217338`, product commit `e4c11f6684346510e44b1961b277159b5b13e854`.
 - Inspect-menu integration: run `30289377957`, product commit `e305394dae78ce98fa359f5ddc3521ed01675fe9`.
 - Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
-- Native Inspect context-menu E2E integration: run `30297644740`; product commit containing this document.
+- Native Inspect context-menu E2E integration: run `30297644740`, product commit `944644f3d4588e70429de65224402d8bdc37863a`.
 
 ### Bounded request diagnostics and network inspection
 
