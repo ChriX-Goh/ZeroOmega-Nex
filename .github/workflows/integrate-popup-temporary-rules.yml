@@ -1,4 +1,4 @@
-# revision 7
+# revision 8
 name: Integrate Popup temporary rules
 
 on:
@@ -40,6 +40,7 @@ jobs:
         run: |
           set -o pipefail
           {
+            python .github/patches/fix-popup-temporary-identifiers.py
             python .github/patches/apply-popup-temporary-rules-core.py
             python .github/patches/apply-popup-temporary-rules-background.py
             python .github/patches/fix-popup-temporary-stage.py
