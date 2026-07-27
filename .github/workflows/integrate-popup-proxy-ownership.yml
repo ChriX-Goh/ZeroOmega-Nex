@@ -1,3 +1,4 @@
+# revision 2
 name: Integrate Popup proxy ownership
 
 on:
@@ -40,6 +41,7 @@ jobs:
           set -o pipefail
           {
             python .github/patches/apply-popup-proxy-ownership-core.py
+            python .github/patches/fix-popup-proxy-ownership-stage.py
             python .github/patches/apply-popup-proxy-ownership-runtime.py
             python .github/patches/apply-popup-proxy-ownership-ui.py
             python .github/patches/apply-popup-proxy-ownership-evidence.py
@@ -78,6 +80,7 @@ jobs:
         run: |
           set -o pipefail
           {
+            git checkout -- .github/patches
             pnpm exec prettier --write \
               packages/browser-adapters/src/ownership.ts \
               packages/browser-adapters/src/ownership.test.ts \
