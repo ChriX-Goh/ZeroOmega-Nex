@@ -1,0 +1,164 @@
+name: Integrate Popup proxy ownership
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-popup-proxy-ownership.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-popup-proxy-ownership-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Apply reviewed proxy-ownership slice
+        id: apply_slice
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            python .github/patches/apply-popup-proxy-ownership-core.py
+            python .github/patches/apply-popup-proxy-ownership-runtime.py
+            python .github/patches/apply-popup-proxy-ownership-ui.py
+            python .github/patches/apply-popup-proxy-ownership-evidence.py
+          } 2>&1 | tee /tmp/popup-proxy-ownership-apply.log
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-proxy-ownership-apply
+          path: /tmp/popup-proxy-ownership-apply.log
+          if-no-files-found: warn
+      - name: Enforce patch result
+        if: steps.apply_slice.outcome != 'success'
+        run: exit 1
+      - name: Install locked dependencies
+        id: install
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm install --frozen-lockfile 2>&1 | tee /tmp/popup-proxy-ownership-install.log
+      - name: Upload install diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-proxy-ownership-install
+          path: /tmp/popup-proxy-ownership-install.log
+          if-no-files-found: warn
+      - name: Enforce install result
+        if: steps.install.outcome != 'success'
+        run: exit 1
+      - name: Format and inspect product diff
+        id: format
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            pnpm exec prettier --write \
+              packages/browser-adapters/src/ownership.ts \
+              packages/browser-adapters/src/ownership.test.ts \
+              packages/browser-adapters/src/index.ts \
+              apps/extension/src/lib/proxy-ownership-client.ts \
+              apps/extension/src/lib/proxy-ownership-runtime.ts \
+              apps/extension/src/lib/proxy-ownership-runtime.test.ts \
+              apps/extension/src/entrypoints/background.ts \
+              apps/extension/src/entrypoints/popup/App.svelte \
+              apps/extension/src/entrypoints/popup/style.css \
+              apps/extension/src/lib/i18n.ts \
+              scripts/e2e-chromium.mjs \
+              scripts/validate-ui-compatibility.mjs \
+              docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+              docs/UI_AUDIT_MATRIX.md \
+              docs/MILESTONE_8_STATUS.md
+            git diff --check
+          } 2>&1 | tee /tmp/popup-proxy-ownership-format.log
+      - name: Upload format diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-proxy-ownership-format
+          path: /tmp/popup-proxy-ownership-format.log
+          if-no-files-found: warn
+      - name: Enforce format result
+        if: steps.format.outcome != 'success'
+        run: exit 1
+      - name: Verify complete repository
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee /tmp/popup-proxy-ownership-verify.log
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-proxy-ownership-verification
+          path: /tmp/popup-proxy-ownership-verify.log
+          if-no-files-found: warn
+      - name: Enforce verification result
+        if: steps.verify.outcome != 'success'
+        run: exit 1
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Chromium ownership-conflict E2E
+        id: chromium
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm test:e2e:chromium 2>&1 | tee /tmp/popup-proxy-ownership-chromium.log
+      - name: Upload Chromium diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-proxy-ownership-chromium
+          path: /tmp/popup-proxy-ownership-chromium.log
+          if-no-files-found: warn
+      - name: Enforce Chromium result
+        if: steps.chromium.outcome != 'success'
+        run: exit 1
+      - name: Clean temporary integration files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          git clean -fdX
+          rm -rf .github/patches
+          rm -f .github/workflows/integrate-popup-proxy-ownership.yml
+          git diff --check
+      - name: Commit verified product slice
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin feat/m8-profile-workflow
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/feat/m8-profile-workflow)"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --stat
+          git commit -m 'feat: block Popup when proxy ownership is unavailable'
+          git push origin HEAD:feat/m8-profile-workflow
