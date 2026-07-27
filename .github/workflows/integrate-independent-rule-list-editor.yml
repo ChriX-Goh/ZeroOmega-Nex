@@ -43,6 +43,7 @@ jobs:
             set -x
             python .github/patches/prepare-independent-rule-list-e2e-anchor.py
             python .github/patches/fix-independent-rule-list-patch-anchor.py
+            python .github/patches/fix-independent-rule-list-validator-patch.py
             python .github/patches/apply-independent-rule-list-editor.py
           } 2>&1 | tee independent-rule-list-apply.log
       - name: Format product slice
@@ -76,6 +77,7 @@ jobs:
             .github/patches/apply-independent-rule-list-editor.py \
             .github/patches/prepare-independent-rule-list-e2e-anchor.py \
             .github/patches/fix-independent-rule-list-patch-anchor.py \
+            .github/patches/fix-independent-rule-list-validator-patch.py \
             independent-rule-list-apply.log \
             independent-rule-list-verify.log \
             independent-rule-list-e2e.log
