@@ -35,13 +35,17 @@ jobs:
       - name: Apply Inspect result presentation
         env:
           INTEGRATION_RUN_ID: ${{ github.run_id }}
-        run: python .github/patches/apply-inspect-result-presentation.py
+        run: |
+          python .github/patches/apply-inspect-result-presentation.py
+          python .github/patches/fix-inspect-result-validator.py
       - name: Install and update locked workspace dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Format product slice
         run: pnpm format
       - name: Verify repository
-        run: pnpm verify
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee inspect-result-verify.log
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Build Chromium E2E host candidate
@@ -49,11 +53,22 @@ jobs:
           ZEROOMEGA_RULE_SOURCE_E2E: '1'
         run: pnpm build:chromium
       - name: Run Chromium regression suite
-        run: pnpm test:e2e:chromium
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee inspect-result-e2e.log
+      - name: Upload integration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspect-result-integration-${{ github.run_id }}
+          path: inspect-result-*.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Commit verified product slice
         run: |
           rm -f \
             .github/patches/apply-inspect-result-presentation.py \
+            .github/patches/fix-inspect-result-validator.py \
             .github/workflows/integrate-inspect-result-presentation.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
