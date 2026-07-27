@@ -392,3 +392,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 - 独立 Rule List Profile 与附属 Rule List 共享 RuleSource 下载器、权限、secret header 解析、10 秒/4 MiB 边界、CAS 更新记录和调度器，但不共享隐藏 ownership、父 Switch 默认路由代理或 detach 事务。
 - 原版独立 Rule List 页面只有三组：Config（match/default/format）、URL、Text。URL 是否为空直接决定模式；没有 Nex-only Source type、Source name 或 per-profile interval 控件。URL 非空时规则文本只读并可 Download now；清空 URL 后保留当前缓存并恢复可编辑 inline 文本。
+
+- PAC Profile 的 URL 与脚本不是互斥丢弃关系：URL 非空表示 remote 模式，`source.script` 保存最近下载缓存；修改 URL 保留缓存但因更新账本 URL 不匹配而标记 obsolete/stale；清空 URL 将同一缓存转为可编辑 inline script。
+- PAC 远程更新复用已验证的后台 downloader、secret header、10 秒/4 MiB 边界、CAS 与单一 alarms 调度器。持久状态仍使用兼容的 `ruleSourceUpdates` 账本，但 PAC 项以 `pac:<profileId>` 键隔离；ProfileSpec 不保存 `lastUpdate` 等运行时字段。
+- `file:` PAC 不通过后台下载器；独立编辑页按原版显示本地文件警告，隐藏缓存脚本文本，并在被其他 Profile 引用时明确报错。真正的文件 PAC 激活能力仍需目标适配器范围决定。

@@ -1,5 +1,7 @@
 import {
+  listDueProfileWorkflowPacSourceUpdates,
   listDueProfileWorkflowRuleSourceUpdates,
+  updateProfileWorkflowPacSource,
   updateProfileWorkflowRuleSource,
   type ProfileWorkflowRepository,
   type ProfileWorkflowRuleSourceUpdateService,
@@ -75,24 +77,38 @@ async function scanDueRuleSources(
   const initial = await options.repository.read();
   if (!initial) return emptySummary();
   const now = options.now?.() ?? new Date().toISOString();
-  const dueSourceIds = listDueProfileWorkflowRuleSourceUpdates(initial, now).map(
-    (source) => source.sourceId,
-  );
+  const dueItems = [
+    ...listDueProfileWorkflowRuleSourceUpdates(initial, now).map((source) => ({
+      kind: 'rule-source' as const,
+      id: source.sourceId,
+      url: source.url,
+    })),
+    ...listDueProfileWorkflowPacSourceUpdates(initial, now).map((source) => ({
+      kind: 'pac' as const,
+      id: source.profileId,
+      url: source.url,
+    })),
+  ];
   const counts = {
-    considered: dueSourceIds.length,
+    considered: dueItems.length,
     updated: 0,
     failed: 0,
     conflicted: 0,
     skippedPermission: 0,
   };
 
-  for (const sourceId of dueSourceIds) {
+  for (const item of dueItems) {
     const current = await options.repository.read();
     if (!current) break;
     const currentNow = options.now?.() ?? new Date().toISOString();
-    const due = listDueProfileWorkflowRuleSourceUpdates(current, currentNow).find(
-      (candidate) => candidate.sourceId === sourceId,
-    );
+    const due =
+      item.kind === 'rule-source'
+        ? listDueProfileWorkflowRuleSourceUpdates(current, currentNow).find(
+            (candidate) => candidate.sourceId === item.id,
+          )
+        : listDueProfileWorkflowPacSourceUpdates(current, currentNow).find(
+            (candidate) => candidate.profileId === item.id,
+          );
     if (!due) continue;
 
     const origin = permissionOrigin(due.url);
@@ -101,12 +117,20 @@ async function scanDueRuleSources(
       continue;
     }
 
-    const result = await updateProfileWorkflowRuleSource(
-      options.repository,
-      current,
-      sourceId,
-      options.updateService,
-    );
+    const result =
+      item.kind === 'rule-source'
+        ? await updateProfileWorkflowRuleSource(
+            options.repository,
+            current,
+            item.id,
+            options.updateService,
+          )
+        : await updateProfileWorkflowPacSource(
+            options.repository,
+            current,
+            item.id,
+            options.updateService,
+          );
     if (result.status === 'updated') counts.updated += 1;
     else if (result.status === 'conflict') counts.conflicted += 1;
     else counts.failed += 1;

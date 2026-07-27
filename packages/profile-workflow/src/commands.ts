@@ -13,6 +13,7 @@ import {
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
+  ProfileWorkflowPacSourceUpdateView,
   ProfileWorkflowRepository,
   ProfileWorkflowRevisionHistoryEntry,
   ProfileWorkflowRuleSourceUpdateView,
@@ -26,6 +27,11 @@ import {
   type ProfileWorkflowSecretMaterial,
   type ProfileWorkflowSecretStore,
 } from './import-acceptance.js';
+import {
+  inspectProfileWorkflowPacSourceUpdate,
+  updateProfileWorkflowPacSource,
+  type ProfileWorkflowPacSourceUpdateService,
+} from './pac-source-update.js';
 import {
   inspectProfileWorkflowRuleSourceUpdate,
   updateProfileWorkflowRuleSource,
@@ -64,6 +70,17 @@ export type ProfileWorkflowCommand =
       readonly action: 'update-rule-source';
       readonly expectedGeneration: number;
       readonly sourceId: string;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'get-pac-source-update-status';
+      readonly profileId: string;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'update-pac-source';
+      readonly expectedGeneration: number;
+      readonly profileId: string;
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
@@ -140,6 +157,7 @@ export type ProfileWorkflowCommandResponse =
       readonly snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[];
       readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];
       readonly ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView;
+      readonly pacSourceUpdate?: ProfileWorkflowPacSourceUpdateView;
       readonly secretValue?: string;
     }
   | {
@@ -152,11 +170,13 @@ export type ProfileWorkflowCommandResponse =
         | 'apply-failed'
         | 'activation-failed'
         | 'rollback-failed'
-        | 'rule-source-update-failed';
+        | 'rule-source-update-failed'
+        | 'pac-source-update-failed';
       readonly message: string;
       readonly state?: ProfileWorkflowState;
       readonly view?: ProfileWorkflowView;
       readonly ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView;
+      readonly pacSourceUpdate?: ProfileWorkflowPacSourceUpdateView;
     };
 
 export interface ProfileWorkflowInitializer {
@@ -208,11 +228,19 @@ function responseWithRuleSourceUpdate(
   return { ...response(state), ruleSourceUpdate: update };
 }
 
+function responseWithPacSourceUpdate(
+  state: ProfileWorkflowState,
+  update: ProfileWorkflowPacSourceUpdateView,
+): Extract<ProfileWorkflowCommandResponse, { readonly ok: true }> {
+  return { ...response(state), pacSourceUpdate: update };
+}
+
 function failure(
   code: Extract<ProfileWorkflowCommandResponse, { ok: false }>['code'],
   message: string,
   state?: ProfileWorkflowState,
   ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView,
+  pacSourceUpdate?: ProfileWorkflowPacSourceUpdateView,
 ): ProfileWorkflowCommandResponse {
   return {
     ok: false,
@@ -225,6 +253,7 @@ function failure(
           view: inspectProfileWorkflow(state),
         }),
     ...(ruleSourceUpdate === undefined ? {} : { ruleSourceUpdate }),
+    ...(pacSourceUpdate === undefined ? {} : { pacSourceUpdate }),
   };
 }
 
@@ -370,6 +399,14 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         typeof record.sourceId === 'string' &&
         record.sourceId.length > 0
       );
+    case 'get-pac-source-update-status':
+      return typeof record.profileId === 'string' && record.profileId.length > 0;
+    case 'update-pac-source':
+      return (
+        validGeneration(record.expectedGeneration) &&
+        typeof record.profileId === 'string' &&
+        record.profileId.length > 0
+      );
     case 'replace-draft':
       return validGeneration(record.expectedGeneration) && record.draft !== undefined;
     case 'accept-import':
@@ -445,6 +482,7 @@ export async function executeProfileWorkflowCommand(
   rollbackService?: ProfileWorkflowSnapshotRollbackService,
   ruleSourceUpdateService?: ProfileWorkflowRuleSourceUpdateService,
   externalProfileService?: ProfileWorkflowExternalProfileService,
+  pacSourceUpdateService?: ProfileWorkflowPacSourceUpdateService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let ensured: EnsuredProfileWorkflowState;
   try {
@@ -491,6 +529,16 @@ export async function executeProfileWorkflowCommand(
     return update === undefined
       ? failure('invalid', `Rule Source ${command.sourceId} is not a remote URL source`, state)
       : responseWithRuleSourceUpdate(state, update);
+  }
+
+  if (command.action === 'get-pac-source-update-status') {
+    if (!pacSourceUpdateService) {
+      return failure('invalid', 'PAC update service is unavailable', state);
+    }
+    const update = inspectProfileWorkflowPacSourceUpdate(state, command.profileId);
+    return update === undefined
+      ? failure('invalid', `PAC profile ${command.profileId} is not a remote URL source`, state)
+      : responseWithPacSourceUpdate(state, update);
   }
 
   if (command.action === 'set-popup-profile-result') {
@@ -795,6 +843,30 @@ export async function executeProfileWorkflowCommand(
             ? 'invalid'
             : 'rule-source-update-failed';
     return failure(code, result.message, result.state, result.update);
+  }
+
+  if (command.action === 'update-pac-source') {
+    if (!pacSourceUpdateService) {
+      return failure('invalid', 'PAC update service is unavailable', state);
+    }
+    const result = await updateProfileWorkflowPacSource(
+      repository,
+      state,
+      command.profileId,
+      pacSourceUpdateService,
+    );
+    if (result.status === 'updated') {
+      return responseWithPacSourceUpdate(result.state, result.update);
+    }
+    const code =
+      result.status === 'conflict'
+        ? 'conflict'
+        : result.status === 'storage-failure'
+          ? 'storage-failure'
+          : result.status === 'invalid'
+            ? 'invalid'
+            : 'pac-source-update-failed';
+    return failure(code, result.message, result.state, undefined, result.update);
   }
 
   if (command.action === 'read-secret') {

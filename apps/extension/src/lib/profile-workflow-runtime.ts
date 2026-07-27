@@ -17,6 +17,7 @@ import {
   type ProfileWorkflowHistoryService,
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
+  type ProfileWorkflowPacSourceUpdateService,
   type ProfileWorkflowRuleSourceDownloader,
   type ProfileWorkflowRuleSourceUpdateService,
   type ProfileWorkflowStorageArea,
@@ -129,7 +130,7 @@ function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImp
 function createRuleSourceUpdateService(
   importService: ProfileWorkflowImportService,
   downloader: ProfileWorkflowRuleSourceDownloader,
-): ProfileWorkflowRuleSourceUpdateService {
+): ProfileWorkflowRuleSourceUpdateService & ProfileWorkflowPacSourceUpdateService {
   return {
     downloader,
     secretStore: importService.secretStore,
@@ -201,6 +202,7 @@ export function registerProfileWorkflowRuntime(
       rollbackService,
       ruleSourceUpdateService,
       externalProfileService,
+      ruleSourceUpdateService,
     );
   };
   api.runtime.onMessage.addListener(listener);

@@ -418,8 +418,10 @@ function exportRuleList(
 
 function exportPac(state: ExportState, profile: PacProfile, path: string): MutableJsonObject {
   const result = profileBase(state, profile, path);
-  if (profile.source.kind === 'url') result.pacUrl = profile.source.url;
-  else result.pacScript = profile.source.script;
+  if (profile.source.kind === 'url') {
+    result.pacUrl = profile.source.url;
+    if (profile.source.script !== undefined) result.pacScript = profile.source.script;
+  } else result.pacScript = profile.source.script;
   const headers = legacyHeaders(state, profile.headers, `${path}/headers`);
   if (headers) result.headers = headers;
   if (profile.fallbackRoute) {

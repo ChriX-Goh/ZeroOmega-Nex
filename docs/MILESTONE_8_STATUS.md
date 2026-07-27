@@ -101,6 +101,15 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
 - Native Inspect context-menu E2E integration: run `30297644740`, product commit `944644f3d4588e70429de65224402d8bdc37863a`.
 
+### PAC remote source state machine
+
+- URL PAC now retains an optional downloaded script cache in typed ProfileSpec; runtime timestamps/errors remain outside ProfileSpec in the update ledger.
+- Original backup import preserves `pacScript` beside `pacUrl`, and export writes both back, restoring offline/round-trip semantics.
+- A dedicated PAC editor restores URL, remote-only headers, Download now/status, read-only downloaded script, Clear URL → retained editable inline script, file warning, and referenced-file error behavior.
+- PAC updates reuse the verified optional origin permission, background downloader, secret-header resolution, 10-second/4 MiB bounds, CAS conflict handling, failure-preserves-cache behavior, and coalesced alarm scheduler.
+- This slice does not yet declare PAC complete: top-level arbitrary PAC activation, `auth.all`, nested PAC capability boundaries, and file activation remain pending.
+- Integration run `30313263269`; product commit containing this document.
+
 ### Independent imported Rule List editor
 
 - Independent imported Rule List profiles now use the original three-section page: Rule List Config, Rule List URL, and Rule List Text.
@@ -148,4 +157,4 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Extend the PAC model with remote-script cache/update state, then rebuild its original URL/headers/download/read-only/file-warning/authentication editor and browser coverage. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Add verified top-level raw PAC activation and original all-proxy authentication semantics; keep nested arbitrary PAC composition and file activation under explicit target capability decisions. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

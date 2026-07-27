@@ -23,6 +23,7 @@
   import type {
     ProfileWorkflowCommandResponse,
     ProfileWorkflowIdFactory,
+    ProfileWorkflowPacSourceUpdateView,
     ProfileWorkflowProfileMutation,
     ProfileWorkflowRuleSourceUpdateView,
     ProfileWorkflowSecretMaterial,
@@ -52,6 +53,7 @@
   import FixedProfileEditor from './FixedProfileEditor.svelte';
   import LegacyImportPanel from './LegacyImportPanel.svelte';
   import NewProfileDialog from './NewProfileDialog.svelte';
+  import PacProfileEditor from './PacProfileEditor.svelte';
   import RuleListProfileEditor from './RuleListProfileEditor.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
@@ -335,6 +337,59 @@
       });
       acceptResponse(response);
       return response.ruleSourceUpdate;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function getPacSourceUpdateStatus(
+    profileId: string,
+  ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {
+    if (!state || saving) return undefined;
+    saving = true;
+    try {
+      const response = await sendProfileWorkflowCommand({
+        action: 'get-pac-source-update-status',
+        profileId,
+      });
+      acceptResponse(response);
+      return response.pacSourceUpdate;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function updatePacSource(
+    profileId: string,
+    url: string,
+  ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {
+    if (!state || saving) return undefined;
+    let granted = false;
+    try {
+      granted = await requestRuleSourceOriginPermission(url);
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
+    }
+    if (!granted) {
+      errorMessage = 'Host permission is required before downloading this PAC URL.';
+      return undefined;
+    }
+    saving = true;
+    try {
+      const response = await sendProfileWorkflowCommand({
+        action: 'update-pac-source',
+        expectedGeneration: state.generation,
+        profileId,
+      });
+      acceptResponse(response);
+      return response.pacSourceUpdate;
     } catch (error) {
       errorMessage = messageFrom(error);
       return undefined;
@@ -1244,7 +1299,16 @@
           onGetRuleSourceUpdateStatus={getRuleSourceUpdateStatus}
           onUpdateRuleSource={updateRuleSource}
         />
-      {:else if selectedProfile.kind === 'pac' || selectedProfile.kind === 'auto-detect'}
+      {:else if selectedProfile.kind === 'pac'}
+        <PacProfileEditor
+          spec={state.draft}
+          profileId={selectedProfile.id}
+          disabled={saving || view?.busy === true}
+          onReplaceDraft={replaceDraft}
+          onGetPacSourceUpdateStatus={getPacSourceUpdateStatus}
+          onUpdatePacSource={updatePacSource}
+        />
+      {:else if selectedProfile.kind === 'auto-detect'}
         <AdvancedProfileEditor
           spec={state.draft}
           profileId={selectedProfile.id}

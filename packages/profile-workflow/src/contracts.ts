@@ -116,6 +116,17 @@ export interface ProfileWorkflowRuleSourceUpdateView {
   readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
 }
 
+export interface ProfileWorkflowPacSourceUpdateView {
+  readonly profileId: string;
+  readonly url: string;
+  readonly updateIntervalMinutes: number;
+  readonly stale: boolean;
+  readonly lastAttemptAt?: string;
+  readonly lastSuccessAt?: string;
+  readonly lastBytes?: number;
+  readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
+}
+
 export interface ProfileWorkflowState {
   readonly workflowSchemaVersion: typeof PROFILE_WORKFLOW_SCHEMA_VERSION;
   readonly generation: number;

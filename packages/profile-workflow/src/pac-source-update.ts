@@ -1,123 +1,4 @@
-from pathlib import Path
-
-
-def replace_once(path: str, old: str, new: str) -> None:
-    target = Path(path)
-    text = target.read_text()
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f'{path}: expected one match, found {count}: {old[:160]!r}')
-    target.write_text(text.replace(old, new, 1))
-
-
-replace_once(
-    'packages/profile-spec/src/types.ts',
-    "export type PacSource = { kind: 'inline'; script: string } | { kind: 'url'; url: string };",
-    "export type PacSource =\n  | { kind: 'inline'; script: string }\n  | { kind: 'url'; url: string; script?: string };",
-)
-
-schema_path = Path('packages/profile-spec/schema/profile-spec-v1.schema.json')
-schema = schema_path.read_text()
-old = '''                    "url": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-'''
-new = '''                    "url": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "script": {
-                      "type": "string"
-                    }
-'''
-# This block occurs in multiple URL schemas. Restrict to the PAC source section.
-pac_anchor = '"const": "pac"'
-pac_index = schema.index(pac_anchor)
-url_index = schema.index(old, pac_index)
-if schema.find(old, url_index + 1) != -1 and schema.find(old, url_index + 1) < schema.index('"const": "auto-detect"'):
-    raise SystemExit('PAC URL schema anchor is ambiguous')
-schema = schema[:url_index] + schema[url_index:].replace(old, new, 1)
-schema_path.write_text(schema)
-
-replace_once(
-    'packages/legacy-zeroomega/src/import.ts',
-    '''  if (pacUrl) {
-    source = { kind: 'url', url: pacUrl };
-    state.report.add(
-      'exact',
-      'pac.url-mapped',
-      `${descriptor.path}/pacUrl`,
-      'PAC source URL was mapped.',
-    );
-    if (pacScript !== undefined) {
-      state.report.add(
-        'ignored-generated',
-        'pac.cache-omitted',
-        `${descriptor.path}/pacScript`,
-        'Downloaded PAC cache was omitted and will be refreshed.',
-      );
-    }
-''',
-    '''  if (pacUrl) {
-    source = {
-      kind: 'url',
-      url: pacUrl,
-      ...(pacScript === undefined ? {} : { script: pacScript }),
-    };
-    state.report.add(
-      'exact',
-      'pac.url-mapped',
-      `${descriptor.path}/pacUrl`,
-      'PAC source URL was mapped.',
-    );
-    if (pacScript !== undefined) {
-      state.report.add(
-        'exact',
-        'pac.downloaded-cache-preserved',
-        `${descriptor.path}/pacScript`,
-        'Downloaded PAC script was preserved for offline use and review.',
-      );
-    }
-''',
-)
-
-replace_once(
-    'packages/legacy-zeroomega/src/export.ts',
-    "  if (profile.source.kind === 'url') result.pacUrl = profile.source.url;\n  else result.pacScript = profile.source.script;",
-    "  if (profile.source.kind === 'url') {\n    result.pacUrl = profile.source.url;\n    if (profile.source.script !== undefined) result.pacScript = profile.source.script;\n  } else result.pacScript = profile.source.script;",
-)
-
-contracts_path = Path('packages/profile-workflow/src/contracts.ts')
-contracts = contracts_path.read_text()
-anchor = '''export interface ProfileWorkflowRuleSourceUpdateView {
-  readonly sourceId: string;
-  readonly url: string;
-  readonly updateIntervalMinutes: number;
-  readonly stale: boolean;
-  readonly lastAttemptAt?: string;
-  readonly lastSuccessAt?: string;
-  readonly lastBytes?: number;
-  readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
-}
-'''
-addition = anchor + '''
-export interface ProfileWorkflowPacSourceUpdateView {
-  readonly profileId: string;
-  readonly url: string;
-  readonly updateIntervalMinutes: number;
-  readonly stale: boolean;
-  readonly lastAttemptAt?: string;
-  readonly lastSuccessAt?: string;
-  readonly lastBytes?: number;
-  readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
-}
-'''
-if contracts.count(anchor) != 1:
-    raise SystemExit('PAC update view contract anchor missing')
-contracts_path.write_text(contracts.replace(anchor, addition, 1))
-
-Path('packages/profile-workflow/src/pac-source-update.ts').write_text(r'''import {
+import {
   cloneProfileSpecDraft,
   type PacProfile,
   type RuleSourceHeader,
@@ -245,7 +126,8 @@ export function listDueProfileWorkflowPacSourceUpdates(
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return [];
     const view = inspectProfileWorkflowPacSourceUpdate(state, profile.id, now);
     if (!view?.stale) return [];
-    const lastAttempt = view.lastAttemptAt === undefined ? undefined : timestamp(view.lastAttemptAt);
+    const lastAttempt =
+      view.lastAttemptAt === undefined ? undefined : timestamp(view.lastAttemptAt);
     const due =
       lastAttempt === undefined ||
       current === undefined ||
@@ -260,7 +142,8 @@ function normalizedMessage(error: unknown): string {
 }
 
 function validateUrl(profile: PacProfile): string {
-  if (profile.source.kind !== 'url') throw new TypeError('PAC source is inline and cannot be downloaded');
+  if (profile.source.kind !== 'url')
+    throw new TypeError('PAC source is inline and cannot be downloaded');
   let parsed: URL;
   try {
     parsed = new URL(profile.source.url);
@@ -282,7 +165,8 @@ async function resolveHeaderValue(
 ): Promise<string> {
   if (header.value.kind === 'literal') return header.value.value;
   const secret = await secretStore.getSecret(header.value.secretRef);
-  if (secret === undefined) throw new Error(`PAC header secret ${header.value.secretRef} is unavailable`);
+  if (secret === undefined)
+    throw new Error(`PAC header secret ${header.value.secretRef} is unavailable`);
   return secret;
 }
 
@@ -366,9 +250,16 @@ async function persistFailure(
   }
   const profile = pacProfile(current, profileId);
   if (!profile || profile.source.kind !== 'url' || profile.source.url !== url) {
-    return { status: 'conflict', message: 'PAC source changed while its update was running', state: current };
+    return {
+      status: 'conflict',
+      message: 'PAC source changed while its update was running',
+      state: current,
+    };
   }
-  const next = withUpdateRecord(current, recordForFailure(current, profileId, url, attemptedAt, message));
+  const next = withUpdateRecord(
+    current,
+    recordForFailure(current, profileId, url, attemptedAt, message),
+  );
   try {
     if (!(await repository.compareAndSwap(current.generation, next))) {
       const raced = await repository.read();
@@ -394,7 +285,11 @@ export async function updateProfileWorkflowPacSource(
   const profile = pacProfile(initial, profileId);
   if (!profile) return { status: 'invalid', message: `PAC profile ${profileId} does not exist` };
   if (profile.source.kind !== 'url') {
-    return { status: 'invalid', message: 'PAC source is inline and cannot be downloaded', state: initial };
+    return {
+      status: 'invalid',
+      message: 'PAC source is inline and cannot be downloaded',
+      state: initial,
+    };
   }
   const configuredUrl = profile.source.url;
   const attemptedAt = service.now?.() ?? new Date().toISOString();
@@ -404,7 +299,15 @@ export async function updateProfileWorkflowPacSource(
     url = validateUrl(profile);
     headers = await resolveHeaders(profile, service.secretStore);
   } catch (error) {
-    return persistFailure(repository, initial, profileId, configuredUrl, attemptedAt, normalizedMessage(error), 'invalid');
+    return persistFailure(
+      repository,
+      initial,
+      profileId,
+      configuredUrl,
+      attemptedAt,
+      normalizedMessage(error),
+      'invalid',
+    );
   }
 
   let downloaded: ProfileWorkflowRuleSourceDownloadResult;
@@ -423,7 +326,15 @@ export async function updateProfileWorkflowPacSource(
       throw new Error('PAC download exceeded the configured size limit');
     }
   } catch (error) {
-    return persistFailure(repository, initial, profileId, configuredUrl, attemptedAt, normalizedMessage(error), 'failed');
+    return persistFailure(
+      repository,
+      initial,
+      profileId,
+      configuredUrl,
+      attemptedAt,
+      normalizedMessage(error),
+      'failed',
+    );
   }
 
   let current: ProfileWorkflowState | undefined;
@@ -440,8 +351,16 @@ export async function updateProfileWorkflowPacSource(
     };
   }
   const currentProfile = pacProfile(current, profileId);
-  if (!currentProfile || currentProfile.source.kind !== 'url' || currentProfile.source.url !== configuredUrl) {
-    return { status: 'conflict', message: 'PAC URL changed while the download was running', state: current };
+  if (
+    !currentProfile ||
+    currentProfile.source.kind !== 'url' ||
+    currentProfile.source.url !== configuredUrl
+  ) {
+    return {
+      status: 'conflict',
+      message: 'PAC URL changed while the download was running',
+      state: current,
+    };
   }
 
   const draft = cloneProfileSpecDraft(current.draft);
@@ -449,7 +368,11 @@ export async function updateProfileWorkflowPacSource(
     (candidate): candidate is PacProfile => candidate.id === profileId && candidate.kind === 'pac',
   );
   if (!target || target.source.kind !== 'url') {
-    return { status: 'conflict', message: 'PAC profile disappeared before update commit', state: current };
+    return {
+      status: 'conflict',
+      message: 'PAC profile disappeared before update commit',
+      state: current,
+    };
   }
   target.source.script = downloaded.content;
 
@@ -482,28 +405,11 @@ export async function updateProfileWorkflowPacSource(
     return { status: 'storage-failure', message: normalizedMessage(error), state: current };
   }
   const update = inspectProfileWorkflowPacSourceUpdate(next, profileId, attemptedAt);
-  if (!update) return { status: 'storage-failure', message: 'PAC update status was not available', state: next };
+  if (!update)
+    return {
+      status: 'storage-failure',
+      message: 'PAC update status was not available',
+      state: next,
+    };
   return { status: 'updated', state: next, update };
 }
-''')
-
-index_path = Path('packages/profile-workflow/src/index.ts')
-index = index_path.read_text()
-anchor = "export { listProfileWorkflowRevisionHistory } from './revision-history.js';\n"
-addition = r'''export {
-  inspectProfileWorkflowPacSourceUpdate,
-  listDueProfileWorkflowPacSourceUpdates,
-  updateProfileWorkflowPacSource,
-  type ProfileWorkflowPacSourceUpdateResult,
-  type ProfileWorkflowPacSourceUpdateService,
-} from './pac-source-update.js';
-''' + anchor
-if index.count(anchor) != 1:
-    raise SystemExit('profile-workflow PAC export anchor missing')
-index = index.replace(anchor, addition, 1)
-index = index.replace(
-    '  type ProfileWorkflowPendingApply,\n',
-    '  type ProfileWorkflowPacSourceUpdateView,\n  type ProfileWorkflowPendingApply,\n',
-    1,
-)
-index_path.write_text(index)

@@ -58,6 +58,8 @@ const legacyExportPath = 'packages/legacy-zeroomega/src/export.ts';
 const chromiumE2ePath = 'scripts/e2e-chromium.mjs';
 const originalBackupProvenancePath =
   'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json';
+const pacProfileEditorPath = 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte';
+const pacSourceUpdatePath = 'packages/profile-workflow/src/pac-source-update.ts';
 const independentRuleListEditorPath =
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte';
 
@@ -168,6 +170,8 @@ const [
   chromiumE2e,
   originalBackupProvenance,
   independentRuleListEditor,
+  pacProfileEditor,
+  pacSourceUpdate,
 ] = await Promise.all([
   readFile(nativeInspectE2ePath, 'utf8'),
   readFile(browserE2eWorkflowPath, 'utf8'),
@@ -175,6 +179,8 @@ const [
   readFile(chromiumE2ePath, 'utf8'),
   readFile(originalBackupProvenancePath, 'utf8'),
   readFile(independentRuleListEditorPath, 'utf8'),
+  readFile(pacProfileEditorPath, 'utf8'),
+  readFile(pacSourceUpdatePath, 'utf8'),
 ]);
 
 const requirements = [
@@ -355,6 +361,25 @@ const requirements = [
       chromiumE2e.includes('data-independent-rule-source-update-now') &&
       chromiumE2e.includes("getByRole('button', { name: 'Clear Rule List URL' })"),
     'Independent Rule List profiles must use the original Config/URL/Text page, presence-of-URL mode switching, existing bounded downloader/status path, read-only downloaded text, and real Chromium interaction coverage.',
+  ],
+  [
+    optionsApp.includes("import PacProfileEditor from './PacProfileEditor.svelte'") &&
+      optionsApp.includes("action: 'get-pac-source-update-status'") &&
+      optionsApp.includes("action: 'update-pac-source'") &&
+      pacProfileEditor.includes('data-pac-profile-editor') &&
+      pacProfileEditor.includes('data-pac-url-section') &&
+      pacProfileEditor.includes('data-pac-request-headers') &&
+      pacProfileEditor.includes('data-pac-source-update-now') &&
+      pacProfileEditor.includes('data-pac-script-section') &&
+      pacProfileEditor.includes("readonly={profile.source.kind === 'url'}") &&
+      pacProfileEditor.includes('data-pac-file-warning') &&
+      pacSourceUpdate.includes('PAC_UPDATE_KEY_PREFIX') &&
+      pacSourceUpdate.includes('target.source.script = downloaded.content') &&
+      chromiumE2e.includes('data-pac-source-update-now') &&
+      chromiumE2e.includes("name: 'Clear PAC URL'") &&
+      legacyImportImplementation.includes('pac.downloaded-cache-preserved') &&
+      legacyExport.includes('profile.source.script !== undefined'),
+    'PAC URL sources must preserve imported/downloaded cache, use bounded background update records and headers, render original URL/script/file-warning state, and retain Clear URL → inline semantics with Chromium coverage.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),

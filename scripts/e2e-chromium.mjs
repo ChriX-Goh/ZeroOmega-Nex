@@ -30,11 +30,20 @@ setInterval(() => void claim(), 250);
 `,
 );
 let remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
+let remotePacText = "function FindProxyForURL(url, host) { return 'DIRECT'; }\n";
 let receivedRuleHeader = '';
 let ruleRequestCount = 0;
 const ruleServer = createServer((request, response) => {
   if (request.url?.startsWith('/diagnostic-error')) {
     request.socket.destroy();
+    return;
+  }
+  if (request.url?.startsWith('/proxy.pac')) {
+    response.writeHead(200, {
+      'content-type': 'application/x-ns-proxy-autoconfig; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(remotePacText);
     return;
   }
   ruleRequestCount += 1;
@@ -53,6 +62,7 @@ const ruleAddress = ruleServer.address();
 if (!ruleAddress || typeof ruleAddress === 'string')
   throw new Error('Rule List test server failed');
 const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
+const remotePacUrl = `http://127.0.0.1:${ruleAddress.port}/proxy.pac`;
 let context;
 let conflictContext;
 
@@ -313,6 +323,35 @@ try {
   );
   await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
+
+  await options.getByRole('button', { name: 'pac', exact: true }).click();
+  const pacEditor = options.locator('[data-pac-profile-editor]');
+  await pacEditor.waitFor({ state: 'visible', timeout: 20_000 });
+  const pacUrl = pacEditor.getByRole('textbox', { name: 'PAC URL', exact: true });
+  await pacUrl.fill(remotePacUrl);
+  await pacUrl.press('Tab');
+  const pacDownload = pacEditor.locator('[data-pac-source-update-now]');
+  await assertEventually(
+    async () => !(await pacDownload.isDisabled()),
+    'PAC download button remained disabled after saving the URL',
+  );
+  await pacDownload.click();
+  await pacEditor
+    .locator('[data-pac-source-update-status]')
+    .filter({ hasText: 'Last updated' })
+    .waitFor({ timeout: 20_000 });
+  const pacScript = pacEditor.getByLabel('PAC Script', { exact: true });
+  assert.equal(await pacScript.inputValue(), remotePacText);
+  assert.equal(await pacScript.isEditable(), false);
+  await pacEditor.getByRole('button', { name: 'Clear PAC URL', exact: true }).click();
+  await assertEventually(
+    async () => (await pacScript.isEditable()) && (await pacScript.inputValue()) === remotePacText,
+    'Clearing PAC URL did not preserve the downloaded script as editable inline text',
+  );
+  await pacScript.fill(
+    "function FindProxyForURL(url, host) { return 'PROXY proxy.invalid:8080'; }\n",
+  );
+  await pacScript.press('Tab');
 
   await options.getByRole('button', { name: 'rule-switchy', exact: true }).click();
   const independentRuleEditor = options.locator('[data-rule-list-profile-editor]');

@@ -3,6 +3,7 @@ import {
   createAttachedRuleListDraft,
   createDefaultProfileSpec,
   createFixedProfileDraft,
+  createPacProfileDraft,
   createRuleListProfileDraft,
   createSwitchProfileDraft,
   createVirtualProfileDraft,
@@ -13,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 
 import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte';
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
+import PacProfileEditor from './entrypoints/options/PacProfileEditor.svelte';
 import RuleListProfileEditor from './entrypoints/options/RuleListProfileEditor.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
@@ -201,6 +203,42 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('cached independent rules');
     expect(body).not.toContain('Source name');
     expect(body).not.toContain('Update interval (minutes)');
+  });
+
+  it('renders the original PAC URL, headers, download status, and read-only cache sections', () => {
+    const mutation = createPacProfileDraft(baseSpec(), idFactory(), 'PAC component');
+    const profile = mutation.draft.profiles.find(
+      (candidate) => candidate.id === mutation.profileId,
+    );
+    if (!profile || profile.kind !== 'pac') throw new Error('PAC profile was not created');
+    profile.source = {
+      kind: 'url',
+      url: 'https://pac.example.invalid/proxy.pac',
+      script: "function FindProxyForURL() { return 'DIRECT'; }",
+    };
+    profile.headers = [
+      { name: 'X-Component', value: { kind: 'literal', value: 'component-value' } },
+    ];
+    const { body } = render(PacProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+      },
+    });
+
+    expect(body).toContain('data-pac-profile-editor');
+    expect(body).toContain('data-pac-url-section');
+    expect(body).toContain('aria-label="PAC URL"');
+    expect(body).toContain('data-pac-request-headers');
+    expect(body).toContain('PAC header 1 name');
+    expect(body).toContain('data-pac-source-update-now');
+    expect(body).toContain('data-pac-source-update-status');
+    expect(body).toContain('data-pac-script-section');
+    expect(body).toContain('aria-label="PAC Script"');
+    expect(body).toContain('readonly');
+    expect(body).toContain("function FindProxyForURL() { return 'DIRECT'; }");
   });
 
   it('renders the inactive legacy import review entry point without secret values', () => {

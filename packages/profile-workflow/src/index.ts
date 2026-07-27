@@ -32,6 +32,7 @@ export {
   type ProfileWorkflowApplyContext,
   type ProfileWorkflowApplyRecord,
   type ProfileWorkflowApplyResult,
+  type ProfileWorkflowPacSourceUpdateView,
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
   type ProfileWorkflowRevisionHistoryEntry,
@@ -124,6 +125,13 @@ export {
   type ProfileWorkflowRuleSourceUpdateResult,
   type ProfileWorkflowRuleSourceUpdateService,
 } from './rule-source-update.js';
+export {
+  inspectProfileWorkflowPacSourceUpdate,
+  listDueProfileWorkflowPacSourceUpdates,
+  updateProfileWorkflowPacSource,
+  type ProfileWorkflowPacSourceUpdateResult,
+  type ProfileWorkflowPacSourceUpdateService,
+} from './pac-source-update.js';
 export { listProfileWorkflowRevisionHistory } from './revision-history.js';
 export {
   rollbackProfileWorkflowSnapshot,

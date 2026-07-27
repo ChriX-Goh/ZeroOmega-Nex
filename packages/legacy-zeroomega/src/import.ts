@@ -1028,7 +1028,11 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
   const pacScript = stringValue(raw.pacScript);
   let source: PacProfile['source'];
   if (pacUrl) {
-    source = { kind: 'url', url: pacUrl };
+    source = {
+      kind: 'url',
+      url: pacUrl,
+      ...(pacScript === undefined ? {} : { script: pacScript }),
+    };
     state.report.add(
       'exact',
       'pac.url-mapped',
@@ -1037,10 +1041,10 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     );
     if (pacScript !== undefined) {
       state.report.add(
-        'ignored-generated',
-        'pac.cache-omitted',
+        'exact',
+        'pac.downloaded-cache-preserved',
         `${descriptor.path}/pacScript`,
-        'Downloaded PAC cache was omitted and will be refreshed.',
+        'Downloaded PAC script was preserved for offline use and review.',
       );
     }
   } else if (pacScript) {

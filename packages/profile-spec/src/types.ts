@@ -124,7 +124,9 @@ export interface RuleListProfile extends ProfileBase {
   defaultRoute: ProfileRouteTarget;
 }
 
-export type PacSource = { kind: 'inline'; script: string } | { kind: 'url'; url: string };
+export type PacSource =
+  | { kind: 'inline'; script: string }
+  | { kind: 'url'; url: string; script?: string };
 
 export interface PacProfile extends ProfileBase {
   kind: 'pac';
