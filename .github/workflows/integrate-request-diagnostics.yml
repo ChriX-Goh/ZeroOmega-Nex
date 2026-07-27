@@ -1,4 +1,5 @@
 name: Integrate bounded request diagnostics
+# Integration attempt 14: preserve scheduler guard and exercise pregranted diagnostics permissions.
 
 on:
   pull_request:
