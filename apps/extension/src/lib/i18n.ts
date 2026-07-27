@@ -111,6 +111,59 @@ const translations: Readonly<Record<string, TranslationPair>> = {
     'zh-CN': '情景模式名称不能以下划线开头。',
     'zh-TW': '情景模式名稱不能以下劃線開頭。',
   },
+  'request errors': { 'zh-CN': '个请求错误', 'zh-TW': '個請求錯誤' },
+  'Allow bounded request diagnostics': {
+    'zh-CN': '允许有界请求诊断',
+    'zh-TW': '允許有界請求診斷',
+  },
+  'Monitoring starts only from the diagnostics page for this browser session. Headers, bodies, cookies, credentials, query strings, and response content are never collected.':
+    {
+      'zh-CN':
+        '只有从诊断页明确启动后，才会在当前浏览器会话中监控。不会收集请求头、正文、Cookie、凭据、查询参数或响应内容。',
+      'zh-TW':
+        '只有從診斷頁明確啟動後，才會在目前瀏覽器工作階段中監控。不會收集請求標頭、本文、Cookie、憑證、查詢參數或回應內容。',
+    },
+  'Browser permission granted.': { 'zh-CN': '浏览器权限已授予。', 'zh-TW': '瀏覽器權限已授予。' },
+  'Open request diagnostics': { 'zh-CN': '打开请求诊断', 'zh-TW': '開啟請求診斷' },
+  'Start monitoring': { 'zh-CN': '开始监控', 'zh-TW': '開始監控' },
+  'Stop monitoring': { 'zh-CN': '停止监控', 'zh-TW': '停止監控' },
+  'Monitoring is stopped for this browser session.': {
+    'zh-CN': '当前浏览器会话的监控已停止。',
+    'zh-TW': '目前瀏覽器工作階段的監控已停止。',
+  },
+  'Permission will be requested when monitoring starts.': {
+    'zh-CN': '开始监控时才会请求权限。',
+    'zh-TW': '開始監控時才會要求權限。',
+  },
+  'Request monitoring permission was not granted.': {
+    'zh-CN': '未授予请求监控权限。',
+    'zh-TW': '未授予請求監控權限。',
+  },
+  'Inspect requests': { 'zh-CN': '检查请求', 'zh-TW': '檢查請求' },
+  'Request diagnostics': { 'zh-CN': '请求诊断', 'zh-TW': '請求診斷' },
+  'Failed and timed-out requests for this browser session.': {
+    'zh-CN': '当前浏览器会话内失败和超时的请求。',
+    'zh-TW': '目前瀏覽器工作階段內失敗和逾時的請求。',
+  },
+  'No request errors recorded.': {
+    'zh-CN': '没有记录到请求错误。',
+    'zh-TW': '沒有記錄到請求錯誤。',
+  },
+  'Clear diagnostics': { 'zh-CN': '清除诊断', 'zh-TW': '清除診斷' },
+  Refresh: { 'zh-CN': '刷新', 'zh-TW': '重新整理' },
+  'Permission required': { 'zh-CN': '需要权限', 'zh-TW': '需要權限' },
+  'Grant monitoring permission': { 'zh-CN': '授予监控权限', 'zh-TW': '授予監控權限' },
+  'Monitoring is disabled in Options.': {
+    'zh-CN': '请求监控已在选项中关闭。',
+    'zh-TW': '請求監控已在選項中關閉。',
+  },
+  Status: { 'zh-CN': '状态', 'zh-TW': '狀態' },
+  Time: { 'zh-CN': '时间', 'zh-TW': '時間' },
+  Type: { 'zh-CN': '类型', 'zh-TW': '類型' },
+  URL: { 'zh-CN': '网址', 'zh-TW': '網址' },
+  Error: { 'zh-CN': '错误', 'zh-TW': '錯誤' },
+  'Timed out': { 'zh-CN': '超时', 'zh-TW': '逾時' },
+  Failed: { 'zh-CN': '失败', 'zh-TW': '失敗' },
   'A profile with this name already exists.': {
     'zh-CN': '已存在同名情景模式。',
     'zh-TW': '已存在同名情景模式。',

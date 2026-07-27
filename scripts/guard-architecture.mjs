@@ -23,7 +23,9 @@ const architectureForbidden = [
   },
   {
     expression: /on(?:Completed|ErrorOccurred)\??\.addListener/u,
-    reason: 'proxy authentication must not add persistent request completion monitoring',
+    allowedPaths: ['apps/extension/src/lib/request-diagnostics-runtime.ts'],
+    reason:
+      'completion/error listeners are prohibited outside the explicit bounded request-diagnostics runtime',
   },
   {
     expression: /["']<all_urls>["']/u,
@@ -93,9 +95,10 @@ async function scan(paths, rules, scope) {
   }
   for (const file of files) {
     const source = await readFile(file, 'utf8');
+    const repositoryPath = relative(repositoryRoot.pathname, file);
     for (const rule of rules) {
-      if (rule.expression.test(source)) {
-        violations.push(`${relative(repositoryRoot.pathname, file)} [${scope}]: ${rule.reason}`);
+      if (rule.expression.test(source) && !(rule.allowedPaths ?? []).includes(repositoryPath)) {
+        violations.push(`${repositoryPath} [${scope}]: ${rule.reason}`);
       }
     }
   }
@@ -109,6 +112,41 @@ const architecture = await scan(
 );
 const ui = await scan(uiGuardedPaths, uiForbidden, 'UI/background boundary');
 const violations = [...architecture.violations, ...ui.violations];
+const diagnosticsPath = new URL(
+  'apps/extension/src/lib/request-diagnostics-runtime.ts',
+  repositoryRoot,
+);
+try {
+  const diagnostics = await readFile(diagnosticsPath, 'utf8');
+  const required = [
+    'storage.session',
+    'REQUEST_DIAGNOSTICS_ACTIVE_GLOBAL_LIMIT',
+    'REQUEST_DIAGNOSTICS_ACTIVE_PER_TAB_LIMIT',
+    "urls: ['http://*/*', 'https://*/*']",
+    "message.action === 'start'",
+    "message.action === 'stop'",
+  ];
+  const forbidden = [
+    '<all_urls>',
+    'requestHeaders',
+    'requestBody',
+    'responseBody',
+    'cookieStoreId',
+  ];
+  if (!required.every((entry) => diagnostics.includes(entry))) {
+    violations.push(
+      'apps/extension/src/lib/request-diagnostics-runtime.ts [bounded diagnostics]: session-only activation, listener, or active-request bounds are missing',
+    );
+  }
+  if (forbidden.some((entry) => diagnostics.includes(entry))) {
+    violations.push(
+      'apps/extension/src/lib/request-diagnostics-runtime.ts [bounded diagnostics]: forbidden payload or all-host capture surface detected',
+    );
+  }
+} catch (error) {
+  if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'))
+    throw error;
+}
 
 if (violations.length > 0) {
   console.error('Architecture guard failed:\n' + violations.map((item) => `- ${item}`).join('\n'));

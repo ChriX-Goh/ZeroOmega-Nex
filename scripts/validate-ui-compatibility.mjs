@@ -48,6 +48,9 @@ const profileSpecValidationPath = 'packages/profile-spec/src/validation.ts';
 const profileSpecSerializationPath = 'packages/profile-spec/src/serialization.ts';
 const workflowStatePath = 'packages/profile-workflow/src/state.ts';
 const storageRepositoryPath = 'packages/profile-workflow/src/storage-repository.ts';
+const requestDiagnosticsModelPath = 'apps/extension/src/lib/request-diagnostics-model.ts';
+const requestDiagnosticsRuntimePath = 'apps/extension/src/lib/request-diagnostics-runtime.ts';
+const requestDiagnosticsPagePath = 'apps/extension/src/entrypoints/network/App.svelte';
 
 const [
   popupApp,
@@ -94,6 +97,9 @@ const [
   profileSpecSerialization,
   workflowState,
   storageRepository,
+  requestDiagnosticsModel,
+  requestDiagnosticsRuntime,
+  requestDiagnosticsPage,
 ] = await Promise.all([
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
@@ -139,6 +145,9 @@ const [
   readFile(profileSpecSerializationPath, 'utf8'),
   readFile(workflowStatePath, 'utf8'),
   readFile(storageRepositoryPath, 'utf8'),
+  readFile(requestDiagnosticsModelPath, 'utf8'),
+  readFile(requestDiagnosticsRuntimePath, 'utf8'),
+  readFile(requestDiagnosticsPagePath, 'utf8'),
 ]);
 
 const requirements = [
@@ -241,6 +250,22 @@ const requirements = [
       popupCondition.includes('profile.targetRoute = structuredClone(route)') &&
       popupCondition.includes('listPopupProfileResultRoutes'),
     'Popup must display and change valid Switch/Virtual result routes through the verified background transaction.',
+  ],
+  [
+    popupApp.includes('data-popup-request-diagnostics') &&
+      popupApp.includes("action: 'summary'") &&
+      requestDiagnosticsModel.includes('REQUEST_DIAGNOSTICS_PER_TAB_LIMIT') &&
+      requestDiagnosticsModel.includes('REQUEST_DIAGNOSTICS_GLOBAL_LIMIT') &&
+      requestDiagnosticsModel.includes("url.search = ''") &&
+      requestDiagnosticsModel.includes("url.hash = ''") &&
+      requestDiagnosticsRuntime.includes('new RequestDiagnosticsRepository(api.storage.session)') &&
+      requestDiagnosticsRuntime.includes("message.action === 'start'") &&
+      requestDiagnosticsRuntime.includes("message.action === 'stop'") &&
+      requestDiagnosticsPage.includes('data-request-diagnostics-start') &&
+      requestDiagnosticsPage.includes('data-request-diagnostics-stop') &&
+      requestDiagnosticsPage.includes('<code>{record.url}</code>') &&
+      !requestDiagnosticsPage.includes('<a href={record.url}'),
+    'Request diagnostics must be explicit browser-session monitoring with bounded session storage, summary-only Popup data, sanitized URLs, and a non-navigating inspection page.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),
@@ -388,7 +413,10 @@ const requirements = [
     'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
   ],
   [
-    manifest.includes("permissions: ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus']") &&
+    ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus'].every((permission) =>
+      manifest.includes(`'${permission}'`),
+    ) &&
+      manifest.includes("...(diagnosticsE2e ? ['webRequest'] : [])") &&
       runtime.includes('registerRuleSourceScheduler') &&
       ruleSourceScheduler.includes(
         "RULE_SOURCE_UPDATE_ALARM_NAME = 'zeroomega-nex/rule-source-update-scan'",

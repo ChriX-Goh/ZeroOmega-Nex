@@ -100,7 +100,7 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Reason:** Permanent monitoring creates performance, privacy, and memory costs.
 
-**Consequence:** Diagnostics use time/entry limits, ring buffers, and privacy-preserving defaults.
+**Consequence:** Diagnostics use time/entry limits, ring buffers, and privacy-preserving defaults. A persistent preference may expose the feature, but listeners start only after an explicit browser-session action and stop on session end, disablement, permission revocation, or browser restart. Records use session storage, strip URL credentials/query/fragment, exclude headers/bodies/cookies/response content, and expose only aggregate summaries to Popup.
 
 ## ADR-011 — Browser differences remain explicit
 

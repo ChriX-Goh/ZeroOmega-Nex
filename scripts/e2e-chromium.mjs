@@ -33,6 +33,10 @@ let remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
 let receivedRuleHeader = '';
 let ruleRequestCount = 0;
 const ruleServer = createServer((request, response) => {
+  if (request.url?.startsWith('/diagnostic-error')) {
+    request.socket.destroy();
+    return;
+  }
   ruleRequestCount += 1;
   receivedRuleHeader = String(request.headers['x-e2e'] ?? '');
   response.writeHead(200, {
@@ -386,6 +390,42 @@ try {
     );
   }, 'Deleting the final temporary rule did not restore the underlying route');
   await temporaryManager.close();
+
+  const diagnosticsPage = await context.newPage();
+  await diagnosticsPage.goto(
+    `chrome-extension://${extensionId}/network.html?tabId=${currentSiteTabId}`,
+  );
+  const diagnosticsStart = diagnosticsPage.locator('[data-request-diagnostics-start]');
+  await diagnosticsStart.waitFor({ state: 'visible', timeout: 20_000 });
+  await diagnosticsStart.click();
+  await assertEventually(
+    async () => (await diagnosticsPage.locator('[data-request-diagnostics-stop]').count()) === 1,
+    'Request diagnostics did not start after the explicit user gesture',
+  );
+  await currentSitePage.goto(`http://127.0.0.1:${ruleAddress.port}/diagnostic-page`);
+  const diagnosticErrorUrl = `http://127.0.0.1:${ruleAddress.port}/diagnostic-error?token=private#fragment`;
+  await currentSitePage.evaluate(async (url) => {
+    await fetch(url).catch(() => undefined);
+  }, diagnosticErrorUrl);
+  const diagnosticsTable = diagnosticsPage.locator('[data-request-diagnostics-table]');
+  await diagnosticsTable.waitFor({ state: 'visible', timeout: 20_000 });
+  const diagnosticsText = await diagnosticsTable.innerText();
+  assert.match(diagnosticsText, /diagnostic-error/u);
+  assert.doesNotMatch(diagnosticsText, /token=private|fragment/u);
+  const diagnosticsPopup = await context.newPage();
+  await diagnosticsPopup.goto(
+    `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
+  );
+  const diagnosticsSummary = diagnosticsPopup.locator('[data-popup-request-diagnostics]');
+  await diagnosticsSummary.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await diagnosticsSummary.innerText(), /请求错误/u);
+  await diagnosticsPopup.close();
+  await diagnosticsPage.locator('[data-request-diagnostics-clear]').click();
+  await diagnosticsPage.getByText('没有记录到请求错误。').waitFor({ timeout: 20_000 });
+  await diagnosticsPage.locator('[data-request-diagnostics-stop]').click();
+  await diagnosticsPage.locator('[data-request-diagnostics-stopped]').waitFor();
+  await diagnosticsPage.close();
+
   await currentSitePage.close();
   await options.bringToFront();
 

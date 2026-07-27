@@ -30,12 +30,18 @@ import {
   registerProxyOwnershipRuntime,
   type RegisteredProxyOwnershipRuntime,
 } from '../lib/proxy-ownership-runtime';
+import {
+  currentRequestDiagnosticsRuntimeApi,
+  registerRequestDiagnosticsRuntime,
+  type RegisteredRequestDiagnosticsRuntime,
+} from '../lib/request-diagnostics-runtime';
 
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
 let inspectRuntime: RegisteredInspectRuntime | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
+let requestDiagnosticsRuntime: RegisteredRequestDiagnosticsRuntime | undefined;
 
 async function restoreProxyRuntime(
   manager: ProxyAuthenticationRuntimeManager,
@@ -84,6 +90,7 @@ export default defineBackground(() => {
   );
 
   inspectRuntime?.dispose();
+  requestDiagnosticsRuntime?.dispose();
   proxyOwnershipRuntime?.dispose();
   popupTemporaryRuleRuntime?.dispose();
   profileWorkflowRuntime?.dispose();
@@ -107,6 +114,9 @@ export default defineBackground(() => {
     ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
     : undefined;
   proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
+  requestDiagnosticsRuntime = registerRequestDiagnosticsRuntime(
+    currentRequestDiagnosticsRuntimeApi(),
+  );
   inspectRuntime = registerInspectRuntime(currentInspectRuntimeApi());
 
   void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(

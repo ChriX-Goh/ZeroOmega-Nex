@@ -1252,10 +1252,10 @@ function mapSettings(
   }
   if (options['-monitorWebRequests'] !== undefined) {
     state.report.add(
-      'downgraded',
-      'settings.monitor-disabled',
+      'exact',
+      'settings.monitor-web-requests-mapped',
       '/-monitorWebRequests',
-      'Permanent request monitoring was not imported; diagnostics remain opt-in and bounded.',
+      'The request-monitoring preference was mapped; browser permission remains an explicit user grant.',
     );
   }
 
@@ -1300,6 +1300,7 @@ function mapSettings(
       interface: {
         confirmDeletion: legacyBoolean(options['-confirmDeletion'], true),
         showInspectMenu: legacyBoolean(options['-showInspectMenu'], true),
+        monitorWebRequests: legacyBoolean(options['-monitorWebRequests'], true),
         addConditionsToBottom: legacyBoolean(options['-addConditionsToBottom'], false),
         showResultProfileOnActionBadgeText: legacyBoolean(
           options['-showResultProfileOnActionBadgeText'],

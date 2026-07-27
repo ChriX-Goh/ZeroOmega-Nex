@@ -40,6 +40,11 @@
     sendPopupTemporaryRuleCommand,
     type PopupTemporaryRuleCommandResponse,
   } from '../../lib/popup-temporary-rule-client';
+  import {
+    sendRequestDiagnosticsCommand,
+    type RequestDiagnosticsCommandResponse,
+  } from '../../lib/request-diagnostics-client';
+  import type { RequestDiagnosticsView } from '../../lib/request-diagnostics-model';
   import { applyThemeMode, readThemeMode } from '../../lib/ui-theme';
 
   interface QuickSwitchItem {
@@ -75,6 +80,7 @@
   let inspectingContextTarget = false;
   let temporaryRuleView: PopupTemporaryRuleView | undefined;
   let proxyOwnership: ProxyOwnershipView | undefined;
+  let requestDiagnostics: RequestDiagnosticsView | undefined;
   let loading = true;
   let switching = false;
   let addingCondition = false;
@@ -82,6 +88,7 @@
   let settingTemporaryRule = false;
   let openingSettings = false;
   let openingTemporaryRules = false;
+  let openingRequestDiagnostics = false;
   let openingExtensionManager = false;
   let importingExternalProfile = false;
   let externalProfileFormOpen = false;
@@ -366,6 +373,36 @@
     window.close();
   }
 
+  function acceptRequestDiagnosticsResponse(response: RequestDiagnosticsCommandResponse): boolean {
+    if (response.ok) {
+      requestDiagnostics = response.view;
+      return true;
+    }
+    errorMessage = response.message;
+    return false;
+  }
+
+  async function loadRequestDiagnostics(): Promise<void> {
+    if (currentSite?.tabId === undefined) return;
+    acceptRequestDiagnosticsResponse(
+      await sendRequestDiagnosticsCommand({ action: 'summary', tabId: currentSite.tabId }),
+    );
+  }
+
+  async function openRequestDiagnostics(): Promise<void> {
+    if (currentSite?.tabId === undefined || openingRequestDiagnostics) return;
+    openingRequestDiagnostics = true;
+    try {
+      await browser.tabs.create({
+        url: new URL(`/network.html?tabId=${currentSite.tabId}`, location.href).href,
+      });
+      window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+      openingRequestDiagnostics = false;
+    }
+  }
+
   async function loadCurrentSite(): Promise<void> {
     const requested = new URLSearchParams(window.location.search).get('activeTabId');
     const explicitTabId = requested && /^\d+$/u.test(requested) ? Number(requested) : undefined;
@@ -390,6 +427,7 @@
         loadTemporaryRules(),
         loadProxyOwnership(),
       ]);
+      await loadRequestDiagnostics();
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
@@ -723,6 +761,31 @@
     <section class="inspect-target" data-popup-inspect-target aria-live="polite">
       <strong>Inspecting context target</strong>
       <span>{currentSite.hostname}</span>
+    </section>
+  {/if}
+
+  {#if !loading && !proxyOwnership?.blocked && currentSite && requestDiagnostics?.active && requestDiagnostics.errorCount + requestDiagnostics.timeoutCount > 0}
+    <section class="request-diagnostics-summary" data-popup-request-diagnostics>
+      <div>
+        <strong>
+          {requestDiagnostics.errorCount + requestDiagnostics.timeoutCount}
+          {translate('request errors')}
+        </strong>
+        <span>
+          {requestDiagnostics.domains
+            .slice(0, 3)
+            .map((entry) => `${entry.domain} (${entry.count})`)
+            .join(', ')}
+        </span>
+      </div>
+      <button
+        type="button"
+        data-popup-open-request-diagnostics
+        disabled={openingRequestDiagnostics}
+        onclick={() => void openRequestDiagnostics()}
+      >
+        {translate('Inspect requests')}
+      </button>
     </section>
   {/if}
 

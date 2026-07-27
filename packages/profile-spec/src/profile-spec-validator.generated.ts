@@ -489,6 +489,7 @@ const schema31 = {
           properties: {
             confirmDeletion: { type: 'boolean' },
             showInspectMenu: { type: 'boolean' },
+            monitorWebRequests: { type: 'boolean' },
             addConditionsToBottom: { type: 'boolean' },
             showResultProfileOnActionBadgeText: { type: 'boolean' },
             showExternalProfile: { type: 'boolean' },
@@ -8700,6 +8701,7 @@ const schema75 = {
       properties: {
         confirmDeletion: { type: 'boolean' },
         showInspectMenu: { type: 'boolean' },
+        monitorWebRequests: { type: 'boolean' },
         addConditionsToBottom: { type: 'boolean' },
         showResultProfileOnActionBadgeText: { type: 'boolean' },
         showExternalProfile: { type: 'boolean' },
@@ -9372,18 +9374,7 @@ function validate66(
           errors++;
         }
         for (const key3 in data8) {
-          if (
-            !(
-              key3 === 'confirmDeletion' ||
-              key3 === 'showInspectMenu' ||
-              key3 === 'addConditionsToBottom' ||
-              key3 === 'showResultProfileOnActionBadgeText' ||
-              key3 === 'showExternalProfile' ||
-              key3 === 'showAdvancedConditions' ||
-              key3 === 'exportLegacyRuleList' ||
-              key3 === 'builtInProfiles'
-            )
-          ) {
+          if (!func9.call(schema75.properties.interface.properties, key3)) {
             const err24 = {
               instancePath: instancePath + '/interface',
               schemaPath: '#/properties/interface/additionalProperties',
@@ -9433,11 +9424,11 @@ function validate66(
             errors++;
           }
         }
-        if (data8.addConditionsToBottom !== undefined) {
-          if (typeof data8.addConditionsToBottom !== 'boolean') {
+        if (data8.monitorWebRequests !== undefined) {
+          if (typeof data8.monitorWebRequests !== 'boolean') {
             const err27 = {
-              instancePath: instancePath + '/interface/addConditionsToBottom',
-              schemaPath: '#/properties/interface/properties/addConditionsToBottom/type',
+              instancePath: instancePath + '/interface/monitorWebRequests',
+              schemaPath: '#/properties/interface/properties/monitorWebRequests/type',
               keyword: 'type',
               params: { type: 'boolean' },
               message: 'must be boolean',
@@ -9450,12 +9441,11 @@ function validate66(
             errors++;
           }
         }
-        if (data8.showResultProfileOnActionBadgeText !== undefined) {
-          if (typeof data8.showResultProfileOnActionBadgeText !== 'boolean') {
+        if (data8.addConditionsToBottom !== undefined) {
+          if (typeof data8.addConditionsToBottom !== 'boolean') {
             const err28 = {
-              instancePath: instancePath + '/interface/showResultProfileOnActionBadgeText',
-              schemaPath:
-                '#/properties/interface/properties/showResultProfileOnActionBadgeText/type',
+              instancePath: instancePath + '/interface/addConditionsToBottom',
+              schemaPath: '#/properties/interface/properties/addConditionsToBottom/type',
               keyword: 'type',
               params: { type: 'boolean' },
               message: 'must be boolean',
@@ -9468,11 +9458,12 @@ function validate66(
             errors++;
           }
         }
-        if (data8.showExternalProfile !== undefined) {
-          if (typeof data8.showExternalProfile !== 'boolean') {
+        if (data8.showResultProfileOnActionBadgeText !== undefined) {
+          if (typeof data8.showResultProfileOnActionBadgeText !== 'boolean') {
             const err29 = {
-              instancePath: instancePath + '/interface/showExternalProfile',
-              schemaPath: '#/properties/interface/properties/showExternalProfile/type',
+              instancePath: instancePath + '/interface/showResultProfileOnActionBadgeText',
+              schemaPath:
+                '#/properties/interface/properties/showResultProfileOnActionBadgeText/type',
               keyword: 'type',
               params: { type: 'boolean' },
               message: 'must be boolean',
@@ -9485,11 +9476,11 @@ function validate66(
             errors++;
           }
         }
-        if (data8.showAdvancedConditions !== undefined) {
-          if (typeof data8.showAdvancedConditions !== 'boolean') {
+        if (data8.showExternalProfile !== undefined) {
+          if (typeof data8.showExternalProfile !== 'boolean') {
             const err30 = {
-              instancePath: instancePath + '/interface/showAdvancedConditions',
-              schemaPath: '#/properties/interface/properties/showAdvancedConditions/type',
+              instancePath: instancePath + '/interface/showExternalProfile',
+              schemaPath: '#/properties/interface/properties/showExternalProfile/type',
               keyword: 'type',
               params: { type: 'boolean' },
               message: 'must be boolean',
@@ -9502,11 +9493,11 @@ function validate66(
             errors++;
           }
         }
-        if (data8.exportLegacyRuleList !== undefined) {
-          if (typeof data8.exportLegacyRuleList !== 'boolean') {
+        if (data8.showAdvancedConditions !== undefined) {
+          if (typeof data8.showAdvancedConditions !== 'boolean') {
             const err31 = {
-              instancePath: instancePath + '/interface/exportLegacyRuleList',
-              schemaPath: '#/properties/interface/properties/exportLegacyRuleList/type',
+              instancePath: instancePath + '/interface/showAdvancedConditions',
+              schemaPath: '#/properties/interface/properties/showAdvancedConditions/type',
               keyword: 'type',
               params: { type: 'boolean' },
               message: 'must be boolean',
@@ -9515,6 +9506,23 @@ function validate66(
               vErrors = [err31];
             } else {
               vErrors.push(err31);
+            }
+            errors++;
+          }
+        }
+        if (data8.exportLegacyRuleList !== undefined) {
+          if (typeof data8.exportLegacyRuleList !== 'boolean') {
+            const err32 = {
+              instancePath: instancePath + '/interface/exportLegacyRuleList',
+              schemaPath: '#/properties/interface/properties/exportLegacyRuleList/type',
+              keyword: 'type',
+              params: { type: 'boolean' },
+              message: 'must be boolean',
+            };
+            if (vErrors === null) {
+              vErrors = [err32];
+            } else {
+              vErrors.push(err32);
             }
             errors++;
           }
@@ -9534,30 +9542,12 @@ function validate66(
           }
         }
       } else {
-        const err32 = {
+        const err33 = {
           instancePath: instancePath + '/interface',
           schemaPath: '#/properties/interface/type',
           keyword: 'type',
           params: { type: 'object' },
           message: 'must be object',
-        };
-        if (vErrors === null) {
-          vErrors = [err32];
-        } else {
-          vErrors.push(err32);
-        }
-        errors++;
-      }
-    }
-    if (data.ruleSourceUpdateIntervalMinutes !== undefined) {
-      let data17 = data.ruleSourceUpdateIntervalMinutes;
-      if (!(typeof data17 == 'number' && !(data17 % 1) && !isNaN(data17) && isFinite(data17))) {
-        const err33 = {
-          instancePath: instancePath + '/ruleSourceUpdateIntervalMinutes',
-          schemaPath: '#/properties/ruleSourceUpdateIntervalMinutes/type',
-          keyword: 'type',
-          params: { type: 'integer' },
-          message: 'must be integer',
         };
         if (vErrors === null) {
           vErrors = [err33];
@@ -9566,34 +9556,32 @@ function validate66(
         }
         errors++;
       }
-      if (typeof data17 == 'number' && isFinite(data17)) {
-        if (data17 < 1 || isNaN(data17)) {
-          const err34 = {
+    }
+    if (data.ruleSourceUpdateIntervalMinutes !== undefined) {
+      let data18 = data.ruleSourceUpdateIntervalMinutes;
+      if (!(typeof data18 == 'number' && !(data18 % 1) && !isNaN(data18) && isFinite(data18))) {
+        const err34 = {
+          instancePath: instancePath + '/ruleSourceUpdateIntervalMinutes',
+          schemaPath: '#/properties/ruleSourceUpdateIntervalMinutes/type',
+          keyword: 'type',
+          params: { type: 'integer' },
+          message: 'must be integer',
+        };
+        if (vErrors === null) {
+          vErrors = [err34];
+        } else {
+          vErrors.push(err34);
+        }
+        errors++;
+      }
+      if (typeof data18 == 'number' && isFinite(data18)) {
+        if (data18 < 1 || isNaN(data18)) {
+          const err35 = {
             instancePath: instancePath + '/ruleSourceUpdateIntervalMinutes',
             schemaPath: '#/properties/ruleSourceUpdateIntervalMinutes/minimum',
             keyword: 'minimum',
             params: { comparison: '>=', limit: 1 },
             message: 'must be >= 1',
-          };
-          if (vErrors === null) {
-            vErrors = [err34];
-          } else {
-            vErrors.push(err34);
-          }
-          errors++;
-        }
-      }
-    }
-    if (data.sync !== undefined) {
-      let data18 = data.sync;
-      if (data18 && typeof data18 == 'object' && !Array.isArray(data18)) {
-        if (data18.backend === undefined) {
-          const err35 = {
-            instancePath: instancePath + '/sync',
-            schemaPath: '#/properties/sync/required',
-            keyword: 'required',
-            params: { missingProperty: 'backend' },
-            message: "must have required property '" + 'backend' + "'",
           };
           if (vErrors === null) {
             vErrors = [err35];
@@ -9602,7 +9590,27 @@ function validate66(
           }
           errors++;
         }
-        for (const key4 in data18) {
+      }
+    }
+    if (data.sync !== undefined) {
+      let data19 = data.sync;
+      if (data19 && typeof data19 == 'object' && !Array.isArray(data19)) {
+        if (data19.backend === undefined) {
+          const err36 = {
+            instancePath: instancePath + '/sync',
+            schemaPath: '#/properties/sync/required',
+            keyword: 'required',
+            params: { missingProperty: 'backend' },
+            message: "must have required property '" + 'backend' + "'",
+          };
+          if (vErrors === null) {
+            vErrors = [err36];
+          } else {
+            vErrors.push(err36);
+          }
+          errors++;
+        }
+        for (const key4 in data19) {
           if (
             !(
               key4 === 'backend' ||
@@ -9611,32 +9619,12 @@ function validate66(
               key4 === 'secretRef'
             )
           ) {
-            const err36 = {
+            const err37 = {
               instancePath: instancePath + '/sync',
               schemaPath: '#/properties/sync/additionalProperties',
               keyword: 'additionalProperties',
               params: { additionalProperty: key4 },
               message: 'must NOT have additional properties',
-            };
-            if (vErrors === null) {
-              vErrors = [err36];
-            } else {
-              vErrors.push(err36);
-            }
-            errors++;
-          }
-        }
-        if (data18.backend !== undefined) {
-          let data19 = data18.backend;
-          if (
-            !(data19 === 'none' || data19 === 'browser' || data19 === 'gist' || data19 === 'webdav')
-          ) {
-            const err37 = {
-              instancePath: instancePath + '/sync/backend',
-              schemaPath: '#/properties/sync/properties/backend/enum',
-              keyword: 'enum',
-              params: { allowedValues: schema75.properties.sync.properties.backend.enum },
-              message: 'must be equal to one of the allowed values',
             };
             if (vErrors === null) {
               vErrors = [err37];
@@ -9646,14 +9634,17 @@ function validate66(
             errors++;
           }
         }
-        if (data18.remoteUri !== undefined) {
-          if (typeof data18.remoteUri !== 'string') {
+        if (data19.backend !== undefined) {
+          let data20 = data19.backend;
+          if (
+            !(data20 === 'none' || data20 === 'browser' || data20 === 'gist' || data20 === 'webdav')
+          ) {
             const err38 = {
-              instancePath: instancePath + '/sync/remoteUri',
-              schemaPath: '#/properties/sync/properties/remoteUri/type',
-              keyword: 'type',
-              params: { type: 'string' },
-              message: 'must be string',
+              instancePath: instancePath + '/sync/backend',
+              schemaPath: '#/properties/sync/properties/backend/enum',
+              keyword: 'enum',
+              params: { allowedValues: schema75.properties.sync.properties.backend.enum },
+              message: 'must be equal to one of the allowed values',
             };
             if (vErrors === null) {
               vErrors = [err38];
@@ -9663,11 +9654,11 @@ function validate66(
             errors++;
           }
         }
-        if (data18.username !== undefined) {
-          if (typeof data18.username !== 'string') {
+        if (data19.remoteUri !== undefined) {
+          if (typeof data19.remoteUri !== 'string') {
             const err39 = {
-              instancePath: instancePath + '/sync/username',
-              schemaPath: '#/properties/sync/properties/username/type',
+              instancePath: instancePath + '/sync/remoteUri',
+              schemaPath: '#/properties/sync/properties/remoteUri/type',
               keyword: 'type',
               params: { type: 'string' },
               message: 'must be string',
@@ -9680,31 +9671,33 @@ function validate66(
             errors++;
           }
         }
-        if (data18.secretRef !== undefined) {
-          let data22 = data18.secretRef;
-          if (typeof data22 === 'string') {
-            if (func1(data22) > 128) {
-              const err40 = {
+        if (data19.username !== undefined) {
+          if (typeof data19.username !== 'string') {
+            const err40 = {
+              instancePath: instancePath + '/sync/username',
+              schemaPath: '#/properties/sync/properties/username/type',
+              keyword: 'type',
+              params: { type: 'string' },
+              message: 'must be string',
+            };
+            if (vErrors === null) {
+              vErrors = [err40];
+            } else {
+              vErrors.push(err40);
+            }
+            errors++;
+          }
+        }
+        if (data19.secretRef !== undefined) {
+          let data23 = data19.secretRef;
+          if (typeof data23 === 'string') {
+            if (func1(data23) > 128) {
+              const err41 = {
                 instancePath: instancePath + '/sync/secretRef',
                 schemaPath: '#/$defs/identifier/maxLength',
                 keyword: 'maxLength',
                 params: { limit: 128 },
                 message: 'must NOT have more than 128 characters',
-              };
-              if (vErrors === null) {
-                vErrors = [err40];
-              } else {
-                vErrors.push(err40);
-              }
-              errors++;
-            }
-            if (func1(data22) < 1) {
-              const err41 = {
-                instancePath: instancePath + '/sync/secretRef',
-                schemaPath: '#/$defs/identifier/minLength',
-                keyword: 'minLength',
-                params: { limit: 1 },
-                message: 'must NOT have fewer than 1 characters',
               };
               if (vErrors === null) {
                 vErrors = [err41];
@@ -9713,13 +9706,13 @@ function validate66(
               }
               errors++;
             }
-            if (!pattern4.test(data22)) {
+            if (func1(data23) < 1) {
               const err42 = {
                 instancePath: instancePath + '/sync/secretRef',
-                schemaPath: '#/$defs/identifier/pattern',
-                keyword: 'pattern',
-                params: { pattern: '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' },
-                message: 'must match pattern "' + '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' + '"',
+                schemaPath: '#/$defs/identifier/minLength',
+                keyword: 'minLength',
+                params: { limit: 1 },
+                message: 'must NOT have fewer than 1 characters',
               };
               if (vErrors === null) {
                 vErrors = [err42];
@@ -9728,8 +9721,23 @@ function validate66(
               }
               errors++;
             }
+            if (!pattern4.test(data23)) {
+              const err43 = {
+                instancePath: instancePath + '/sync/secretRef',
+                schemaPath: '#/$defs/identifier/pattern',
+                keyword: 'pattern',
+                params: { pattern: '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' },
+                message: 'must match pattern "' + '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$' + '"',
+              };
+              if (vErrors === null) {
+                vErrors = [err43];
+              } else {
+                vErrors.push(err43);
+              }
+              errors++;
+            }
           } else {
-            const err43 = {
+            const err44 = {
               instancePath: instancePath + '/sync/secretRef',
               schemaPath: '#/$defs/identifier/type',
               keyword: 'type',
@@ -9737,15 +9745,15 @@ function validate66(
               message: 'must be string',
             };
             if (vErrors === null) {
-              vErrors = [err43];
+              vErrors = [err44];
             } else {
-              vErrors.push(err43);
+              vErrors.push(err44);
             }
             errors++;
           }
         }
       } else {
-        const err44 = {
+        const err45 = {
           instancePath: instancePath + '/sync',
           schemaPath: '#/properties/sync/type',
           keyword: 'type',
@@ -9753,15 +9761,15 @@ function validate66(
           message: 'must be object',
         };
         if (vErrors === null) {
-          vErrors = [err44];
+          vErrors = [err45];
         } else {
-          vErrors.push(err44);
+          vErrors.push(err45);
         }
         errors++;
       }
     }
   } else {
-    const err45 = {
+    const err46 = {
       instancePath,
       schemaPath: '#/type',
       keyword: 'type',
@@ -9769,9 +9777,9 @@ function validate66(
       message: 'must be object',
     };
     if (vErrors === null) {
-      vErrors = [err45];
+      vErrors = [err46];
     } else {
-      vErrors.push(err45);
+      vErrors.push(err46);
     }
     errors++;
   }

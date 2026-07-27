@@ -1,101 +1,16 @@
-from pathlib import Path
-
-
-def replace_once(path: str, old: str, new: str) -> None:
-    target = Path(path)
-    text = target.read_text()
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f'{path}: expected one match, found {count}: {old[:120]!r}')
-    target.write_text(text.replace(old, new))
-
-
-Path('apps/extension/src/lib/request-diagnostics-client.ts').write_text(r'''import { browser } from 'wxt/browser';
-
-import type { RequestDiagnosticsView } from './request-diagnostics-model';
-
-export const REQUEST_DIAGNOSTICS_MESSAGE_CHANNEL =
-  'zeroomega-nex/request-diagnostics/v1' as const;
-export const REQUEST_DIAGNOSTICS_PERMISSION = {
-  permissions: ['webRequest'],
-  origins: ['http://*/*', 'https://*/*'],
-} as const;
-
-export type RequestDiagnosticsCommand =
-  | {
-      readonly channel: typeof REQUEST_DIAGNOSTICS_MESSAGE_CHANNEL;
-      readonly action: 'get';
-      readonly tabId?: number;
-    }
-  | {
-      readonly channel: typeof REQUEST_DIAGNOSTICS_MESSAGE_CHANNEL;
-      readonly action: 'clear';
-      readonly tabId?: number;
-    };
-
-export type RequestDiagnosticsCommandResponse =
-  | { readonly ok: true; readonly view: RequestDiagnosticsView }
-  | { readonly ok: false; readonly message: string };
-
-export function isRequestDiagnosticsCommand(value: unknown): value is RequestDiagnosticsCommand {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const record = value as Record<string, unknown>;
-  return (
-    record.channel === REQUEST_DIAGNOSTICS_MESSAGE_CHANNEL &&
-    (record.action === 'get' || record.action === 'clear') &&
-    (record.tabId === undefined ||
-      (typeof record.tabId === 'number' && Number.isInteger(record.tabId) && record.tabId >= 0))
-  );
-}
-
-function isResponse(value: unknown): value is RequestDiagnosticsCommandResponse {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const record = value as Record<string, unknown>;
-  if (record.ok === false) return typeof record.message === 'string';
-  if (record.ok !== true || record.view === null || typeof record.view !== 'object') return false;
-  const view = record.view as Record<string, unknown>;
-  return (
-    typeof view.enabled === 'boolean' &&
-    typeof view.permissionGranted === 'boolean' &&
-    Array.isArray(view.records) &&
-    typeof view.errorCount === 'number' &&
-    typeof view.timeoutCount === 'number' &&
-    Array.isArray(view.domains)
-  );
-}
-
-export async function sendRequestDiagnosticsCommand(
-  command: Omit<RequestDiagnosticsCommand, 'channel'>,
-): Promise<RequestDiagnosticsCommandResponse> {
-  const response = await browser.runtime.sendMessage({
-    channel: REQUEST_DIAGNOSTICS_MESSAGE_CHANNEL,
-    ...command,
-  });
-  if (!isResponse(response)) {
-    return { ok: false, message: 'request diagnostics runtime returned an invalid response' };
-  }
-  return response;
-}
-
-export async function hasRequestDiagnosticsPermission(): Promise<boolean> {
-  return browser.permissions.contains(REQUEST_DIAGNOSTICS_PERMISSION);
-}
-
-export async function requestRequestDiagnosticsPermission(): Promise<boolean> {
-  return browser.permissions.request(REQUEST_DIAGNOSTICS_PERMISSION);
-}
-''')
-
-Path('apps/extension/src/lib/request-diagnostics-runtime.ts').write_text(r'''import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
+import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
 import { browser } from 'wxt/browser';
 
 import {
+  REQUEST_DIAGNOSTICS_ACTIVE_GLOBAL_LIMIT,
+  REQUEST_DIAGNOSTICS_ACTIVE_PER_TAB_LIMIT,
   REQUEST_DIAGNOSTICS_TIMEOUT_MS,
   clearRequestDiagnostics,
   createRequestDiagnosticsState,
   inspectRequestDiagnostics,
   parseRequestDiagnosticsState,
   removeRequestDiagnostic,
+  setRequestDiagnosticsActive,
   shouldIgnoreRequestError,
   upsertRequestDiagnostic,
   type RequestDiagnosticRecord,
@@ -108,8 +23,8 @@ import {
   type RequestDiagnosticsCommandResponse,
 } from './request-diagnostics-client';
 
-export const REQUEST_DIAGNOSTICS_STORAGE_KEY =
-  'zeroomega-nex/request-diagnostics/v1/state';
+export const REQUEST_DIAGNOSTICS_STORAGE_KEY = 'zeroomega-nex/request-diagnostics/v1/state';
+const PROFILE_WORKFLOW_STATE_KEY = 'zeroomega-nex/profile-workflow/v1/state';
 
 interface StorageArea {
   get(keys: string | readonly string[]): Promise<Record<string, unknown>>;
@@ -128,7 +43,10 @@ interface PermissionEvent {
 }
 
 interface PermissionApi {
-  contains(permission: typeof REQUEST_DIAGNOSTICS_PERMISSION): Promise<boolean>;
+  contains(permission: {
+    readonly permissions: readonly string[];
+    readonly origins: readonly string[];
+  }): Promise<boolean>;
   readonly onAdded?: PermissionEvent;
   readonly onRemoved?: PermissionEvent;
 }
@@ -210,7 +128,7 @@ class RequestDiagnosticsRepository {
     const normalized = parseRequestDiagnosticsState(state);
     this.#memory = normalized;
     if (!this.#area) return;
-    if (normalized.records.length === 0) {
+    if (!normalized.active && normalized.records.length === 0) {
       await this.#area.remove(REQUEST_DIAGNOSTICS_STORAGE_KEY);
       return;
     }
@@ -230,6 +148,7 @@ export class RequestDiagnosticsRuntime {
   readonly #api: RequestDiagnosticsRuntimeApi;
   readonly #repository: RequestDiagnosticsRepository;
   readonly #active = new Map<string, ActiveRequest>();
+  readonly #activePerTab = new Map<number, number>();
   #enabled = true;
   #permissionGranted = false;
   #watching = false;
@@ -253,19 +172,25 @@ export class RequestDiagnosticsRuntime {
     await this.#refreshSettings();
   }
 
-  async #refreshSettings(): Promise<void> {
-    const workflow = await new BrowserStorageProfileWorkflowRepository(
-      this.#api.storage.local,
-    ).read();
+  async #readEnvironment(): Promise<RequestDiagnosticsState> {
+    const [workflow, permissionGranted, state] = await Promise.all([
+      new BrowserStorageProfileWorkflowRepository(this.#api.storage.local).read(),
+      this.#api.permissions.contains(REQUEST_DIAGNOSTICS_PERMISSION).catch(() => false),
+      this.#repository.read(),
+    ]);
     this.#enabled = workflow?.applied.settings.interface.monitorWebRequests ?? true;
-    this.#permissionGranted = await this.#api.permissions
-      .contains(REQUEST_DIAGNOSTICS_PERMISSION)
-      .catch(() => false);
-    this.#updateWebRequestListeners();
-    if (!this.#enabled || !this.#permissionGranted) {
+    this.#permissionGranted = permissionGranted;
+    return state;
+  }
+
+  async #refreshSettings(): Promise<void> {
+    let state = await this.#readEnvironment();
+    if ((!this.#enabled || !this.#permissionGranted) && state.active) {
       this.#clearActiveRequests();
-      await this.#repository.write(createRequestDiagnosticsState());
+      state = setRequestDiagnosticsActive(state, false);
+      await this.#repository.write(state);
     }
+    this.#updateWebRequestListeners(state.active);
   }
 
   #clearActiveRequests(): void {
@@ -273,11 +198,33 @@ export class RequestDiagnosticsRuntime {
       if (request.timeoutHandle) clearTimeout(request.timeoutHandle);
     }
     this.#active.clear();
+    this.#activePerTab.clear();
   }
 
-  #updateWebRequestListeners(): void {
+  #clearActiveRequestsForTab(tabId: number): void {
+    for (const request of [...this.#active.values()]) {
+      if (request.tabId !== tabId) continue;
+      if (request.timeoutHandle) clearTimeout(request.timeoutHandle);
+      this.#forgetActiveRequest(request.requestId);
+    }
+  }
+
+  #forgetActiveRequest(requestId: string): ActiveRequest | undefined {
+    const request = this.#active.get(requestId);
+    if (!request) return undefined;
+    this.#active.delete(requestId);
+    const count = this.#activePerTab.get(request.tabId) ?? 1;
+    if (count <= 1) this.#activePerTab.delete(request.tabId);
+    else this.#activePerTab.set(request.tabId, count - 1);
+    return request;
+  }
+
+  #updateWebRequestListeners(sessionActive: boolean): void {
     const shouldWatch =
-      this.#enabled && this.#permissionGranted && this.#api.webRequest !== undefined;
+      sessionActive &&
+      this.#enabled &&
+      this.#permissionGranted &&
+      this.#api.webRequest !== undefined;
     if (shouldWatch === this.#watching) return;
     const request = this.#api.webRequest;
     if (!request) return;
@@ -298,9 +245,14 @@ export class RequestDiagnosticsRuntime {
   }
 
   readonly #onBeforeRequest = (details: WebRequestDetails): void => {
-    if (details.tabId < 0) return;
-    if (details.type === 'main_frame') {
-      void this.clear(details.tabId);
+    if (details.tabId < 0 || this.#active.has(details.requestId)) return;
+    if (details.type === 'main_frame') void this.clear(details.tabId);
+    const perTab = this.#activePerTab.get(details.tabId) ?? 0;
+    if (
+      this.#active.size >= REQUEST_DIAGNOSTICS_ACTIVE_GLOBAL_LIMIT ||
+      perTab >= REQUEST_DIAGNOSTICS_ACTIVE_PER_TAB_LIMIT
+    ) {
+      return;
     }
     const request: ActiveRequest = {
       requestId: details.requestId,
@@ -315,6 +267,7 @@ export class RequestDiagnosticsRuntime {
       const current = this.#active.get(details.requestId);
       if (!current) return;
       current.timedOut = true;
+      delete current.timeoutHandle;
       void this.#record({
         requestId: current.requestId,
         tabId: current.tabId,
@@ -327,27 +280,26 @@ export class RequestDiagnosticsRuntime {
       });
     }, REQUEST_DIAGNOSTICS_TIMEOUT_MS);
     this.#active.set(details.requestId, request);
+    this.#activePerTab.set(details.tabId, perTab + 1);
   };
 
   readonly #onHeadersReceived = (details: WebRequestDetails): void => {
     const request = this.#active.get(details.requestId);
     if (!request) return;
     if (request.timeoutHandle) clearTimeout(request.timeoutHandle);
-    request.timeoutHandle = undefined;
+    delete request.timeoutHandle;
     if (request.timedOut) void this.#remove(details.tabId, details.requestId);
   };
 
   readonly #onCompleted = (details: WebRequestDetails): void => {
-    const request = this.#active.get(details.requestId);
+    const request = this.#forgetActiveRequest(details.requestId);
     if (request?.timeoutHandle) clearTimeout(request.timeoutHandle);
     if (request?.timedOut) void this.#remove(details.tabId, details.requestId);
-    this.#active.delete(details.requestId);
   };
 
   readonly #onErrorOccurred = (details: WebRequestDetails): void => {
-    const request = this.#active.get(details.requestId);
+    const request = this.#forgetActiveRequest(details.requestId);
     if (request?.timeoutHandle) clearTimeout(request.timeoutHandle);
-    this.#active.delete(details.requestId);
     const error = details.error ?? 'request failed';
     if (error === 'net::ERR_ABORTED' && request?.timedOut) return;
     if (shouldIgnoreRequestError(error, details.url)) {
@@ -370,6 +322,7 @@ export class RequestDiagnosticsRuntime {
   async #record(record: RequestDiagnosticRecord): Promise<void> {
     await this.#serialize(async () => {
       const state = await this.#repository.read();
+      if (!state.active) return;
       await this.#repository.write(upsertRequestDiagnostic(state, record));
     });
   }
@@ -381,25 +334,49 @@ export class RequestDiagnosticsRuntime {
     });
   }
 
-  async inspect(tabId?: number): Promise<RequestDiagnosticsView> {
+  async inspect(tabId?: number, includeRecords = true): Promise<RequestDiagnosticsView> {
     return inspectRequestDiagnostics(
       await this.#repository.read(),
       this.#enabled,
       this.#permissionGranted,
       tabId,
+      Date.now(),
+      includeRecords,
     );
+  }
+
+  async start(tabId?: number): Promise<RequestDiagnosticsView> {
+    return this.#serialize(async () => {
+      let state = await this.#readEnvironment();
+      if (this.#enabled && this.#permissionGranted) {
+        state = setRequestDiagnosticsActive(state, true);
+        await this.#repository.write(state);
+      }
+      this.#updateWebRequestListeners(state.active);
+      return inspectRequestDiagnostics(state, this.#enabled, this.#permissionGranted, tabId);
+    });
+  }
+
+  async stop(tabId?: number): Promise<RequestDiagnosticsView> {
+    return this.#serialize(async () => {
+      this.#clearActiveRequests();
+      const state = setRequestDiagnosticsActive(await this.#repository.read(), false);
+      await this.#repository.write(state);
+      this.#updateWebRequestListeners(false);
+      return inspectRequestDiagnostics(state, this.#enabled, this.#permissionGranted, tabId);
+    });
   }
 
   async clear(tabId?: number): Promise<RequestDiagnosticsView> {
     return this.#serialize(async () => {
-      const state = await this.#repository.read();
-      await this.#repository.write(clearRequestDiagnostics(state, tabId));
-      return this.inspect(tabId);
+      const state = clearRequestDiagnostics(await this.#repository.read(), tabId);
+      await this.#repository.write(state);
+      return inspectRequestDiagnostics(state, this.#enabled, this.#permissionGranted, tabId);
     });
   }
 
-  readonly onWorkflowChange = (_changes: Record<string, unknown>, areaName: string): void => {
-    if (areaName !== 'local') return;
+  readonly onWorkflowChange = (changes: Record<string, unknown>, areaName: string): void => {
+    if (areaName !== 'local' || changes[PROFILE_WORKFLOW_STATE_KEY] === undefined) return;
     void this.#serialize(() => this.#refreshSettings());
   };
 
@@ -408,6 +385,7 @@ export class RequestDiagnosticsRuntime {
   };
 
   readonly onTabRemoved = (tabId: number): void => {
+    this.#clearActiveRequestsForTab(tabId);
     void this.clear(tabId);
   };
 
@@ -427,11 +405,16 @@ export function registerRequestDiagnosticsRuntime(
   api: RequestDiagnosticsRuntimeApi,
 ): RegisteredRequestDiagnosticsRuntime {
   const runtime = new RequestDiagnosticsRuntime(api);
-  const listener = (
-    message: unknown,
-  ): Promise<RequestDiagnosticsCommandResponse> | undefined => {
+  const listener = (message: unknown): Promise<RequestDiagnosticsCommandResponse> | undefined => {
     if (!isRequestDiagnosticsCommand(message)) return undefined;
-    const operation = message.action === 'clear' ? runtime.clear(message.tabId) : runtime.inspect(message.tabId);
+    const operation =
+      message.action === 'clear'
+        ? runtime.clear(message.tabId)
+        : message.action === 'start'
+          ? runtime.start(message.tabId)
+          : message.action === 'stop'
+            ? runtime.stop(message.tabId)
+            : runtime.inspect(message.tabId, message.action !== 'summary');
     return operation.then(
       (view) => ({ ok: true, view }),
       (error: unknown) => ({ ok: false, message: errorMessage(error) }),
@@ -460,94 +443,3 @@ export function registerRequestDiagnosticsRuntime(
 export function currentRequestDiagnosticsRuntimeApi(): RequestDiagnosticsRuntimeApi {
   return browser as unknown as RequestDiagnosticsRuntimeApi;
 }
-''')
-
-Path('apps/extension/src/lib/request-diagnostics-runtime.test.ts').write_text(r'''import { describe, expect, it } from 'vitest';
-
-import { isRequestDiagnosticsCommand } from './request-diagnostics-client';
-
-
-describe('request diagnostics message contract', () => {
-  it('accepts only its own bounded get and clear commands', () => {
-    expect(
-      isRequestDiagnosticsCommand({
-        channel: 'zeroomega-nex/request-diagnostics/v1',
-        action: 'get',
-        tabId: 7,
-      }),
-    ).toBe(true);
-    expect(
-      isRequestDiagnosticsCommand({
-        channel: 'zeroomega-nex/request-diagnostics/v1',
-        action: 'clear',
-      }),
-    ).toBe(true);
-    expect(
-      isRequestDiagnosticsCommand({
-        channel: 'zeroomega-nex/profile-workflow/v1',
-        action: 'get',
-      }),
-    ).toBe(false);
-    expect(
-      isRequestDiagnosticsCommand({
-        channel: 'zeroomega-nex/request-diagnostics/v1',
-        action: 'get',
-        tabId: -1,
-      }),
-    ).toBe(false);
-  });
-});
-''')
-
-replace_once(
-    'apps/extension/src/entrypoints/background.ts',
-    """import {
-  currentProxyOwnershipRuntimeApi,
-  registerProxyOwnershipRuntime,
-  type RegisteredProxyOwnershipRuntime,
-} from '../lib/proxy-ownership-runtime';
-""",
-    """import {
-  currentProxyOwnershipRuntimeApi,
-  registerProxyOwnershipRuntime,
-  type RegisteredProxyOwnershipRuntime,
-} from '../lib/proxy-ownership-runtime';
-import {
-  currentRequestDiagnosticsRuntimeApi,
-  registerRequestDiagnosticsRuntime,
-  type RegisteredRequestDiagnosticsRuntime,
-} from '../lib/request-diagnostics-runtime';
-""",
-)
-replace_once(
-    'apps/extension/src/entrypoints/background.ts',
-    """let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
-""",
-    """let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
-let requestDiagnosticsRuntime: RegisteredRequestDiagnosticsRuntime | undefined;
-""",
-)
-replace_once(
-    'apps/extension/src/entrypoints/background.ts',
-    """  proxyOwnershipRuntime?.dispose();
-  popupTemporaryRuleRuntime?.dispose();
-""",
-    """  requestDiagnosticsRuntime?.dispose();
-  proxyOwnershipRuntime?.dispose();
-  popupTemporaryRuleRuntime?.dispose();
-""",
-)
-replace_once(
-    'apps/extension/src/entrypoints/background.ts',
-    """  proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
-
-  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
-""",
-    """  proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
-  requestDiagnosticsRuntime = registerRequestDiagnosticsRuntime(
-    currentRequestDiagnosticsRuntimeApi(),
-  );
-
-  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
-""",
-)

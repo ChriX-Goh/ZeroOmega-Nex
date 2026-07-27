@@ -32,11 +32,16 @@
   import { onMount } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import { translate } from '../../lib/i18n';
   import {
     requestRuleSourceOriginPermission,
     sendProfileWorkflowCommand,
     subscribeProfileWorkflowStateChanges,
   } from '../../lib/profile-workflow-client';
+  import {
+    hasRequestDiagnosticsPermission,
+    requestRequestDiagnosticsPermission,
+  } from '../../lib/request-diagnostics-client';
   import {
     applyThemeMode,
     readThemeMode,
@@ -67,6 +72,7 @@
   type InterfaceFlag =
     | 'confirmDeletion'
     | 'showInspectMenu'
+    | 'monitorWebRequests'
     | 'addConditionsToBottom'
     | 'showResultProfileOnActionBadgeText'
     | 'showExternalProfile'
@@ -85,6 +91,8 @@
   let profileEditorDirty = false;
   let profileEditorEpoch = 0;
   let hasUnappliedChanges = false;
+  let diagnosticsPermissionGranted = false;
+  let requestingDiagnosticsPermission = false;
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -511,6 +519,30 @@
     });
   }
 
+  async function refreshDiagnosticsPermission(): Promise<void> {
+    diagnosticsPermissionGranted = await hasRequestDiagnosticsPermission().catch(() => false);
+  }
+
+  async function grantDiagnosticsPermission(): Promise<void> {
+    if (requestingDiagnosticsPermission) return;
+    requestingDiagnosticsPermission = true;
+    errorMessage = '';
+    try {
+      diagnosticsPermissionGranted = await requestRequestDiagnosticsPermission();
+      if (!diagnosticsPermissionGranted) {
+        errorMessage = 'Request monitoring permission was not granted.';
+      }
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    } finally {
+      requestingDiagnosticsPermission = false;
+    }
+  }
+
+  function openRequestDiagnostics(): void {
+    window.open('/network.html', '_blank', 'noopener,noreferrer');
+  }
+
   async function updateInterfaceFlag(field: InterfaceFlag, value: boolean): Promise<void> {
     await mutateDraft((draft) => {
       draft.settings.interface[field] = value;
@@ -665,7 +697,7 @@
         errorMessage = messageFrom(error);
       }
     });
-    void loadWorkflow().then(() => {
+    void Promise.all([loadWorkflow(), refreshDiagnosticsPermission()]).then(() => {
       if (!disposed) void syncNavigationFromLocation();
     });
     return () => {
@@ -684,7 +716,7 @@
 <div class="app-shell">
   <aside class="sidebar">
     <header class="side-brand">
-      <button type="button" on:click={() => void navigate('about')}>
+      <button type="button" onclick={() => void navigate('about')}>
         <span class="brand-mark" aria-hidden="true">Ω</span>
         <span>Zero Omega</span>
       </button>
@@ -696,14 +728,14 @@
         <button
           class:active={activeSection === 'interface'}
           type="button"
-          on:click={() => void navigate('interface')}
+          onclick={() => void navigate('interface')}
         >
           <span aria-hidden="true">⌘</span><span>Interface</span>
         </button>
         <button
           class:active={activeSection === 'general'}
           type="button"
-          on:click={() => void navigate('general')}
+          onclick={() => void navigate('general')}
         >
           <span aria-hidden="true">⚙</span><span>General</span>
         </button>
@@ -711,14 +743,14 @@
           class:active={activeSection === 'import'}
           type="button"
           disabled={!state || saving || view?.busy}
-          on:click={() => void navigate('import')}
+          onclick={() => void navigate('import')}
         >
           <span aria-hidden="true">⇅</span><span>Import / Export</span>
         </button>
         <button
           class:active={activeSection === 'theme'}
           type="button"
-          on:click={() => void navigate('theme')}
+          onclick={() => void navigate('theme')}
         >
           <span aria-hidden="true">◐</span><span>Theme</span>
         </button>
@@ -726,7 +758,7 @@
           class:active={activeSection === 'history'}
           type="button"
           disabled={!state || saving || view?.busy}
-          on:click={() => void navigate('history')}
+          onclick={() => void navigate('history')}
         >
           <span aria-hidden="true">↶</span><span>Snapshot History</span>
         </button>
@@ -737,7 +769,7 @@
         <button
           class:active={activeSection === 'builtin'}
           type="button"
-          on:click={() => void navigate('builtin')}
+          onclick={() => void navigate('builtin')}
         >
           <span class="builtin-marker" aria-hidden="true">◎</span><span>Built-in Profiles</span>
         </button>
@@ -747,7 +779,7 @@
             class:active={activeSection === 'profile' && profile.id === state?.selectedProfileId}
             type="button"
             disabled={saving}
-            on:click={() => selectProfile(profile.id)}
+            onclick={() => selectProfile(profile.id)}
           >
             <ProfileIcon kind={profile.kind} color={profile.color ?? '#90a4ae'} size={22} />
             <span>{profile.name}</span>
@@ -757,7 +789,7 @@
           class:active={activeSection === 'new-profile'}
           type="button"
           disabled={!state || view?.busy || saving}
-          on:click={() => void navigate('new-profile')}
+          onclick={() => void navigate('new-profile')}
         >
           <span aria-hidden="true">＋</span><span>New profile…</span>
         </button>
@@ -769,7 +801,7 @@
           type="button"
           class="primary"
           disabled={!hasUnappliedChanges || view?.busy || saving}
-          on:click={applyDraft}
+          onclick={applyDraft}
         >
           <span aria-hidden="true">✓</span><span>{saving ? 'Working…' : 'Apply changes'}</span>
         </button>
@@ -777,7 +809,7 @@
           type="button"
           class="discard"
           disabled={!hasUnappliedChanges || view?.busy || saving}
-          on:click={revertDraft}
+          onclick={revertDraft}
         >
           <span aria-hidden="true">×</span><span>Discard changes</span>
         </button>
@@ -822,7 +854,7 @@
             aria-label="Startup route"
             value={routeValue(state.draft.settings.startup.route)}
             disabled={saving || view?.busy}
-            on:change={(event) => updateStartupRoute(valueFrom(event))}
+            onchange={(event) => updateStartupRoute(valueFrom(event))}
           >
             <option value="">Keep current browser setting</option>
             <option value="direct">Direct</option>
@@ -837,7 +869,7 @@
             type="checkbox"
             checked={state.draft.settings.startup.revertProxyChanges}
             disabled={saving || view?.busy}
-            on:change={(event) => updateStartupRevert(checkedFrom(event))}
+            onchange={(event) => updateStartupRevert(checkedFrom(event))}
           />
           Revert proxy changes when ZeroOmega releases control
         </label>
@@ -849,7 +881,7 @@
             type="checkbox"
             checked={state.draft.settings.quickSwitch.enabled}
             disabled={saving || view?.busy}
-            on:change={(event) => updateQuickSwitchFlag('enabled', checkedFrom(event))}
+            onchange={(event) => updateQuickSwitchFlag('enabled', checkedFrom(event))}
           />
           Enable quick switching in the popup
         </label>
@@ -858,7 +890,7 @@
             type="checkbox"
             checked={state.draft.settings.quickSwitch.refreshOnChange}
             disabled={saving || view?.busy}
-            on:change={(event) => updateQuickSwitchFlag('refreshOnChange', checkedFrom(event))}
+            onchange={(event) => updateQuickSwitchFlag('refreshOnChange', checkedFrom(event))}
           />
           Refresh active tabs after switching
         </label>
@@ -870,14 +902,14 @@
                 <button
                   type="button"
                   disabled={saving || view?.busy || index === 0}
-                  on:click={() => moveQuickSwitchRoute(index, -1)}>Up</button
+                  onclick={() => moveQuickSwitchRoute(index, -1)}>Up</button
                 >
                 <button
                   type="button"
                   disabled={saving ||
                     view?.busy ||
                     index === state.draft.settings.quickSwitch.routes.length - 1}
-                  on:click={() => moveQuickSwitchRoute(index, 1)}>Down</button
+                  onclick={() => moveQuickSwitchRoute(index, 1)}>Down</button
                 >
                 <button
                   type="button"
@@ -885,7 +917,7 @@
                     view?.busy ||
                     route.kind === 'direct' ||
                     route.kind === 'system'}
-                  on:click={() => removeQuickSwitchRoute(index)}>Remove</button
+                  onclick={() => removeQuickSwitchRoute(index)}>Remove</button
                 >
               </span>
             </li>
@@ -894,7 +926,7 @@
         <select
           aria-label="Add quick-switch route"
           disabled={saving || view?.busy}
-          on:change={(event) => addQuickSwitchRoute(valueFrom(event), event)}
+          onchange={(event) => addQuickSwitchRoute(valueFrom(event), event)}
         >
           <option value="">Add profile…</option>
           <option value="direct">Direct</option>
@@ -903,6 +935,42 @@
               >{profile.name}</option
             >{/each}
         </select>
+      </section>
+      <section class="settings-section option-list" data-request-diagnostics-settings>
+        <h2>{translate('Request diagnostics')}</h2>
+        <label class="checkbox-row">
+          <input
+            type="checkbox"
+            checked={state.draft.settings.interface.monitorWebRequests ?? true}
+            disabled={saving || view?.busy}
+            onchange={(event) => updateInterfaceFlag('monitorWebRequests', checkedFrom(event))}
+          />
+          {translate('Allow bounded request diagnostics')}
+        </label>
+        <p>
+          {translate(
+            'Monitoring starts only from the diagnostics page for this browser session. Headers, bodies, cookies, credentials, query strings, and response content are never collected.',
+          )}
+        </p>
+        <div class="settings-actions">
+          {#if diagnosticsPermissionGranted}
+            <span role="status">{translate('Browser permission granted.')}</span>
+          {:else}
+            <button
+              type="button"
+              data-request-diagnostics-permission
+              disabled={requestingDiagnosticsPermission}
+              onclick={() => void grantDiagnosticsPermission()}
+            >
+              {requestingDiagnosticsPermission
+                ? translate('Requesting…')
+                : translate('Grant monitoring permission')}
+            </button>
+          {/if}
+          <button type="button" onclick={openRequestDiagnostics}>
+            {translate('Open request diagnostics')}
+          </button>
+        </div>
       </section>
     {:else if activeSection === 'interface' && state}
       <header class="editor-heading">
@@ -918,7 +986,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.confirmDeletion}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('confirmDeletion', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('confirmDeletion', checkedFrom(event))}
           />Confirm before deleting a profile</label
         >
         <label class="checkbox-row"
@@ -926,7 +994,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.addConditionsToBottom}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('addConditionsToBottom', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('addConditionsToBottom', checkedFrom(event))}
           />Add new switching conditions to the bottom</label
         >
         <label class="checkbox-row"
@@ -934,7 +1002,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.showAdvancedConditions}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('showAdvancedConditions', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('showAdvancedConditions', checkedFrom(event))}
           />Show advanced condition types</label
         >
       </section>
@@ -945,7 +1013,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.showInspectMenu}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('showInspectMenu', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('showInspectMenu', checkedFrom(event))}
           />Show inspect menu</label
         >
         <label class="checkbox-row"
@@ -953,7 +1021,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.showResultProfileOnActionBadgeText}
             disabled={saving || view?.busy}
-            on:change={(event) =>
+            onchange={(event) =>
               updateInterfaceFlag('showResultProfileOnActionBadgeText', checkedFrom(event))}
           />Show result profile on the toolbar badge</label
         >
@@ -962,7 +1030,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.showExternalProfile}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('showExternalProfile', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('showExternalProfile', checkedFrom(event))}
           />Show profiles controlled by other extensions</label
         >
         <label class="checkbox-row"
@@ -970,7 +1038,7 @@
             type="checkbox"
             checked={state.draft.settings.interface.exportLegacyRuleList}
             disabled={saving || view?.busy}
-            on:change={(event) => updateInterfaceFlag('exportLegacyRuleList', checkedFrom(event))}
+            onchange={(event) => updateInterfaceFlag('exportLegacyRuleList', checkedFrom(event))}
           />Export legacy rule-list format when requested</label
         >
       </section>
@@ -1027,7 +1095,7 @@
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
             disabled={saving || view?.busy}
-            on:change={(event) => updateBuiltInColor('direct', valueFrom(event))}
+            onchange={(event) => updateBuiltInColor('direct', valueFrom(event))}
           /></label
         >
         <label class="builtin-card"
@@ -1041,7 +1109,7 @@
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
             disabled={saving || view?.busy}
-            on:change={(event) => updateBuiltInColor('system', valueFrom(event))}
+            onchange={(event) => updateBuiltInColor('system', valueFrom(event))}
           /></label
         >
       </section>
@@ -1086,13 +1154,13 @@
           </div>
         </div>
         <div class="profile-actions">
-          <button type="button" disabled={view?.busy || saving} on:click={duplicateSelectedProfile}
+          <button type="button" disabled={view?.busy || saving} onclick={duplicateSelectedProfile}
             >Duplicate</button
           ><button
             type="button"
             class="danger"
             disabled={view?.busy || saving}
-            on:click={deleteSelectedProfile}>Delete</button
+            onclick={deleteSelectedProfile}>Delete</button
           >
         </div>
       </header>
@@ -1103,7 +1171,7 @@
             aria-label="Profile name"
             value={selectedProfile.name}
             disabled={saving || view?.busy}
-            on:change={(event) => updateProfileName(valueFrom(event))}
+            onchange={(event) => updateProfileName(valueFrom(event))}
           />
         </label>
         <label class="profile-color-field">
@@ -1113,7 +1181,7 @@
             type="color"
             value={profileDisplayColor(selectedProfile)}
             disabled={saving || view?.busy || selectedProfile.kind === 'virtual'}
-            on:change={(event) => updateProfileColor(valueFrom(event))}
+            onchange={(event) => updateProfileColor(valueFrom(event))}
           />
         </label>
       </section>

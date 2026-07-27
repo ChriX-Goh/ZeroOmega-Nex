@@ -312,12 +312,14 @@ button {
   stroke-linejoin: round;
 }
 
+.request-diagnostics-summary,
 .temporary-rule-action,
 .current-site-action {
   padding: 7px 10px;
   border-top: 1px solid var(--popup-border);
 }
 
+.request-diagnostics-summary button,
 .temporary-rule-action button,
 .current-site-action button,
 .scope-button,
@@ -328,6 +330,41 @@ button {
   background: var(--popup-footer);
   color: var(--popup-text);
   cursor: pointer;
+}
+
+.request-diagnostics-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.request-diagnostics-summary div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.request-diagnostics-summary span {
+  overflow: hidden;
+  color: var(--popup-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-diagnostics-summary button {
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-bg);
+  color: var(--popup-text);
+  cursor: pointer;
+}
+
+.request-diagnostics-summary button:hover:not(:disabled) {
+  background: var(--popup-hover);
 }
 
 .temporary-rule-action {

@@ -60,6 +60,7 @@ export function createDefaultProfileSpec(options: DefaultProfileSpecOptions): Pr
       interface: {
         confirmDeletion: true,
         showInspectMenu: true,
+        monitorWebRequests: true,
         addConditionsToBottom: true,
         showResultProfileOnActionBadgeText: false,
         showExternalProfile: true,

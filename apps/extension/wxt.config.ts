@@ -7,10 +7,8 @@ const icons = {
   128: 'icon/128.png',
 } as const;
 
-const ruleSourceE2eHostPermissions =
-  process.env.ZEROOMEGA_RULE_SOURCE_E2E === '1'
-    ? ['http://127.0.0.1/*', 'https://*.example.co.uk/*']
-    : [];
+const diagnosticsE2e = process.env.ZEROOMEGA_RULE_SOURCE_E2E === '1';
+const ruleSourceE2eHostPermissions = diagnosticsE2e ? ['http://*/*', 'https://*/*'] : [];
 
 export default defineConfig({
   srcDir: 'src',
@@ -23,11 +21,22 @@ export default defineConfig({
     default_locale: 'en',
     version: '0.0.1',
     icons,
-    permissions: ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus'],
+    permissions: [
+      'proxy',
+      'storage',
+      'alarms',
+      'activeTab',
+      'contextMenus',
+      ...(diagnosticsE2e ? ['webRequest'] : []),
+    ],
     optional_permissions:
       browser === 'firefox'
-        ? ['webRequest', 'webRequestBlocking']
-        : ['webRequest', 'webRequestAuthProvider'],
+        ? diagnosticsE2e
+          ? ['webRequestBlocking']
+          : ['webRequest', 'webRequestBlocking']
+        : diagnosticsE2e
+          ? ['webRequestAuthProvider']
+          : ['webRequest', 'webRequestAuthProvider'],
     optional_host_permissions: ['http://*/*', 'https://*/*'],
     ...(ruleSourceE2eHostPermissions.length === 0
       ? {}

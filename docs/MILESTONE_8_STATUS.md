@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `e305394dae78ce98fa359f5ddc3521ed01675fe9`  
-**Latest integration verification:** run `30289377957` passed full `pnpm verify`, an E2E-host Chromium build, and the complete Chromium regression suite before product commit `e305394dae78ce98fa359f5ddc3521ed01675fe9`  
+**Current product implementation head:** request-diagnostics product commit containing this document  
+**Latest integration verification:** run `30293423052` validates the bounded request-diagnostics product commit with full `pnpm verify`, an E2E-host Chromium build, and the complete Chromium regression suite  
 **Last completed exact-Head verification:** `82fa20ec0f408120ccf52d99f9ff68addec6e6ac`; CI `30286470795`, Browser E2E `30286471025`, Parity Documentation `30286470345` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
@@ -114,10 +114,17 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup bounded request-error diagnostics and the full network-inspection page,
 - Inspect result-route badge color/title evaluation and a real browser context-menu E2E,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
+### Bounded request diagnostics and network inspection
+
+- Monitoring requires an explicit start action for the current browser session and optional WebRequest/HTTP(S) permission; it never auto-starts merely because a persistent preference is enabled.
+- Records are session-only and bounded to 10 minutes, 1,000 entries per tab, 5,000 globally, 256 active requests per tab, and 1,024 active requests globally.
+- URLs remove credentials, query strings, and fragments. Headers, bodies, cookies, credentials, and response content are never collected.
+- Popup receives only the current tab's count/domain summary. The dedicated page displays non-clickable records, supports start/stop/clear, and does not recreate failed requests.
+- Unit tests and Chromium E2E cover the privacy bounds, explicit session lifecycle, real failed request capture, Popup summary, sanitized detail display, and clearing.
+
 ## Current next action
 
-Proceed to bounded request-error diagnostics and the network inspection page. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Complete Inspect result-route badge color/title evaluation and a real Chromium context-menu interaction E2E, then continue the remaining profile/export/localization blockers. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

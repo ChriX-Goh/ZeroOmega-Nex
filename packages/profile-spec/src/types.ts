@@ -253,6 +253,7 @@ export interface QuickSwitchSettings {
 export interface InterfaceSettings {
   confirmDeletion: boolean;
   showInspectMenu: boolean;
+  monitorWebRequests?: boolean;
   addConditionsToBottom: boolean;
   showResultProfileOnActionBadgeText: boolean;
   showExternalProfile: boolean;
