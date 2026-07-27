@@ -1,4 +1,4 @@
-# generator revision 4
+# generator revision 5
 name: Integrate Rule Source background updates
 
 on:
@@ -41,6 +41,7 @@ jobs:
           set -o pipefail
           {
             python .github/patches/fix-rule-source-script.py
+            python .github/patches/fix-rule-source-e2e-host.py
             python .github/patches/apply-rule-source-core.py
             python .github/patches/apply-rule-source-ui.py
             python .github/patches/apply-rule-source-e2e-docs.py
@@ -52,6 +53,7 @@ jobs:
               packages/profile-workflow/src/rule-source-update.ts \
               packages/profile-workflow/src/rule-source-update.test.ts \
               packages/profile-workflow/src/rule-source-update-command.test.ts \
+              apps/extension/wxt.config.ts \
               apps/extension/src/lib/profile-workflow-runtime.ts \
               apps/extension/src/lib/profile-workflow-client.ts \
               apps/extension/src/lib/rule-source-downloader.ts \
@@ -60,6 +62,7 @@ jobs:
               apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
               apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
               apps/extension/src/component-rendering.component.spec.ts \
+              .github/workflows/browser-e2e.yml \
               scripts/e2e-chromium.mjs \
               scripts/validate-ui-compatibility.mjs \
               docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
@@ -102,7 +105,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pnpm build:chromium
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
           pnpm test:e2e:chromium 2>&1 | tee /tmp/rule-source-update-chromium.log
       - name: Upload Chromium diagnostics
         if: always()
