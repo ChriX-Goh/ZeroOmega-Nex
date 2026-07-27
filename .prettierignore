@@ -4,3 +4,4 @@ node_modules
 **/.output
 coverage
 fixtures/zeroomega-v2/large-representative.json
+fixtures/zeroomega-v2/original-default-v3.5.0.bak
