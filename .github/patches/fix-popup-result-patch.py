@@ -58,4 +58,28 @@ new_import_patch = """source = source.replace(
 """
 if text.count(old_import_patch) != 1:
     raise SystemExit(f'Popup result test import patch match count: {text.count(old_import_patch)}')
-path.write_text(text.replace(old_import_patch, new_import_patch))
+text = text.replace(old_import_patch, new_import_patch)
+
+old_e2e = """    const switchProfile = workflow?.applied?.profiles?.find((profile) => profile.name === 'switch');
+    const activeRoute = resultStorage['zeroomega-nex/browser-proxy/v1/state']?.activeRoute;
+    return (
+      switchProfile?.defaultRoute?.kind === 'profile' &&
+      workflow?.draft?.revision?.id === workflow?.applied?.revision?.id &&
+      activeRoute?.kind === 'profile'
+    );
+"""
+new_e2e = """    const switchProfile = workflow?.applied?.profiles?.find((profile) => profile.name === 'switch');
+    const proxyState = resultStorage['zeroomega-nex/browser-proxy/v1/state'];
+    const activeSnapshot = proxyState?.activeSnapshotId
+      ? resultStorage[`zeroomega-nex/browser-proxy/v1/snapshot/${proxyState.activeSnapshotId}`]
+      : undefined;
+    return (
+      switchProfile?.defaultRoute?.kind === 'profile' &&
+      workflow?.draft?.revision?.id === workflow?.applied?.revision?.id &&
+      activeSnapshot?.startRoute?.kind === 'profile' &&
+      activeSnapshot.startRoute.profileId === switchProfile.id
+    );
+"""
+if text.count(old_e2e) != 1:
+    raise SystemExit(f'Popup result E2E state patch match count: {text.count(old_e2e)}')
+path.write_text(text.replace(old_e2e, new_e2e))
