@@ -72,6 +72,7 @@ export {
 } from './profile-operations.js';
 export {
   inspectProfileWorkflowRuleSourceUpdate,
+  listDueProfileWorkflowRuleSourceUpdates,
   RULE_SOURCE_UPDATE_MAX_BYTES,
   RULE_SOURCE_UPDATE_TIMEOUT_MS,
   updateProfileWorkflowRuleSource,

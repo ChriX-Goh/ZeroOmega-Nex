@@ -23,7 +23,9 @@ const advancedProfileOperationsPath =
   'packages/profile-workflow/src/advanced-profile-operations.ts';
 const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
+const workflowClientPath = 'apps/extension/src/lib/profile-workflow-client.ts';
 const ruleSourceDownloaderPath = 'apps/extension/src/lib/rule-source-downloader.ts';
+const ruleSourceSchedulerPath = 'apps/extension/src/lib/rule-source-scheduler.ts';
 const ruleSourceUpdatePath = 'packages/profile-workflow/src/rule-source-update.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
@@ -57,7 +59,9 @@ const [
   advancedProfileOperations,
   profileOperations,
   runtime,
+  workflowClient,
   ruleSourceDownloader,
+  ruleSourceScheduler,
   ruleSourceUpdate,
   switchOperations,
   switchSource,
@@ -89,7 +93,9 @@ const [
   readFile(advancedProfileOperationsPath, 'utf8'),
   readFile(profileOperationsPath, 'utf8'),
   readFile(runtimePath, 'utf8'),
+  readFile(workflowClientPath, 'utf8'),
   readFile(ruleSourceDownloaderPath, 'utf8'),
+  readFile(ruleSourceSchedulerPath, 'utf8'),
   readFile(ruleSourceUpdatePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
@@ -267,6 +273,30 @@ const requirements = [
       ruleSourceUpdate.includes('Rule Source request header') &&
       ruleSourceUpdate.includes('old cached content') === false,
     'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
+  ],
+  [
+    manifest.includes("permissions: ['proxy', 'storage', 'alarms']") &&
+      runtime.includes('registerRuleSourceScheduler') &&
+      ruleSourceScheduler.includes(
+        "RULE_SOURCE_UPDATE_ALARM_NAME = 'zeroomega-nex/rule-source-update-scan'",
+      ) &&
+      ruleSourceScheduler.includes('RULE_SOURCE_UPDATE_SCAN_PERIOD_MINUTES = 1') &&
+      ruleSourceScheduler.includes('listDueProfileWorkflowRuleSourceUpdates') &&
+      ruleSourceScheduler.includes('api.permissions.contains') &&
+      ruleSourceScheduler.includes('if (running) return running') &&
+      ruleSourceUpdate.includes('export function listDueProfileWorkflowRuleSourceUpdates'),
+    'Remote Rule Sources must use one coalesced alarm scheduler, scan on startup, refresh only due sources with existing host permission, and wait each interval after success or failure.',
+  ],
+  [
+    workflowClient.includes('PROFILE_WORKFLOW_STATE_STORAGE_KEY') &&
+      workflowClient.includes('subscribeProfileWorkflowStateChanges') &&
+      workflowClient.includes("areaName === 'local'") &&
+      workflowClient.includes('changes[PROFILE_WORKFLOW_STATE_STORAGE_KEY]?.newValue') &&
+      optionsApp.includes('parseProfileWorkflowState(value)') &&
+      optionsApp.includes('inspectProfileWorkflow(nextState)') &&
+      optionsApp.includes('subscribeProfileWorkflowStateChanges') &&
+      !optionsApp.includes('workflowRefreshPending'),
+    'Options must synchronously consume validated background workflow-state changes without interrupting chained commands or rebuilding the persistent Switch source editor instance.',
   ],
   [
     !switchOperations.includes('`${source.note} copy`') &&

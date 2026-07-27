@@ -43,9 +43,7 @@ describe('Rule Source due scheduling', () => {
         },
       },
     };
-    expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T06:29:59.000Z')).toEqual(
-      [],
-    );
+    expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T06:29:59.000Z')).toEqual([]);
     expect(
       listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T06:30:00.000Z').map(
         (source) => source.sourceId,
@@ -66,9 +64,7 @@ describe('Rule Source due scheduling', () => {
         },
       },
     };
-    expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T05:59:59.000Z')).toEqual(
-      [],
-    );
+    expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T05:59:59.000Z')).toEqual([]);
     expect(
       listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T06:00:00.000Z').map(
         (source) => source.sourceId,

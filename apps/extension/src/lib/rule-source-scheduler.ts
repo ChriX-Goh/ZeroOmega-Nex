@@ -19,10 +19,7 @@ export interface RuleSourceSchedulerAlarmEvent {
 
 export interface RuleSourceSchedulerApi {
   readonly alarms: {
-    create(
-      name: string,
-      alarmInfo: { readonly periodInMinutes: number },
-    ): Promise<void> | void;
+    create(name: string, alarmInfo: { readonly periodInMinutes: number }): Promise<void> | void;
     readonly onAlarm: RuleSourceSchedulerAlarmEvent;
   };
   readonly permissions: {

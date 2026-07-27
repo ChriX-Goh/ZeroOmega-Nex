@@ -122,6 +122,24 @@ export function inspectProfileWorkflowRuleSourceUpdate(
   };
 }
 
+export function listDueProfileWorkflowRuleSourceUpdates(
+  state: ProfileWorkflowState,
+  now = new Date().toISOString(),
+): readonly ProfileWorkflowRuleSourceUpdateView[] {
+  const current = timestamp(now);
+  return state.draft.ruleSources.flatMap((source) => {
+    const view = inspectProfileWorkflowRuleSourceUpdate(state, source.id, now);
+    if (!view?.stale) return [];
+    const lastAttempt =
+      view.lastAttemptAt === undefined ? undefined : timestamp(view.lastAttemptAt);
+    const due =
+      lastAttempt === undefined ||
+      current === undefined ||
+      current - lastAttempt >= view.updateIntervalMinutes * 60_000;
+    return due ? [view] : [];
+  });
+}
+
 function normalizedMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   return message.replace(/\s+/gu, ' ').trim().slice(0, 500) || 'Rule List update failed';

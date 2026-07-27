@@ -9,9 +9,11 @@ import { chromium } from '@playwright/test';
 const extensionPath = resolve('dist/chrome-mv3');
 const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
-const remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
+let remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
 let receivedRuleHeader = '';
+let ruleRequestCount = 0;
 const ruleServer = createServer((request, response) => {
+  ruleRequestCount += 1;
   receivedRuleHeader = String(request.headers['x-e2e'] ?? '');
   response.writeHead(200, {
     'content-type': 'text/plain; charset=utf-8',
@@ -186,6 +188,18 @@ try {
 
   await options.getByRole('button', { name: 'switch', exact: true }).click();
   const attachRuleList = options.getByRole('button', { name: /Attach Rule List/u });
+  try {
+    await attachRuleList.waitFor({ state: 'visible', timeout: 15_000 });
+  } catch (error) {
+    console.error(`[Scheduler Switch body] ${await options.locator('body').innerText()}`);
+    console.error(
+      `[Scheduler Switch alerts] ${JSON.stringify(await options.getByRole('alert').allInnerTexts())}`,
+    );
+    console.error(
+      `[Scheduler Switch storage] ${JSON.stringify(await worker.evaluate(async () => chrome.storage.local.get(null)))}`,
+    );
+    throw error;
+  }
   await attachRuleList.click();
   const attachedRow = options.locator('[data-attached-rule-list-row]');
   await attachedRow.waitFor();
@@ -264,6 +278,50 @@ try {
     await attachedConfig.getByLabel('Attached Rule List downloaded text').inputValue(),
     remoteRuleText,
   );
+  assert.equal(receivedRuleHeader, 'attached');
+
+  const scheduledRuleText = '[AutoProxy 0.2.9]\n||scheduled.e2e.invalid';
+  remoteRuleText = scheduledRuleText;
+  await worker.evaluate(
+    async ({ sourceUrl, alarmName }) => {
+      const key = 'zeroomega-nex/profile-workflow/v1/state';
+      const values = await chrome.storage.local.get(key);
+      const state = values[key];
+      const source = state?.draft?.ruleSources?.find(
+        (candidate) => candidate.location?.kind === 'url' && candidate.location.url === sourceUrl,
+      );
+      if (!state || !source) throw new Error('Scheduled Rule Source fixture was not found');
+      const update = state.ruleSourceUpdates?.[source.id];
+      if (!update) throw new Error('Scheduled Rule Source update record was not found');
+      update.lastAttemptAt = '2000-01-01T00:00:00.000Z';
+      update.lastSuccessAt = '2000-01-01T00:00:00.000Z';
+      delete update.lastError;
+      await chrome.storage.local.set({ [key]: state });
+      chrome.alarms.create(alarmName, { when: Date.now() + 250 });
+    },
+    {
+      sourceUrl: remoteRuleUrl,
+      alarmName: 'zeroomega-nex/rule-source-update-scan',
+    },
+  );
+  await assertEventually(
+    async () =>
+      worker.evaluate(
+        async ({ sourceUrl, expected }) => {
+          const key = 'zeroomega-nex/profile-workflow/v1/state';
+          const values = await chrome.storage.local.get(key);
+          const source = values[key]?.draft?.ruleSources?.find(
+            (candidate) =>
+              candidate.location?.kind === 'url' && candidate.location.url === sourceUrl,
+          );
+          return source?.location?.content === expected;
+        },
+        { sourceUrl: remoteRuleUrl, expected: scheduledRuleText },
+      ),
+    'Scheduled Rule Source alarm did not refresh due cached content',
+    20_000,
+  );
+  assert.equal(ruleRequestCount >= 2, true);
   assert.equal(receivedRuleHeader, 'attached');
 
   options.once('dialog', (dialog) => dialog.accept());

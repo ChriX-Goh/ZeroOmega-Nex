@@ -17,6 +17,8 @@
     createVirtualProfileDraft,
     deleteProfileDraft,
     duplicateProfileDraft,
+    inspectProfileWorkflow,
+    parseProfileWorkflowState,
   } from '@zeroomega-nex/profile-workflow';
   import type {
     ProfileWorkflowCommandResponse,
@@ -33,6 +35,7 @@
   import {
     requestRuleSourceOriginPermission,
     sendProfileWorkflowCommand,
+    subscribeProfileWorkflowStateChanges,
   } from '../../lib/profile-workflow-client';
   import {
     applyThemeMode,
@@ -643,11 +646,31 @@
   onMount(() => {
     themeMode = readThemeMode();
     applyThemeMode(themeMode);
+    let disposed = false;
+    let unsubscribeWorkflowChanges: () => void = () => undefined;
     const handleNavigation = () => void syncNavigationFromLocation();
     window.addEventListener('popstate', handleNavigation);
     window.addEventListener('hashchange', handleNavigation);
-    void loadWorkflow().then(() => syncNavigationFromLocation());
+    unsubscribeWorkflowChanges = subscribeProfileWorkflowStateChanges((value) => {
+      if (value === undefined) {
+        void loadWorkflow();
+        return;
+      }
+      try {
+        const nextState = parseProfileWorkflowState(value);
+        state = nextState;
+        view = inspectProfileWorkflow(nextState);
+        errorMessage = '';
+      } catch (error) {
+        errorMessage = messageFrom(error);
+      }
+    });
+    void loadWorkflow().then(() => {
+      if (!disposed) void syncNavigationFromLocation();
+    });
     return () => {
+      disposed = true;
+      unsubscribeWorkflowChanges();
       window.removeEventListener('popstate', handleNavigation);
       window.removeEventListener('hashchange', handleNavigation);
     };

@@ -10,12 +10,30 @@ export type ProfileWorkflowCommandInput = ProfileWorkflowCommand extends infer C
     : never
   : never;
 
+export const PROFILE_WORKFLOW_STATE_STORAGE_KEY = 'zeroomega-nex/profile-workflow/v1/state';
+
+export interface ProfileWorkflowStorageChange {
+  readonly oldValue?: unknown;
+  readonly newValue?: unknown;
+}
+
+export type ProfileWorkflowStorageChangeListener = (
+  changes: Readonly<Record<string, ProfileWorkflowStorageChange>>,
+  areaName: string,
+) => void;
+
 interface ProfileWorkflowClientApi {
   readonly runtime: {
     sendMessage(message: ProfileWorkflowCommand): Promise<unknown>;
   };
   readonly permissions?: {
     request(permissions: { origins: string[] }): Promise<boolean>;
+  };
+  readonly storage?: {
+    readonly onChanged: {
+      addListener(listener: ProfileWorkflowStorageChangeListener): void;
+      removeListener(listener: ProfileWorkflowStorageChangeListener): void;
+    };
   };
 }
 
@@ -36,6 +54,23 @@ function permissionOrigin(url: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+export function subscribeProfileWorkflowStateChanges(
+  listener: (value: unknown | undefined) => void,
+  api: ProfileWorkflowClientApi = browser as unknown as ProfileWorkflowClientApi,
+): () => void {
+  if (!api.storage) return () => undefined;
+  const storageListener: ProfileWorkflowStorageChangeListener = (changes, areaName) => {
+    if (
+      areaName === 'local' &&
+      Object.prototype.hasOwnProperty.call(changes, PROFILE_WORKFLOW_STATE_STORAGE_KEY)
+    ) {
+      listener(changes[PROFILE_WORKFLOW_STATE_STORAGE_KEY]?.newValue);
+    }
+  };
+  api.storage.onChanged.addListener(storageListener);
+  return () => api.storage?.onChanged.removeListener(storageListener);
 }
 
 export async function requestRuleSourceOriginPermission(

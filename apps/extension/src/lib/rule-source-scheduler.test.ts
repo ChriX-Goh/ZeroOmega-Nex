@@ -195,6 +195,9 @@ describe('Rule Source scheduler', () => {
     const scheduler = registerRuleSourceScheduler(api, { repository, updateService: service });
     const second = scheduler.scanNow();
     api.fire(RULE_SOURCE_UPDATE_ALARM_NAME);
+    for (let attempt = 0; calls === 0 && attempt < 50; attempt += 1) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    }
     expect(calls).toBe(1);
     release?.();
     await Promise.all([scheduler.initialScan, second]);

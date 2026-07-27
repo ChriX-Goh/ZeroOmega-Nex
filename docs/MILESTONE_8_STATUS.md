@@ -113,7 +113,8 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Chromium E2E covers creation, hidden navigation, enable/disable, routes, text/header edits, local HTTP download with the transmitted custom header, cached-content replacement, confirmation, and detach; Firefox extension E2E also passes.
 - Core lifecycle integration run `30232967645` passed before product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
 - Manual background update integration run `30235776499` passed full repository verification and Chromium E2E before product commit `d9419f7303e40c11fca44bea3fb54df9913ce950`.
-- Automatic interval scheduling remains separate.
+- Automatic interval scheduling now uses one coalesced alarm, scans on startup, retries only after each source interval, and skips origins without prior permission. Chromium E2E triggers the real alarm and verifies a second cached-content refresh.
+- Options observes local workflow-state changes from the background and strictly parses the event payload into current state/view without issuing another command. This avoids interrupting chained operations such as import-and-apply, while the persistent Switch source editor keeps local text and receives the newer backing spec for conflict-free commits.
 
 ### Appearance
 
@@ -154,7 +155,6 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 Current blockers include:
 
 - Switch source-editor localization, browser interaction E2E, and edit-mode persistence across reloads,
-- attached Rule List automatic interval scheduling and startup/due-source refresh,
 - Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
@@ -166,4 +166,4 @@ Current blockers include:
 
 ## Current next action
 
-Implement automatic Rule Source interval scheduling and startup/due-source refresh, or take the next higher-priority source-backed blocker from the audit matrix. The next slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to the next higher-priority source-backed blocker: Popup/current-site condition injection and `addConditionsToBottom` ordering, unless a repository audit identifies a stricter dependency. The next slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

@@ -22,6 +22,7 @@ import {
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 import { BrowserRuleSourceDownloader } from './rule-source-downloader';
+import { registerRuleSourceScheduler, type RuleSourceSchedulerApi } from './rule-source-scheduler';
 import { normalizeExtensionDeviceId } from './extension-device-id';
 import {
   BrowserProfileWorkflowActivationDriver,
@@ -44,6 +45,8 @@ interface ProfileWorkflowRuntimeApi {
   readonly storage: {
     readonly local: ProfileWorkflowStorageArea & BrowserStorageArea;
   };
+  readonly alarms?: RuleSourceSchedulerApi['alarms'];
+  readonly permissions?: RuleSourceSchedulerApi['permissions'];
 }
 
 export interface ProfileWorkflowRuntimeOptions {
@@ -147,6 +150,18 @@ export function registerProfileWorkflowRuntime(
     importService,
     options.ruleSourceDownloader ?? new BrowserRuleSourceDownloader(),
   );
+  const ruleSourceScheduler =
+    api.alarms === undefined || api.permissions === undefined
+      ? undefined
+      : registerRuleSourceScheduler(
+          { alarms: api.alarms, permissions: api.permissions },
+          {
+            repository,
+            updateService: ruleSourceUpdateService,
+            onError: (error) =>
+              console.error('[ZeroOmega Nex] scheduled Rule Source update failed:', error),
+          },
+        );
   const rollbackService =
     options.authentication === undefined
       ? undefined
@@ -171,7 +186,10 @@ export function registerProfileWorkflowRuntime(
   };
   api.runtime.onMessage.addListener(listener);
   return {
-    dispose: () => api.runtime.onMessage.removeListener(listener),
+    dispose() {
+      ruleSourceScheduler?.dispose();
+      api.runtime.onMessage.removeListener(listener);
+    },
   };
 }
 
