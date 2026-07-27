@@ -233,6 +233,9 @@ const requirements = [
       switchProfile.includes('data-attach-rule-list-section') &&
       attachedRuleListConfig.includes('data-attached-rule-list-config') &&
       attachedRuleListConfig.includes('data-attached-rule-list-headers') &&
+      attachedRuleListConfig.includes('$: headerItems = state?.source.headers ?? []') &&
+      attachedRuleListConfig.includes('{#each headerItems as header') &&
+      !attachedRuleListConfig.includes('function headers()') &&
       optionsApp.includes('attachedRuleListProfileIds') &&
       virtualProfile.includes('attachedRuleListProfileIds') &&
       legacyImportImplementation.includes('profile.attached-rule-list-linked') &&

@@ -131,6 +131,11 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     const ids = idFactory();
     const created = createSwitchProfileDraft(baseSpec(), ids, 'Owner');
     const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const attachedSource = attached.ruleSources.at(-1);
+    if (!attachedSource) throw new Error('attached Rule List source was not created');
+    attachedSource.headers = [
+      { name: 'X-Component', value: { kind: 'literal', value: 'component-value' } },
+    ];
     const { body } = render(SwitchProfileEditor, {
       props: {
         spec: attached,
@@ -150,6 +155,9 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Attached Rule List source type');
     expect(body).toContain('Attached Rule List text');
     expect(body).toContain('data-attached-rule-list-headers');
+    expect(body).toContain('Attached header 1 name');
+    expect(body).toContain('X-Component');
+    expect(body).toContain('component-value');
     expect(body).toContain('Delete attached Rule List');
   });
 
