@@ -42,7 +42,9 @@ jobs:
           {
             set -x
             python .github/patches/apply-request-diagnostics-model.py
+            python .github/patches/prepare-request-diagnostics-background.py
             python .github/patches/apply-request-diagnostics-runtime.py
+            python .github/patches/restore-request-diagnostics-background.py
             python .github/patches/apply-request-diagnostics-settings.py
             python .github/patches/apply-request-diagnostics-ui.py
             python .github/patches/apply-request-diagnostics-hardening.py
@@ -74,7 +76,9 @@ jobs:
         run: |
           rm -f \
             .github/patches/apply-request-diagnostics-model.py \
+            .github/patches/prepare-request-diagnostics-background.py \
             .github/patches/apply-request-diagnostics-runtime.py \
+            .github/patches/restore-request-diagnostics-background.py \
             .github/patches/apply-request-diagnostics-settings.py \
             .github/patches/apply-request-diagnostics-ui.py \
             .github/patches/apply-request-diagnostics-hardening.py \
