@@ -1,5 +1,5 @@
 name: Integrate legacy Options export
-# Attempt 5: preserve the repository manifest while cleaning temporary npm files.
+# Attempt 6: run the exporter tests first with full import reports.
 
 on:
   pull_request:
@@ -80,13 +80,9 @@ jobs:
           set -o pipefail
           {
             set -x
-            echo '=== importer/export integration ==='
             python .github/patches/apply-legacy-export-integration.py
-            echo '=== Options UI wiring ==='
             python .github/patches/apply-legacy-export-ui.py
-            echo '=== Chromium round trip ==='
             python .github/patches/apply-legacy-export-e2e.py
-            echo '=== acceptance docs and guards ==='
             python .github/patches/apply-legacy-export-acceptance.py
           } 2>&1 | tee legacy-export-integration-apply.log
       - name: Install locked dependencies
@@ -95,6 +91,10 @@ jobs:
         run: |
           set -o pipefail
           pnpm format 2>&1 | tee legacy-export-integration-format.log
+      - name: Run targeted exporter round-trip tests
+        run: |
+          set -o pipefail
+          pnpm exec vitest run packages/legacy-zeroomega/src/export.test.ts 2>&1 | tee legacy-export-integration-targeted.log
       - name: Verify repository
         run: |
           set -o pipefail
@@ -129,6 +129,7 @@ jobs:
             .github/patches/apply-legacy-export-acceptance.py \
             legacy-export-integration-apply.log \
             legacy-export-integration-format.log \
+            legacy-export-integration-targeted.log \
             legacy-export-integration-verify.log \
             legacy-export-integration-e2e.log
           git config user.name github-actions[bot]
