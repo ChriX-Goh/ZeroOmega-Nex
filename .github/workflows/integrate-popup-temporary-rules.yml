@@ -1,4 +1,4 @@
-# revision 12
+# revision 13
 name: Integrate Popup temporary rules
 
 on:
@@ -44,9 +44,9 @@ jobs:
             python .github/patches/apply-popup-temporary-rules-core.py
             python .github/patches/apply-popup-temporary-rules-background.py
             python .github/patches/fix-popup-temporary-stage.py
+            python .github/patches/fix-popup-temporary-message-listener.py
             python .github/patches/apply-popup-temporary-rules-runtime.py
             python .github/patches/apply-popup-temporary-rules-coordinator.py
-            python .github/patches/fix-popup-temporary-message-listener.py
             python .github/patches/apply-popup-temporary-rules-ui.py
             python .github/patches/apply-popup-temporary-rules-evidence.py
           } 2>&1 | tee /tmp/popup-temporary-apply.log
