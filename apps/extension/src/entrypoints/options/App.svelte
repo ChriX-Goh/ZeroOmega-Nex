@@ -666,6 +666,22 @@
     });
   }
 
+  async function prepareLegacyExport(): Promise<ProfileSpec | undefined> {
+    if (!state || saving || view?.busy || !(await commitActiveProfileEditor())) return undefined;
+    if (view?.dirty) {
+      const confirmed = globalThis.confirm(
+        'Apply current changes before exporting the Options backup?',
+      );
+      if (!confirmed) return undefined;
+      const applied = await runCommand({
+        action: 'apply',
+        expectedGeneration: state.generation,
+      });
+      if (!applied) return undefined;
+    }
+    return state ? structuredClone(state.applied) : undefined;
+  }
+
   function applyStatus(): string {
     const record = state?.lastApply;
     if (!record) return 'No Apply attempt recorded.';
@@ -1061,6 +1077,7 @@
         disabled={saving || view?.busy === true}
         generation={state.generation}
         deviceId={state.applied.revision.deviceId ?? 'zeroomega-nex-extension'}
+        onPrepareExport={prepareLegacyExport}
         onAcceptImport={acceptImportedDraft}
         onImportAndApply={acceptImportedAndApply}
       />

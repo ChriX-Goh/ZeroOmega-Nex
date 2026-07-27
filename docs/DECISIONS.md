@@ -163,3 +163,11 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Supersedes / superseded by:**
 ```
+
+## 2026-07-28 — Ordinary `.bak` exports omit secret material
+
+**Decision:** Full Options exports use the original ZeroOmega schema-v2 JSON, MIME, and filename contract, but proxy credentials, sensitive request-header values, secret references, sync credentials, and arbitrary secret-like metadata are excluded. The UI exposes compatibility warnings and the browser round-trip test asserts the downloaded file contains no secret markers.
+
+**Reason:** Original v3.5.0 exported credentials as part of its plain Options object. Reproducing that behavior would violate the Nex secret-ownership boundary and create a portable plaintext credential bundle.
+
+**Consequence:** Non-secret Options semantics round-trip through original-compatible `.bak` files. Credentials must be re-entered or migrated through a future explicit encrypted-secret workflow; ordinary backups are never that workflow.

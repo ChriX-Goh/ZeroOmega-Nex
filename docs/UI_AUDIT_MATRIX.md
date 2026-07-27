@@ -116,24 +116,24 @@
 
 ## G. 导入 / 导出 / 同步
 
-| ID   | 界面/功能                  | 原版源码                      | 原版布局与行为                    | 分类       | Nex 状态   | 翻译    | 证据/问题                      | 下一步                            |
-| ---- | -------------------------- | ----------------------------- | --------------------------------- | ---------- | ---------- | ------- | ------------------------------ | --------------------------------- |
-| G-01 | 完整 Options 导出          | `io.jade`、`io.coffee`        | plain JSON `.bak`，ISO 时间文件名 | MUST_MATCH | MISSING    | MISSING | 当前完全没有导出               | 实现下载与 round-trip             |
-| G-02 | 本地备份恢复               | 同上                          | 文件选择后完整 reset              | MUST_MATCH | BROKEN     | PARTIAL | UI 有导入，但用户真实备份失败  | 用真实 v3.5.0 export fixture 修复 |
-| G-03 | 在线 URL 恢复              | 同上                          | URL、10 秒 timeout、错误提示      | MUST_MATCH | MISSING    | MISSING | 无                             | 实现或明确现代安全限制            |
-| G-04 | JSON 对象/字符串           | `options.coffee#parseOptions` | 均接受                            | MUST_MATCH | UNVERIFIED | N/A     | 当前 importer 仅部分格式       | 增加 fixtures                     |
-| G-05 | Base64 JSON                | 同上                          | 非 `{` 字符串先 base64 decode     | MUST_MATCH | UNVERIFIED | N/A     | 有声称支持，真实覆盖不足       | 添加原版生成 fixture              |
-| G-06 | schemaVersion 2            | `options.coffee#upgrade`      | 直接接受                          | MUST_MATCH | BROKEN     | N/A     | 用户实际 v2 导入不可用         | 差异报告到字段级                  |
-| G-07 | schemaVersion 1            | 同上                          | 升级至 2                          | MUST_MATCH | UNVERIFIED | N/A     | 当前 fixture 不足              | 加 v1 fixture                     |
-| G-08 | v1 auto_detect 升级        | 同上                          | PacProfile + WPAD URL             | MUST_MATCH | MISSING    | N/A     | 当前独立 AutoDetect 模型不等价 | 实现迁移映射                      |
-| G-09 | 恢复后 startup 应用        | `options.coffee#reset`        | init 后应用 startupProfile        | MUST_MATCH | UNVERIFIED | N/A     | 当前“导入并使用”路径不同       | 做 round-trip E2E                 |
-| G-10 | 导入错误分类               | `io.coffee`                   | 格式错误/下载错误分开             | MUST_MATCH | PARTIAL    | PARTIAL | 有技术报告但不等价             | 本地化和明确错误                  |
-| G-11 | 单 Profile PAC 导出        | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                             | 见 B-07                           |
-| G-12 | 单 Profile RuleList 导出   | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                             | 见 B-08                           |
-| G-13 | Gist 同步                  | `io.jade`、`io.coffee`        | 私有 Gist、token、冲突处理        | UNCERTAIN  | MISSING    | MISSING | 安全/范围未决定                | 形成 ADR 后决定                   |
-| G-14 | WebDAV 同步                | 同上                          | URL/用户/密码、冲突处理           | UNCERTAIN  | MISSING    | MISSING | 同上                           | 形成 ADR 后决定                   |
-| G-15 | Built-in browser sync      | 同上                          | 可选增强同步                      | UNCERTAIN  | MISSING    | MISSING | 浏览器 MV3/配额需研究          | 形成 ADR                          |
-| G-16 | 导出 legacy rule list 选项 | `io.jade`                     | 可选 legacy 格式                  | MUST_MATCH | PARTIAL    | PARTIAL | 设置旗标存在但无真实导出       | 完成导出后验证                    |
+| ID   | 界面/功能                  | 原版源码                      | 原版布局与行为                    | 分类       | Nex 状态   | 翻译    | 证据/问题                                                                                                            | 下一步                   |
+| ---- | -------------------------- | ----------------------------- | --------------------------------- | ---------- | ---------- | ------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| G-01 | 完整 Options 导出          | `io.jade`、`io.coffee`        | plain JSON `.bak`，ISO 时间文件名 | MUST_MATCH | DONE       | PARTIAL | 原版 schema-v2 反向映射、Apply-before-export、原版 MIME/文件名、敏感凭据省略警告、永久守卫及 Chromium 下载验证已实现 | 补完整 locale 文案       |
+| G-02 | 本地备份恢复               | 同上                          | 文件选择后完整 reset              | MUST_MATCH | PARTIAL    | PARTIAL | 代表性 v2 与由固定原版源码实际生成的默认 `.bak` 均可恢复；浏览器已验证清空后重新导入；仍待用户真实复杂备份样本       | 收集真实复杂备份回归样本 |
+| G-03 | 在线 URL 恢复              | 同上                          | URL、10 秒 timeout、错误提示      | MUST_MATCH | MISSING    | MISSING | 无                                                                                                                   | 实现或明确现代安全限制   |
+| G-04 | JSON 对象/字符串           | `options.coffee#parseOptions` | 均接受                            | MUST_MATCH | UNVERIFIED | N/A     | 当前 importer 仅部分格式                                                                                             | 增加 fixtures            |
+| G-05 | Base64 JSON                | 同上                          | 非 `{` 字符串先 base64 decode     | MUST_MATCH | UNVERIFIED | N/A     | 有声称支持，真实覆盖不足                                                                                             | 添加原版生成 fixture     |
+| G-06 | schemaVersion 2            | `options.coffee#upgrade`      | 直接接受                          | MUST_MATCH | BROKEN     | N/A     | 用户实际 v2 导入不可用                                                                                               | 差异报告到字段级         |
+| G-07 | schemaVersion 1            | 同上                          | 升级至 2                          | MUST_MATCH | UNVERIFIED | N/A     | 当前 fixture 不足                                                                                                    | 加 v1 fixture            |
+| G-08 | v1 auto_detect 升级        | 同上                          | PacProfile + WPAD URL             | MUST_MATCH | MISSING    | N/A     | 当前独立 AutoDetect 模型不等价                                                                                       | 实现迁移映射             |
+| G-09 | 恢复后 startup 应用        | `options.coffee#reset`        | init 后应用 startupProfile        | MUST_MATCH | UNVERIFIED | N/A     | 当前“导入并使用”路径不同                                                                                             | 做 round-trip E2E        |
+| G-10 | 导入错误分类               | `io.coffee`                   | 格式错误/下载错误分开             | MUST_MATCH | PARTIAL    | PARTIAL | 有技术报告但不等价                                                                                                   | 本地化和明确错误         |
+| G-11 | 单 Profile PAC 导出        | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                                                                                                                   | 见 B-07                  |
+| G-12 | 单 Profile RuleList 导出   | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                                                                                                                   | 见 B-08                  |
+| G-13 | Gist 同步                  | `io.jade`、`io.coffee`        | 私有 Gist、token、冲突处理        | UNCERTAIN  | MISSING    | MISSING | 安全/范围未决定                                                                                                      | 形成 ADR 后决定          |
+| G-14 | WebDAV 同步                | 同上                          | URL/用户/密码、冲突处理           | UNCERTAIN  | MISSING    | MISSING | 同上                                                                                                                 | 形成 ADR 后决定          |
+| G-15 | Built-in browser sync      | 同上                          | 可选增强同步                      | UNCERTAIN  | MISSING    | MISSING | 浏览器 MV3/配额需研究                                                                                                | 形成 ADR                 |
+| G-16 | 导出 legacy rule list 选项 | `io.jade`                     | 可选 legacy 格式                  | MUST_MATCH | PARTIAL    | PARTIAL | 设置旗标存在但无真实导出                                                                                             | 完成导出后验证           |
 
 ## H. 本地化、默认值与示例
 
@@ -170,23 +170,23 @@
 
 ## J. 测试与证据门槛
 
-| ID   | 验收项                             | 分类       | Nex 状态 | 证据/问题                                                             | 下一步                           |
-| ---- | ---------------------------------- | ---------- | -------- | --------------------------------------------------------------------- | -------------------------------- |
-| J-01 | 原版源码固定证据                   | MUST_MATCH | DONE     | Artifact `8625759489`, v3.5.0                                         | 保留来源摘要                     |
-| J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | MISSING  | 当前只有人工简化 fixture                                              | 由原版导出器生成 fixture         |
-| J-03 | 五个现有 Nex 编辑页截图巡查        | MUST_MATCH | MISSING  | 无逐屏证据                                                            | 每页 light/dark/zh-CN/zh-TW 截图 |
-| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | 已有组件渲染与后端类型测试，尚缺真实浏览器创建四类                    | 增加 Chromium/Firefox E2E        |
-| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | MISSING  | 无                                                                    | 重构后增加                       |
-| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建、隐藏、启停、路由、文本/header 与解除；拖序仍缺 | 增加拖放与 Firefox 附属 E2E      |
-| J-07 | PAC URL/download/header E2E        | MUST_MATCH | MISSING  | 无                                                                    | 重构后增加                       |
-| J-08 | Virtual 引用 E2E                   | MUST_MATCH | PARTIAL  | ProfileSpec、解释器、PAC、迁移、引用替换已有单元/组件覆盖             | 增加真实浏览器 E2E               |
-| J-09 | 导出→清空→导入→等价                | MUST_MATCH | MISSING  | 无                                                                    | I/O 完成条件                     |
-| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | PARTIAL  | 将由永久 workflow 执行                                                | 启用后观察                       |
+| ID   | 验收项                             | 分类       | Nex 状态 | 证据/问题                                                                                                                  | 下一步                           |
+| ---- | ---------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| J-01 | 原版源码固定证据                   | MUST_MATCH | DONE     | Artifact `8625759489`, v3.5.0                                                                                              | 保留来源摘要                     |
+| J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | DONE     | 固定 Artifact 中执行原版 v3.5.0 `default_options.coffee` 生成 fixture；单测与 Chromium export→clear→import→export 字节等价 | 保持 provenance 与永久守卫       |
+| J-03 | 五个现有 Nex 编辑页截图巡查        | MUST_MATCH | MISSING  | 无逐屏证据                                                                                                                 | 每页 light/dark/zh-CN/zh-TW 截图 |
+| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | 已有组件渲染与后端类型测试，尚缺真实浏览器创建四类                                                                         | 增加 Chromium/Firefox E2E        |
+| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | MISSING  | 无                                                                                                                         | 重构后增加                       |
+| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建、隐藏、启停、路由、文本/header 与解除；拖序仍缺                                                      | 增加拖放与 Firefox 附属 E2E      |
+| J-07 | PAC URL/download/header E2E        | MUST_MATCH | MISSING  | 无                                                                                                                         | 重构后增加                       |
+| J-08 | Virtual 引用 E2E                   | MUST_MATCH | PARTIAL  | ProfileSpec、解释器、PAC、迁移、引用替换已有单元/组件覆盖                                                                  | 增加真实浏览器 E2E               |
+| J-09 | 导出→清空→导入→等价                | MUST_MATCH | DONE     | Chromium 真实下载 `.bak`、清空 local/session storage、重新导入启用并再次导出；JSON 字节完全一致                            | 保持 E2E                         |
+| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | PARTIAL  | 将由永久 workflow 执行                                                                                                     | 启用后观察                       |
 
 ## 当前结论
 
-- **明确 BROKEN**：真实备份导入、完整导出、编辑器翻译；Fixed 主编辑器与 Switch 规则表结构已恢复。
-- **明确 MISSING**：在线恢复、单 Profile 导出；请求诊断已恢复有界会话实现；Inspect 原生菜单、结果颜色与两行标题已有自动验收；Virtual 已实现但浏览器创建 E2E 仍不完整。
+- **明确 BROKEN**：编辑器翻译仍不完整；Fixed 主编辑器与 Switch 规则表结构、完整 Options 导出和基础本地恢复已恢复。
+- **明确 MISSING**：在线恢复、单 Profile 导出；完整 Options `.bak` 与原版默认备份 round-trip 已自动验收；Virtual 浏览器创建 E2E 仍不完整。
 - **UNCERTAIN**：Gist/WebDAV/浏览器同步、FTP scheme 的现代浏览器能力；未获范围决定前不得标记 `NOT_PORTING`。
 - 当前 PR 必须继续保持 Draft，现有安装包不再作为功能完整候选。
 

@@ -71,10 +71,7 @@ describe('ZeroOmega schema-v2 exporter', () => {
 
     expect(exported.omittedSecretCount).toBeGreaterThan(0);
     expect(exported.issues.map((entry) => entry.code)).toEqual(
-      expect.arrayContaining([
-        'secret.proxy-credential-omitted',
-        'secret.request-header-omitted',
-      ]),
+      expect.arrayContaining(['secret.proxy-credential-omitted', 'secret.request-header-omitted']),
     );
     expect(exported.content).not.toContain('passwordSecretRef');
     expect(exported.content).not.toContain('secretRef');

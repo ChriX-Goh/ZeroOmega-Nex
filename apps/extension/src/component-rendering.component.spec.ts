@@ -194,11 +194,14 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         disabled: false,
         generation: 0,
         deviceId: 'device-component-test',
+        onPrepareExport: async () => baseSpec(),
         onAcceptImport: async () => true,
         onImportAndApply: async () => true,
       },
     });
 
+    expect(body).toContain('Export options');
+    expect(body).toContain('data-legacy-export');
     expect(body).toContain('Restore original ZeroOmega / SwitchyOmega backup');
     expect(body).toContain('aria-label="Legacy backup file"');
     expect(body).toContain('Paste backup text instead');

@@ -57,6 +57,7 @@ const COMMON_PROFILE_FIELDS = new Set([
   'builtin',
   'syncOptions',
   'syncError',
+  'enabled',
 ]);
 
 const GENERATED_FIELDS = new Set(['ruleList', 'pacScript', 'lastUpdate', 'sha256']);
@@ -255,6 +256,7 @@ function profileBase(
     id: descriptor.id,
     name: descriptor.name,
     ...profileColor(descriptor.raw),
+    ...(typeof descriptor.raw.enabled === 'boolean' ? { enabled: descriptor.raw.enabled } : {}),
     legacy: legacyMetadata(descriptor.raw, descriptor.profileType, fields),
   };
 }
@@ -466,6 +468,10 @@ function mapFixedProfile(descriptor: ProfileDescriptor, state: ImportState): Fix
       bypass.push({
         id: legacyStableId('bypass', descriptor.name, String(index), pattern),
         pattern,
+        ...(isRecord(entry) && typeof entry.note === 'string' ? { note: entry.note } : {}),
+        ...(isRecord(entry) && typeof entry.enabled === 'boolean'
+          ? { enabled: entry.enabled }
+          : {}),
       });
       state.report.add(
         bypassNeedsCapabilityReview(pattern) ? 'target-dependent' : 'exact',
@@ -521,9 +527,9 @@ function invalidCondition(
   };
 }
 
-function validRegex(pattern: string): boolean {
+function validRegex(pattern: string, flags = ''): boolean {
   try {
-    new RegExp(pattern);
+    new RegExp(pattern, flags);
     return true;
   } catch {
     return false;
@@ -572,7 +578,8 @@ function mapCondition(
       };
     case 'UrlRegexCondition':
     case 'HostRegexCondition': {
-      if (!validRegex(pattern)) {
+      const flags = stringValue(raw.flags) ?? '';
+      if (!validRegex(pattern, flags)) {
         return {
           condition: { kind: 'false', annotation: `Invalid legacy regex: ${pattern}` },
           enabled: false,
@@ -584,7 +591,11 @@ function mapCondition(
       }
       const url = raw.conditionType === 'UrlRegexCondition';
       return {
-        condition: { kind: url ? 'url-regex' : 'host-regex', pattern },
+        condition: {
+          kind: url ? 'url-regex' : 'host-regex',
+          pattern,
+          ...(flags ? { flags } : {}),
+        },
         status: url || containsNonAscii(pattern) ? 'target-dependent' : 'exact',
         code: url ? 'condition.url-regex' : 'condition.host-regex',
         message: url
@@ -752,14 +763,15 @@ function mapSwitchProfile(descriptor: ProfileDescriptor, state: ImportState): Sw
       const mapping = mapCondition(entry.condition, `${sourcePath}/condition`, state.report);
       state.report.add(mapping.status, mapping.code, `${sourcePath}/condition`, mapping.message);
       const route = routeForName(entry.profileName, `${sourcePath}/profileName`, state);
-      const known = new Set(['condition', 'profileName', 'note']);
+      const known = new Set(['condition', 'profileName', 'note', 'enabled']);
       const fields = safeUnknownFields(entry, known, sourcePath, state.report);
+      const enabled = typeof entry.enabled === 'boolean' ? entry.enabled : mapping.enabled;
       rules.push({
         id: legacyStableId('rule', descriptor.name, String(index)),
         condition: mapping.condition,
         route,
         ...(typeof entry.note === 'string' ? { note: entry.note } : {}),
-        ...(mapping.enabled === undefined ? {} : { enabled: mapping.enabled }),
+        ...(enabled === undefined ? {} : { enabled }),
         ...(fields === undefined ? {} : { legacy: { source: 'zeroomega-v3.5.0', fields } }),
       });
     });
@@ -948,13 +960,15 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
 
   const sourceId = legacyStableId('source', descriptor.name);
   const headerMapping = mapHeaders(raw.headers, `${descriptor.path}/headers`, state);
+  const sourceInterval = finiteInteger(raw.updateIntervalMinutes);
   state.ruleSources.push({
     id: sourceId,
     name: `${descriptor.name} rules`,
     format,
     location,
     ...headerMapping,
-    updateIntervalMinutes: state.downloadInterval,
+    updateIntervalMinutes:
+      sourceInterval !== undefined && sourceInterval >= 1 ? sourceInterval : state.downloadInterval,
   });
 
   const known = new Set([
@@ -965,6 +979,7 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
     'matchProfileName',
     'defaultProfileName',
     'headers',
+    'updateIntervalMinutes',
     'lastUpdate',
     'sha256',
     'pacScript',
@@ -1067,6 +1082,7 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     'pacUrl',
     'pacScript',
     'headers',
+    'fallbackProfileName',
     'lastUpdate',
     'sha256',
   ]);
@@ -1076,6 +1092,15 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     kind: 'pac',
     source,
     ...headerMapping,
+    ...(typeof raw.fallbackProfileName === 'string'
+      ? {
+          fallbackRoute: routeForName(
+            raw.fallbackProfileName,
+            `${descriptor.path}/fallbackProfileName`,
+            state,
+          ),
+        }
+      : {}),
   };
 }
 
@@ -1236,9 +1261,17 @@ function mapSettings(
 
   const startupName = options['-startupProfileName'];
   const startupRoute =
-    startupName === undefined
+    startupName === undefined || startupName === ''
       ? undefined
       : routeForName(startupName, '/-startupProfileName', state);
+  if (startupName === '') {
+    state.report.add(
+      'exact',
+      'settings.startup-empty',
+      '/-startupProfileName',
+      'Empty original startup profile means no automatic startup switch.',
+    );
+  }
   const builtInProfiles = mapBuiltInAppearance(options, state.report);
   const extensions: Record<string, JsonValue> = {};
   if (typeof options['-customCss'] === 'string') {

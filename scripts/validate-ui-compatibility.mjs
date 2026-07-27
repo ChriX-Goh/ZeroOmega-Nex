@@ -54,6 +54,10 @@ const requestDiagnosticsPagePath = 'apps/extension/src/entrypoints/network/App.s
 const inspectRuntimePath = 'apps/extension/src/lib/inspect-runtime.ts';
 const nativeInspectE2ePath = 'scripts/e2e-inspect-native-menu.mjs';
 const browserE2eWorkflowPath = '.github/workflows/browser-e2e.yml';
+const legacyExportPath = 'packages/legacy-zeroomega/src/export.ts';
+const chromiumE2ePath = 'scripts/e2e-chromium.mjs';
+const originalBackupProvenancePath =
+  'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json';
 
 const [
   popupApp,
@@ -155,10 +159,14 @@ const [
   readFile(inspectRuntimePath, 'utf8'),
 ]);
 
-const [nativeInspectE2e, browserE2eWorkflow] = await Promise.all([
-  readFile(nativeInspectE2ePath, 'utf8'),
-  readFile(browserE2eWorkflowPath, 'utf8'),
-]);
+const [nativeInspectE2e, browserE2eWorkflow, legacyExport, chromiumE2e, originalBackupProvenance] =
+  await Promise.all([
+    readFile(nativeInspectE2ePath, 'utf8'),
+    readFile(browserE2eWorkflowPath, 'utf8'),
+    readFile(legacyExportPath, 'utf8'),
+    readFile(chromiumE2ePath, 'utf8'),
+    readFile(originalBackupProvenancePath, 'utf8'),
+  ]);
 
 const requirements = [
   [
@@ -297,6 +305,28 @@ const requirements = [
       browserE2eWorkflow.includes('xvfb-run') &&
       browserE2eWorkflow.includes('xdotool'),
     'Inspect must retain a real headed Chromium native-menu E2E that right-clicks the page, uses focused keyboard navigation rather than coordinates, and verifies session state plus toolbar presentation.',
+  ],
+  [
+    legacyExport.includes('ZEROOMEGA_BACKUP_SCHEMA_VERSION = 2') &&
+      legacyExport.includes('text/plain;charset=utf-8') &&
+      legacyExport.includes('ZeroOmegaOptions-${timestamp(value)}.bak') &&
+      legacyExport.includes('content: JSON.stringify(options)') &&
+      legacyExport.includes('secret.proxy-credential-omitted') &&
+      legacyExport.includes('secret.request-header-omitted') &&
+      legacyImport.includes('data-legacy-export') &&
+      legacyImport.includes('exportZeroOmegaBackup') &&
+      optionsApp.includes('prepareLegacyExport') &&
+      optionsApp.includes("action: 'apply'") &&
+      optionsApp.includes('structuredClone(state.applied)') &&
+      chromiumE2e.includes("waitForEvent('download')") &&
+      chromiumE2e.includes('chrome.storage.local.clear()') &&
+      chromiumE2e.includes('secondExportContent') &&
+      chromiumE2e.includes('firstExportContent') &&
+      originalBackupProvenance.includes('8625759489') &&
+      originalBackupProvenance.includes(
+        '8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19',
+      ),
+    'Full Options export must use the original schema-v2 JSON/MIME/filename contract, omit secrets, apply Draft work first, preserve a pinned original-generated fixture, and pass export-clear-import-export Chromium E2E.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),

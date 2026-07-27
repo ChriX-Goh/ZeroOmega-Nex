@@ -193,7 +193,10 @@
       <summary>Compatibility warnings ({exportResult.issues.length})</summary>
       <ol>
         {#each exportResult.issues as item, index (`${item.code}:${item.path}:${index}`)}
-          <li><strong>{item.code}</strong> — {item.message}<div>{item.path}</div></li>
+          <li>
+            <strong>{item.code}</strong> — {item.message}
+            <div>{item.path}</div>
+          </li>
         {/each}
       </ol>
     </details>
@@ -245,10 +248,22 @@
   <section class="settings-section">
     <h2>Compatibility check</h2>
     <dl class="compatibility-summary">
-      <div><dt>Encoding</dt><dd>{result.report.encoding}</dd></div>
-      <div><dt>Profiles</dt><dd>{result.report.profileCount}</dd></div>
-      <div><dt>Proxy endpoints</dt><dd>{result.report.endpointCount}</dd></div>
-      <div><dt>Rule sources</dt><dd>{result.report.ruleSourceCount}</dd></div>
+      <div>
+        <dt>Encoding</dt>
+        <dd>{result.report.encoding}</dd>
+      </div>
+      <div>
+        <dt>Profiles</dt>
+        <dd>{result.report.profileCount}</dd>
+      </div>
+      <div>
+        <dt>Proxy endpoints</dt>
+        <dd>{result.report.endpointCount}</dd>
+      </div>
+      <div>
+        <dt>Rule sources</dt>
+        <dd>{result.report.ruleSourceCount}</dd>
+      </div>
       <div>
         <dt>Credentials</dt>
         <dd>{result.report.containsSecrets ? 'Will be migrated securely' : 'None'}</dd>
@@ -293,5 +308,9 @@
   </section>
 {/if}
 
-{#if acceptedMessage}<section class="settings-section"><p role="status">{acceptedMessage}</p></section>{/if}
-{#if errorMessage}<section class="settings-section"><p role="alert">{errorMessage}</p></section>{/if}
+{#if acceptedMessage}<section class="settings-section">
+    <p role="status">{acceptedMessage}</p>
+  </section>{/if}
+{#if errorMessage}<section class="settings-section">
+    <p role="alert">{errorMessage}</p>
+  </section>{/if}

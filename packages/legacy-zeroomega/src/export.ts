@@ -247,8 +247,7 @@ function legacyCondition(
     case 'url-regex':
     case 'host-regex': {
       const result: MutableJsonObject = {
-        conditionType:
-          condition.kind === 'url-regex' ? 'UrlRegexCondition' : 'HostRegexCondition',
+        conditionType: condition.kind === 'url-regex' ? 'UrlRegexCondition' : 'HostRegexCondition',
         pattern: condition.pattern,
       };
       if (condition.flags) {
@@ -344,11 +343,7 @@ function legacyHeaders(
   return result.length === 0 ? undefined : result;
 }
 
-function exportFixed(
-  state: ExportState,
-  profile: FixedProfile,
-  path: string,
-): MutableJsonObject {
+function exportFixed(state: ExportState, profile: FixedProfile, path: string): MutableJsonObject {
   const result = profileBase(state, profile, path);
   const slots = [
     ['fallback', 'fallbackProxy'],
@@ -366,20 +361,12 @@ function exportFixed(
   return result;
 }
 
-function exportSwitch(
-  state: ExportState,
-  profile: SwitchProfile,
-  path: string,
-): MutableJsonObject {
+function exportSwitch(state: ExportState, profile: SwitchProfile, path: string): MutableJsonObject {
   const result = profileBase(state, profile, path);
   result.rules = profile.rules.map((rule, index) =>
     legacyRule(state, rule, `${path}/rules/${index}`),
   );
-  result.defaultProfileName = routeName(
-    state,
-    profile.defaultRoute,
-    `${path}/defaultProfileName`,
-  );
+  result.defaultProfileName = routeName(state, profile.defaultRoute, `${path}/defaultProfileName`);
   return result;
 }
 
@@ -425,11 +412,7 @@ function exportRuleList(
     }
   }
   result.matchProfileName = routeName(state, profile.matchRoute, `${path}/matchProfileName`);
-  result.defaultProfileName = routeName(
-    state,
-    profile.defaultRoute,
-    `${path}/defaultProfileName`,
-  );
+  result.defaultProfileName = routeName(state, profile.defaultRoute, `${path}/defaultProfileName`);
   return result;
 }
 
@@ -462,11 +445,7 @@ function exportVirtual(
   path: string,
 ): MutableJsonObject {
   const result = profileBase(state, profile, path);
-  result.defaultProfileName = routeName(
-    state,
-    profile.targetRoute,
-    `${path}/defaultProfileName`,
-  );
+  result.defaultProfileName = routeName(state, profile.targetRoute, `${path}/defaultProfileName`);
   const legacyRules = profile.legacy?.fields?.rules;
   if (Array.isArray(legacyRules)) result.rules = structuredClone(legacyRules);
   return result;
