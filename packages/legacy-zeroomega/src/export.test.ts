@@ -19,8 +19,8 @@ const context = {
 
 function successfulImport(source: string) {
   const result = importZeroOmegaBackup(source, context);
-  expect(result.ok).toBe(true);
   if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+  expect(result.ok).toBe(true);
   return result;
 }
 
