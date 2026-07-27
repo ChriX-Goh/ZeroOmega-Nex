@@ -38,6 +38,7 @@ jobs:
         run: |
           python .github/patches/apply-inspect-result-presentation.py
           python .github/patches/fix-inspect-result-validator.py
+          python .github/patches/fix-inspect-result-runtime.py
       - name: Install and update locked workspace dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Format product slice
@@ -69,6 +70,7 @@ jobs:
           rm -f \
             .github/patches/apply-inspect-result-presentation.py \
             .github/patches/fix-inspect-result-validator.py \
+            .github/patches/fix-inspect-result-runtime.py \
             .github/workflows/integrate-inspect-result-presentation.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
