@@ -1,4 +1,4 @@
-# revision 14
+# revision 15
 name: Integrate Popup temporary rules
 
 on:
@@ -47,9 +47,9 @@ jobs:
             python .github/patches/fix-popup-temporary-message-listener.py
             python .github/patches/apply-popup-temporary-rules-runtime.py
             python .github/patches/apply-popup-temporary-rules-coordinator.py
+            python .github/patches/fix-profile-workflow-message-listener.py
             python .github/patches/apply-popup-temporary-rules-ui.py
             python .github/patches/apply-popup-temporary-rules-evidence.py
-            python .github/patches/apply-popup-temporary-manager-diagnostics.py
           } 2>&1 | tee /tmp/popup-temporary-apply.log
       - name: Upload patch diagnostics
         if: always()
@@ -97,6 +97,7 @@ jobs:
               apps/extension/src/lib/popup-temporary-rule-client.ts \
               apps/extension/src/lib/popup-temporary-rule-runtime.ts \
               apps/extension/src/lib/popup-temporary-rule-runtime.test.ts \
+              apps/extension/src/lib/profile-workflow-runtime.ts \
               apps/extension/src/entrypoints/background.ts \
               apps/extension/src/entrypoints/popup/App.svelte \
               apps/extension/src/entrypoints/popup/style.css \
