@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `7e394cf23b6e0035fc58a2a55592c5d22e737367`  
-**Latest integration verification:** run `30294936789` validates Inspect result-route badge/title evaluation with full `pnpm verify`, Chromium/Firefox builds, and the complete Chromium regression suite  
+**Current product implementation head:** native Inspect E2E product commit containing this document  
+**Latest integration verification:** run `30297644740` validates the real headed Chromium Inspect context-menu path with full `pnpm verify`, complete Chromium regression, and native-menu session/badge/title assertions  
 **Last completed exact-Head verification:** `d155644f5fe7a691fb27a84b16cd55ca58990cd0`; CI `30293711901`, Browser E2E `30293710585`, Parity Documentation `30293710591` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
@@ -99,6 +99,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - External-profile integration: run `30286217338`, product commit `e4c11f6684346510e44b1961b277159b5b13e854`.
 - Inspect-menu integration: run `30289377957`, product commit `e305394dae78ce98fa359f5ddc3521ed01675fe9`.
 - Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
+- Native Inspect context-menu E2E integration: run `30297644740`; product commit containing this document.
 
 ### Bounded request diagnostics and network inspection
 
@@ -111,7 +112,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 
 ## Automated acceptance state
 
-The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, 388 unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and the complete Chromium regression suite. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
+The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, and a real headed Chromium native Inspect menu path. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
@@ -125,9 +126,8 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- a real native browser context-menu interaction E2E for Inspect,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Add a real native Chromium context-menu interaction E2E for Inspect, then continue the remaining profile/export/localization blockers. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Implement full Options `.bak` export and a real original v3.5.0 export → reset → import semantic round trip, then continue the remaining profile/PAC/localization blockers. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

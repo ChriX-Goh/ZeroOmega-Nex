@@ -52,6 +52,8 @@ const requestDiagnosticsModelPath = 'apps/extension/src/lib/request-diagnostics-
 const requestDiagnosticsRuntimePath = 'apps/extension/src/lib/request-diagnostics-runtime.ts';
 const requestDiagnosticsPagePath = 'apps/extension/src/entrypoints/network/App.svelte';
 const inspectRuntimePath = 'apps/extension/src/lib/inspect-runtime.ts';
+const nativeInspectE2ePath = 'scripts/e2e-inspect-native-menu.mjs';
+const browserE2eWorkflowPath = '.github/workflows/browser-e2e.yml';
 
 const [
   popupApp,
@@ -151,6 +153,11 @@ const [
   readFile(requestDiagnosticsRuntimePath, 'utf8'),
   readFile(requestDiagnosticsPagePath, 'utf8'),
   readFile(inspectRuntimePath, 'utf8'),
+]);
+
+const [nativeInspectE2e, browserE2eWorkflow] = await Promise.all([
+  readFile(nativeInspectE2ePath, 'utf8'),
+  readFile(browserE2eWorkflowPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -277,6 +284,19 @@ const requirements = [
       inspectRuntime.includes('presentation?.color') &&
       !inspectRuntime.includes("color: '#607d8b' }"),
     'Inspect must evaluate the active route for the target URL, use the result-profile badge color, and keep the original two-line Inspect title shape.',
+  ],
+  [
+    nativeInspectE2e.includes("click({ button: 'right' })") &&
+      nativeInspectE2e.includes("['key', '--clearmodifiers', 'End', 'Up', 'Return']") &&
+      nativeInspectE2e.includes('chrome.storage.session.get(key)') &&
+      nativeInspectE2e.includes("assert.equal(action.badge, '#')") &&
+      nativeInspectE2e.includes('assert.match(action.title') &&
+      !nativeInspectE2e.match(/xdotool[^\n]*(?:mousemove|click)\s+\d+/u) &&
+      browserE2eWorkflow.includes('chromium-native-inspect:') &&
+      browserE2eWorkflow.includes('pnpm test:e2e:inspect-native') &&
+      browserE2eWorkflow.includes('xvfb-run') &&
+      browserE2eWorkflow.includes('xdotool'),
+    'Inspect must retain a real headed Chromium native-menu E2E that right-clicks the page, uses focused keyboard navigation rather than coordinates, and verifies session state plus toolbar presentation.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),
