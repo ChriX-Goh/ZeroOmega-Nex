@@ -45,3 +45,11 @@ new = "source = source.replace(style_marker, '<style>\\n' + style + '  fieldset 
 if source.count(old) != 1:
     raise SystemExit(f'UI style replacement mismatch: {source.count(old)}')
 ui.write_text(source.replace(old, new))
+
+docs = Path('.github/patches/apply-rule-source-e2e-docs.py')
+source = docs.read_text()
+old = '| D-19 | 附属立即下载     | 同上                                           | 下载状态/更新时间/错误                     | MUST_MATCH | MISSING  | MISSING | 本切片只保留 URL 缓存和只读语义，尚无后台安全下载、时间戳与错误状态                              | 下一切片实现           |'
+new = '| D-19 | 附属立即下载     | 同上                                           | 下载状态/更新时间/错误                     | MUST_MATCH | MISSING  | MISSING | 本切片只保留 URL 缓存和只读语义，尚无后台安全下载、时间戳与错误状态                                                                | 下一切片实现           |'
+if source.count(old) != 1:
+    raise SystemExit(f'D-19 generator text mismatch: {source.count(old)}')
+docs.write_text(source.replace(old, new))
