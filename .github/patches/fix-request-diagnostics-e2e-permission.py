@@ -41,3 +41,16 @@ new = """    permissions: [
 if text.count(old) != 1:
     raise SystemExit('manifest permission declaration was not found')
 path.write_text(text.replace(old, new, 1))
+
+validator = Path('scripts/validate-ui-compatibility.mjs')
+text = validator.read_text()
+old = """    manifest.includes("permissions: ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus']") &&
+      runtime.includes('registerRuleSourceScheduler') &&"""
+new = """    ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus'].every((permission) =>
+      manifest.includes(`'${permission}'`),
+    ) &&
+      manifest.includes("...(diagnosticsE2e ? ['webRequest'] : [])") &&
+      runtime.includes('registerRuleSourceScheduler') &&"""
+if text.count(old) != 1:
+    raise SystemExit('manifest scheduler permission guard was not found')
+validator.write_text(text.replace(old, new, 1))
