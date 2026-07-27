@@ -93,6 +93,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
 - Proxy-ownership integration: run `30283438960`, product commit `af25f7c2c2af5d305c3b06d2ee385a425763eb05`.
+- System-mode external import converts Chromium auto-detect/PAC/fixed settings in the background, suppresses exact duplicates, validates the original naming rules, and atomically imports plus activates through verified Apply.
 - Temporary-rule exact Head `2953ad6e8dc6fbe675b249d6c2637f9aa50920b6`: CI `30281961496`, Browser E2E `30281966841`, Parity Documentation `30281963875`.
 
 ## Automated acceptance state
@@ -111,9 +112,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup System-mode external Fixed/PAC import and bounded diagnostic functions,
+- Popup bounded diagnostic functions,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Proceed to System-mode external Fixed/PAC import, then bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

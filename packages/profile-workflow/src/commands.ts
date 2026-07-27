@@ -6,6 +6,10 @@ import {
   setPopupProfileResultDraft,
   type PopupSiteCondition,
 } from './popup-condition.js';
+import {
+  createExternalProfileDraft,
+  type ProfileWorkflowExternalProfileService,
+} from './external-profile.js';
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
@@ -118,6 +122,12 @@ export type ProfileWorkflowCommand =
       readonly ruleId: string;
       readonly condition: PopupSiteCondition;
       readonly route: ProfileRouteTarget;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'import-external-profile';
+      readonly expectedAppliedRevisionId: string;
+      readonly name: string;
     };
 
 export type ProfileWorkflowCommandResponse =
@@ -414,6 +424,12 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         validPopupCondition(record.condition) &&
         validRoute(record.route)
       );
+    case 'import-external-profile':
+      return (
+        typeof record.expectedAppliedRevisionId === 'string' &&
+        record.expectedAppliedRevisionId.length > 0 &&
+        typeof record.name === 'string'
+      );
     default:
       return false;
   }
@@ -428,6 +444,7 @@ export async function executeProfileWorkflowCommand(
   historyService?: ProfileWorkflowHistoryService,
   rollbackService?: ProfileWorkflowSnapshotRollbackService,
   ruleSourceUpdateService?: ProfileWorkflowRuleSourceUpdateService,
+  externalProfileService?: ProfileWorkflowExternalProfileService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let ensured: EnsuredProfileWorkflowState;
   try {
@@ -609,6 +626,101 @@ export async function executeProfileWorkflowCommand(
     const result = await applyProfileWorkflow(repository, applyService.driver, {
       ...applyService.createContext(edited),
       startRoute: activeRoute,
+    });
+    if (result.status === 'applied') {
+      return response(result.state, result.snapshotId, await runtimeView(applyService));
+    }
+    return failure(
+      result.status === 'busy'
+        ? 'busy'
+        : result.status === 'conflict'
+          ? 'conflict'
+          : result.status === 'failed'
+            ? 'apply-failed'
+            : 'invalid',
+      result.message,
+      result.state,
+    );
+  }
+
+  if (command.action === 'import-external-profile') {
+    if (state.applied.revision.id !== command.expectedAppliedRevisionId) {
+      return failure(
+        'conflict',
+        `expected applied revision ${command.expectedAppliedRevisionId}, current revision is ${state.applied.revision.id}`,
+        state,
+      );
+    }
+    if (state.pendingApply) {
+      return failure('busy', 'profile workflow is busy applying another revision', state);
+    }
+    if (!applyService || !externalProfileService) {
+      return failure('invalid', 'external profile import service is unavailable', state);
+    }
+    if (inspectProfileWorkflow(state).dirty) {
+      return failure(
+        'invalid',
+        'Apply or discard Options changes before importing an external profile from Popup',
+        state,
+      );
+    }
+    const runtime = await runtimeView(applyService);
+    if (runtime?.activeRoute?.kind !== 'system') {
+      return failure(
+        'invalid',
+        'external profiles can only be imported while System Proxy is the active route',
+        state,
+      );
+    }
+
+    let mutation;
+    try {
+      const candidate = await externalProfileService.readCandidate(state.applied);
+      if (!candidate) {
+        return failure(
+          'invalid',
+          'the current browser proxy configuration cannot be imported',
+          state,
+        );
+      }
+      mutation = createExternalProfileDraft(
+        state.applied,
+        candidate,
+        command.name,
+        externalProfileService.createId,
+      );
+    } catch (error) {
+      return failure('invalid', errorMessage(error), state);
+    }
+
+    const route: ProfileRouteTarget = { kind: 'profile', profileId: mutation.profileId };
+    if (!mutation.created) {
+      try {
+        const activated = await applyService.driver.activate(state.applied, route);
+        return response(state, activated.snapshotId, await runtimeView(applyService));
+      } catch (error) {
+        return failure('activation-failed', errorMessage(error), state);
+      }
+    }
+
+    let edited: ProfileWorkflowState;
+    try {
+      edited = replaceProfileWorkflowDraft(state, mutation.draft);
+      if (!(await repository.compareAndSwap(state.generation, edited))) {
+        const current = await repository.read();
+        return failure(
+          'conflict',
+          'profile workflow changed before the external profile could be persisted',
+          current,
+        );
+      }
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
+
+    const result = await applyProfileWorkflow(repository, applyService.driver, {
+      ...applyService.createContext(edited),
+      startRoute: route,
     });
     if (result.status === 'applied') {
       return response(result.state, result.snapshotId, await runtimeView(applyService));

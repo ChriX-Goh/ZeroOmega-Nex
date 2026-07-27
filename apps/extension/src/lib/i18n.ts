@@ -101,6 +101,20 @@ const translations: Readonly<Record<string, TranslationPair>> = {
     'zh-TW': '若不解決以上問題，則無法使用 ZeroOmega 切換 Proxy。',
   },
   'Manage extensions': { 'zh-CN': '管理扩展', 'zh-TW': '管理擴充功能' },
+  'External Profile': { 'zh-CN': '外部情景模式', 'zh-TW': '外部情景模式' },
+  'Save name': { 'zh-CN': '保存名称', 'zh-TW': '儲存名稱' },
+  'Profile name is required.': {
+    'zh-CN': '必须输入情景模式名称。',
+    'zh-TW': '必須輸入情景模式名稱。',
+  },
+  'Profile name cannot start with an underscore.': {
+    'zh-CN': '情景模式名称不能以下划线开头。',
+    'zh-TW': '情景模式名稱不能以下劃線開頭。',
+  },
+  'A profile with this name already exists.': {
+    'zh-CN': '已存在同名情景模式。',
+    'zh-TW': '已存在同名情景模式。',
+  },
   'Missing profile': { 'zh-CN': '情景模式不存在', 'zh-TW': '情景模式不存在' },
   Options: { 'zh-CN': '选项', 'zh-TW': '選項' },
   'Opening…': { 'zh-CN': '正在打开…', 'zh-TW': '正在開啟…' },

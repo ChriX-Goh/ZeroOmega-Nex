@@ -1,8 +1,14 @@
-import type { ProxyOwnershipView } from '@zeroomega-nex/browser-adapters';
-export type {
-  ProxyOwnershipBlockReason,
-  ProxyOwnershipView,
-} from '@zeroomega-nex/browser-adapters';
+import type { ProxyOwnershipView as BrowserProxyOwnershipView } from '@zeroomega-nex/browser-adapters';
+export type { ProxyOwnershipBlockReason } from '@zeroomega-nex/browser-adapters';
+
+export interface ExternalProfilePreview {
+  readonly kind: 'fixed' | 'pac';
+  readonly suggestedName: string;
+}
+
+export interface ProxyOwnershipView extends BrowserProxyOwnershipView {
+  readonly externalProfile?: ExternalProfilePreview;
+}
 import { browser } from 'wxt/browser';
 
 export const PROXY_OWNERSHIP_MESSAGE_CHANNEL = 'zeroomega-nex/proxy-ownership/v1' as const;
@@ -31,7 +37,13 @@ function isResponse(value: unknown): value is ProxyOwnershipCommandResponse {
   return (
     (view.family === 'chromium' || view.family === 'firefox') &&
     typeof view.blocked === 'boolean' &&
-    typeof view.controlLevel === 'string'
+    typeof view.controlLevel === 'string' &&
+    (view.externalProfile === undefined ||
+      (view.externalProfile !== null &&
+        typeof view.externalProfile === 'object' &&
+        ((view.externalProfile as Record<string, unknown>).kind === 'fixed' ||
+          (view.externalProfile as Record<string, unknown>).kind === 'pac') &&
+        typeof (view.externalProfile as Record<string, unknown>).suggestedName === 'string'))
   );
 }
 

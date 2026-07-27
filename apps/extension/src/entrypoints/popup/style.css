@@ -178,6 +178,86 @@ button {
   outline-offset: 1px;
 }
 
+.external-profile-row {
+  border-bottom: 1px solid var(--popup-border);
+}
+
+.external-profile-button {
+  display: grid;
+  grid-template-columns: 29px 1fr;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  min-height: 39px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--popup-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.external-profile-button:hover:not(:disabled) {
+  background: var(--popup-hover);
+}
+
+.external-profile-button:focus-visible,
+.external-profile-form input:focus-visible,
+.external-profile-actions button:focus-visible {
+  outline: 3px solid var(--popup-focus);
+  outline-offset: 1px;
+}
+
+.external-profile-form {
+  display: grid;
+  gap: 7px;
+  padding: 9px 11px;
+  background: var(--popup-footer);
+}
+
+.external-profile-form label {
+  display: grid;
+  gap: 4px;
+  color: var(--popup-muted);
+  font-size: 11px;
+}
+
+.external-profile-form input {
+  min-height: 30px;
+  padding: 4px 7px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-bg);
+  color: var(--popup-text);
+  font: inherit;
+}
+
+.external-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.external-profile-actions button {
+  min-height: 29px;
+  padding: 4px 9px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-bg);
+  color: var(--popup-text);
+  cursor: pointer;
+}
+
+.external-profile-actions button.primary {
+  border-color: var(--popup-accent);
+}
+
+.external-profile-error {
+  margin: 0;
+  color: var(--popup-error-text);
+  font-size: 11px;
+}
+
 .profile-divider {
   height: 1px;
   margin: 5px 10px;

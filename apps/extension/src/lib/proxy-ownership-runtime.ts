@@ -1,10 +1,20 @@
-import { inspectProxyOwnership, type ProxyOwnershipView } from '@zeroomega-nex/browser-adapters';
+import {
+  inspectProxyOwnership,
+  parseExternalProfileCandidate,
+  type BrowserStorageArea,
+} from '@zeroomega-nex/browser-adapters';
+import {
+  BrowserStorageProfileWorkflowRepository,
+  findMatchingExternalProfile,
+  type ProfileWorkflowStorageArea,
+} from '@zeroomega-nex/profile-workflow';
 import { browser } from 'wxt/browser';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 import {
   isProxyOwnershipCommand,
   type ProxyOwnershipCommandResponse,
+  type ProxyOwnershipView,
 } from './proxy-ownership-client';
 
 interface ProxyOwnershipMessageEvent {
@@ -18,16 +28,33 @@ interface ProxyOwnershipMessageEvent {
 
 export interface ProxyOwnershipRuntimeApi {
   readonly runtime: { readonly onMessage: ProxyOwnershipMessageEvent };
+  readonly storage: {
+    readonly local: ProfileWorkflowStorageArea & BrowserStorageArea;
+  };
 }
 
 export interface RegisteredProxyOwnershipRuntime {
   dispose(): void;
 }
 
-async function inspectCurrentOwnership(): Promise<ProxyOwnershipView> {
+async function inspectCurrentOwnership(api: ProxyOwnershipRuntimeApi): Promise<ProxyOwnershipView> {
   const runtime = currentBrowserProxyRuntime();
   try {
-    return await inspectProxyOwnership(runtime.driver);
+    const ownership = await inspectProxyOwnership(runtime.driver);
+    if (ownership.blocked) return ownership;
+    const activation = await runtime.repository.getState();
+    if (activation.activeBuiltInMode !== 'system') return ownership;
+    const workflow = await new BrowserStorageProfileWorkflowRepository(api.storage.local).read();
+    if (!workflow?.applied.settings.interface.showExternalProfile) return ownership;
+    const candidate = parseExternalProfileCandidate(await runtime.driver.readState());
+    if (!candidate || findMatchingExternalProfile(workflow.applied, candidate)) return ownership;
+    return {
+      ...ownership,
+      externalProfile: {
+        kind: candidate.kind,
+        suggestedName: 'External Profile',
+      },
+    };
   } finally {
     runtime.dispose();
   }
@@ -38,7 +65,7 @@ export function registerProxyOwnershipRuntime(
 ): RegisteredProxyOwnershipRuntime {
   const listener = (message: unknown): Promise<ProxyOwnershipCommandResponse> | undefined => {
     if (!isProxyOwnershipCommand(message)) return undefined;
-    return inspectCurrentOwnership().then(
+    return inspectCurrentOwnership(api).then(
       (view) => ({ ok: true, view }),
       (error: unknown) => ({
         ok: false,

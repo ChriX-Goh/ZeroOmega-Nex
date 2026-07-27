@@ -1,6 +1,7 @@
 import {
   BrowserStorageProxyAuthenticationRepository,
   listPacSnapshotHistory,
+  parseExternalProfileCandidate,
   type BrowserStorageArea,
 } from '@zeroomega-nex/browser-adapters';
 import {
@@ -12,6 +13,7 @@ import {
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
   type ProfileWorkflowCommandResponse,
+  type ProfileWorkflowExternalProfileService,
   type ProfileWorkflowHistoryService,
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
@@ -59,6 +61,21 @@ export interface ProfileWorkflowRuntimeOptions {
 
 export interface RegisteredProfileWorkflowRuntime {
   dispose(): void;
+}
+
+class BrowserExternalProfileService implements ProfileWorkflowExternalProfileService {
+  readonly createId = (
+    kind: Parameters<ProfileWorkflowExternalProfileService['createId']>[0],
+  ): string => `external-${kind}-${crypto.randomUUID()}`;
+
+  async readCandidate() {
+    const runtime = currentBrowserProxyRuntime();
+    try {
+      return parseExternalProfileCandidate(await runtime.driver.readState());
+    } finally {
+      runtime.dispose();
+    }
+  }
 }
 
 class RuntimeInitializer implements ProfileWorkflowInitializer {
@@ -148,6 +165,7 @@ export function registerProfileWorkflowRuntime(
   );
   const importService = createImportService(api);
   const historyService = createHistoryService(repository);
+  const externalProfileService = new BrowserExternalProfileService();
   const ruleSourceUpdateService = createRuleSourceUpdateService(
     importService,
     options.ruleSourceDownloader ?? new BrowserRuleSourceDownloader(),
@@ -182,6 +200,7 @@ export function registerProfileWorkflowRuntime(
       historyService,
       rollbackService,
       ruleSourceUpdateService,
+      externalProfileService,
     );
   };
   api.runtime.onMessage.addListener(listener);

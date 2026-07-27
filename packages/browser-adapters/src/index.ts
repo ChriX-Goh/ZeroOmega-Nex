@@ -13,6 +13,13 @@ export {
   type ProxyAuthenticationRequiredEvent,
 } from './authentication-listener.js';
 export {
+  parseExternalProfileCandidate,
+  type ExternalProfileCandidate,
+  type ExternalProxyProtocol,
+  type ExternalProxyScheme,
+  type ExternalProxyServer,
+} from './external-profile.js';
+export {
   createProxyAuthenticationPlan,
   type ProxyAuthenticationPlan,
   type UnsupportedProxyAuthenticationEndpoint,

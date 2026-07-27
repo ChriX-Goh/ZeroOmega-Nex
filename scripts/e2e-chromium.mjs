@@ -192,6 +192,67 @@ try {
   if (!(await direct.isDisabled())) await direct.click();
   await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
 
+  const system = popup.getByRole('button', { name: /系统代理/u });
+  await system.click();
+  await assertEventually(async () => system.isDisabled(), 'System route did not become active');
+  await worker.evaluate(async () =>
+    chrome.proxy.settings.set({
+      scope: 'regular',
+      value: {
+        mode: 'fixed_servers',
+        rules: {
+          fallbackProxy: { scheme: 'socks5', host: 'external.e2e.invalid', port: 1080 },
+          proxyForHttp: { scheme: 'http', host: 'external-http.e2e.invalid', port: 8080 },
+          bypassList: ['<local>', 'localhost', '*.external.internal'],
+        },
+      },
+    }),
+  );
+  const externalPopup = await context.newPage();
+  await externalPopup.goto(`chrome-extension://${extensionId}/popup.html`);
+  const externalRow = externalPopup.locator('[data-popup-external-profile]');
+  await externalRow.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await externalRow.innerText(), /外部情景模式/u);
+  await externalRow.locator('.external-profile-button').click();
+  const externalForm = externalPopup.locator('[data-popup-external-profile-form]');
+  await externalForm.getByLabel('External profile name').fill('_reserved');
+  await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
+  await externalForm.getByText('情景模式名称不能以下划线开头。').waitFor();
+  await externalForm.getByLabel('External profile name').fill('Imported External Proxy');
+  await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
+  await assertEventually(async () => {
+    const storage = await worker.evaluate(async () => chrome.storage.local.get(null));
+    const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+    const imported = workflow?.applied?.profiles?.find(
+      (profile) => profile.name === 'Imported External Proxy',
+    );
+    if (imported?.kind !== 'fixed') return false;
+    const fallback = workflow.applied.proxyEndpoints.find(
+      (endpoint) => endpoint.id === imported.proxyByScheme.fallback,
+    );
+    const http = workflow.applied.proxyEndpoints.find(
+      (endpoint) => endpoint.id === imported.proxyByScheme.http,
+    );
+    const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+    const snapshot = proxyState?.activeSnapshotId
+      ? storage[`zeroomega-nex/browser-proxy/v1/snapshot/${proxyState.activeSnapshotId}`]
+      : undefined;
+    return (
+      fallback?.protocol === 'socks5' &&
+      fallback.host === 'external.e2e.invalid' &&
+      fallback.port === 1080 &&
+      http?.protocol === 'http' &&
+      http.host === 'external-http.e2e.invalid' &&
+      imported.bypass?.some((entry) => entry.pattern === '<local>') &&
+      imported.bypass?.some((entry) => entry.pattern === '*.external.internal') &&
+      !imported.bypass?.some((entry) => entry.pattern === 'localhost') &&
+      workflow.draft.revision.id === workflow.applied.revision.id &&
+      snapshot?.startRoute?.kind === 'profile' &&
+      snapshot.startRoute.profileId === imported.id
+    );
+  }, 'External Fixed profile was not imported and activated atomically');
+  await externalPopup.close().catch(() => undefined);
+
   await options.bringToFront();
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   await options.getByLabel('原版备份文件').setInputFiles(legacyBackupPath);

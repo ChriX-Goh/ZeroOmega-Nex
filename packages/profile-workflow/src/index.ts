@@ -61,6 +61,16 @@ export {
 } from './import-acceptance.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
+  createExternalProfileDraft,
+  findMatchingExternalProfile,
+  type ProfileWorkflowExternalProfileCandidate,
+  type ProfileWorkflowExternalProfileMutation,
+  type ProfileWorkflowExternalProfileService,
+  type ProfileWorkflowExternalProxyProtocol,
+  type ProfileWorkflowExternalProxyScheme,
+  type ProfileWorkflowExternalProxyServer,
+} from './external-profile.js';
+export {
   POPUP_TEMPORARY_PROFILE_ID_PREFIX,
   POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
   POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX,

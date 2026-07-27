@@ -6,6 +6,8 @@ const currentSitePath = 'apps/extension/src/lib/current-site.ts';
 const proxyOwnershipCorePath = 'packages/browser-adapters/src/ownership.ts';
 const proxyOwnershipRuntimePath = 'apps/extension/src/lib/proxy-ownership-runtime.ts';
 const proxyOwnershipClientPath = 'apps/extension/src/lib/proxy-ownership-client.ts';
+const externalProfileAdapterPath = 'packages/browser-adapters/src/external-profile.ts';
+const externalProfileWorkflowPath = 'packages/profile-workflow/src/external-profile.ts';
 const popupTemporaryRulesPath = 'packages/profile-workflow/src/popup-temporary-rules.ts';
 const popupTemporaryRuntimePath = 'apps/extension/src/lib/popup-temporary-rule-runtime.ts';
 const sessionSnapshotRepositoryPath = 'apps/extension/src/lib/session-snapshot-repository.ts';
@@ -54,6 +56,8 @@ const [
   proxyOwnershipCore,
   proxyOwnershipRuntime,
   proxyOwnershipClient,
+  externalProfileAdapter,
+  externalProfileWorkflow,
   popupTemporaryRules,
   popupTemporaryRuntime,
   sessionSnapshotRepository,
@@ -97,6 +101,8 @@ const [
   readFile(proxyOwnershipCorePath, 'utf8'),
   readFile(proxyOwnershipRuntimePath, 'utf8'),
   readFile(proxyOwnershipClientPath, 'utf8'),
+  readFile(externalProfileAdapterPath, 'utf8'),
+  readFile(externalProfileWorkflowPath, 'utf8'),
   readFile(popupTemporaryRulesPath, 'utf8'),
   readFile(popupTemporaryRuntimePath, 'utf8'),
   readFile(sessionSnapshotRepositoryPath, 'utf8'),
@@ -169,6 +175,22 @@ const requirements = [
       !proxyOwnershipRuntime.includes('const listener = async') &&
       proxyOwnershipClient.includes('PROXY_OWNERSHIP_MESSAGE_CHANNEL'),
     'Popup must fail closed when another extension, policy, or missing browser capability prevents proxy control, and every ownership message listener must synchronously reject unrelated channels.',
+  ],
+  [
+    popupApp.includes('data-popup-external-profile') &&
+      popupApp.includes('data-popup-external-profile-form') &&
+      popupApp.includes("action: 'import-external-profile'") &&
+      popupApp.includes("name.startsWith('_')") &&
+      proxyOwnershipClient.includes('ExternalProfilePreview') &&
+      !proxyOwnershipClient.includes('host:') &&
+      !proxyOwnershipClient.includes('script:') &&
+      externalProfileAdapter.includes("case 'auto_detect'") &&
+      externalProfileAdapter.includes("case 'pac_script'") &&
+      externalProfileAdapter.includes("case 'fixed_servers'") &&
+      externalProfileAdapter.includes('singleProxy') &&
+      externalProfileWorkflow.includes('findMatchingExternalProfile') &&
+      externalProfileWorkflow.includes('createExternalProfileDraft'),
+    'System-mode external Fixed/PAC import must keep raw effective proxy data in the background, validate original profile-name rules, avoid exact duplicates, and use the normal verified Apply transaction.',
   ],
   [
     popupApp.includes('data-popup-temporary-rule') &&

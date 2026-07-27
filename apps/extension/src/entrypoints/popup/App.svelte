@@ -80,6 +80,10 @@
   let openingSettings = false;
   let openingTemporaryRules = false;
   let openingExtensionManager = false;
+  let importingExternalProfile = false;
+  let externalProfileFormOpen = false;
+  let externalProfileName = '';
+  let externalProfileNameError = '';
   let conditionFormOpen = false;
   let conditionKind: PopupConditionKind = 'host-wildcard';
   let conditionPattern = '';
@@ -297,6 +301,50 @@
     return translate('ZeroOmega cannot inspect or change the browser proxy settings.');
   }
 
+  function validateExternalProfileName(): string {
+    const name = externalProfileName.trim();
+    if (!name) return translate('Profile name is required.');
+    if (name.startsWith('_')) return translate('Profile name cannot start with an underscore.');
+    if (state?.applied.profiles.some((profile) => profile.name === name)) {
+      return translate('A profile with this name already exists.');
+    }
+    return '';
+  }
+
+  function openExternalProfileForm(): void {
+    externalProfileName = '';
+    externalProfileNameError = '';
+    externalProfileFormOpen = true;
+  }
+
+  function closeExternalProfileForm(): void {
+    externalProfileFormOpen = false;
+    externalProfileName = '';
+    externalProfileNameError = '';
+  }
+
+  async function importExternalProfile(): Promise<void> {
+    if (!state || importingExternalProfile) return;
+    externalProfileNameError = validateExternalProfileName();
+    if (externalProfileNameError) return;
+    importingExternalProfile = true;
+    errorMessage = '';
+    try {
+      const accepted = acceptResponse(
+        await sendProfileWorkflowCommand({
+          action: 'import-external-profile',
+          expectedAppliedRevisionId: state.applied.revision.id,
+          name: externalProfileName.trim(),
+        }),
+      );
+      if (accepted) window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      importingExternalProfile = false;
+    }
+  }
+
   async function openExtensionManager(): Promise<void> {
     if (!proxyOwnership || openingExtensionManager) return;
     openingExtensionManager = true;
@@ -508,7 +556,12 @@
 <main
   class="popup-shell"
   aria-label="ZeroOmega Nex profile switcher"
-  aria-busy={loading || switching || addingCondition || settingResult || settingTemporaryRule}
+  aria-busy={loading ||
+    switching ||
+    addingCondition ||
+    settingResult ||
+    settingTemporaryRule ||
+    importingExternalProfile}
 >
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
@@ -597,6 +650,60 @@
           {/if}
         </div>
       {/each}
+      {#if proxyOwnership?.externalProfile}
+        <div class="profile-divider" role="separator"></div>
+        <div class="external-profile-row" data-popup-external-profile>
+          {#if externalProfileFormOpen}
+            <form
+              class="external-profile-form"
+              data-popup-external-profile-form
+              onsubmit={(event) => {
+                event.preventDefault();
+                void importExternalProfile();
+              }}
+            >
+              <label>
+                {translate('Profile name')}
+                <input
+                  aria-label="External profile name"
+                  bind:value={externalProfileName}
+                  placeholder={translate('External Profile')}
+                  oninput={() => (externalProfileNameError = '')}
+                />
+              </label>
+              {#if externalProfileNameError}
+                <p class="external-profile-error" role="alert">{externalProfileNameError}</p>
+              {/if}
+              <div class="external-profile-actions">
+                <button
+                  type="button"
+                  disabled={importingExternalProfile}
+                  onclick={closeExternalProfileForm}
+                >
+                  {translate('Cancel')}
+                </button>
+                <button type="submit" class="primary" disabled={importingExternalProfile}>
+                  {importingExternalProfile ? translate('Saving…') : translate('Save name')}
+                </button>
+              </div>
+            </form>
+          {:else}
+            <button
+              type="button"
+              class="external-profile-button"
+              disabled={switching || importingExternalProfile}
+              onclick={openExternalProfileForm}
+            >
+              <ProfileIcon
+                kind={proxyOwnership.externalProfile.kind}
+                color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                size={21}
+              />
+              <span>{translate('External Profile')}</span>
+            </button>
+          {/if}
+        </div>
+      {/if}
     {/if}
   </section>
 
@@ -710,7 +817,9 @@
       <span>{openingSettings ? 'Opening…' : 'Options'}</span>
     </button>
     <span class="product-name"
-      >{switching || settingTemporaryRule ? 'Switching…' : productIdentity.name}</span
+      >{switching || settingTemporaryRule || importingExternalProfile
+        ? 'Switching…'
+        : productIdentity.name}</span
     >
   </footer>
 
