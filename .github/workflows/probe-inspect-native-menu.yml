@@ -1,0 +1,68 @@
+name: Probe native Inspect menu
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/probe-inspect-native-menu.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-inspect-native-menu-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    if: github.head_ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium and accessibility bridge
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            at-spi2-core \
+            dbus-x11 \
+            gir1.2-atspi-2.0 \
+            python3-gi \
+            xauth \
+            xvfb
+      - name: Build Chromium extension
+        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+      - name: Run headed native-menu probe
+        shell: bash
+        run: |
+          set -o pipefail
+          dbus-run-session -- bash -lc '
+            export NO_AT_BRIDGE=0
+            export GTK_MODULES=gail:atk-bridge
+            xvfb-run -a -s "-screen 0 1280x800x24 -ac +extension RANDR" \
+              node scripts/probe-inspect-native-menu.mjs
+          ' 2>&1 | tee inspect-native-menu-probe.log
+      - name: Upload probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspect-native-menu-probe-${{ github.run_id }}
+          path: |
+            inspect-native-menu-probe.log
+            inspect-native-atspi-tree.txt
+          if-no-files-found: warn
+          retention-days: 7
