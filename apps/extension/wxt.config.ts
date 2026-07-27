@@ -7,6 +7,9 @@ const icons = {
   128: 'icon/128.png',
 } as const;
 
+const ruleSourceE2eHostPermissions =
+  process.env.ZEROOMEGA_RULE_SOURCE_E2E === '1' ? ['http://127.0.0.1/*'] : [];
+
 export default defineConfig({
   srcDir: 'src',
   outDir: '../../dist',
@@ -24,6 +27,9 @@ export default defineConfig({
         ? ['webRequest', 'webRequestBlocking']
         : ['webRequest', 'webRequestAuthProvider'],
     optional_host_permissions: ['http://*/*', 'https://*/*'],
+    ...(ruleSourceE2eHostPermissions.length === 0
+      ? {}
+      : { host_permissions: ruleSourceE2eHostPermissions }),
     action: {
       default_title: '__MSG_actionTitle__',
       default_icon: icons,

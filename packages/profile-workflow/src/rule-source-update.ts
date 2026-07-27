@@ -95,7 +95,8 @@ export function inspectProfileWorkflowRuleSourceUpdate(
   const interval = updateIntervalMinutes(state, source);
   const record = state.ruleSourceUpdates?.[sourceId];
   const matching = record?.url === source.location.url ? record : undefined;
-  const lastSuccess = matching?.lastSuccessAt && timestamp(matching.lastSuccessAt);
+  const lastSuccess =
+    matching?.lastSuccessAt === undefined ? undefined : timestamp(matching.lastSuccessAt);
   const current = timestamp(now);
   const stale =
     lastSuccess === undefined ||
@@ -195,9 +196,7 @@ function recordForFailure(
     sourceId,
     url,
     lastAttemptAt: attemptedAt,
-    ...(matching?.lastSuccessAt === undefined
-      ? {}
-      : { lastSuccessAt: matching.lastSuccessAt }),
+    ...(matching?.lastSuccessAt === undefined ? {} : { lastSuccessAt: matching.lastSuccessAt }),
     ...(matching?.lastBytes === undefined ? {} : { lastBytes: matching.lastBytes }),
     lastError: { occurredAt: attemptedAt, message },
   };
@@ -281,6 +280,14 @@ export async function updateProfileWorkflowRuleSource(
 ): Promise<ProfileWorkflowRuleSourceUpdateResult> {
   const source = sourceById(initial, sourceId);
   if (!source) return { status: 'invalid', message: `Rule Source ${sourceId} does not exist` };
+  if (source.location.kind !== 'url') {
+    return {
+      status: 'invalid',
+      message: 'Rule Source is inline and cannot be downloaded',
+      state: initial,
+    };
+  }
+  const configuredUrl = source.location.url;
   const attemptedAt = service.now?.() ?? new Date().toISOString();
   let url: string;
   let headers: Readonly<Record<string, string>>;
@@ -289,14 +296,11 @@ export async function updateProfileWorkflowRuleSource(
     headers = await resolveHeaders(source, service.secretStore);
   } catch (error) {
     const message = normalizedMessage(error);
-    if (source.location.kind !== 'url') {
-      return { status: 'invalid', message, state: initial };
-    }
     return persistFailure(
       repository,
       initial,
       sourceId,
-      source.location.url,
+      configuredUrl,
       attemptedAt,
       message,
       'invalid',
@@ -325,7 +329,7 @@ export async function updateProfileWorkflowRuleSource(
       repository,
       initial,
       sourceId,
-      source.location.kind === 'url' ? source.location.url : url,
+      configuredUrl,
       attemptedAt,
       normalizedMessage(error),
       'failed',
@@ -349,7 +353,7 @@ export async function updateProfileWorkflowRuleSource(
   if (
     !currentSource ||
     currentSource.location.kind !== 'url' ||
-    currentSource.location.url !== source.location.url
+    currentSource.location.url !== configuredUrl
   ) {
     return {
       status: 'conflict',
@@ -361,7 +365,11 @@ export async function updateProfileWorkflowRuleSource(
   const draft = cloneProfileSpecDraft(current.draft);
   const target = draft.ruleSources.find((candidate) => candidate.id === sourceId);
   if (!target || target.location.kind !== 'url') {
-    return { status: 'conflict', message: 'Rule Source disappeared before update commit', state: current };
+    return {
+      status: 'conflict',
+      message: 'Rule Source disappeared before update commit',
+      state: current,
+    };
   }
   target.location.content = downloaded.content;
 
@@ -385,7 +393,8 @@ export async function updateProfileWorkflowRuleSource(
       const raced = await repository.read();
       return {
         status: 'conflict',
-        message: 'profile workflow changed before downloaded Rule Source content could be committed',
+        message:
+          'profile workflow changed before downloaded Rule Source content could be committed',
         ...(raced === undefined ? {} : { state: raced }),
       };
     }
@@ -394,7 +403,11 @@ export async function updateProfileWorkflowRuleSource(
   }
   const update = inspectProfileWorkflowRuleSourceUpdate(next, sourceId, attemptedAt);
   if (!update) {
-    return { status: 'storage-failure', message: 'Rule Source update status was not available', state: next };
+    return {
+      status: 'storage-failure',
+      message: 'Rule Source update status was not available',
+      state: next,
+    };
   }
   return { status: 'updated', state: next, update };
 }

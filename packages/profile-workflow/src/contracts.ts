@@ -91,12 +91,38 @@ export interface ProfileWorkflowRevisionHistoryEntry {
   readonly applied: boolean;
 }
 
+export interface ProfileWorkflowRuleSourceUpdateError {
+  readonly occurredAt: string;
+  readonly message: string;
+}
+
+export interface ProfileWorkflowRuleSourceUpdateRecord {
+  readonly sourceId: string;
+  readonly url: string;
+  readonly lastAttemptAt: string;
+  readonly lastSuccessAt?: string;
+  readonly lastBytes?: number;
+  readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
+}
+
+export interface ProfileWorkflowRuleSourceUpdateView {
+  readonly sourceId: string;
+  readonly url: string;
+  readonly updateIntervalMinutes: number;
+  readonly stale: boolean;
+  readonly lastAttemptAt?: string;
+  readonly lastSuccessAt?: string;
+  readonly lastBytes?: number;
+  readonly lastError?: ProfileWorkflowRuleSourceUpdateError;
+}
+
 export interface ProfileWorkflowState {
   readonly workflowSchemaVersion: typeof PROFILE_WORKFLOW_SCHEMA_VERSION;
   readonly generation: number;
   readonly applied: ProfileSpec;
   readonly draft: ProfileSpec;
   readonly selectedProfileId?: string;
+  readonly ruleSourceUpdates?: Readonly<Record<string, ProfileWorkflowRuleSourceUpdateRecord>>;
   readonly pendingApply?: ProfileWorkflowPendingApply;
   readonly lastApply?: ProfileWorkflowApplyRecord;
 }

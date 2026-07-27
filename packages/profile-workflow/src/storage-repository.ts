@@ -10,6 +10,7 @@ import {
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
   type ProfileWorkflowRevisionRepository,
+  type ProfileWorkflowRuleSourceUpdateRecord,
   type ProfileWorkflowState,
 } from './contracts.js';
 
@@ -123,6 +124,67 @@ function parseLastApply(value: unknown): ProfileWorkflowApplyRecord {
   };
 }
 
+function optionalString(
+  value: Record<string, unknown>,
+  key: string,
+  label: string,
+): string | undefined {
+  const candidate = value[key];
+  if (candidate === undefined) return undefined;
+  if (typeof candidate !== 'string' || !candidate) {
+    throw new TypeError(`${label}.${key} must be a non-empty string`);
+  }
+  return candidate;
+}
+
+function parseRuleSourceUpdates(
+  value: unknown,
+): Readonly<Record<string, ProfileWorkflowRuleSourceUpdateRecord>> | undefined {
+  if (value === undefined) return undefined;
+  const updates = record(value, 'ruleSourceUpdates');
+  const parsed: Record<string, ProfileWorkflowRuleSourceUpdateRecord> = {};
+  for (const [sourceId, raw] of Object.entries(updates)) {
+    if (!sourceId) throw new TypeError('ruleSourceUpdates keys must not be empty');
+    const entry = record(raw, `ruleSourceUpdates.${sourceId}`);
+    const parsedSourceId = requiredString(entry, 'sourceId', `ruleSourceUpdates.${sourceId}`);
+    if (parsedSourceId !== sourceId) {
+      throw new TypeError(`ruleSourceUpdates.${sourceId}.sourceId must match its key`);
+    }
+    const lastBytes = entry.lastBytes;
+    if (lastBytes !== undefined && (!Number.isInteger(lastBytes) || Number(lastBytes) < 0)) {
+      throw new TypeError(`ruleSourceUpdates.${sourceId}.lastBytes must be a non-negative integer`);
+    }
+    const lastErrorRaw = entry.lastError;
+    const lastError =
+      lastErrorRaw === undefined
+        ? undefined
+        : (() => {
+            const error = record(lastErrorRaw, `ruleSourceUpdates.${sourceId}.lastError`);
+            return {
+              occurredAt: requiredString(
+                error,
+                'occurredAt',
+                `ruleSourceUpdates.${sourceId}.lastError`,
+              ),
+              message: requiredString(error, 'message', `ruleSourceUpdates.${sourceId}.lastError`),
+            };
+          })();
+    parsed[sourceId] = {
+      sourceId,
+      url: requiredString(entry, 'url', `ruleSourceUpdates.${sourceId}`),
+      lastAttemptAt: requiredString(entry, 'lastAttemptAt', `ruleSourceUpdates.${sourceId}`),
+      ...(optionalString(entry, 'lastSuccessAt', `ruleSourceUpdates.${sourceId}`) === undefined
+        ? {}
+        : {
+            lastSuccessAt: optionalString(entry, 'lastSuccessAt', `ruleSourceUpdates.${sourceId}`)!,
+          }),
+      ...(lastBytes === undefined ? {} : { lastBytes: Number(lastBytes) }),
+      ...(lastError === undefined ? {} : { lastError }),
+    };
+  }
+  return parsed;
+}
+
 export function parseProfileWorkflowState(value: unknown): ProfileWorkflowState {
   const state = record(value, 'profile workflow state');
   if (state.workflowSchemaVersion !== PROFILE_WORKFLOW_SCHEMA_VERSION) {
@@ -150,6 +212,9 @@ export function parseProfileWorkflowState(value: unknown): ProfileWorkflowState 
     applied,
     draft,
     ...(selectedProfileId === undefined ? {} : { selectedProfileId }),
+    ...(parseRuleSourceUpdates(state.ruleSourceUpdates) === undefined
+      ? {}
+      : { ruleSourceUpdates: parseRuleSourceUpdates(state.ruleSourceUpdates)! }),
     ...(state.pendingApply === undefined ? {} : { pendingApply: parsePending(state.pendingApply) }),
     ...(state.lastApply === undefined ? {} : { lastApply: parseLastApply(state.lastApply) }),
   };

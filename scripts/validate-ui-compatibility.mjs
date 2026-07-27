@@ -23,6 +23,8 @@ const advancedProfileOperationsPath =
   'packages/profile-workflow/src/advanced-profile-operations.ts';
 const profileOperationsPath = 'packages/profile-workflow/src/profile-operations.ts';
 const runtimePath = 'apps/extension/src/lib/profile-workflow-runtime.ts';
+const ruleSourceDownloaderPath = 'apps/extension/src/lib/rule-source-downloader.ts';
+const ruleSourceUpdatePath = 'packages/profile-workflow/src/rule-source-update.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
 const attachedRuleListOperationsPath =
@@ -55,6 +57,8 @@ const [
   advancedProfileOperations,
   profileOperations,
   runtime,
+  ruleSourceDownloader,
+  ruleSourceUpdate,
   switchOperations,
   switchSource,
   attachedRuleListOperations,
@@ -85,6 +89,8 @@ const [
   readFile(advancedProfileOperationsPath, 'utf8'),
   readFile(profileOperationsPath, 'utf8'),
   readFile(runtimePath, 'utf8'),
+  readFile(ruleSourceDownloaderPath, 'utf8'),
+  readFile(ruleSourceUpdatePath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
   readFile(attachedRuleListOperationsPath, 'utf8'),
@@ -244,6 +250,23 @@ const requirements = [
       profileOperations.includes('duplicateSwitchProfileResources') &&
       profileOperations.includes('deleted.attachedRuleListProfileId'),
     'Switch attached Rule Lists must be hidden owned profiles with source-backed lifecycle, import reconstruction, cached URL content, duplication, and cascading deletion.',
+  ],
+  [
+    attachedRuleListConfig.includes('data-rule-source-update-now') &&
+      attachedRuleListConfig.includes('data-rule-source-update-status') &&
+      attachedRuleListConfig.includes('Existing cached content was preserved') &&
+      optionsApp.includes("action: 'update-rule-source'") &&
+      optionsApp.includes('requestRuleSourceOriginPermission') &&
+      runtime.includes('BrowserRuleSourceDownloader') &&
+      ruleSourceDownloader.includes("credentials: 'omit'") &&
+      ruleSourceDownloader.includes("cache: 'no-store'") &&
+      ruleSourceDownloader.includes("referrerPolicy: 'no-referrer'") &&
+      ruleSourceUpdate.includes('RULE_SOURCE_UPDATE_TIMEOUT_MS = 10_000') &&
+      ruleSourceUpdate.includes('RULE_SOURCE_UPDATE_MAX_BYTES = 4 * 1024 * 1024') &&
+      ruleSourceUpdate.includes('repository.compareAndSwap(current.generation, next)') &&
+      ruleSourceUpdate.includes('Rule Source request header') &&
+      ruleSourceUpdate.includes('old cached content') === false,
+    'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
   ],
   [
     !switchOperations.includes('`${source.note} copy`') &&

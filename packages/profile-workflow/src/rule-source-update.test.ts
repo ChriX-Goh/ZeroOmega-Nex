@@ -59,19 +59,14 @@ describe('Rule Source background update service', () => {
     secrets.values.set('secret-rule-auth', 'Bearer secret-value');
     const requests: unknown[] = [];
 
-    const result = await updateProfileWorkflowRuleSource(
-      repository,
-      initial,
-      'source-rules',
-      {
-        secretStore: secrets,
-        now: () => '2026-07-27T03:00:00.000Z',
-        downloader: downloader(async (request) => {
-          requests.push(request);
-          return { content: '[AutoProxy 0.2.9]\n||updated.example', bytes: 39 };
-        }),
-      },
-    );
+    const result = await updateProfileWorkflowRuleSource(repository, initial, 'source-rules', {
+      secretStore: secrets,
+      now: () => '2026-07-27T03:00:00.000Z',
+      downloader: downloader(async (request) => {
+        requests.push(request);
+        return { content: '[AutoProxy 0.2.9]\n||updated.example', bytes: 39 };
+      }),
+    });
 
     expect(result.status).toBe('updated');
     if (result.status !== 'updated') throw new Error(result.message);
@@ -111,18 +106,13 @@ describe('Rule Source background update service', () => {
     const secrets = new MemorySecretStore();
     secrets.values.set('secret-rule-auth', 'Bearer secret-value');
 
-    const result = await updateProfileWorkflowRuleSource(
-      repository,
-      initial,
-      'source-rules',
-      {
-        secretStore: secrets,
-        now: () => '2026-07-27T04:00:00.000Z',
-        downloader: downloader(async () => {
-          throw new Error(`network failed ${'x'.repeat(800)}`);
-        }),
-      },
-    );
+    const result = await updateProfileWorkflowRuleSource(repository, initial, 'source-rules', {
+      secretStore: secrets,
+      now: () => '2026-07-27T04:00:00.000Z',
+      downloader: downloader(async () => {
+        throw new Error(`network failed ${'x'.repeat(800)}`);
+      }),
+    });
 
     expect(result.status).toBe('failed');
     if (result.status !== 'failed' || !result.state) throw new Error('expected failed state');
@@ -142,24 +132,19 @@ describe('Rule Source background update service', () => {
     const secrets = new MemorySecretStore();
     secrets.values.set('secret-rule-auth', 'Bearer secret-value');
 
-    const result = await updateProfileWorkflowRuleSource(
-      repository,
-      initial,
-      'source-rules',
-      {
-        secretStore: secrets,
-        downloader: downloader(async () => {
-          const current = await repository.read();
-          if (!current) throw new Error('missing workflow state');
-          const edited = updateProfileWorkflowDraft(current, (draft) => {
-            const source = draft.ruleSources[0];
-            if (source?.location.kind === 'url') source.location.url = 'https://changed.invalid/list';
-          });
-          repository.replaceForTest(edited);
-          return { content: 'downloaded after edit', bytes: 21 };
-        }),
-      },
-    );
+    const result = await updateProfileWorkflowRuleSource(repository, initial, 'source-rules', {
+      secretStore: secrets,
+      downloader: downloader(async () => {
+        const current = await repository.read();
+        if (!current) throw new Error('missing workflow state');
+        const edited = updateProfileWorkflowDraft(current, (draft) => {
+          const source = draft.ruleSources[0];
+          if (source?.location.kind === 'url') source.location.url = 'https://changed.invalid/list';
+        });
+        repository.replaceForTest(edited);
+        return { content: 'downloaded after edit', bytes: 21 };
+      }),
+    });
 
     expect(result.status).toBe('conflict');
     const persisted = await repository.read();
@@ -180,20 +165,16 @@ describe('Rule Source background update service', () => {
     secrets.values.set('cookie-secret', 'private-cookie');
     let called = false;
 
-    const result = await updateProfileWorkflowRuleSource(
-      repository,
-      initial,
-      'source-rules',
-      {
-        secretStore: secrets,
-        downloader: downloader(async () => {
-          called = true;
-          return { content: 'not reached', bytes: 11 };
-        }),
-      },
-    );
+    const result = await updateProfileWorkflowRuleSource(repository, initial, 'source-rules', {
+      secretStore: secrets,
+      downloader: downloader(async () => {
+        called = true;
+        return { content: 'not reached', bytes: 11 };
+      }),
+    });
 
     expect(result.status).toBe('invalid');
+    if (result.status !== 'invalid') throw new Error('expected invalid Rule Source update');
     expect(result.message).toContain('controlled by the browser');
     expect(called).toBe(false);
   });
@@ -214,18 +195,12 @@ describe('Rule Source background update service', () => {
     };
 
     expect(
-      inspectProfileWorkflowRuleSourceUpdate(
-        withStatus,
-        'source-rules',
-        '2026-07-27T03:59:59.000Z',
-      )?.stale,
+      inspectProfileWorkflowRuleSourceUpdate(withStatus, 'source-rules', '2026-07-27T03:59:59.000Z')
+        ?.stale,
     ).toBe(false);
     expect(
-      inspectProfileWorkflowRuleSourceUpdate(
-        withStatus,
-        'source-rules',
-        '2026-07-27T04:00:00.000Z',
-      )?.stale,
+      inspectProfileWorkflowRuleSourceUpdate(withStatus, 'source-rules', '2026-07-27T04:00:00.000Z')
+        ?.stale,
     ).toBe(true);
     expect('ruleSourceUpdates' in withStatus.draft).toBe(false);
   });

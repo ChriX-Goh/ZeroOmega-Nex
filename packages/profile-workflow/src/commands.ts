@@ -6,6 +6,7 @@ import type {
   ProfileWorkflowApplyContext,
   ProfileWorkflowRepository,
   ProfileWorkflowRevisionHistoryEntry,
+  ProfileWorkflowRuleSourceUpdateView,
   ProfileWorkflowRuntimeView,
   ProfileWorkflowSnapshotHistoryEntry,
   ProfileWorkflowState,
@@ -16,6 +17,11 @@ import {
   type ProfileWorkflowSecretMaterial,
   type ProfileWorkflowSecretStore,
 } from './import-acceptance.js';
+import {
+  inspectProfileWorkflowRuleSourceUpdate,
+  updateProfileWorkflowRuleSource,
+  type ProfileWorkflowRuleSourceUpdateService,
+} from './rule-source-update.js';
 import {
   rollbackProfileWorkflowSnapshot,
   type ProfileWorkflowSnapshotRollbackService,
@@ -38,6 +44,17 @@ export type ProfileWorkflowCommand =
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'get-snapshot-history';
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'get-rule-source-update-status';
+      readonly sourceId: string;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'update-rule-source';
+      readonly expectedGeneration: number;
+      readonly sourceId: string;
     }
   | {
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
@@ -91,6 +108,7 @@ export type ProfileWorkflowCommandResponse =
       readonly runtime?: ProfileWorkflowRuntimeView;
       readonly snapshotHistory?: readonly ProfileWorkflowSnapshotHistoryEntry[];
       readonly revisionHistory?: readonly ProfileWorkflowRevisionHistoryEntry[];
+      readonly ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView;
       readonly secretValue?: string;
     }
   | {
@@ -102,10 +120,12 @@ export type ProfileWorkflowCommandResponse =
         | 'storage-failure'
         | 'apply-failed'
         | 'activation-failed'
-        | 'rollback-failed';
+        | 'rollback-failed'
+        | 'rule-source-update-failed';
       readonly message: string;
       readonly state?: ProfileWorkflowState;
       readonly view?: ProfileWorkflowView;
+      readonly ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView;
     };
 
 export interface ProfileWorkflowInitializer {
@@ -150,10 +170,18 @@ function response(
   };
 }
 
+function responseWithRuleSourceUpdate(
+  state: ProfileWorkflowState,
+  update: ProfileWorkflowRuleSourceUpdateView,
+): Extract<ProfileWorkflowCommandResponse, { readonly ok: true }> {
+  return { ...response(state), ruleSourceUpdate: update };
+}
+
 function failure(
   code: Extract<ProfileWorkflowCommandResponse, { ok: false }>['code'],
   message: string,
   state?: ProfileWorkflowState,
+  ruleSourceUpdate?: ProfileWorkflowRuleSourceUpdateView,
 ): ProfileWorkflowCommandResponse {
   return {
     ok: false,
@@ -165,6 +193,7 @@ function failure(
           state,
           view: inspectProfileWorkflow(state),
         }),
+    ...(ruleSourceUpdate === undefined ? {} : { ruleSourceUpdate }),
   };
 }
 
@@ -285,6 +314,14 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
     case 'get':
     case 'get-snapshot-history':
       return true;
+    case 'get-rule-source-update-status':
+      return typeof record.sourceId === 'string' && record.sourceId.length > 0;
+    case 'update-rule-source':
+      return (
+        validGeneration(record.expectedGeneration) &&
+        typeof record.sourceId === 'string' &&
+        record.sourceId.length > 0
+      );
     case 'replace-draft':
       return validGeneration(record.expectedGeneration) && record.draft !== undefined;
     case 'accept-import':
@@ -333,6 +370,7 @@ export async function executeProfileWorkflowCommand(
   importService?: ProfileWorkflowImportService,
   historyService?: ProfileWorkflowHistoryService,
   rollbackService?: ProfileWorkflowSnapshotRollbackService,
+  ruleSourceUpdateService?: ProfileWorkflowRuleSourceUpdateService,
 ): Promise<ProfileWorkflowCommandResponse> {
   let ensured: EnsuredProfileWorkflowState;
   try {
@@ -371,6 +409,16 @@ export async function executeProfileWorkflowCommand(
     }
   }
 
+  if (command.action === 'get-rule-source-update-status') {
+    if (!ruleSourceUpdateService) {
+      return failure('invalid', 'Rule Source update service is unavailable', state);
+    }
+    const update = inspectProfileWorkflowRuleSourceUpdate(state, command.sourceId);
+    return update === undefined
+      ? failure('invalid', `Rule Source ${command.sourceId} is not a remote URL source`, state)
+      : responseWithRuleSourceUpdate(state, update);
+  }
+
   if (command.action === 'activate-route') {
     if (state.applied.revision.id !== command.expectedAppliedRevisionId) {
       return failure(
@@ -404,6 +452,30 @@ export async function executeProfileWorkflowCommand(
   }
   if (state.pendingApply) {
     return failure('busy', 'profile workflow is busy applying another revision', state);
+  }
+
+  if (command.action === 'update-rule-source') {
+    if (!ruleSourceUpdateService) {
+      return failure('invalid', 'Rule Source update service is unavailable', state);
+    }
+    const result = await updateProfileWorkflowRuleSource(
+      repository,
+      state,
+      command.sourceId,
+      ruleSourceUpdateService,
+    );
+    if (result.status === 'updated') {
+      return responseWithRuleSourceUpdate(result.state, result.update);
+    }
+    const code =
+      result.status === 'conflict'
+        ? 'conflict'
+        : result.status === 'storage-failure'
+          ? 'storage-failure'
+          : result.status === 'invalid'
+            ? 'invalid'
+            : 'rule-source-update-failed';
+    return failure(code, result.message, result.state, result.update);
   }
 
   if (command.action === 'read-secret') {

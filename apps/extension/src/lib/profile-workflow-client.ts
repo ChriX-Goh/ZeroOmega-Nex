@@ -14,6 +14,9 @@ interface ProfileWorkflowClientApi {
   readonly runtime: {
     sendMessage(message: ProfileWorkflowCommand): Promise<unknown>;
   };
+  readonly permissions?: {
+    request(permissions: { origins: string[] }): Promise<boolean>;
+  };
 }
 
 function isResponse(value: unknown): value is ProfileWorkflowCommandResponse {
@@ -23,6 +26,25 @@ function isResponse(value: unknown): value is ProfileWorkflowCommandResponse {
   return (
     record.ok === false && typeof record.code === 'string' && typeof record.message === 'string'
   );
+}
+
+function permissionOrigin(url: string): string | undefined {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return undefined;
+    return `${parsed.protocol}//${parsed.hostname}/*`;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function requestRuleSourceOriginPermission(
+  url: string,
+  api: ProfileWorkflowClientApi = browser as unknown as ProfileWorkflowClientApi,
+): Promise<boolean> {
+  const origin = permissionOrigin(url);
+  if (!origin || !api.permissions) return false;
+  return api.permissions.request({ origins: [origin] });
 }
 
 export async function sendProfileWorkflowCommand(

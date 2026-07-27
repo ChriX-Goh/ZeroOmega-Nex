@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -8,6 +9,24 @@ import { chromium } from '@playwright/test';
 const extensionPath = resolve('dist/chrome-mv3');
 const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
+const remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
+let receivedRuleHeader = '';
+const ruleServer = createServer((request, response) => {
+  receivedRuleHeader = String(request.headers['x-e2e'] ?? '');
+  response.writeHead(200, {
+    'content-type': 'text/plain; charset=utf-8',
+    'cache-control': 'no-store',
+  });
+  response.end(remoteRuleText);
+});
+await new Promise((resolveListen, rejectListen) => {
+  ruleServer.once('error', rejectListen);
+  ruleServer.listen(0, '127.0.0.1', resolveListen);
+});
+const ruleAddress = ruleServer.address();
+if (!ruleAddress || typeof ruleAddress === 'string')
+  throw new Error('Rule List test server failed');
+const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
 let context;
 
 try {
@@ -203,8 +222,50 @@ try {
   if (!(await headerDetails.evaluate((element) => element.open))) {
     await headerDetails.locator('summary').click();
   }
-  await attachedHeaders.locator('input[aria-label="Attached header 1 name"]').fill('X-E2E');
-  await attachedHeaders.locator('input[aria-label="Attached header 1 value"]').fill('attached');
+  const attachedHeaderName = attachedHeaders.locator('input[aria-label="Attached header 1 name"]');
+  const attachedHeaderValue = attachedHeaders.locator(
+    'input[aria-label="Attached header 1 value"]',
+  );
+  await attachedHeaderName.fill('X-E2E');
+  await attachedHeaderName.press('Tab');
+  await attachedHeaderValue.fill('attached');
+  await attachedHeaderValue.press('Tab');
+
+  const sourceType = attachedConfig.getByLabel('Attached Rule List source type');
+  await assertEventually(
+    async () => !(await sourceType.isDisabled()),
+    'Attached Rule List source type remained disabled after saving headers',
+  );
+  await sourceType.selectOption('url');
+  const sourceUrl = attachedConfig.getByLabel('Attached Rule List URL');
+  await sourceUrl.waitFor();
+  await sourceUrl.fill(remoteRuleUrl);
+  await sourceUrl.press('Tab');
+  const downloadNow = attachedConfig.locator('[data-rule-source-update-now]');
+  await assertEventually(
+    async () => !(await downloadNow.isDisabled()),
+    'Rule Source download button remained disabled after saving the URL',
+  );
+  await downloadNow.click();
+  const ruleUpdateStatus = options.locator('[data-rule-source-update-status]');
+  try {
+    await ruleUpdateStatus.filter({ hasText: 'Last updated' }).waitFor({ timeout: 20_000 });
+  } catch (error) {
+    console.error(`[Rule Source update status] ${await ruleUpdateStatus.innerText()}`);
+    console.error(
+      `[Rule Source alerts] ${JSON.stringify(await options.getByRole('alert').allInnerTexts())}`,
+    );
+    console.error(`[Rule Source server header] ${receivedRuleHeader || '<none>'}`);
+    const updateStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
+    console.error(`[Rule Source storage] ${JSON.stringify(updateStorage)}`);
+    throw error;
+  }
+  assert.equal(
+    await attachedConfig.getByLabel('Attached Rule List downloaded text').inputValue(),
+    remoteRuleText,
+  );
+  assert.equal(receivedRuleHeader, 'attached');
+
   options.once('dialog', (dialog) => dialog.accept());
   await attachedRow.getByRole('button', { name: 'Delete attached Rule List' }).click();
   await attachRuleList.waitFor();
@@ -213,6 +274,7 @@ try {
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
   await context?.close();
+  await new Promise((resolveClose) => ruleServer.close(resolveClose));
   await rm(userDataDir, { recursive: true, force: true });
 }
 

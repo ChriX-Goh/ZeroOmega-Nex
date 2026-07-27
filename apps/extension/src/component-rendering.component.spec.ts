@@ -136,6 +136,11 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     attachedSource.headers = [
       { name: 'X-Component', value: { kind: 'literal', value: 'component-value' } },
     ];
+    attachedSource.location = {
+      kind: 'url',
+      url: 'https://rules.example.invalid/component.txt',
+      content: 'cached component rules',
+    };
     const { body } = render(SwitchProfileEditor, {
       props: {
         spec: attached,
@@ -153,11 +158,15 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Attached Rule List matching route');
     expect(body).toContain('data-attached-rule-list-config');
     expect(body).toContain('Attached Rule List source type');
-    expect(body).toContain('Attached Rule List text');
+    expect(body).toContain('Attached Rule List downloaded text');
     expect(body).toContain('data-attached-rule-list-headers');
     expect(body).toContain('Attached header 1 name');
     expect(body).toContain('X-Component');
     expect(body).toContain('component-value');
+    expect(body).toContain('data-rule-source-update-now');
+    expect(body).toContain('data-rule-source-update-status');
+    expect(body).toContain('Never downloaded.');
+    expect(body).toContain('cached component rules');
     expect(body).toContain('Delete attached Rule List');
   });
 

@@ -6,21 +6,75 @@
     type RuleSource,
     type RuleSourceHeader,
   } from '@zeroomega-nex/profile-spec';
-  import { inspectAttachedRuleList } from '@zeroomega-nex/profile-workflow';
+  import {
+    inspectAttachedRuleList,
+    type ProfileWorkflowRuleSourceUpdateView,
+  } from '@zeroomega-nex/profile-workflow';
 
   export let spec: ProfileSpec;
   export let switchProfileId: string;
   export let disabled = false;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let onGetRuleSourceUpdateStatus: (
+    sourceId: string,
+  ) => Promise<ProfileWorkflowRuleSourceUpdateView | undefined> = async () => undefined;
+  export let onUpdateRuleSource: (
+    sourceId: string,
+    url: string,
+  ) => Promise<ProfileWorkflowRuleSourceUpdateView | undefined> = async () => undefined;
 
   let state = inspectAttachedRuleList(spec, switchProfileId);
   let headerItems: readonly RuleSourceHeader[] = [];
+  let updateView: ProfileWorkflowRuleSourceUpdateView | undefined;
+  let updateLoading = false;
+  let loadedUpdateKey = '';
   $: state = inspectAttachedRuleList(spec, switchProfileId);
   $: headerItems = state?.source.headers ?? [];
+  $: {
+    const source = state?.source;
+    const key = source?.location.kind === 'url' ? `${source.id}:${source.location.url}` : '';
+    if (key !== loadedUpdateKey) {
+      loadedUpdateKey = key;
+      updateView = undefined;
+      if (source?.location.kind === 'url') void loadUpdateStatus(source.id);
+    }
+  }
 
   function valueFrom(event: Event): string {
     return (event.currentTarget as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)
       .value;
+  }
+
+  async function loadUpdateStatus(sourceId: string): Promise<void> {
+    updateView = await onGetRuleSourceUpdateStatus(sourceId);
+  }
+
+  async function downloadNow(): Promise<void> {
+    const source = state?.source;
+    if (!source || source.location.kind !== 'url' || !source.location.url || updateLoading) return;
+    updateLoading = true;
+    try {
+      const updated = await onUpdateRuleSource(source.id, source.location.url);
+      if (updated) updateView = updated;
+    } finally {
+      updateLoading = false;
+    }
+  }
+
+  function formatTimestamp(value: string | undefined): string {
+    if (!value) return 'never';
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
+  }
+
+  function updateSummary(view: ProfileWorkflowRuleSourceUpdateView | undefined): string {
+    if (!view?.lastAttemptAt) return 'Never downloaded.';
+    if (view.lastError) {
+      return `Last update failed ${formatTimestamp(view.lastError.occurredAt)}. Existing cached content was preserved.`;
+    }
+    const stale = view.stale ? ' Cached content is stale.' : '';
+    const bytes = view.lastBytes === undefined ? '' : ` ${view.lastBytes} bytes.`;
+    return `Last updated ${formatTimestamp(view.lastSuccessAt)}.${bytes}${stale}`;
   }
 
   async function mutateSource(update: (source: RuleSource) => void): Promise<void> {
@@ -181,9 +235,25 @@
           on:change={(event) => updateUrl(valueFrom(event))}
         />
       </label>
+      <div class="rule-source-update-actions">
+        <button
+          type="button"
+          data-rule-source-update-now
+          disabled={disabled || updateLoading || !state.source.location.url}
+          on:click={downloadNow}
+        >
+          {updateLoading ? 'Downloading…' : 'Download now'}
+        </button>
+        <p class:stale={updateView?.stale} role="status" data-rule-source-update-status>
+          {updateSummary(updateView)}
+        </p>
+      </div>
+      {#if updateView?.lastError}
+        <p class="source-update-error" role="alert">{updateView.lastError.message}</p>
+      {/if}
       <p class="section-help">
-        URL content is read-only after download. Network download and update status are handled by a
-        separate background service slice.
+        Remote content is downloaded by the background service with isolated credentials, bounded
+        size, and atomic cache replacement. Failed downloads keep the previous cache.
       </p>
       <textarea
         aria-label="Attached Rule List downloaded text"
@@ -252,6 +322,30 @@
 {/if}
 
 <style>
+  .rule-source-update-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+  }
+
+  .rule-source-update-actions button {
+    min-height: 32px;
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    background: var(--button-bg);
+    padding: 5px 10px;
+  }
+
+  .rule-source-update-actions p {
+    margin: 0;
+  }
+
+  .rule-source-update-actions .stale,
+  .source-update-error {
+    color: var(--danger-text, #b3261e);
+  }
+
   fieldset {
     max-width: 900px;
     margin: 0 0 14px;

@@ -22,6 +22,7 @@
     ProfileWorkflowCommandResponse,
     ProfileWorkflowIdFactory,
     ProfileWorkflowProfileMutation,
+    ProfileWorkflowRuleSourceUpdateView,
     ProfileWorkflowSecretMaterial,
     ProfileWorkflowState,
     ProfileWorkflowView,
@@ -29,7 +30,10 @@
   import { onMount } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
-  import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
+  import {
+    requestRuleSourceOriginPermission,
+    sendProfileWorkflowCommand,
+  } from '../../lib/profile-workflow-client';
   import {
     applyThemeMode,
     readThemeMode,
@@ -269,6 +273,59 @@
     } catch (error) {
       errorMessage = messageFrom(error);
       return '';
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function getRuleSourceUpdateStatus(
+    sourceId: string,
+  ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {
+    if (!state || saving) return undefined;
+    saving = true;
+    try {
+      const response = await sendProfileWorkflowCommand({
+        action: 'get-rule-source-update-status',
+        sourceId,
+      });
+      acceptResponse(response);
+      return response.ruleSourceUpdate;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function updateRuleSource(
+    sourceId: string,
+    url: string,
+  ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {
+    if (!state || saving) return undefined;
+    let granted = false;
+    try {
+      granted = await requestRuleSourceOriginPermission(url);
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
+    }
+    if (!granted) {
+      errorMessage = 'Host permission is required before downloading this Rule List URL.';
+      return undefined;
+    }
+    saving = true;
+    try {
+      const response = await sendProfileWorkflowCommand({
+        action: 'update-rule-source',
+        expectedGeneration: state.generation,
+        sourceId,
+      });
+      acceptResponse(response);
+      return response.ruleSourceUpdate;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+      return undefined;
     } finally {
       saving = false;
     }
@@ -1056,6 +1113,8 @@
             disabled={saving || view?.busy === true}
             idFactory={createWorkflowId}
             onReplaceDraft={replaceDraft}
+            onGetRuleSourceUpdateStatus={getRuleSourceUpdateStatus}
+            onUpdateRuleSource={updateRuleSource}
             onRegisterBeforeAction={registerBeforeProfileEditorAction}
             onSourceDirtyChange={updateProfileEditorDirty}
           />

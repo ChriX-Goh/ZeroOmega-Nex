@@ -35,6 +35,9 @@ export {
   type ProfileWorkflowPendingApply,
   type ProfileWorkflowRepository,
   type ProfileWorkflowRevisionHistoryEntry,
+  type ProfileWorkflowRuleSourceUpdateError,
+  type ProfileWorkflowRuleSourceUpdateRecord,
+  type ProfileWorkflowRuleSourceUpdateView,
   type ProfileWorkflowRevisionRepository,
   type ProfileWorkflowRuntimeFailure,
   type ProfileWorkflowRuntimeView,
@@ -67,6 +70,17 @@ export {
   type ProfileWorkflowIdKind,
   type ProfileWorkflowProfileMutation,
 } from './profile-operations.js';
+export {
+  inspectProfileWorkflowRuleSourceUpdate,
+  RULE_SOURCE_UPDATE_MAX_BYTES,
+  RULE_SOURCE_UPDATE_TIMEOUT_MS,
+  updateProfileWorkflowRuleSource,
+  type ProfileWorkflowRuleSourceDownloader,
+  type ProfileWorkflowRuleSourceDownloadRequest,
+  type ProfileWorkflowRuleSourceDownloadResult,
+  type ProfileWorkflowRuleSourceUpdateResult,
+  type ProfileWorkflowRuleSourceUpdateService,
+} from './rule-source-update.js';
 export { listProfileWorkflowRevisionHistory } from './revision-history.js';
 export {
   rollbackProfileWorkflowSnapshot,

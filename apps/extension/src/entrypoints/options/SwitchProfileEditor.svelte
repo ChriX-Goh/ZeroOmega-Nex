@@ -26,6 +26,7 @@
     updateSwitchDefaultRouteDraft,
     type AttachedRuleListState,
     type ProfileWorkflowIdFactory,
+    type ProfileWorkflowRuleSourceUpdateView,
     type SwitchSourceError,
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
@@ -37,6 +38,13 @@
   export let disabled = false;
   export let idFactory: ProfileWorkflowIdFactory;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let onGetRuleSourceUpdateStatus: (
+    sourceId: string,
+  ) => Promise<ProfileWorkflowRuleSourceUpdateView | undefined> = async () => undefined;
+  export let onUpdateRuleSource: (
+    sourceId: string,
+    url: string,
+  ) => Promise<ProfileWorkflowRuleSourceUpdateView | undefined> = async () => undefined;
   export let onRegisterBeforeAction: (guard: (() => Promise<boolean>) | undefined) => void;
   export let onSourceDirtyChange: (dirty: boolean) => void;
 
@@ -897,7 +905,14 @@
   </section>
 
   {#if attachedState}
-    <AttachedRuleListConfig {spec} switchProfileId={profileId} {disabled} {onReplaceDraft} />
+    <AttachedRuleListConfig
+      {spec}
+      switchProfileId={profileId}
+      {disabled}
+      {onReplaceDraft}
+      {onGetRuleSourceUpdateStatus}
+      {onUpdateRuleSource}
+    />
   {:else}
     <section class="settings-section attach-rule-list-section" data-attach-rule-list-section>
       <h2>Attach Profile</h2>

@@ -34,8 +34,8 @@ describe('BrowserRuleSourceDownloader', () => {
   it('rejects declared and streamed bodies beyond the configured limit', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response('123456', { status: 200, headers: { 'content-length': '6' } }),
+      vi.fn(
+        async () => new Response('123456', { status: 200, headers: { 'content-length': '6' } }),
       ),
     );
     await expect(
@@ -51,7 +51,9 @@ describe('BrowserRuleSourceDownloader', () => {
   it('reports HTTP errors without reading the response body', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('private response body', { status: 503, statusText: 'Offline' })),
+      vi.fn(
+        async () => new Response('private response body', { status: 503, statusText: 'Offline' }),
+      ),
     );
     await expect(
       new BrowserRuleSourceDownloader().download({

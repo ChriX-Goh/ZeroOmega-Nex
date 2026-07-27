@@ -15,10 +15,13 @@ import {
   type ProfileWorkflowHistoryService,
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
+  type ProfileWorkflowRuleSourceDownloader,
+  type ProfileWorkflowRuleSourceUpdateService,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
+import { BrowserRuleSourceDownloader } from './rule-source-downloader';
 import { normalizeExtensionDeviceId } from './extension-device-id';
 import {
   BrowserProfileWorkflowActivationDriver,
@@ -46,6 +49,7 @@ interface ProfileWorkflowRuntimeApi {
 export interface ProfileWorkflowRuntimeOptions {
   readonly activationDriver?: ProfileWorkflowActivationDriver;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
+  readonly ruleSourceDownloader?: ProfileWorkflowRuleSourceDownloader;
 }
 
 export interface RegisteredProfileWorkflowRuntime {
@@ -100,6 +104,16 @@ function createImportService(api: ProfileWorkflowRuntimeApi): ProfileWorkflowImp
   };
 }
 
+function createRuleSourceUpdateService(
+  importService: ProfileWorkflowImportService,
+  downloader: ProfileWorkflowRuleSourceDownloader,
+): ProfileWorkflowRuleSourceUpdateService {
+  return {
+    downloader,
+    secretStore: importService.secretStore,
+  };
+}
+
 function createHistoryService(
   repository: BrowserStorageProfileWorkflowRepository,
 ): ProfileWorkflowHistoryService {
@@ -129,6 +143,10 @@ export function registerProfileWorkflowRuntime(
   );
   const importService = createImportService(api);
   const historyService = createHistoryService(repository);
+  const ruleSourceUpdateService = createRuleSourceUpdateService(
+    importService,
+    options.ruleSourceDownloader ?? new BrowserRuleSourceDownloader(),
+  );
   const rollbackService =
     options.authentication === undefined
       ? undefined
@@ -148,6 +166,7 @@ export function registerProfileWorkflowRuntime(
       importService,
       historyService,
       rollbackService,
+      ruleSourceUpdateService,
     );
   };
   api.runtime.onMessage.addListener(listener);

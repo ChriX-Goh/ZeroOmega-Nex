@@ -110,7 +110,7 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Empty request-header rows remain valid Draft warnings, while Apply remains strict; successful background updates now refresh the visible header list through an explicit reactive dependency instead of leaving stale UI.
 - Chromium E2E covers creation, hidden navigation, enable/disable, match route, text/header edits, responsive header-row rendering, confirmation, and detach; Firefox extension E2E also passes.
 - Integration run `30232967645` passed full repository verification and Chromium E2E before product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
-- Network download/update state remains deliberately separate and is the next slice.
+- Manual background download/update now uses user-granted host permission, secret header resolution, bounded isolated fetches, atomic cached-content replacement, persisted timestamps/bytes/errors, and stale calculation. Automatic interval scheduling remains separate.
 
 ### Appearance
 
@@ -150,7 +150,7 @@ PR #11 is not a replacement release candidate. The original v3.5.0 source-backed
 Current blockers include:
 
 - Switch source-editor localization, browser interaction E2E, and edit-mode persistence across reloads,
-- attached Rule List background download, update timestamp, stale/error state, and safe request execution,
+- attached Rule List automatic interval scheduling and startup/due-source refresh,
 - Popup/current-site condition injection and its `addConditionsToBottom` ordering setting,
 - complete Switch localization and Chromium drag-order E2E,
 - dedicated imported Rule List and PAC download/update semantics,
@@ -162,4 +162,4 @@ Current blockers include:
 
 ## Current next action
 
-Implement the background Rule List download/update service with timestamps, stale/error states, safe request headers, and atomic cached-content replacement. The slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Verify the manual background Rule List download/update service, then implement automatic interval scheduling or proceed to the next source-backed blocker according to the audit matrix. The slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
