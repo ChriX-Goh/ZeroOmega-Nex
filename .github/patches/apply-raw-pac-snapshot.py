@@ -107,7 +107,7 @@ export async function createRawPacSnapshot(
   const snapshotIdentity = [
     sourceProfileSpecSha256,
     scriptSha256,
-    startRoute.profileId,
+    profile.id,
     target,
     RAW_PAC_SNAPSHOT_VERSION,
   ].join('\n');
