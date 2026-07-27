@@ -1,0 +1,80 @@
+name: Capture original default backup
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/capture-original-default-backup.yml
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: capture-original-default-backup-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Download pinned original-source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --location \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --output original-source.zip \
+            https://api.github.com/repos/ChriX-Goh/ZeroOmega-Nex/actions/artifacts/8625759489/zip
+          printf '%s  %s\n' \
+            '8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19' \
+            original-source.zip | sha256sum --check
+          unzip -q original-source.zip -d original-evidence
+      - name: Execute original v3.5.0 default-options module
+        run: |
+          npm install --no-save --ignore-scripts coffee-script@1.12.7
+          mkdir -p fixtures/zeroomega-v2
+          node -r coffee-script/register <<'NODE'
+          const fs = require('node:fs');
+          const createDefaultOptions = require(
+            './original-evidence/original-source/omega-target-src/default_options.coffee'
+          );
+          const options = createDefaultOptions();
+          if (options.schemaVersion !== 2) throw new Error('Unexpected original schema version');
+          fs.writeFileSync(
+            'fixtures/zeroomega-v2/original-default-v3.5.0.bak',
+            JSON.stringify(options),
+            'utf8',
+          );
+          NODE
+          node -e "const x=require('./fixtures/zeroomega-v2/original-default-v3.5.0.bak'); if(x['+proxy']?.profileType!=='FixedProfile'||x['+auto switch']?.profileType!=='SwitchProfile') process.exit(1)"
+      - name: Commit generated fixture and provenance
+        run: |
+          cat > fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json <<'JSON'
+          {
+            "originalVersion": "v3.5.0",
+            "sourceCaptureRun": 30181773502,
+            "sourceArtifactId": 8625759489,
+            "sourceArtifactSha256": "8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19",
+            "sourceModule": "original-source/omega-target-src/default_options.coffee",
+            "generation": "Executed with coffee-script 1.12.7, then serialized with JSON.stringify exactly as original IoCtrl.exportOptions."
+          }
+          JSON
+          rm -rf node_modules original-evidence original-source.zip package-lock.json package.json
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fixtures/zeroomega-v2/original-default-v3.5.0.bak fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json
+          git commit -m "test: add original v3.5.0 backup fixture"
+          git push origin HEAD:feat/m8-profile-workflow
