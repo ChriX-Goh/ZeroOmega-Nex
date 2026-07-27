@@ -1,4 +1,4 @@
-# generator revision 5
+# generator revision 6
 name: Integrate Rule Source background updates
 
 on:
@@ -12,6 +12,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: integrate-rule-source-${{ github.head_ref }}
+  cancel-in-progress: true
 
 jobs:
   integrate:
@@ -125,10 +129,14 @@ jobs:
           rm -f .github/workflows/integrate-rule-source-update.yml
           git diff --check
       - name: Commit verified product slice
+        shell: bash
         run: |
+          set -euo pipefail
+          git fetch origin feat/m8-profile-workflow
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/feat/m8-profile-workflow)"
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
+          git diff --cached --stat
           git commit -m 'feat: add safe Rule Source background updates'
-          git pull --rebase origin feat/m8-profile-workflow
           git push origin HEAD:feat/m8-profile-workflow
