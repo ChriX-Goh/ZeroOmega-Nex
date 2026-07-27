@@ -143,25 +143,22 @@ replace_once(
 """,
 )
 
-# Correct the staged activation patch so normal Profile IDs never enter the temporary snapshot helper.
+# Correct the staged activation import and use the exported profile-ID prefix.
 patch = Path('.github/patches/apply-popup-temporary-rules-runtime.py')
 text = patch.read_text()
-text = text.replace(
-    """import {
+old_import = """import {
   isPopupTemporarySnapshotId,
   popupTemporarySnapshotId,
-""",
-    """import {
+"""
+new_import = """import {
   POPUP_TEMPORARY_PROFILE_ID_PREFIX,
   popupTemporarySnapshotId,
-""",
-)
+"""
+if text.count(old_import) != 1:
+    raise SystemExit(f'activation import patch match count: {text.count(old_import)}')
+text = text.replace(old_import, new_import)
 old = """        const temporarySnapshotId =
-          route.kind === 'profile' &&
-          isPopupTemporarySnapshotId(
-            popupTemporarySnapshotId(route.profileId, 'probe'),
-          ) &&
-          route.profileId.startsWith('__zeroomega_nex_popup_temporary__/')
+          route.kind === 'profile' && route.profileId.startsWith('__zeroomega_nex_popup_temporary__/')
             ? popupTemporarySnapshotId(route.profileId, this.#temporarySnapshotNonce())
             : undefined;
 """
