@@ -76,10 +76,18 @@ jobs:
         env:
           INTEGRATION_RUN_ID: ${{ github.run_id }}
         run: |
-          python .github/patches/apply-legacy-export-integration.py
-          python .github/patches/apply-legacy-export-ui.py
-          python .github/patches/apply-legacy-export-e2e.py
-          python .github/patches/apply-legacy-export-acceptance.py
+          set -o pipefail
+          {
+            set -x
+            echo '=== importer/export integration ==='
+            python .github/patches/apply-legacy-export-integration.py
+            echo '=== Options UI wiring ==='
+            python .github/patches/apply-legacy-export-ui.py
+            echo '=== Chromium round trip ==='
+            python .github/patches/apply-legacy-export-e2e.py
+            echo '=== acceptance docs and guards ==='
+            python .github/patches/apply-legacy-export-acceptance.py
+          } 2>&1 | tee legacy-export-integration-apply.log
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Format product slice
@@ -116,6 +124,7 @@ jobs:
             .github/patches/apply-legacy-export-ui.py \
             .github/patches/apply-legacy-export-e2e.py \
             .github/patches/apply-legacy-export-acceptance.py \
+            legacy-export-integration-apply.log \
             legacy-export-integration-verify.log \
             legacy-export-integration-e2e.log
           git config user.name github-actions[bot]
