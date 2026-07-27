@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `af25f7c2c2af5d305c3b06d2ee385a425763eb05`  
-**Latest integration verification:** run `30283438960` passed full `pnpm verify` and a real two-extension Chromium proxy-ownership conflict E2E before committing the Popup blocker  
-**Last completed exact-Head verification:** `2953ad6e8dc6fbe675b249d6c2637f9aa50920b6`; CI `30281961496`, Browser E2E `30281966841`, Parity Documentation `30281963875` passed  
+**Current product implementation head:** `e4c11f6684346510e44b1961b277159b5b13e854`  
+**Latest integration verification:** run `30286217338` passed full `pnpm verify` and Chromium System-mode external Fixed import plus immediate activation E2E before committing the Popup external-profile workflow  
+**Last completed exact-Head verification:** `ead747bf690c86d639670fe35a5c15a05afb69d0`; CI `30283674973`, Browser E2E `30283673758`, Parity Documentation `30283675950` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -88,17 +88,19 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Runtime message channels reject unrelated messages synchronously so their Promise responses cannot consume one another.
 - Proxy ownership inspection remains background-owned and returns only capability/control metadata, never the effective proxy value. Another extension, local policy, missing Firefox capability, and inspection failure map to distinct `app`, `policy`, `disabled`, and `unknown` blockers.
 - A blocked Popup hides profiles, result selectors, permanent current-site conditions, and temporary rules, while preserving the original-style Cancel and Manage Extensions escape controls.
-- Chromium E2E loads a second unpacked proxy extension, proves it owns `chrome.proxy.settings`, opens the Nex Popup, verifies the localized `app` blocker, and confirms no switching or current-site actions render.
+- System-mode external import converts Chromium auto-detect, PAC URL/inline, and fixed-server settings in the background; normalizes single/fallback and per-scheme servers plus bypass; suppresses exact existing matches; validates original naming rules; and imports through CAS plus normal verified Apply before immediately activating the resulting profile.
+- Popup receives only the external profile kind and suggested label; proxy hosts, ports, and PAC script contents stay background-owned.
+- Chromium E2E switches through the real Popup to System, writes a valid external `fixed_servers` configuration, verifies reserved-name rejection, imports the exact Fixed endpoints and bypass data, confirms Draft equals Applied, and verifies the active snapshot starts at the imported profile.
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
 - Proxy-ownership integration: run `30283438960`, product commit `af25f7c2c2af5d305c3b06d2ee385a425763eb05`.
-- System-mode external import converts Chromium auto-detect/PAC/fixed settings in the background, suppresses exact duplicates, validates the original naming rules, and atomically imports plus activates through verified Apply.
-- Temporary-rule exact Head `2953ad6e8dc6fbe675b249d6c2637f9aa50920b6`: CI `30281961496`, Browser E2E `30281966841`, Parity Documentation `30281963875`.
+- External-profile integration: run `30286217338`, product commit `e4c11f6684346510e44b1961b277159b5b13e854`.
+- Proxy-ownership exact Head `ead747bf690c86d639670fe35a5c15a05afb69d0`: CI `30283674973`, Browser E2E `30283673758`, Parity Documentation `30283675950`.
 
 ## Automated acceptance state
 
-The latest Popup proxy-ownership integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and the real two-extension Chromium ownership-conflict E2E.
+The latest Popup external-profile integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium System-mode external Fixed import plus immediate activation E2E.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
