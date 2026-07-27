@@ -8,6 +8,7 @@ import { chromium } from '@playwright/test';
 
 const extensionPath = resolve('dist/chrome-mv3');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-inspect-native-'));
+const workflowStorageKey = 'zeroomega-nex/profile-workflow/v1/state';
 const inspectStorageKey = 'zeroomega-nex/inspect/v1/state';
 let context;
 
@@ -57,21 +58,26 @@ try {
   const extensionId = new URL(worker.url()).host;
   assert.match(extensionId, /^[a-p]{32}$/u);
 
+  const bootstrapPage = await context.newPage();
+  await bootstrapPage.goto(`chrome-extension://${extensionId}/options.html`);
+  await bootstrapPage.waitForLoadState('domcontentloaded');
+  await eventually(
+    async () =>
+      worker.evaluate(async (key) => {
+        const values = await chrome.storage.local.get(key);
+        return Boolean(values[key]);
+      }, workflowStorageKey),
+    'Profile workflow did not initialize from Options',
+  );
+  await bootstrapPage.close();
+
   const page = await context.newPage();
   await page.setContent(`<!doctype html>
     <html><body style="font: 20px sans-serif; padding: 80px">
       <a id="inspect-target" href="https://cdn.example.test/native-menu.js">Native Inspect target</a>
     </body></html>`);
   await page.bringToFront();
-
-  await eventually(
-    async () =>
-      worker.evaluate(async () => {
-        const values = await chrome.storage.local.get('zeroomega-nex/profile-workflow/v1/state');
-        return Boolean(values['zeroomega-nex/profile-workflow/v1/state']);
-      }),
-    'Profile workflow did not initialize',
-  );
+  await new Promise((resolveWait) => setTimeout(resolveWait, 500));
 
   await page.locator('#inspect-target').click({ button: 'right' });
   await new Promise((resolveWait) => setTimeout(resolveWait, 800));
