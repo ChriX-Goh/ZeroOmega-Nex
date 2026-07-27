@@ -32,13 +32,15 @@ describe('Rule Source due scheduling', () => {
   });
 
   it('waits one source interval after a failed attempt before retrying', () => {
-    const state = stateWithRemoteSource();
-    state.ruleSourceUpdates = {
-      'source-due': {
-        sourceId: 'source-due',
-        url: 'https://rules.example.invalid/due.txt',
-        lastAttemptAt: '2026-07-27T05:30:00.000Z',
-        lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+    const state = {
+      ...stateWithRemoteSource(),
+      ruleSourceUpdates: {
+        'source-due': {
+          sourceId: 'source-due',
+          url: 'https://rules.example.invalid/due.txt',
+          lastAttemptAt: '2026-07-27T05:30:00.000Z',
+          lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+        },
       },
     };
     expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T06:29:59.000Z')).toEqual(
@@ -52,14 +54,16 @@ describe('Rule Source due scheduling', () => {
   });
 
   it('waits one source interval after a successful update', () => {
-    const state = stateWithRemoteSource();
-    state.ruleSourceUpdates = {
-      'source-due': {
-        sourceId: 'source-due',
-        url: 'https://rules.example.invalid/due.txt',
-        lastAttemptAt: '2026-07-27T05:00:00.000Z',
-        lastSuccessAt: '2026-07-27T05:00:00.000Z',
-        lastBytes: 100,
+    const state = {
+      ...stateWithRemoteSource(),
+      ruleSourceUpdates: {
+        'source-due': {
+          sourceId: 'source-due',
+          url: 'https://rules.example.invalid/due.txt',
+          lastAttemptAt: '2026-07-27T05:00:00.000Z',
+          lastSuccessAt: '2026-07-27T05:00:00.000Z',
+          lastBytes: 100,
+        },
       },
     };
     expect(listDueProfileWorkflowRuleSourceUpdates(state, '2026-07-27T05:59:59.000Z')).toEqual(
@@ -73,13 +77,15 @@ describe('Rule Source due scheduling', () => {
   });
 
   it('treats a changed URL as a fresh source due immediately', () => {
-    const state = stateWithRemoteSource();
-    state.ruleSourceUpdates = {
-      'source-due': {
-        sourceId: 'source-due',
-        url: 'https://rules.example.invalid/old.txt',
-        lastAttemptAt: '2026-07-27T05:59:00.000Z',
-        lastSuccessAt: '2026-07-27T05:59:00.000Z',
+    const state = {
+      ...stateWithRemoteSource(),
+      ruleSourceUpdates: {
+        'source-due': {
+          sourceId: 'source-due',
+          url: 'https://rules.example.invalid/old.txt',
+          lastAttemptAt: '2026-07-27T05:59:00.000Z',
+          lastSuccessAt: '2026-07-27T05:59:00.000Z',
+        },
       },
     };
     expect(
