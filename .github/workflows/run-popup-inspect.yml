@@ -52,6 +52,7 @@ jobs:
               raise SystemExit(f'expected one manifest permission guard, found {text.count(old)}')
           path.write_text(text.replace(old, new, 1))
           PY
+          rm -f .github/workflows/integrate-popup-inspect.yml
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
@@ -94,7 +95,6 @@ jobs:
         run: pnpm test:e2e:chromium
       - name: Clean temporary integration files
         run: |
-          rm -f .github/workflows/integrate-popup-inspect.yml
           rm -f .github/workflows/run-popup-inspect.yml
           git clean -fdX
           git diff --check
