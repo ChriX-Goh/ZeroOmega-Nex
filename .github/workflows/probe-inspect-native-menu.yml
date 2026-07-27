@@ -35,7 +35,7 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install Chromium and accessibility bridge
+      - name: Install Chromium and native UI tools
         run: |
           pnpm exec playwright install --with-deps chromium
           sudo apt-get update
@@ -44,7 +44,9 @@ jobs:
             dbus-x11 \
             gir1.2-atspi-2.0 \
             python3-gi \
+            scrot \
             xauth \
+            xdotool \
             xvfb
       - name: Build Chromium extension
         run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
@@ -73,5 +75,7 @@ jobs:
           path: |
             inspect-native-menu-probe.log
             inspect-native-atspi-tree.txt
+            inspect-native-menu-before.png
+            inspect-native-menu-failure.png
           if-no-files-found: warn
           retention-days: 7
