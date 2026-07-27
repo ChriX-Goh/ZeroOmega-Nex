@@ -79,7 +79,7 @@ jobs:
             "generation": "Executed with coffee-script 1.12.7, then serialized with JSON.stringify exactly as original IoCtrl.exportOptions."
           }
           JSON
-          rm -rf node_modules original-evidence original-source.zip package-lock.json package.json
+          rm -rf node_modules original-evidence original-source.zip package-lock.json
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add fixtures/zeroomega-v2/original-default-v3.5.0.bak fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json
