@@ -150,8 +150,8 @@ count = source.count('''    } finally {
       saving = false;
     }
 ''')
-if count != 4:
-    raise SystemExit(f'{app}: expected four saving-finally blocks, found {count}')
+if count != 5:
+    raise SystemExit(f'{app}: expected five saving-finally blocks, found {count}')
 source = source.replace(
     '''    } finally {
       saving = false;
@@ -204,7 +204,6 @@ replace_once(
 ''',
 )
 
-# Permanent client listener unit test.
 Path('apps/extension/src/lib/profile-workflow-client.test.ts').write_text('''import { describe, expect, it } from 'vitest';
 
 import {
@@ -258,7 +257,6 @@ describe('profile workflow storage synchronization', () => {
 });
 ''')
 
-# Require the live-generation synchronization permanently.
 guard = 'scripts/validate-ui-compatibility.mjs'
 replace_once(
     guard,
@@ -305,7 +303,6 @@ replace_once(
 ''',
 )
 
-# Source-backed evidence for the cross-context consistency boundary.
 status = Path('docs/MILESTONE_8_STATUS.md')
 text = status.read_text()
 old = '- Automatic interval scheduling now uses one coalesced alarm, scans on startup, retries only after each source interval, and skips origins without prior permission. Chromium E2E triggers the real alarm and verifies a second cached-content refresh.'
