@@ -155,3 +155,11 @@ replace_once(
 ''',
     'invalid result test narrowing',
 )
+
+component = Path('apps/extension/src/component-rendering.component.spec.ts')
+replace_once(
+    component,
+    "    expect(body).toContain('Attached Rule List text');\n",
+    "    expect(body).toContain('Attached Rule List downloaded text');\n",
+    'URL component text assertion',
+)
