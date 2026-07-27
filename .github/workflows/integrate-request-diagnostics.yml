@@ -49,6 +49,7 @@ jobs:
             python .github/patches/apply-request-diagnostics-ui.py
             python .github/patches/apply-request-diagnostics-hardening.py
             python .github/patches/fix-request-diagnostics-validator.py
+            python .github/patches/fix-request-diagnostics-types.py
             pnpm format
           } 2>&1 | tee integration-apply.log
       - name: Verify repository
@@ -84,6 +85,7 @@ jobs:
             .github/patches/apply-request-diagnostics-ui.py \
             .github/patches/apply-request-diagnostics-hardening.py \
             .github/patches/fix-request-diagnostics-validator.py \
+            .github/patches/fix-request-diagnostics-types.py \
             .github/workflows/integrate-request-diagnostics.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
