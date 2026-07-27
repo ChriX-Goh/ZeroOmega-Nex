@@ -35,7 +35,9 @@ jobs:
       - name: Apply permanent native Inspect E2E
         env:
           INTEGRATION_RUN_ID: ${{ github.run_id }}
-        run: python .github/patches/promote-inspect-native-e2e.py
+        run: |
+          python .github/patches/normalize-inspect-native-doc-anchors.py
+          python .github/patches/promote-inspect-native-e2e.py
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Format product slice
@@ -79,6 +81,7 @@ jobs:
       - name: Commit verified product slice
         run: |
           rm -f \
+            .github/patches/normalize-inspect-native-doc-anchors.py \
             .github/patches/promote-inspect-native-e2e.py \
             .github/workflows/integrate-inspect-native-e2e.yml \
             .github/workflows/probe-inspect-native-menu.yml \
