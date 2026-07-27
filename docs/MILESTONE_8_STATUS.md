@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `8ea05242cfd619f7eec24a5078fe09e0344b68e2`  
-**Latest integration verification:** run `30268062637` passed full `pnpm verify` and Chromium Popup result-profile E2E before committing Switch/Virtual result controls  
-**Last completed exact-Head verification:** `716a765eac8279c2201b652187efddb9d800650a`; CI `30245778282`, Browser E2E `30245778414`, Parity Documentation `30245778397` passed  
+**Current product implementation head:** `625ceb598423c0dda5641490e4a8cdefdf915cfb`  
+**Latest integration verification:** run `30281637537` passed full `pnpm verify` and Chromium Popup temporary-rule lifecycle E2E before committing the session-only runtime layer  
+**Last completed exact-Head verification:** `d2547783b0312730a6549b8a226e24e3d7fe3f35`; CI `30268356045`, Browser E2E `30268358492`, Parity Documentation `30268356077` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -75,7 +75,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Automatic scheduler integration: run `30242780330`, product commit `508b6471682d33c658c2efddc55923ed510fec24`.
 - Scheduler exact Head `352b29294e409ff4aa6f15684341d28b90686032`: CI `30243118765`, Browser E2E `30243118764`, Parity Documentation `30243118777`.
 
-### Popup current-site conditions and result profiles
+### Popup current-site conditions, result profiles, and temporary rules
 
 - Popup reads only the invoking tab through `activeTab`; production builds do not receive global host access.
 - Public Suffix List parsing derives base domains and subdomain scopes, including multi-label suffixes such as `co.uk`, private suffixes, IPv4, and IPv6.
@@ -84,15 +84,17 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - A duplicate condition tag replaces the earlier rule; `addConditionsToBottom` controls top or bottom insertion.
 - The typed background command accepts only the currently active enabled Switch Profile, rejects unapplied Options Draft work, runs normal verified Apply, and keeps the active Switch route.
 - Popup rows for Switch and Virtual display their current result route and expose only cycle-safe legal results. Changes use the same dirty-Draft guard and verified Apply transaction while preserving whichever route is currently active.
-- Chromium E2E first changes the Switch result profile while verifying the active PAC snapshot keeps the Switch start route, then creates `*.example.co.uk`, verifies top insertion in Applied state, and continues the attached Rule List workflow.
+- Temporary current-site rules use a hidden runtime Switch, `chrome.storage.session` state, and session-only PAC snapshots. They survive service-worker restarts, disappear on browser restart, remain separate from ProfileSpec, preserve the underlying route across normal Apply/switching, and can be removed individually or together in a dedicated manager.
+- Both runtime message channels reject unrelated messages synchronously so their Promise responses cannot consume one another.
+- Chromium E2E changes the Switch result, creates the permanent `*.example.co.uk` condition, creates a temporary `example.co.uk → fixed` rule, proves its snapshot never enters persistent history, verifies a permanent Apply preserves the temporary overlay, then deletes it and restores the underlying Switch route.
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
-- Current-site exact Head `716a765eac8279c2201b652187efddb9d800650a`: CI `30245778282`, Browser E2E `30245778414`, Parity Documentation `30245778397`.
-- Temporary current-site rules now use a hidden runtime Switch, session-only state and PAC snapshots, transparent activation wrapping, startup cleanup, and a dedicated manager. Chromium E2E verifies session-only storage, survival across a permanent Apply, and restoration after deletion.
+- Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
+- Result-profile exact Head `d2547783b0312730a6549b8a226e24e3d7fe3f35`: CI `30268356045`, Browser E2E `30268358492`, Parity Documentation `30268356077`.
 
 ## Automated acceptance state
 
-The latest Popup result-profile integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium result-profile plus current-site interaction E2E.
+The latest Popup temporary-rule integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium session-only temporary-rule lifecycle E2E.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
