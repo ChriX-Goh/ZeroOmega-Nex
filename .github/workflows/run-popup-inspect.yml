@@ -72,6 +72,27 @@ jobs:
             docs/UI_AUDIT_MATRIX.md \
             docs/MILESTONE_8_STATUS.md
           git diff --check
+      - name: Capture applied Inspect sources
+        run: |
+          tar -czf /tmp/popup-inspect-sources.tar.gz \
+            apps/extension/src/lib/inspect-client.ts \
+            apps/extension/src/lib/inspect-runtime.ts \
+            apps/extension/src/lib/inspect-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts \
+            apps/extension/src/entrypoints/popup/App.svelte \
+            apps/extension/src/entrypoints/popup/style.css \
+            apps/extension/wxt.config.ts \
+            scripts/inspect-manifests.mjs \
+            scripts/validate-ui-compatibility.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md
+      - name: Upload applied Inspect sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-inspect-sources
+          path: /tmp/popup-inspect-sources.tar.gz
+          if-no-files-found: error
       - name: Verify complete repository
         id: verify
         continue-on-error: true
