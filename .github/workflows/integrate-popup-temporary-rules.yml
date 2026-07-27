@@ -1,4 +1,4 @@
-# revision 4
+# revision 5
 name: Integrate Popup temporary rules
 
 on:
@@ -82,6 +82,7 @@ jobs:
         run: |
           set -o pipefail
           {
+            git checkout -- .github/patches
             pnpm exec prettier --write \
               packages/profile-workflow/src/popup-temporary-rules.ts \
               packages/profile-workflow/src/popup-temporary-rules.test.ts \
