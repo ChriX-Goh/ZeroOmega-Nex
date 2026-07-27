@@ -37,6 +37,7 @@ jobs:
         run: |
           set -o pipefail
           {
+            python .github/patches/fix-rule-source-script.py
             python .github/patches/apply-rule-source-core.py
             python .github/patches/apply-rule-source-ui.py
             python .github/patches/apply-rule-source-e2e-docs.py
