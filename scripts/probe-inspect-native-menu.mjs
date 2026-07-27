@@ -81,8 +81,9 @@ try {
 
   await page.locator('#inspect-target').click({ button: 'right' });
   await new Promise((resolveWait) => setTimeout(resolveWait, 800));
-
-  await run('python3', ['scripts/probe-inspect-native-menu-atspi.py', 'Inspect link']);
+  await run('xdotool', ['getactivewindow', 'getwindowname']);
+  await run('scrot', ['inspect-native-menu-before.png']);
+  await run('xdotool', ['key', '--clearmodifiers', 'End', 'Up', 'Return']);
 
   const stored = await eventually(
     async () =>
@@ -90,7 +91,7 @@ try {
         const values = await chrome.storage.session.get(key);
         return values[key];
       }, inspectStorageKey),
-    'Native context-menu action did not create Inspect session state',
+    'Keyboard-selected native context-menu action did not create Inspect session state',
   );
   const entries = stored?.entries ?? {};
   assert.ok(
@@ -100,6 +101,9 @@ try {
     `Inspect state did not contain the native link target: ${JSON.stringify(stored)}`,
   );
   console.log(`[native-inspect] success ${JSON.stringify(stored)}`);
+} catch (error) {
+  await run('scrot', ['inspect-native-menu-failure.png']).catch(() => undefined);
+  throw error;
 } finally {
   await context?.close().catch(() => undefined);
   await rm(userDataDir, { recursive: true, force: true });
