@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `625ceb598423c0dda5641490e4a8cdefdf915cfb`  
-**Latest integration verification:** run `30281637537` passed full `pnpm verify` and Chromium Popup temporary-rule lifecycle E2E before committing the session-only runtime layer  
-**Last completed exact-Head verification:** `d2547783b0312730a6549b8a226e24e3d7fe3f35`; CI `30268356045`, Browser E2E `30268358492`, Parity Documentation `30268356077` passed  
+**Current product implementation head:** `af25f7c2c2af5d305c3b06d2ee385a425763eb05`  
+**Latest integration verification:** run `30283438960` passed full `pnpm verify` and a real two-extension Chromium proxy-ownership conflict E2E before committing the Popup blocker  
+**Last completed exact-Head verification:** `2953ad6e8dc6fbe675b249d6c2637f9aa50920b6`; CI `30281961496`, Browser E2E `30281966841`, Parity Documentation `30281963875` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -75,7 +75,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Automatic scheduler integration: run `30242780330`, product commit `508b6471682d33c658c2efddc55923ed510fec24`.
 - Scheduler exact Head `352b29294e409ff4aa6f15684341d28b90686032`: CI `30243118765`, Browser E2E `30243118764`, Parity Documentation `30243118777`.
 
-### Popup current-site conditions, result profiles, and temporary rules
+### Popup current-site conditions, result profiles, temporary rules, and proxy ownership
 
 - Popup reads only the invoking tab through `activeTab`; production builds do not receive global host access.
 - Public Suffix List parsing derives base domains and subdomain scopes, including multi-label suffixes such as `co.uk`, private suffixes, IPv4, and IPv6.
@@ -85,17 +85,19 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - The typed background command accepts only the currently active enabled Switch Profile, rejects unapplied Options Draft work, runs normal verified Apply, and keeps the active Switch route.
 - Popup rows for Switch and Virtual display their current result route and expose only cycle-safe legal results. Changes use the same dirty-Draft guard and verified Apply transaction while preserving whichever route is currently active.
 - Temporary current-site rules use a hidden runtime Switch, `chrome.storage.session` state, and session-only PAC snapshots. They survive service-worker restarts, disappear on browser restart, remain separate from ProfileSpec, preserve the underlying route across normal Apply/switching, and can be removed individually or together in a dedicated manager.
-- Both runtime message channels reject unrelated messages synchronously so their Promise responses cannot consume one another.
-- Chromium E2E changes the Switch result, creates the permanent `*.example.co.uk` condition, creates a temporary `example.co.uk → fixed` rule, proves its snapshot never enters persistent history, verifies a permanent Apply preserves the temporary overlay, then deletes it and restores the underlying Switch route.
+- Runtime message channels reject unrelated messages synchronously so their Promise responses cannot consume one another.
+- Proxy ownership inspection remains background-owned and returns only capability/control metadata, never the effective proxy value. Another extension, local policy, missing Firefox capability, and inspection failure map to distinct `app`, `policy`, `disabled`, and `unknown` blockers.
+- A blocked Popup hides profiles, result selectors, permanent current-site conditions, and temporary rules, while preserving the original-style Cancel and Manage Extensions escape controls.
+- Chromium E2E loads a second unpacked proxy extension, proves it owns `chrome.proxy.settings`, opens the Nex Popup, verifies the localized `app` blocker, and confirms no switching or current-site actions render.
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
-- Proxy ownership blocking now distinguishes other-extension, policy, missing-capability, and unknown states; it hides all switching/current-site actions and provides the original management escape hatch. System-mode external configuration import remains separate.
-- Result-profile exact Head `d2547783b0312730a6549b8a226e24e3d7fe3f35`: CI `30268356045`, Browser E2E `30268358492`, Parity Documentation `30268356077`.
+- Proxy-ownership integration: run `30283438960`, product commit `af25f7c2c2af5d305c3b06d2ee385a425763eb05`.
+- Temporary-rule exact Head `2953ad6e8dc6fbe675b249d6c2637f9aa50920b6`: CI `30281961496`, Browser E2E `30281966841`, Parity Documentation `30281963875`.
 
 ## Automated acceptance state
 
-The latest Popup temporary-rule integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and Chromium session-only temporary-rule lifecycle E2E.
+The latest Popup proxy-ownership integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and the real two-extension Chromium ownership-conflict E2E.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
