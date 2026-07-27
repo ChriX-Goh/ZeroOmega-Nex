@@ -68,7 +68,9 @@ export class BrowserRuleSourceDownloader implements ProfileWorkflowRuleSourceDow
       return await readBoundedBody(response, request.maxBytes);
     } catch (error) {
       if (controller.signal.aborted) {
-        throw new Error(`Rule Source download timed out after ${request.timeoutMs} ms`);
+        throw new Error(`Rule Source download timed out after ${request.timeoutMs} ms`, {
+          cause: error,
+        });
       }
       throw error;
     } finally {
