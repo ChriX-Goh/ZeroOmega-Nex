@@ -25,7 +25,8 @@ export function popupTemporarySnapshotId(profileId: string, nonce: string): stri
   return `${POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX}${profileId.slice(POPUP_TEMPORARY_PROFILE_ID_PREFIX.length)}/${encodeURIComponent(nonce)}`;
 }
 """,
-        """export function popupTemporaryProfileIdForBaseRoute(_route: ProfileRouteTarget): string {
+        """export function popupTemporaryProfileIdForBaseRoute(route: ProfileRouteTarget): string {
+  void route;
   return POPUP_TEMPORARY_PROFILE_ID_PREFIX;
 }
 
