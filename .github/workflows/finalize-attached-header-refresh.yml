@@ -1,0 +1,123 @@
+name: Finalize attached header refresh
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/finalize-attached-header-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Add permanent regression evidence
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          knowledge = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          source = knowledge.read_text()
+          old = '- 新增请求头先产生空白 Draft 行；空名称属于 Draft warning，Apply 仍严格拒绝。敏感 header 继续使用 secret reference，原始秘密不得进入 ProfileSpec。'
+          new = old + ' 后台提交成功后，Options 必须通过显式响应式 header 列表立即刷新新增行，不能用模板函数间接读取状态而形成 stale UI。'
+          if source.count(old) != 1:
+              raise SystemExit(f'knowledge header fact mismatch: {source.count(old)}')
+          knowledge.write_text(source.replace(old, new))
+
+          matrix = Path('docs/UI_AUDIT_MATRIX.md')
+          source = matrix.read_text()
+          old = '| D-18 | 附属请求头       | 同上                                           | 空白可增删 header 行                       | MUST_MATCH | DONE     | PARTIAL | 已恢复空白增删行；Draft 允许空名称 warning，Apply 严格；敏感值仍必须使用 secret reference        | 后台秘密编辑 UX        |'
+          new = '| D-18 | 附属请求头       | 同上                                           | 空白可增删 header 行                       | MUST_MATCH | DONE     | PARTIAL | 已恢复空白增删行；Draft 允许空名称 warning，Apply 严格；后台响应后由显式 `headerItems` 立即刷新；Chromium E2E 验证新增、编辑与删除 | 后台秘密编辑 UX        |'
+          if source.count(old) != 1:
+              raise SystemExit(f'audit D-18 mismatch: {source.count(old)}')
+          matrix.write_text(source.replace(old, new))
+
+          guard = Path('scripts/validate-ui-compatibility.mjs')
+          source = guard.read_text()
+          old = """      attachedRuleListConfig.includes('data-attached-rule-list-config') &&
+                attachedRuleListConfig.includes('data-attached-rule-list-headers') &&
+                optionsApp.includes('attachedRuleListProfileIds') &&"""
+          new = """      attachedRuleListConfig.includes('data-attached-rule-list-config') &&
+                attachedRuleListConfig.includes('data-attached-rule-list-headers') &&
+                attachedRuleListConfig.includes('$: headerItems = state?.source.headers ?? []') &&
+                attachedRuleListConfig.includes('{#each headerItems as header') &&
+                !attachedRuleListConfig.includes('function headers()') &&
+                optionsApp.includes('attachedRuleListProfileIds') &&"""
+          if source.count(old) != 1:
+              raise SystemExit(f'UI guard insertion mismatch: {source.count(old)}')
+          guard.write_text(source.replace(old, new))
+
+          tests = Path('apps/extension/src/component-rendering.component.spec.ts')
+          source = tests.read_text()
+          old = """    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+              const { body } = render(SwitchProfileEditor, {"""
+          new = """    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+              const attachedSource = attached.ruleSources.at(-1);
+              if (!attachedSource) throw new Error('attached Rule List source was not created');
+              attachedSource.headers = [
+                { name: 'X-Component', value: { kind: 'literal', value: 'component-value' } },
+              ];
+              const { body } = render(SwitchProfileEditor, {"""
+          if source.count(old) != 1:
+              raise SystemExit(f'component fixture insertion mismatch: {source.count(old)}')
+          source = source.replace(old, new)
+          old = """    expect(body).toContain('data-attached-rule-list-headers');
+              expect(body).toContain('Delete attached Rule List');"""
+          new = """    expect(body).toContain('data-attached-rule-list-headers');
+              expect(body).toContain('Attached header 1 name');
+              expect(body).toContain('X-Component');
+              expect(body).toContain('component-value');
+              expect(body).toContain('Delete attached Rule List');"""
+          if source.count(old) != 1:
+              raise SystemExit(f'component header assertion mismatch: {source.count(old)}')
+          tests.write_text(source.replace(old, new))
+          PY
+          pnpm exec prettier --write \
+            apps/extension/src/component-rendering.component.spec.ts \
+            apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            scripts/validate-ui-compatibility.mjs
+          git diff --check
+      - name: Verify complete repository
+        run: pnpm verify
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Chromium extension E2E
+        run: |
+          pnpm build:chromium
+          pnpm test:e2e:chromium
+      - name: Clean temporary workflows and outputs
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          git clean -fdX
+          rm -f .github/workflows/fix-attached-header-e2e.yml
+          rm -f .github/workflows/finalize-attached-header-refresh.yml
+          git diff --check
+      - name: Commit verified correction
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'fix: keep attached header UI synchronized'
+          git pull --rebase origin feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
