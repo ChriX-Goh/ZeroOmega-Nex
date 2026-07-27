@@ -33,4 +33,13 @@ import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 """
 if text.count(old) != 1:
     raise SystemExit(f'temporary coordinator browser import match count: {text.count(old)}')
-coordinator.write_text(text.replace(old, new))
+text = text.replace(old, new)
+for unused in (
+    '  createPopupTemporaryRuleState,\n',
+    '  SnapshotActivationState,\n',
+    '  togglePopupTemporaryRule,\n',
+):
+    if unused not in text:
+        raise SystemExit(f'temporary unused import is missing: {unused!r}')
+    text = text.replace(unused, '')
+coordinator.write_text(text)
