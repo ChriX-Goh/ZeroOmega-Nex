@@ -42,6 +42,16 @@ jobs:
           grep '^H4s' .github/workflows/integrate-popup-inspect.yml >/tmp/apply_inspect.py.gz.b64
           base64 -d /tmp/apply_inspect.py.gz.b64 | gzip -d >/tmp/apply_inspect.py
           python /tmp/apply_inspect.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/validate-ui-compatibility.mjs')
+          text = path.read_text()
+          old = 'manifest.includes("permissions: [\'proxy\', \'storage\', \'alarms\', \'activeTab\']")'
+          new = 'manifest.includes("permissions: [\'proxy\', \'storage\', \'alarms\', \'activeTab\', \'contextMenus\']")'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one manifest permission guard, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
@@ -56,6 +66,7 @@ jobs:
             apps/extension/public/_locales/zh_CN/messages.json \
             apps/extension/public/_locales/zh_TW/messages.json \
             scripts/inspect-manifests.mjs \
+            scripts/validate-ui-compatibility.mjs \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
             docs/MILESTONE_8_STATUS.md
