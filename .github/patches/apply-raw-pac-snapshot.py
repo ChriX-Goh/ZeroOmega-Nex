@@ -161,8 +161,10 @@ export async function createRawPacSnapshot(
 
 index_path = Path('packages/pac-compiler/src/index.ts')
 index = index_path.read_text()
-anchor = "export { createVerifiedPacSnapshot } from './snapshot.js';\n"
-addition = r'''export {
+anchor = '''export {
+  createVerifiedPacSnapshot,
+'''
+addition = '''export {
   createRawPacSnapshot,
   RAW_PAC_SNAPSHOT_VERSION,
   type RawPacSnapshotResult,
