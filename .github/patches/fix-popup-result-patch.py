@@ -39,4 +39,23 @@ new_guard = """      popupCondition.includes('setPopupProfileResultDraft') &&
 """
 if text.count(old_guard) != 1:
     raise SystemExit(f'Popup result guard patch match count: {text.count(old_guard)}')
-path.write_text(text.replace(old_guard, new_guard))
+text = text.replace(old_guard, new_guard)
+
+old_import_patch = """source = source.replace(
+    '''  addPopupConditionDraft,
+  listPopupConditionResultRoutes,
+''',
+    '''  addPopupConditionDraft,
+  listPopupConditionResultRoutes,
+  setPopupProfileResultDraft,
+''',
+)
+"""
+new_import_patch = """source = source.replace(
+    \"import { addPopupConditionDraft, listPopupConditionResultRoutes } from './popup-condition.js';\",
+    \"import { addPopupConditionDraft, listPopupConditionResultRoutes, setPopupProfileResultDraft } from './popup-condition.js';\",
+)
+"""
+if text.count(old_import_patch) != 1:
+    raise SystemExit(f'Popup result test import patch match count: {text.count(old_import_patch)}')
+path.write_text(text.replace(old_import_patch, new_import_patch))
