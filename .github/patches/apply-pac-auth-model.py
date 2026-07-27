@@ -14,18 +14,18 @@ def replace_once(path: str, old: str, new: str) -> None:
 replace_once(
     'packages/profile-spec/src/types.ts',
     '''export interface PacProfile extends ProfileBase {
-  readonly kind: 'pac';
+  kind: 'pac';
   source: PacSource;
-  fallbackRoute?: ProfileRouteTarget;
   headers?: RuleSourceHeader[];
+  fallbackRoute?: ProfileRouteTarget;
 }
 ''',
     '''export interface PacProfile extends ProfileBase {
-  readonly kind: 'pac';
+  kind: 'pac';
   source: PacSource;
-  fallbackRoute?: ProfileRouteTarget;
   headers?: RuleSourceHeader[];
-  credential?: ProxyCredentialRef;
+  fallbackRoute?: ProfileRouteTarget;
+  credential?: ProxyCredentialReference;
 }
 ''',
 )
