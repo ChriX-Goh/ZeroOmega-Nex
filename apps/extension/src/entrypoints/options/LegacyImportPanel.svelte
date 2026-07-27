@@ -1,6 +1,8 @@
 <script lang="ts">
   import {
+    exportZeroOmegaBackup,
     importZeroOmegaBackup,
+    type LegacyExportResult,
     type LegacyImportResult,
     type LegacyImportStatus,
   } from '@zeroomega-nex/legacy-zeroomega';
@@ -10,6 +12,7 @@
   export let disabled = false;
   export let generation: number;
   export let deviceId: string;
+  export let onPrepareExport: () => Promise<ProfileSpec | undefined>;
   export let onAcceptImport: (
     expectedGeneration: number,
     candidate: ProfileSpec,
@@ -24,11 +27,14 @@
   let backupText = '';
   let selectedFileName = '';
   let result: LegacyImportResult | undefined;
+  let exportResult: LegacyExportResult | undefined;
   let analyzedGeneration: number | undefined;
   let analyzing = false;
   let accepting = false;
+  let exporting = false;
   let errorMessage = '';
   let acceptedMessage = '';
+  let exportedMessage = '';
 
   const statuses: readonly { status: LegacyImportStatus; label: string }[] = [
     { status: 'exact', label: 'Exact' },
@@ -61,6 +67,45 @@
         return summary.ignoredRuntime;
       case 'rejected':
         return summary.rejected;
+    }
+  }
+
+  function downloadExport(exported: Extract<LegacyExportResult, { readonly ok: true }>): void {
+    const blob = new Blob([exported.content], { type: exported.mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exported.filename;
+    anchor.style.display = 'none';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  async function exportBackup(): Promise<void> {
+    if (exporting || disabled) return;
+    exporting = true;
+    exportResult = undefined;
+    exportedMessage = '';
+    errorMessage = '';
+    try {
+      const spec = await onPrepareExport();
+      if (!spec) return;
+      const exported = exportZeroOmegaBackup(spec, { createdAt: new Date() });
+      exportResult = exported;
+      if (!exported.ok) {
+        throw new Error(exported.issues.map((entry) => entry.message).join(' '));
+      }
+      downloadExport(exported);
+      exportedMessage =
+        exported.issues.length === 0
+          ? 'Backup exported.'
+          : `Backup exported with ${exported.issues.length} compatibility warning(s).`;
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      exporting = false;
     }
   }
 
@@ -127,6 +172,35 @@
   }
 </script>
 
+<section class="settings-section" data-legacy-export-section>
+  <h2>Export options</h2>
+  <p class="section-help">
+    Download an original-compatible schema-v2 .bak file. Current editor changes are applied first,
+    matching the original extension. Passwords and sensitive request headers are never included.
+  </p>
+  <button
+    type="button"
+    class="primary"
+    data-legacy-export
+    aria-label="Export options backup"
+    disabled={disabled || exporting}
+    onclick={() => void exportBackup()}
+  >
+    {exporting ? 'Preparing backup…' : 'Export options'}
+  </button>
+  {#if exportResult?.ok && exportResult.issues.length > 0}
+    <details data-legacy-export-warnings>
+      <summary>Compatibility warnings ({exportResult.issues.length})</summary>
+      <ol>
+        {#each exportResult.issues as item, index (`${item.code}:${item.path}:${index}`)}
+          <li><strong>{item.code}</strong> — {item.message}<div>{item.path}</div></li>
+        {/each}
+      </ol>
+    </details>
+  {/if}
+  {#if exportedMessage}<p role="status">{exportedMessage}</p>{/if}
+</section>
+
 <section class="settings-section import-source">
   <h2>Restore original ZeroOmega / SwitchyOmega backup</h2>
   <p class="section-help">
@@ -140,7 +214,7 @@
       type="file"
       accept=".bak,.json,.txt,application/json,text/plain"
       disabled={disabled || analyzing || accepting}
-      on:change={chooseFile}
+      onchange={chooseFile}
     />
     {#if selectedFileName}<strong>{selectedFileName}</strong>{/if}
   </label>
@@ -152,7 +226,7 @@
       placeholder="Paste the complete ZeroOmega / SwitchyOmega backup"
       value={backupText}
       disabled={disabled || analyzing || accepting}
-      on:input={(event) => {
+      oninput={(event) => {
         backupText = valueFrom(event);
         selectedFileName = '';
         result = undefined;
@@ -162,7 +236,7 @@
     <button
       type="button"
       disabled={disabled || analyzing || accepting || backupText.trim().length === 0}
-      on:click={analyze}>{analyzing ? 'Reading backup…' : 'Read backup'}</button
+      onclick={analyze}>{analyzing ? 'Reading backup…' : 'Read backup'}</button
     >
   </details>
 </section>
@@ -171,39 +245,29 @@
   <section class="settings-section">
     <h2>Compatibility check</h2>
     <dl class="compatibility-summary">
-      <div>
-        <dt>Encoding</dt>
-        <dd>{result.report.encoding}</dd>
-      </div>
-      <div>
-        <dt>Profiles</dt>
-        <dd>{result.report.profileCount}</dd>
-      </div>
-      <div>
-        <dt>Proxy endpoints</dt>
-        <dd>{result.report.endpointCount}</dd>
-      </div>
-      <div>
-        <dt>Rule sources</dt>
-        <dd>{result.report.ruleSourceCount}</dd>
-      </div>
+      <div><dt>Encoding</dt><dd>{result.report.encoding}</dd></div>
+      <div><dt>Profiles</dt><dd>{result.report.profileCount}</dd></div>
+      <div><dt>Proxy endpoints</dt><dd>{result.report.endpointCount}</dd></div>
+      <div><dt>Rule sources</dt><dd>{result.report.ruleSourceCount}</dd></div>
       <div>
         <dt>Credentials</dt>
         <dd>{result.report.containsSecrets ? 'Will be migrated securely' : 'None'}</dd>
       </div>
     </dl>
     <ul class="compatibility-counts" aria-label="Import status totals">
-      {#each statuses as entry (entry.status)}<li>
-          <span>{entry.label}</span><strong>{summaryCount(result, entry.status)}</strong>
-        </li>{/each}
+      {#each statuses as entry (entry.status)}
+        <li><span>{entry.label}</span><strong>{summaryCount(result, entry.status)}</strong></li>
+      {/each}
     </ul>
     <details open={!result.ok || result.report.summary.rejected > 0}>
       <summary>Technical migration details ({result.report.items.length})</summary>
       <ol>
-        {#each result.report.items as item, index (`${item.code}:${item.sourcePath}:${index}`)}<li>
+        {#each result.report.items as item, index (`${item.code}:${item.sourcePath}:${index}`)}
+          <li>
             <strong>{item.status}</strong> — {item.message}
             <div>{item.sourcePath}{item.targetPath ? ` → ${item.targetPath}` : ''}</div>
-          </li>{/each}
+          </li>
+        {/each}
       </ol>
     </details>
     {#if result.ok}
@@ -212,13 +276,13 @@
           type="button"
           class="primary"
           disabled={disabled || accepting}
-          on:click={() => importCandidate(true)}
+          onclick={() => importCandidate(true)}
           >{accepting ? 'Importing…' : 'Import and use now'}</button
         >
         <button
           type="button"
           disabled={disabled || accepting}
-          on:click={() => importCandidate(false)}>Import without activating</button
+          onclick={() => importCandidate(false)}>Import without activating</button
         >
       </div>
     {:else}
@@ -229,9 +293,5 @@
   </section>
 {/if}
 
-{#if acceptedMessage}<section class="settings-section">
-    <p role="status">{acceptedMessage}</p>
-  </section>{/if}
-{#if errorMessage}<section class="settings-section">
-    <p role="alert">{errorMessage}</p>
-  </section>{/if}
+{#if acceptedMessage}<section class="settings-section"><p role="status">{acceptedMessage}</p></section>{/if}
+{#if errorMessage}<section class="settings-section"><p role="alert">{errorMessage}</p></section>{/if}
