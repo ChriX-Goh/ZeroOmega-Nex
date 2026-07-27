@@ -20,4 +20,11 @@ new = """  const system = popup.getByRole('button', { name: /系统代理/u });
 """
 if text.count(old) != 1:
     raise SystemExit(f'external profile System E2E block count: {text.count(old)}')
+text = text.replace(old, new)
+old = """          singleProxy: { scheme: 'socks5', host: 'external.e2e.invalid', port: 1080 },
+"""
+new = """          fallbackProxy: { scheme: 'socks5', host: 'external.e2e.invalid', port: 1080 },
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'external profile fallback E2E rule count: {text.count(old)}')
 path.write_text(text.replace(old, new))
