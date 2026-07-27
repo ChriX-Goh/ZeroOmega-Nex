@@ -83,6 +83,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Result routes exclude hidden, disabled, self-referencing, and cycle-producing profiles.
 - A duplicate condition tag replaces the earlier rule; `addConditionsToBottom` controls top or bottom insertion.
 - The typed background command accepts only the currently active enabled Switch Profile, rejects unapplied Options Draft work, runs normal verified Apply, and keeps the active Switch route.
+- Popup rows for Switch and Virtual display their current result route and expose only cycle-safe legal results. Changes use the same dirty-Draft guard and verified Apply transaction while preserving whichever route is currently active.
 - Chromium E2E creates `*.example.co.uk`, verifies top insertion in Applied state, then continues the attached Rule List workflow.
 - Integration run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 
@@ -102,9 +103,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup result-profile, temporary-rule, external-ownership, and bounded diagnostic functions,
+- Popup temporary-rule, external-ownership, and bounded diagnostic functions,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Proceed to the next Popup parity slice: temporary current-site rules or Switch/Virtual result-profile controls, selected by source dependency audit. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to the Popup temporary current-site rule runtime layer, preserving its non-persistent lifecycle and separation from permanent ProfileSpec conditions. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

@@ -8,6 +8,7 @@
   } from '@zeroomega-nex/profile-spec';
   import {
     listPopupConditionResultRoutes,
+    listPopupProfileResultRoutes,
     type PopupSiteCondition,
     type ProfileWorkflowCommandResponse,
     type ProfileWorkflowRuntimeView,
@@ -36,6 +37,9 @@
     readonly kind: UserProfile['kind'] | 'direct' | 'system' | 'external';
     readonly available: boolean;
     readonly reason?: string;
+    readonly profileId?: string;
+    readonly resultRoute?: ProfileRouteTarget;
+    readonly resultItems?: readonly ResultRouteItem[];
   }
 
   interface ResultRouteItem {
@@ -58,6 +62,7 @@
   let loading = true;
   let switching = false;
   let addingCondition = false;
+  let settingResult = false;
   let openingSettings = false;
   let conditionFormOpen = false;
   let conditionKind: PopupConditionKind = 'host-wildcard';
@@ -100,6 +105,23 @@
     if (!spec || route?.kind !== 'profile') return undefined;
     const profile = spec.profiles.find((candidate) => candidate.id === route.profileId);
     return profile?.kind === 'switch' && profile.enabled !== false ? profile : undefined;
+  }
+
+  function configuredResultRoute(profile: UserProfile): ProfileRouteTarget | undefined {
+    if (profile.kind === 'switch') return profile.defaultRoute;
+    if (profile.kind === 'virtual') return profile.targetRoute;
+    return undefined;
+  }
+
+  function popupProfileResultItems(
+    spec: ProfileSpec,
+    profileId: string,
+  ): readonly ResultRouteItem[] {
+    return listPopupProfileResultRoutes(spec, profileId).map((route) => ({
+      key: routeKey(route),
+      route,
+      name: routeName(spec, route),
+    }));
   }
 
   function popupResultItems(
@@ -159,6 +181,10 @@
           reason: `Profile ${route.profileId} is missing from the applied configuration.`,
         };
       }
+      const resultRoute = configuredResultRoute(profile);
+      const profileResultItems = resultRoute
+        ? popupProfileResultItems(spec, profile.id)
+        : undefined;
       return {
         key: routeKey(route),
         route,
@@ -166,6 +192,9 @@
         color: profile.color ?? '#90a4ae',
         kind: profile.kind,
         available: profile.enabled !== false,
+        profileId: profile.id,
+        ...(resultRoute === undefined ? {} : { resultRoute }),
+        ...(profileResultItems === undefined ? {} : { resultItems: profileResultItems }),
         ...(profile.enabled === false ? { reason: `${profile.name} is disabled.` } : {}),
       };
     });
@@ -201,6 +230,30 @@
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
       loading = false;
+    }
+  }
+
+  async function setProfileResult(item: QuickSwitchItem, event: Event): Promise<void> {
+    if (!state || !item.profileId || !item.resultItems || settingResult) return;
+    const key = (event.currentTarget as HTMLSelectElement).value;
+    const selected = item.resultItems.find((candidate) => candidate.key === key);
+    if (!selected || (item.resultRoute && sameRoute(item.resultRoute, selected.route))) return;
+    settingResult = true;
+    errorMessage = '';
+    try {
+      const accepted = acceptResponse(
+        await sendProfileWorkflowCommand({
+          action: 'set-popup-profile-result',
+          expectedAppliedRevisionId: state.applied.revision.id,
+          profileId: item.profileId,
+          route: selected.route,
+        }),
+      );
+      if (accepted) window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      settingResult = false;
     }
   }
 
@@ -309,7 +362,7 @@
 <main
   class="popup-shell"
   aria-label="ZeroOmega Nex profile switcher"
-  aria-busy={loading || switching || addingCondition}
+  aria-busy={loading || switching || addingCondition || settingResult}
 >
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
@@ -321,27 +374,53 @@
     {:else}
       {#each items as item, index (item.key)}
         {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}
-        <button
-          class:active={sameRoute(runtime?.activeRoute, item.route)}
-          type="button"
-          disabled={switching ||
-            addingCondition ||
-            !item.available ||
-            sameRoute(runtime?.activeRoute, item.route)}
-          title={item.reason ??
-            (sameRoute(runtime?.activeRoute, item.route)
-              ? `${item.name} is active`
-              : `Activate ${item.name}`)}
-          onclick={() => activateRoute(item)}
-        >
-          <ProfileIcon kind={item.kind} color={item.color} size={21} />
-          <span class="profile-name">{item.name}</span>
-          {#if sameRoute(runtime?.activeRoute, item.route)}
-            <svg class="current-mark" viewBox="0 0 16 16" aria-label="Current profile">
-              <path d="m3.2 8.3 2.8 2.8 6.8-7" />
-            </svg>
+        <div class:has-result={item.resultRoute !== undefined} class="profile-row">
+          <button
+            class:active={sameRoute(runtime?.activeRoute, item.route)}
+            type="button"
+            disabled={switching ||
+              addingCondition ||
+              settingResult ||
+              !item.available ||
+              sameRoute(runtime?.activeRoute, item.route)}
+            title={item.reason ??
+              (sameRoute(runtime?.activeRoute, item.route)
+                ? `${item.name} is active`
+                : `Activate ${item.name}`)}
+            onclick={() => activateRoute(item)}
+          >
+            <ProfileIcon kind={item.kind} color={item.color} size={21} />
+            <span class="profile-name">
+              {item.name}
+              {#if item.resultRoute && state}
+                <span class="profile-result-label"
+                  >[{routeName(state.applied, item.resultRoute)}]</span
+                >
+              {/if}
+            </span>
+            {#if sameRoute(runtime?.activeRoute, item.route)}
+              <svg class="current-mark" viewBox="0 0 16 16" aria-label="Current profile">
+                <path d="m3.2 8.3 2.8 2.8 6.8-7" />
+              </svg>
+            {/if}
+          </button>
+          {#if item.resultRoute && item.resultItems && item.resultItems.length > 0}
+            <label class="profile-result-control">
+              <span>Result</span>
+              <select
+                data-popup-result-profile
+                aria-label={`Result profile for ${item.name}`}
+                value={routeKey(item.resultRoute)}
+                disabled={settingResult || switching || addingCondition || !item.available}
+                onchange={(event) => void setProfileResult(item, event)}
+              >
+                {#each item.resultItems as result}
+                  <option value={result.key}>{result.name}</option>
+                {/each}
+              </select>
+            </label>
           {/if}
-        </button>
+        </div>
       {/each}
     {/if}
   </section>

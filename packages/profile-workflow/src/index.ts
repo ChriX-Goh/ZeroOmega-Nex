@@ -63,7 +63,9 @@ export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
   addPopupConditionDraft,
   listPopupConditionResultRoutes,
+  listPopupProfileResultRoutes,
   popupConditionTag,
+  setPopupProfileResultDraft,
   type AddPopupConditionInput,
   type PopupSiteCondition,
 } from './popup-condition.js';

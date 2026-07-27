@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 
-import { addPopupConditionDraft, listPopupConditionResultRoutes } from './popup-condition.js';
+import {
+  addPopupConditionDraft,
+  listPopupConditionResultRoutes,
+  setPopupProfileResultDraft,
+} from './popup-condition.js';
 import { workflowFixture } from './test-fixture.js';
 
 function switchSpec(addToBottom: boolean): ProfileSpec {
@@ -96,5 +100,63 @@ describe('Popup current-site condition mutation', () => {
       route.kind === 'profile' ? route.profileId : route.kind,
     );
     expect(keys).toEqual(['direct', 'system', 'profile-primary', 'profile-secondary']);
+  });
+  it('changes Switch and Virtual result routes without mutating the source revision', () => {
+    const original = switchSpec(false);
+    original.profiles.push({
+      id: 'profile-virtual',
+      name: 'Virtual route',
+      kind: 'virtual',
+      targetRoute: { kind: 'direct' },
+    });
+    const switched = setPopupProfileResultDraft(original, 'profile-switch', {
+      kind: 'profile',
+      profileId: 'profile-secondary',
+    });
+    const virtual = setPopupProfileResultDraft(switched, 'profile-virtual', {
+      kind: 'profile',
+      profileId: 'profile-primary',
+    });
+    const switchProfile = virtual.profiles.find((profile) => profile.id === 'profile-switch');
+    const virtualProfile = virtual.profiles.find((profile) => profile.id === 'profile-virtual');
+    if (!switchProfile || switchProfile.kind !== 'switch')
+      throw new Error('missing Switch Profile');
+    if (!virtualProfile || virtualProfile.kind !== 'virtual')
+      throw new Error('missing Virtual Profile');
+    expect(switchProfile.defaultRoute).toEqual({
+      kind: 'profile',
+      profileId: 'profile-secondary',
+    });
+    expect(virtualProfile.targetRoute).toEqual({
+      kind: 'profile',
+      profileId: 'profile-primary',
+    });
+    const originalSwitch = original.profiles.find((profile) => profile.id === 'profile-switch');
+    if (!originalSwitch || originalSwitch.kind !== 'switch') throw new Error('missing original');
+    expect(originalSwitch.defaultRoute).toEqual({ kind: 'direct' });
+  });
+
+  it('rejects result routes that would create a Virtual cycle', () => {
+    const spec = switchSpec(false);
+    spec.profiles.push(
+      {
+        id: 'profile-virtual-a',
+        name: 'Virtual A',
+        kind: 'virtual',
+        targetRoute: { kind: 'direct' },
+      },
+      {
+        id: 'profile-virtual-b',
+        name: 'Virtual B',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-virtual-a' },
+      },
+    );
+    expect(() =>
+      setPopupProfileResultDraft(spec, 'profile-virtual-a', {
+        kind: 'profile',
+        profileId: 'profile-virtual-b',
+      }),
+    ).toThrow(/not valid/u);
   });
 });

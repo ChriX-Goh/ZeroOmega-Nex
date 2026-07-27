@@ -152,6 +152,16 @@ const requirements = [
     'Popup must derive the current site with the public suffix list, add typed conditions only to the active Switch Profile, deduplicate by condition, honor top/bottom ordering, and use least-privilege activeTab access.',
   ],
   [
+    popupApp.includes('data-popup-result-profile') &&
+      popupApp.includes("action: 'set-popup-profile-result'") &&
+      popupApp.includes('profile-result-label') &&
+      popupCondition.includes('setPopupProfileResultDraft') &&
+      popupCondition.includes('profile.defaultRoute = structuredClone(route)') &&
+      popupCondition.includes('profile.targetRoute = structuredClone(route)') &&
+      popupCondition.includes('listPopupProfileResultRoutes'),
+    'Popup must display and change valid Switch/Virtual result routes through the verified background transaction.',
+  ],
+  [
     popupStyle.includes("font-family: 'Segoe UI'"),
     'Popup must use explicit Windows typography for browser parity.',
   ],

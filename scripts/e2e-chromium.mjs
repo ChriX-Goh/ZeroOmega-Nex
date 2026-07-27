@@ -186,6 +186,29 @@ try {
   await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
 
+  const resultPopup = await context.newPage();
+  await resultPopup.goto(`chrome-extension://${extensionId}/popup.html`);
+  const switchResult = resultPopup.getByLabel('Result profile for switch');
+  await switchResult.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await switchResult.inputValue(), 'direct');
+  await switchResult.selectOption({ label: 'fixed' });
+  await assertEventually(async () => {
+    const resultStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
+    const workflow = resultStorage['zeroomega-nex/profile-workflow/v1/state'];
+    const switchProfile = workflow?.applied?.profiles?.find((profile) => profile.name === 'switch');
+    const proxyState = resultStorage['zeroomega-nex/browser-proxy/v1/state'];
+    const activeSnapshot = proxyState?.activeSnapshotId
+      ? resultStorage[`zeroomega-nex/browser-proxy/v1/snapshot/${proxyState.activeSnapshotId}`]
+      : undefined;
+    return (
+      switchProfile?.defaultRoute?.kind === 'profile' &&
+      workflow?.draft?.revision?.id === workflow?.applied?.revision?.id &&
+      activeSnapshot?.startRoute?.kind === 'profile' &&
+      activeSnapshot.startRoute.profileId === switchProfile.id
+    );
+  }, 'Popup result profile was not applied while preserving the active Switch route');
+  await resultPopup.close().catch(() => undefined);
+
   const currentSiteUrl = 'https://www.dev.example.co.uk/current-site';
   await context.route(currentSiteUrl, (route) =>
     route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Current site</title>' }),

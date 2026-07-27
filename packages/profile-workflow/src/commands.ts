@@ -1,7 +1,11 @@
 import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 
 import { applyProfileWorkflow } from './apply.js';
-import { addPopupConditionDraft, type PopupSiteCondition } from './popup-condition.js';
+import {
+  addPopupConditionDraft,
+  setPopupProfileResultDraft,
+  type PopupSiteCondition,
+} from './popup-condition.js';
 import type {
   ProfileWorkflowActivationDriver,
   ProfileWorkflowApplyContext,
@@ -97,6 +101,13 @@ export type ProfileWorkflowCommand =
       readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
       readonly action: 'activate-route';
       readonly expectedAppliedRevisionId: string;
+      readonly route: ProfileRouteTarget;
+    }
+  | {
+      readonly channel: typeof PROFILE_WORKFLOW_MESSAGE_CHANNEL;
+      readonly action: 'set-popup-profile-result';
+      readonly expectedAppliedRevisionId: string;
+      readonly profileId: string;
       readonly route: ProfileRouteTarget;
     }
   | {
@@ -384,6 +395,14 @@ export function isProfileWorkflowCommand(value: unknown): value is ProfileWorkfl
         record.expectedAppliedRevisionId.length > 0 &&
         validRoute(record.route)
       );
+    case 'set-popup-profile-result':
+      return (
+        typeof record.expectedAppliedRevisionId === 'string' &&
+        record.expectedAppliedRevisionId.length > 0 &&
+        typeof record.profileId === 'string' &&
+        record.profileId.length > 0 &&
+        validRoute(record.route)
+      );
     case 'add-current-site-condition':
       return (
         typeof record.expectedAppliedRevisionId === 'string' &&
@@ -455,6 +474,74 @@ export async function executeProfileWorkflowCommand(
     return update === undefined
       ? failure('invalid', `Rule Source ${command.sourceId} is not a remote URL source`, state)
       : responseWithRuleSourceUpdate(state, update);
+  }
+
+  if (command.action === 'set-popup-profile-result') {
+    if (state.applied.revision.id !== command.expectedAppliedRevisionId) {
+      return failure(
+        'conflict',
+        `expected applied revision ${command.expectedAppliedRevisionId}, current revision is ${state.applied.revision.id}`,
+        state,
+      );
+    }
+    if (state.pendingApply) {
+      return failure('busy', 'profile workflow is busy applying another revision', state);
+    }
+    if (!applyService) {
+      return failure('invalid', 'profile workflow Apply service is unavailable', state);
+    }
+    if (inspectProfileWorkflow(state).dirty) {
+      return failure(
+        'invalid',
+        'Apply or discard Options changes before changing a result profile from Popup',
+        state,
+      );
+    }
+    const activeRoute = (await runtimeView(applyService))?.activeRoute;
+    if (!activeRoute) {
+      return failure('invalid', 'the current browser route is unavailable', state);
+    }
+
+    let edited: ProfileWorkflowState;
+    try {
+      edited = replaceProfileWorkflowDraft(
+        state,
+        setPopupProfileResultDraft(state.applied, command.profileId, command.route),
+      );
+    } catch (error) {
+      return failure('invalid', errorMessage(error), state);
+    }
+    try {
+      if (!(await repository.compareAndSwap(state.generation, edited))) {
+        const current = await repository.read();
+        return failure(
+          'conflict',
+          'profile workflow changed before the Popup result profile could be persisted',
+          current,
+        );
+      }
+    } catch (error) {
+      return failure('storage-failure', errorMessage(error), state);
+    }
+
+    const result = await applyProfileWorkflow(repository, applyService.driver, {
+      ...applyService.createContext(edited),
+      startRoute: activeRoute,
+    });
+    if (result.status === 'applied') {
+      return response(result.state, result.snapshotId, await runtimeView(applyService));
+    }
+    return failure(
+      result.status === 'busy'
+        ? 'busy'
+        : result.status === 'conflict'
+          ? 'conflict'
+          : result.status === 'failed'
+            ? 'apply-failed'
+            : 'invalid',
+      result.message,
+      result.state,
+    );
   }
 
   if (command.action === 'add-current-site-condition') {
