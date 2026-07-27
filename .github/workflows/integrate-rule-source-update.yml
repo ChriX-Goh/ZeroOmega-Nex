@@ -31,32 +31,48 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Apply reviewed Rule Source update slice
+        id: apply_slice
+        continue-on-error: true
+        shell: bash
         run: |
-          python .github/patches/apply-rule-source-core.py
-          python .github/patches/apply-rule-source-ui.py
-          python .github/patches/apply-rule-source-e2e-docs.py
-          pnpm exec prettier --write \
-            packages/profile-workflow/src/contracts.ts \
-            packages/profile-workflow/src/storage-repository.ts \
-            packages/profile-workflow/src/index.ts \
-            packages/profile-workflow/src/commands.ts \
-            packages/profile-workflow/src/rule-source-update.ts \
-            packages/profile-workflow/src/rule-source-update.test.ts \
-            packages/profile-workflow/src/rule-source-update-command.test.ts \
-            apps/extension/src/lib/profile-workflow-runtime.ts \
-            apps/extension/src/lib/profile-workflow-client.ts \
-            apps/extension/src/lib/rule-source-downloader.ts \
-            apps/extension/src/lib/rule-source-downloader.test.ts \
-            apps/extension/src/entrypoints/options/App.svelte \
-            apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
-            apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
-            apps/extension/src/component-rendering.component.spec.ts \
-            scripts/e2e-chromium.mjs \
-            scripts/validate-ui-compatibility.mjs \
-            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
-            docs/UI_AUDIT_MATRIX.md \
-            docs/MILESTONE_8_STATUS.md
-          git diff --check
+          set -o pipefail
+          {
+            python .github/patches/apply-rule-source-core.py
+            python .github/patches/apply-rule-source-ui.py
+            python .github/patches/apply-rule-source-e2e-docs.py
+            pnpm exec prettier --write \
+              packages/profile-workflow/src/contracts.ts \
+              packages/profile-workflow/src/storage-repository.ts \
+              packages/profile-workflow/src/index.ts \
+              packages/profile-workflow/src/commands.ts \
+              packages/profile-workflow/src/rule-source-update.ts \
+              packages/profile-workflow/src/rule-source-update.test.ts \
+              packages/profile-workflow/src/rule-source-update-command.test.ts \
+              apps/extension/src/lib/profile-workflow-runtime.ts \
+              apps/extension/src/lib/profile-workflow-client.ts \
+              apps/extension/src/lib/rule-source-downloader.ts \
+              apps/extension/src/lib/rule-source-downloader.test.ts \
+              apps/extension/src/entrypoints/options/App.svelte \
+              apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
+              apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte \
+              apps/extension/src/component-rendering.component.spec.ts \
+              scripts/e2e-chromium.mjs \
+              scripts/validate-ui-compatibility.mjs \
+              docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+              docs/UI_AUDIT_MATRIX.md \
+              docs/MILESTONE_8_STATUS.md
+            git diff --check
+          } 2>&1 | tee /tmp/rule-source-update-apply.log
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-source-update-apply
+          path: /tmp/rule-source-update-apply.log
+          if-no-files-found: warn
+      - name: Enforce patch result
+        if: steps.apply_slice.outcome != 'success'
+        run: exit 1
       - name: Verify complete repository
         id: verify
         continue-on-error: true
