@@ -45,6 +45,7 @@ jobs:
             python .github/patches/apply-pac-remote-model.py
             python .github/patches/apply-pac-remote-workflow.py
             python .github/patches/apply-pac-remote-ui.py
+            python .github/patches/fix-pac-remote-validator-loads.py
             pnpm --filter @zeroomega-nex/profile-spec generate:validator
           } 2>&1 | tee pac-remote-apply.log
       - name: Format product slice
@@ -76,6 +77,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-pac-remote-source.yml
           rm -f \
             .github/patches/fix-pac-remote-validator-path.py \
+            .github/patches/fix-pac-remote-validator-loads.py \
             .github/patches/apply-pac-remote-model.py \
             .github/patches/apply-pac-remote-workflow.py \
             .github/patches/apply-pac-remote-ui.py \
