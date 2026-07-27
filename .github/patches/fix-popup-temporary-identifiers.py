@@ -35,7 +35,6 @@ export function popupTemporarySnapshotId(baseRoute: ProfileRouteTarget, nonce: s
 """,
     ),
     ("id: `${profileId}/rule/${index}`,", "id: `${profileId}:rule:${index}`,"),
-    ("  decodePopupTemporaryProfileId,\n", ""),
     (
         """  it('round-trips the base route through temporary profile and snapshot IDs', () => {
     const route = { kind: 'profile', profileId: 'profile:with/slash' } as const;
@@ -57,4 +56,8 @@ for old, new in replacements:
     if text.count(old) != 1:
         raise SystemExit(f'temporary identifier patch match count {text.count(old)}: {old[:100]!r}')
     text = text.replace(old, new)
-core.write_text(text)
+
+decoder_export = "  decodePopupTemporaryProfileId,\n"
+if text.count(decoder_export) != 2:
+    raise SystemExit(f'temporary decoder export match count: {text.count(decoder_export)}')
+core.write_text(text.replace(decoder_export, ''))
