@@ -92,7 +92,22 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Chromium regression E2E
-        run: pnpm test:e2e:chromium
+        id: chromium
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee /tmp/popup-inspect-chromium.log
+      - name: Upload Chromium diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-inspect-chromium
+          path: /tmp/popup-inspect-chromium.log
+          if-no-files-found: warn
+      - name: Enforce Chromium result
+        if: steps.chromium.outcome != 'success'
+        run: exit 1
       - name: Clean temporary integration files
         run: |
           rm -f .github/workflows/run-popup-inspect.yml
