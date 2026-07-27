@@ -1,0 +1,165 @@
+name: Integrate Popup current-site conditions
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-popup-current-site.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-popup-current-site-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Apply reviewed Popup slice
+        id: apply_slice
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python .github/patches/apply-popup-current-site.py 2>&1 | tee /tmp/popup-current-site-apply.log
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-current-site-apply
+          path: /tmp/popup-current-site-apply.log
+          if-no-files-found: warn
+      - name: Enforce patch result
+        if: steps.apply_slice.outcome != 'success'
+        run: exit 1
+      - name: Install updated locked dependencies
+        id: install
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm install --no-frozen-lockfile 2>&1 | tee /tmp/popup-current-site-install.log
+      - name: Upload install diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-current-site-install
+          path: /tmp/popup-current-site-install.log
+          if-no-files-found: warn
+      - name: Enforce install result
+        if: steps.install.outcome != 'success'
+        run: exit 1
+      - name: Format and inspect product diff
+        id: format
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            pnpm exec prettier --write \
+              apps/extension/package.json \
+              pnpm-lock.yaml \
+              packages/profile-workflow/src/contracts.ts \
+              packages/profile-workflow/src/apply.ts \
+              packages/profile-workflow/src/commands.ts \
+              packages/profile-workflow/src/index.ts \
+              packages/profile-workflow/src/popup-condition.ts \
+              packages/profile-workflow/src/popup-condition.test.ts \
+              packages/profile-workflow/src/popup-condition-command.test.ts \
+              apps/extension/wxt.config.ts \
+              apps/extension/src/lib/profile-workflow-activation.ts \
+              apps/extension/src/lib/current-site.ts \
+              apps/extension/src/lib/current-site.test.ts \
+              apps/extension/src/entrypoints/popup/App.svelte \
+              apps/extension/src/entrypoints/popup/style.css \
+              scripts/e2e-chromium.mjs \
+              scripts/inspect-manifests.mjs \
+              scripts/validate-ui-compatibility.mjs \
+              docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+              docs/UI_AUDIT_MATRIX.md \
+              docs/MILESTONE_8_STATUS.md
+            git diff --check
+          } 2>&1 | tee /tmp/popup-current-site-format.log
+      - name: Upload format diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-current-site-format
+          path: /tmp/popup-current-site-format.log
+          if-no-files-found: warn
+      - name: Enforce format result
+        if: steps.format.outcome != 'success'
+        run: exit 1
+      - name: Verify complete repository
+        id: verify
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee /tmp/popup-current-site-verify.log
+      - name: Upload verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-current-site-verification
+          path: /tmp/popup-current-site-verify.log
+          if-no-files-found: warn
+      - name: Enforce verification result
+        if: steps.verify.outcome != 'success'
+        run: exit 1
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Chromium Popup E2E
+        id: chromium
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm test:e2e:chromium 2>&1 | tee /tmp/popup-current-site-chromium.log
+      - name: Upload Chromium diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: popup-current-site-chromium
+          path: /tmp/popup-current-site-chromium.log
+          if-no-files-found: warn
+      - name: Enforce Chromium result
+        if: steps.chromium.outcome != 'success'
+        run: exit 1
+      - name: Clean temporary integration files
+        run: |
+          rm -rf browser-builds browser-builds.tar.gz
+          git clean -fdX
+          rm -rf .github/patches
+          rm -f .github/workflows/integrate-popup-current-site.yml
+          git diff --check
+      - name: Commit verified product slice
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin feat/m8-profile-workflow
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/feat/m8-profile-workflow)"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --stat
+          git commit -m 'feat: add Popup current-site conditions'
+          git push origin HEAD:feat/m8-profile-workflow
