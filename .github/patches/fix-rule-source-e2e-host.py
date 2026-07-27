@@ -36,12 +36,3 @@ replace_once(
     action: {
 ''',
 )
-replace_once(
-    '.github/workflows/browser-e2e.yml',
-    '''      - name: Build Chromium extension
-        run: pnpm build:chromium
-''',
-    '''      - name: Build Chromium extension
-        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
-''',
-)
