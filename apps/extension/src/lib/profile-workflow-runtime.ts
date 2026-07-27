@@ -32,7 +32,9 @@ import { BrowserSnapshotRollbackService } from './snapshot-rollback-runtime';
 
 interface ProfileWorkflowMessageEvent {
   addListener(
-    listener: (message: unknown) => Promise<ProfileWorkflowCommandResponse | undefined>,
+    listener: (
+      message: unknown,
+    ) => ProfileWorkflowCommandResponse | Promise<ProfileWorkflowCommandResponse> | undefined,
   ): void;
   removeListener(listener: (message: unknown) => unknown): void;
 }
@@ -169,9 +171,7 @@ export function registerProfileWorkflowRuntime(
           revisions: repository,
           authentication: options.authentication,
         });
-  const listener = async (
-    message: unknown,
-  ): Promise<ProfileWorkflowCommandResponse | undefined> => {
+  const listener = (message: unknown): Promise<ProfileWorkflowCommandResponse> | undefined => {
     if (!isProfileWorkflowCommand(message)) return undefined;
     return executeProfileWorkflowCommand(
       repository,

@@ -61,6 +61,29 @@ export {
 } from './import-acceptance.js';
 export { MemoryProfileWorkflowRepository } from './memory-repository.js';
 export {
+  POPUP_TEMPORARY_PROFILE_ID_PREFIX,
+  POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
+  POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX,
+  buildPopupTemporaryRuleOverlay,
+  clearPopupTemporaryRules,
+  createPopupTemporaryRuleState,
+  decodePopupTemporarySnapshotId,
+  inspectPopupTemporaryRuleView,
+  isPopupTemporaryBaseRouteSupported,
+  isPopupTemporarySnapshotId,
+  listPopupTemporaryRuleResultRoutes,
+  parsePopupTemporaryRuleState,
+  popupTemporaryProfileIdForBaseRoute,
+  popupTemporarySnapshotId,
+  removePopupTemporaryRule,
+  sanitizePopupTemporaryRuleState,
+  togglePopupTemporaryRule,
+  type PopupTemporaryRule,
+  type PopupTemporaryRuleOverlay,
+  type PopupTemporaryRuleState,
+  type PopupTemporaryRuleView,
+} from './popup-temporary-rules.js';
+export {
   addPopupConditionDraft,
   listPopupConditionResultRoutes,
   listPopupProfileResultRoutes,

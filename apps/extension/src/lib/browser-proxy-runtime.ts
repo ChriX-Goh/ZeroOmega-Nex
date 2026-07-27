@@ -13,6 +13,8 @@ import {
   type SnapshotHistoryRepository,
 } from '@zeroomega-nex/browser-adapters';
 
+import { SessionSnapshotActivationRepository } from './session-snapshot-repository';
+
 interface RuntimeBrowserApi {
   readonly runtime: {
     readonly getBrowserInfo?: () => Promise<unknown>;
@@ -24,6 +26,7 @@ interface RuntimeBrowserApi {
   readonly extension?: FirefoxExtensionApi;
   readonly storage: {
     readonly local: BrowserStorageArea;
+    readonly session?: BrowserStorageArea;
   };
 }
 
@@ -34,7 +37,10 @@ export interface BrowserProxyRuntime {
 }
 
 export function createBrowserProxyRuntime(api: RuntimeBrowserApi): BrowserProxyRuntime {
-  const repository = new BrowserStorageSnapshotActivationRepository(api.storage.local);
+  const persistentRepository = new BrowserStorageSnapshotActivationRepository(api.storage.local);
+  const repository = api.storage.session
+    ? new SessionSnapshotActivationRepository(persistentRepository, api.storage.session)
+    : persistentRepository;
   const firefox = typeof api.runtime.getBrowserInfo === 'function';
   if (firefox) {
     if (!api.extension) throw new Error('Firefox extension API is unavailable');

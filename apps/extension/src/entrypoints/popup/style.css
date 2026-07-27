@@ -183,11 +183,13 @@ button {
   stroke-linejoin: round;
 }
 
+.temporary-rule-action,
 .current-site-action {
   padding: 7px 10px;
   border-top: 1px solid var(--popup-border);
 }
 
+.temporary-rule-action button,
 .current-site-action button,
 .scope-button,
 .condition-actions button {
@@ -199,6 +201,30 @@ button {
   cursor: pointer;
 }
 
+.temporary-rule-action {
+  display: grid;
+  gap: 7px;
+}
+
+.temporary-rule-action label {
+  display: grid;
+  gap: 3px;
+  color: var(--popup-muted);
+  font-size: 11px;
+}
+
+.temporary-rule-action select {
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 6px;
+  border: 1px solid var(--popup-border);
+  border-radius: 3px;
+  background: var(--popup-bg);
+  color: var(--popup-text);
+  font: inherit;
+}
+
+.temporary-rule-action button,
 .current-site-action button {
   width: 100%;
 }
@@ -261,12 +287,15 @@ button {
   padding: 4px 10px;
 }
 
+.temporary-rule-action button:hover:not(:disabled),
 .current-site-action button:hover,
 .scope-button:hover,
 .condition-actions button:hover:not(:disabled) {
   background: var(--popup-hover);
 }
 
+.temporary-rule-action button:focus-visible,
+.temporary-rule-action select:focus-visible,
 .current-site-action button:focus-visible,
 .scope-button:focus-visible,
 .condition-form input:focus-visible,

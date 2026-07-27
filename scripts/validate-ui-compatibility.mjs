@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 const popupAppPath = 'apps/extension/src/entrypoints/popup/App.svelte';
 const popupStylePath = 'apps/extension/src/entrypoints/popup/style.css';
 const currentSitePath = 'apps/extension/src/lib/current-site.ts';
+const popupTemporaryRulesPath = 'packages/profile-workflow/src/popup-temporary-rules.ts';
+const popupTemporaryRuntimePath = 'apps/extension/src/lib/popup-temporary-rule-runtime.ts';
+const sessionSnapshotRepositoryPath = 'apps/extension/src/lib/session-snapshot-repository.ts';
+const temporaryRulesManagerPath = 'apps/extension/src/entrypoints/temp-rules/App.svelte';
 const optionsAppPath = 'apps/extension/src/entrypoints/options/App.svelte';
 const optionsStylePath = 'apps/extension/src/entrypoints/options/style.css';
 const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte';
@@ -44,6 +48,10 @@ const [
   popupApp,
   popupStyle,
   currentSite,
+  popupTemporaryRules,
+  popupTemporaryRuntime,
+  sessionSnapshotRepository,
+  temporaryRulesManager,
   optionsApp,
   optionsStyle,
   snapshotHistory,
@@ -80,6 +88,10 @@ const [
   readFile(popupAppPath, 'utf8'),
   readFile(popupStylePath, 'utf8'),
   readFile(currentSitePath, 'utf8'),
+  readFile(popupTemporaryRulesPath, 'utf8'),
+  readFile(popupTemporaryRuntimePath, 'utf8'),
+  readFile(sessionSnapshotRepositoryPath, 'utf8'),
+  readFile(temporaryRulesManagerPath, 'utf8'),
   readFile(optionsAppPath, 'utf8'),
   readFile(optionsStylePath, 'utf8'),
   readFile(snapshotHistoryPath, 'utf8'),
@@ -134,6 +146,30 @@ const requirements = [
   [
     popupApp.includes('class="popup-footer"'),
     'Popup must retain the familiar bottom options action area.',
+  ],
+  [
+    popupApp.includes('data-popup-temporary-rule') &&
+      popupApp.includes('data-popup-manage-temporary-rules') &&
+      popupApp.includes("action: 'toggle'") &&
+      popupTemporaryRules.includes('POPUP_TEMPORARY_PROFILE_ID_PREFIX') &&
+      popupTemporaryRules.includes('condition: temporaryCondition(rule.domain)') &&
+      popupTemporaryRules.includes('listPopupTemporaryRuleResultRoutes') &&
+      popupTemporaryRuntime.includes("'zeroomega-nex/popup-temporary-rules/v1/state'") &&
+      popupTemporaryRuntime.includes('storage.session') &&
+      popupTemporaryRuntime.includes('reconcileStartup') &&
+      sessionSnapshotRepository.includes('POPUP_TEMPORARY_SNAPSHOT_STORAGE_PREFIX') &&
+      sessionSnapshotRepository.includes(
+        'listSnapshots(): Promise<readonly PacRuntimeSnapshot[]>',
+      ) &&
+      temporaryRulesManager.includes('data-temp-rules-table') &&
+      temporaryRulesManager.includes('Delete all temporary rules'),
+    'Popup temporary rules must use a separate browser-session state and session-only PAC snapshot, wrap the current route, survive worker restarts, clear on browser restart, and provide a dedicated manager.',
+  ],
+  [
+    runtime.includes('): Promise<ProfileWorkflowCommandResponse> | undefined =>') &&
+      runtime.includes('if (!isProfileWorkflowCommand(message)) return undefined;') &&
+      !runtime.includes('const listener = async'),
+    'Profile Workflow messaging must synchronously reject unrelated channels so parallel extension listeners cannot consume each other’s responses.',
   ],
   [
     popupApp.includes('data-popup-add-current-site') &&

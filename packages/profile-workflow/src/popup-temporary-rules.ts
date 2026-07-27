@@ -1,16 +1,4 @@
-from pathlib import Path
-
-
-def replace_once(path: str, old: str, new: str) -> None:
-    target = Path(path)
-    text = target.read_text()
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f'{path}: expected one match, found {count}')
-    target.write_text(text.replace(old, new))
-
-
-Path('packages/profile-workflow/src/popup-temporary-rules.ts').write_text(r'''import {
+import {
   cloneProfileSpec,
   validateProfileSpec,
   type Condition,
@@ -20,7 +8,7 @@ Path('packages/profile-workflow/src/popup-temporary-rules.ts').write_text(r'''im
 } from '@zeroomega-nex/profile-spec';
 
 export const POPUP_TEMPORARY_RULE_SCHEMA_VERSION = 1 as const;
-export const POPUP_TEMPORARY_PROFILE_ID_PREFIX = '__zeroomega_nex_popup_temporary__/';
+export const POPUP_TEMPORARY_PROFILE_ID_PREFIX = 'zeroomega-nex.popup-temporary';
 export const POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX = 'popup-temporary-v1/';
 
 export interface PopupTemporaryRule {
@@ -44,7 +32,9 @@ export interface PopupTemporaryRuleView {
 
 function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
   if (left.kind !== right.kind) return false;
-  return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+  return (
+    left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId)
+  );
 }
 
 function routeFromUnknown(value: unknown): ProfileRouteTarget | undefined {
@@ -58,7 +48,11 @@ function routeFromUnknown(value: unknown): ProfileRouteTarget | undefined {
 }
 
 function normalizeDomain(value: string): string {
-  const domain = value.trim().toLowerCase().replace(/^\[|\]$/gu, '').replace(/^\.+|\.+$/gu, '');
+  const domain = value
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/gu, '')
+    .replace(/^\.+|\.+$/gu, '');
   if (!domain || /[\s/@?#]/u.test(domain)) throw new TypeError('temporary rule domain is invalid');
   return domain;
 }
@@ -68,7 +62,10 @@ function profileRoutes(profile: UserProfile): readonly ProfileRouteTarget[] {
     case 'fixed':
       return [];
     case 'switch':
-      return [profile.defaultRoute, ...profile.rules.filter((rule) => rule.enabled !== false).map((rule) => rule.route)];
+      return [
+        profile.defaultRoute,
+        ...profile.rules.filter((rule) => rule.enabled !== false).map((rule) => rule.route),
+      ];
     case 'rule-list':
       return [profile.matchRoute, profile.defaultRoute];
     case 'virtual':
@@ -99,7 +96,12 @@ function isCompilableProfile(
   if (cached !== undefined) return cached;
   if (visiting.has(profileId)) return false;
   const profile = spec.profiles.find((candidate) => candidate.id === profileId);
-  if (!profile || profile.enabled === false || profile.kind === 'pac' || profile.kind === 'auto-detect') {
+  if (
+    !profile ||
+    profile.enabled === false ||
+    profile.kind === 'pac' ||
+    profile.kind === 'auto-detect'
+  ) {
     memo.set(profileId, false);
     return false;
   }
@@ -168,7 +170,8 @@ export function parsePopupTemporaryRuleState(value: unknown): PopupTemporaryRule
       throw new TypeError('temporary rule entry must be an object');
     }
     const candidate = entry as Record<string, unknown>;
-    if (typeof candidate.domain !== 'string') throw new TypeError('temporary rule domain is required');
+    if (typeof candidate.domain !== 'string')
+      throw new TypeError('temporary rule domain is required');
     const domain = normalizeDomain(candidate.domain);
     if (seen.has(domain)) throw new TypeError(`temporary rule domain ${domain} is duplicated`);
     seen.add(domain);
@@ -177,7 +180,8 @@ export function parsePopupTemporaryRuleState(value: unknown): PopupTemporaryRule
     return { domain, route };
   });
   const baseRoute = record.baseRoute === undefined ? undefined : routeFromUnknown(record.baseRoute);
-  if (record.baseRoute !== undefined && !baseRoute) throw new TypeError('temporary rule base route is invalid');
+  if (record.baseRoute !== undefined && !baseRoute)
+    throw new TypeError('temporary rule base route is invalid');
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: Number(record.generation),
@@ -233,7 +237,9 @@ export function removePopupTemporaryRule(
   domainValue: string,
 ): PopupTemporaryRuleState {
   const domain = normalizeDomain(domainValue);
-  const rules = state.rules.filter((rule) => rule.domain !== domain).map((rule) => structuredClone(rule));
+  const rules = state.rules
+    .filter((rule) => rule.domain !== domain)
+    .map((rule) => structuredClone(rule));
   if (rules.length === state.rules.length) return state;
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
@@ -255,7 +261,8 @@ export function clearPopupTemporaryRules(state: PopupTemporaryRuleState): PopupT
 
 function routeToken(route: ProfileRouteTarget): string {
   if (route.kind === 'direct') return 'direct';
-  if (route.kind === 'system') throw new TypeError('System Proxy cannot be wrapped by temporary rules');
+  if (route.kind === 'system')
+    throw new TypeError('System Proxy cannot be wrapped by temporary rules');
   return `profile/${encodeURIComponent(route.profileId)}`;
 }
 
@@ -273,20 +280,12 @@ function routeFromToken(token: string): ProfileRouteTarget | undefined {
 }
 
 export function popupTemporaryProfileIdForBaseRoute(route: ProfileRouteTarget): string {
-  return `${POPUP_TEMPORARY_PROFILE_ID_PREFIX}${routeToken(route)}`;
+  void route;
+  return POPUP_TEMPORARY_PROFILE_ID_PREFIX;
 }
 
-export function decodePopupTemporaryProfileId(value: string): ProfileRouteTarget | undefined {
-  return value.startsWith(POPUP_TEMPORARY_PROFILE_ID_PREFIX)
-    ? routeFromToken(value.slice(POPUP_TEMPORARY_PROFILE_ID_PREFIX.length))
-    : undefined;
-}
-
-export function popupTemporarySnapshotId(profileId: string, nonce: string): string {
-  if (!profileId.startsWith(POPUP_TEMPORARY_PROFILE_ID_PREFIX)) {
-    throw new TypeError('temporary snapshot requires a temporary profile ID');
-  }
-  return `${POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX}${profileId.slice(POPUP_TEMPORARY_PROFILE_ID_PREFIX.length)}/${encodeURIComponent(nonce)}`;
+export function popupTemporarySnapshotId(baseRoute: ProfileRouteTarget, nonce: string): string {
+  return `${POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX}${routeToken(baseRoute)}/${encodeURIComponent(nonce)}`;
 }
 
 export function isPopupTemporarySnapshotId(value: string): boolean {
@@ -335,7 +334,7 @@ export function buildPopupTemporaryRuleOverlay(
     name: profileId,
     kind: 'switch',
     rules: state.rules.map((rule, index) => ({
-      id: `${profileId}/rule/${index}`,
+      id: `${profileId}:rule:${index}`,
       condition: temporaryCondition(rule.domain),
       route: structuredClone(rule.route),
       note: `Temporary rule for ${rule.domain}`,
@@ -345,7 +344,9 @@ export function buildPopupTemporaryRuleOverlay(
   const validation = validateProfileSpec(spec);
   if (!validation.valid) {
     const first = validation.issues.find((issue) => issue.severity === 'error');
-    throw new TypeError(first ? `${first.code}: ${first.message}` : 'temporary rule overlay is invalid');
+    throw new TypeError(
+      first ? `${first.code}: ${first.message}` : 'temporary rule overlay is invalid',
+    );
   }
   return { spec, startRoute: { kind: 'profile', profileId } };
 }
@@ -362,143 +363,3 @@ export function inspectPopupTemporaryRuleView(
     active,
   };
 }
-''')
-
-Path('packages/profile-workflow/src/popup-temporary-rules.test.ts').write_text(r'''import { describe, expect, it } from 'vitest';
-
-import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
-
-import {
-  buildPopupTemporaryRuleOverlay,
-  clearPopupTemporaryRules,
-  createPopupTemporaryRuleState,
-  decodePopupTemporaryProfileId,
-  decodePopupTemporarySnapshotId,
-  listPopupTemporaryRuleResultRoutes,
-  popupTemporaryProfileIdForBaseRoute,
-  popupTemporarySnapshotId,
-  removePopupTemporaryRule,
-  togglePopupTemporaryRule,
-} from './popup-temporary-rules.js';
-import { workflowFixture } from './test-fixture.js';
-
-function spec(): ProfileSpec {
-  const value = workflowFixture();
-  value.profiles.push({
-    id: 'profile-switch',
-    name: 'Switch',
-    kind: 'switch',
-    rules: [],
-    defaultRoute: { kind: 'direct' },
-  });
-  value.profiles.push({
-    id: 'profile-virtual',
-    name: 'Virtual',
-    kind: 'virtual',
-    targetRoute: { kind: 'profile', profileId: 'profile-primary' },
-  });
-  value.profiles.push({
-    id: 'profile-pac',
-    name: 'PAC',
-    kind: 'pac',
-    source: { kind: 'inline', script: 'function FindProxyForURL(){return "DIRECT";}' },
-  });
-  return value;
-}
-
-describe('Popup temporary rule model', () => {
-  it('toggles, replaces, removes, and clears one domain rule', () => {
-    const base = { kind: 'profile', profileId: 'profile-switch' } as const;
-    const first = togglePopupTemporaryRule(
-      createPopupTemporaryRuleState(),
-      'Example.COM',
-      { kind: 'profile', profileId: 'profile-primary' },
-      base,
-    );
-    expect(first.rules).toEqual([
-      { domain: 'example.com', route: { kind: 'profile', profileId: 'profile-primary' } },
-    ]);
-    const replaced = togglePopupTemporaryRule(first, 'example.com', { kind: 'direct' }, base);
-    expect(replaced.rules[0]?.route).toEqual({ kind: 'direct' });
-    expect(togglePopupTemporaryRule(replaced, 'example.com', { kind: 'direct' }, base).rules).toEqual([]);
-    expect(removePopupTemporaryRule(first, 'example.com').rules).toEqual([]);
-    expect(clearPopupTemporaryRules(first).rules).toEqual([]);
-  });
-
-  it('lists only PAC-compilable, visible result routes', () => {
-    const routes = listPopupTemporaryRuleResultRoutes(spec(), {
-      kind: 'profile',
-      profileId: 'profile-switch',
-    });
-    expect(routes).toContainEqual({ kind: 'direct' });
-    expect(routes).toContainEqual({ kind: 'profile', profileId: 'profile-primary' });
-    expect(routes).toContainEqual({ kind: 'profile', profileId: 'profile-virtual' });
-    expect(routes).not.toContainEqual({ kind: 'system' });
-    expect(routes).not.toContainEqual({ kind: 'profile', profileId: 'profile-pac' });
-  });
-
-  it('builds a hidden Switch overlay whose default is the active base route', () => {
-    const base = { kind: 'profile', profileId: 'profile-switch' } as const;
-    const state = togglePopupTemporaryRule(
-      createPopupTemporaryRuleState(),
-      'example.com',
-      { kind: 'profile', profileId: 'profile-primary' },
-      base,
-    );
-    const overlay = buildPopupTemporaryRuleOverlay(spec(), state, base);
-    expect(overlay.startRoute).toEqual({
-      kind: 'profile',
-      profileId: popupTemporaryProfileIdForBaseRoute(base),
-    });
-    const temporary = overlay.spec.profiles.at(-1);
-    expect(temporary).toMatchObject({
-      kind: 'switch',
-      defaultRoute: base,
-      rules: [
-        {
-          condition: { kind: 'host-wildcard', pattern: '*.example.com' },
-          route: { kind: 'profile', profileId: 'profile-primary' },
-        },
-      ],
-    });
-  });
-
-  it('round-trips the base route through temporary profile and snapshot IDs', () => {
-    const route = { kind: 'profile', profileId: 'profile:with/slash' } as const;
-    const profileId = popupTemporaryProfileIdForBaseRoute(route);
-    expect(decodePopupTemporaryProfileId(profileId)).toEqual(route);
-    expect(decodePopupTemporarySnapshotId(popupTemporarySnapshotId(profileId, 'nonce'))).toEqual(route);
-  });
-});
-''')
-
-replace_once(
-    'packages/profile-workflow/src/index.ts',
-    "export { MemoryProfileWorkflowRepository } from './memory-repository.js';\n",
-    """export { MemoryProfileWorkflowRepository } from './memory-repository.js';
-export {
-  POPUP_TEMPORARY_PROFILE_ID_PREFIX,
-  POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
-  POPUP_TEMPORARY_SNAPSHOT_ID_PREFIX,
-  buildPopupTemporaryRuleOverlay,
-  clearPopupTemporaryRules,
-  createPopupTemporaryRuleState,
-  decodePopupTemporaryProfileId,
-  decodePopupTemporarySnapshotId,
-  inspectPopupTemporaryRuleView,
-  isPopupTemporaryBaseRouteSupported,
-  isPopupTemporarySnapshotId,
-  listPopupTemporaryRuleResultRoutes,
-  parsePopupTemporaryRuleState,
-  popupTemporaryProfileIdForBaseRoute,
-  popupTemporarySnapshotId,
-  removePopupTemporaryRule,
-  sanitizePopupTemporaryRuleState,
-  togglePopupTemporaryRule,
-  type PopupTemporaryRule,
-  type PopupTemporaryRuleOverlay,
-  type PopupTemporaryRuleState,
-  type PopupTemporaryRuleView,
-} from './popup-temporary-rules.js';
-""",
-)

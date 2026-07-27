@@ -220,6 +220,35 @@ try {
     async () => (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id,
   );
   assert.equal(typeof currentSiteTabId, 'number', 'Current-site tab ID was not resolved');
+  const temporaryPopup = await context.newPage();
+  await temporaryPopup.goto(
+    `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
+  );
+  const temporarySelect = temporaryPopup.getByLabel('Temporary profile for example.co.uk');
+  await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await temporarySelect.inputValue(), '');
+  await temporarySelect.selectOption({ label: 'fixed' });
+  await assertEventually(async () => {
+    const [local, session] = await worker.evaluate(async () =>
+      Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
+    );
+    const temporaryState = session['zeroomega-nex/popup-temporary-rules/v1/state'];
+    const proxyState = local['zeroomega-nex/browser-proxy/v1/state'];
+    const snapshotId = proxyState?.activeSnapshotId;
+    const sessionSnapshotKey = snapshotId
+      ? `zeroomega-nex/browser-proxy/v1/session-snapshot/${snapshotId}`
+      : '';
+    return (
+      temporaryState?.rules?.[0]?.domain === 'example.co.uk' &&
+      temporaryState.rules[0].route?.kind === 'profile' &&
+      typeof snapshotId === 'string' &&
+      snapshotId.startsWith('popup-temporary-v1/') &&
+      local[`zeroomega-nex/browser-proxy/v1/snapshot/${snapshotId}`] === undefined &&
+      session[sessionSnapshotKey]?.snapshotId === snapshotId
+    );
+  }, 'Popup temporary rule was not stored only in the browser session');
+  await temporaryPopup.close().catch(() => undefined);
+
   const conditionPopup = await context.newPage();
   await conditionPopup.goto(
     `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
@@ -248,7 +277,33 @@ try {
   const popupRuntime = await worker.evaluate(async () => chrome.storage.local.get(null));
   const popupWorkflow = popupRuntime['zeroomega-nex/profile-workflow/v1/state'];
   assert.equal(popupWorkflow.applied.revision.id, popupWorkflow.draft.revision.id);
+  assert.match(
+    popupRuntime['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '',
+    /^popup-temporary-v1\//u,
+    'Permanent Popup Apply did not preserve the temporary overlay',
+  );
   await conditionPopup.close().catch(() => undefined);
+
+  const temporaryManager = await context.newPage();
+  await temporaryManager.goto(`chrome-extension://${extensionId}/temp-rules.html`);
+  const temporaryRow = temporaryManager.locator('[data-temp-rule-domain="example.co.uk"]');
+  await temporaryRow.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await temporaryRow.innerText(), /fixed/u);
+  await temporaryRow
+    .getByRole('button', { name: 'Delete temporary rule for example.co.uk' })
+    .click();
+  await assertEventually(async () => {
+    const [local, session] = await worker.evaluate(async () =>
+      Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
+    );
+    return (
+      session['zeroomega-nex/popup-temporary-rules/v1/state'] === undefined &&
+      !String(local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '').startsWith(
+        'popup-temporary-v1/',
+      )
+    );
+  }, 'Deleting the final temporary rule did not restore the underlying route');
+  await temporaryManager.close();
   await currentSitePage.close();
   await options.bringToFront();
 

@@ -9,8 +9,10 @@
   import {
     listPopupConditionResultRoutes,
     listPopupProfileResultRoutes,
+    listPopupTemporaryRuleResultRoutes,
     type PopupSiteCondition,
     type ProfileWorkflowCommandResponse,
+    type PopupTemporaryRuleView,
     type ProfileWorkflowRuntimeView,
     type ProfileWorkflowState,
   } from '@zeroomega-nex/profile-workflow';
@@ -27,6 +29,10 @@
   } from '../../lib/current-site';
   import { translate } from '../../lib/i18n';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
+  import {
+    sendPopupTemporaryRuleCommand,
+    type PopupTemporaryRuleCommandResponse,
+  } from '../../lib/popup-temporary-rule-client';
   import { applyThemeMode, readThemeMode } from '../../lib/ui-theme';
 
   interface QuickSwitchItem {
@@ -59,11 +65,14 @@
   let state: ProfileWorkflowState | undefined;
   let runtime: ProfileWorkflowRuntimeView | undefined;
   let currentSite: CurrentSiteInfo | undefined;
+  let temporaryRuleView: PopupTemporaryRuleView | undefined;
   let loading = true;
   let switching = false;
   let addingCondition = false;
   let settingResult = false;
+  let settingTemporaryRule = false;
   let openingSettings = false;
+  let openingTemporaryRules = false;
   let conditionFormOpen = false;
   let conditionKind: PopupConditionKind = 'host-wildcard';
   let conditionPattern = '';
@@ -74,9 +83,25 @@
   let items: readonly QuickSwitchItem[] = [];
   let activeSwitch: SwitchProfile | undefined;
   let resultItems: readonly ResultRouteItem[] = [];
+  let temporaryResultItems: readonly ResultRouteItem[] = [];
+  let currentTemporaryRoute: ProfileRouteTarget | undefined;
   $: items = state ? quickSwitchItems(state.applied) : [];
   $: activeSwitch = activeSwitchProfile(state?.applied, runtime?.activeRoute);
   $: resultItems = state && activeSwitch ? popupResultItems(state.applied, activeSwitch.id) : [];
+  $: currentTemporaryRoute =
+    currentSite && temporaryRuleView
+      ? temporaryRuleView.rules.find((rule) => rule.domain === currentSite?.domain)?.route
+      : undefined;
+  $: temporaryResultItems =
+    state && runtime?.activeRoute
+      ? listPopupTemporaryRuleResultRoutes(state.applied, runtime.activeRoute)
+          .filter(
+            (route) =>
+              !sameRoute(route, runtime!.activeRoute!) ||
+              (currentTemporaryRoute !== undefined && sameRoute(route, currentTemporaryRoute)),
+          )
+          .map((route) => ({ key: routeKey(route), route, name: routeName(state!.applied, route) }))
+      : [];
 
   function sameRoute(left: ProfileRouteTarget | undefined, right: ProfileRouteTarget): boolean {
     if (left?.kind !== right.kind) return false;
@@ -216,6 +241,21 @@
     acceptResponse(await sendProfileWorkflowCommand({ action: 'get' }));
   }
 
+  function acceptTemporaryRuleResponse(response: PopupTemporaryRuleCommandResponse): boolean {
+    if (response.ok) {
+      temporaryRuleView = response.view;
+      errorMessage = '';
+      return true;
+    }
+    if (response.view !== undefined) temporaryRuleView = response.view;
+    errorMessage = response.message;
+    return false;
+  }
+
+  async function loadTemporaryRules(): Promise<void> {
+    acceptTemporaryRuleResponse(await sendPopupTemporaryRuleCommand({ action: 'get' }));
+  }
+
   async function loadCurrentSite(): Promise<void> {
     const requested = new URLSearchParams(window.location.search).get('activeTabId');
     const explicitTabId = requested && /^\d+$/u.test(requested) ? Number(requested) : undefined;
@@ -225,11 +265,53 @@
   async function loadPopup(): Promise<void> {
     loading = true;
     try {
-      await Promise.all([loadWorkflow(), loadCurrentSite()]);
+      await Promise.all([loadWorkflow(), loadCurrentSite(), loadTemporaryRules()]);
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error);
     } finally {
       loading = false;
+    }
+  }
+
+  async function setTemporaryRule(event: Event): Promise<void> {
+    if (!state || !currentSite || settingTemporaryRule) return;
+    const key = (event.currentTarget as HTMLSelectElement).value;
+    const selected = temporaryResultItems.find((item) => item.key === key);
+    if (!selected && currentTemporaryRoute === undefined) return;
+    settingTemporaryRule = true;
+    errorMessage = '';
+    try {
+      const accepted = acceptTemporaryRuleResponse(
+        selected
+          ? await sendPopupTemporaryRuleCommand({
+              action: 'toggle',
+              expectedAppliedRevisionId: state.applied.revision.id,
+              domain: currentSite.domain,
+              route: selected.route,
+            })
+          : await sendPopupTemporaryRuleCommand({
+              action: 'remove',
+              expectedAppliedRevisionId: state.applied.revision.id,
+              domain: currentSite.domain,
+            }),
+      );
+      if (accepted) window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      settingTemporaryRule = false;
+    }
+  }
+
+  async function openTemporaryRules(): Promise<void> {
+    if (openingTemporaryRules) return;
+    openingTemporaryRules = true;
+    try {
+      await browser.tabs.create({ url: browser.runtime.getURL('/temp-rules.html') });
+      window.close();
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : String(error);
+      openingTemporaryRules = false;
     }
   }
 
@@ -362,7 +444,7 @@
 <main
   class="popup-shell"
   aria-label="ZeroOmega Nex profile switcher"
-  aria-busy={loading || switching || addingCondition || settingResult}
+  aria-busy={loading || switching || addingCondition || settingResult || settingTemporaryRule}
 >
   <section aria-label="Profiles" class="profile-list">
     {#if loading}
@@ -381,6 +463,7 @@
             disabled={switching ||
               addingCondition ||
               settingResult ||
+              settingTemporaryRule ||
               !item.available ||
               sameRoute(runtime?.activeRoute, item.route)}
             title={item.reason ??
@@ -411,7 +494,11 @@
                 data-popup-result-profile
                 aria-label={`Result profile for ${item.name}`}
                 value={routeKey(item.resultRoute)}
-                disabled={settingResult || switching || addingCondition || !item.available}
+                disabled={settingResult ||
+                  switching ||
+                  addingCondition ||
+                  settingTemporaryRule ||
+                  !item.available}
                 onchange={(event) => void setProfileResult(item, event)}
               >
                 {#each item.resultItems as result}
@@ -424,6 +511,35 @@
       {/each}
     {/if}
   </section>
+
+  {#if !loading && currentSite && temporaryResultItems.length > 0}
+    <section class="temporary-rule-action" data-popup-temporary-rule aria-label="Temporary rules">
+      <label>
+        Temporary profile for {currentSite.domain}
+        <select
+          aria-label={`Temporary profile for ${currentSite.domain}`}
+          value={currentTemporaryRoute ? routeKey(currentTemporaryRoute) : ''}
+          disabled={settingTemporaryRule || switching || settingResult || addingCondition}
+          onchange={(event) => void setTemporaryRule(event)}
+        >
+          <option value="">No temporary rule</option>
+          {#each temporaryResultItems as item}
+            <option value={item.key}>{item.name}</option>
+          {/each}
+        </select>
+      </label>
+      {#if (temporaryRuleView?.rules.length ?? 0) > 0}
+        <button
+          type="button"
+          data-popup-manage-temporary-rules
+          disabled={openingTemporaryRules || settingTemporaryRule}
+          onclick={() => void openTemporaryRules()}
+        >
+          Manage temporary rules ({temporaryRuleView?.rules.length ?? 0})
+        </button>
+      {/if}
+    </section>
+  {/if}
 
   {#if !loading && currentSite && activeSwitch && resultItems.length > 0}
     {#if conditionFormOpen}
@@ -505,7 +621,9 @@
       </svg>
       <span>{openingSettings ? 'Opening…' : 'Options'}</span>
     </button>
-    <span class="product-name">{switching ? 'Switching…' : productIdentity.name}</span>
+    <span class="product-name"
+      >{switching || settingTemporaryRule ? 'Switching…' : productIdentity.name}</span
+    >
   </footer>
 
   {#if errorMessage}<p class="settings-error" role="alert">{errorMessage}</p>{/if}

@@ -19,10 +19,12 @@ import type {
   UserProfile,
   Weekday,
 } from '@zeroomega-nex/profile-spec';
-import type {
-  ProfileWorkflowActivationDriver,
-  ProfileWorkflowActivationResult,
-  ProfileWorkflowRuntimeView,
+import {
+  POPUP_TEMPORARY_PROFILE_ID_PREFIX,
+  popupTemporarySnapshotId,
+  type ProfileWorkflowActivationDriver,
+  type ProfileWorkflowActivationResult,
+  type ProfileWorkflowRuntimeView,
 } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
@@ -54,6 +56,7 @@ export interface ProfileWorkflowPacActivationOptions {
   readonly createRuntime?: () => ProfileWorkflowProxyRuntime;
   readonly now?: () => Date;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
+  readonly temporarySnapshotNonce?: () => string;
 }
 
 function targetFor(driver: BrowserProxyDriver): PacTarget {
@@ -298,11 +301,13 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
   readonly #createRuntime: () => ProfileWorkflowProxyRuntime;
   readonly #now: () => Date;
   readonly #authentication: ProfileWorkflowAuthenticationCoordinator | undefined;
+  readonly #temporarySnapshotNonce: () => string;
 
   constructor(options: ProfileWorkflowPacActivationOptions = {}) {
     this.#createRuntime = options.createRuntime ?? currentBrowserProxyRuntime;
     this.#now = options.now ?? (() => new Date());
     this.#authentication = options.authentication;
+    this.#temporarySnapshotNonce = options.temporarySnapshotNonce ?? (() => crypto.randomUUID());
   }
 
   async activate(
@@ -405,11 +410,25 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
         }
         result = { snapshotId: `built-in-${activated.activeBuiltInMode}` };
       } else {
+        const temporaryProfile =
+          route.kind === 'profile' && route.profileId === POPUP_TEMPORARY_PROFILE_ID_PREFIX
+            ? spec.profiles.find((profile) => profile.id === route.profileId)
+            : undefined;
+        const temporarySnapshotId =
+          temporaryProfile?.kind === 'switch'
+            ? popupTemporarySnapshotId(
+                temporaryProfile.defaultRoute,
+                this.#temporarySnapshotNonce(),
+              )
+            : undefined;
         const snapshot = await createBrowserSafePacSnapshot(
           spec,
           route,
           buildProfileWorkflowVerificationVectors(spec),
-          { createdAt: startedAt },
+          {
+            createdAt: startedAt,
+            ...(temporarySnapshotId === undefined ? {} : { snapshotId: temporarySnapshotId }),
+          },
           { target: targetFor(runtime.driver) },
         );
         if (!snapshot.ok) {

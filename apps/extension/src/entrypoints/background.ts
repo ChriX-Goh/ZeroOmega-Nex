@@ -1,5 +1,6 @@
 import { recoverPendingActivation, restoreActiveSnapshot } from '@zeroomega-nex/browser-adapters';
 import { productIdentity } from '@zeroomega-nex/core-contracts';
+import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
 import { BrowserProfileWorkflowActivationDriver } from '../lib/profile-workflow-activation';
@@ -9,25 +10,48 @@ import {
   type RegisteredProfileWorkflowRuntime,
 } from '../lib/profile-workflow-runtime';
 import {
+  createPopupTemporaryRuleCoordinator,
+  currentPopupTemporaryRuleRuntimeApi,
+  registerPopupTemporaryRuleRuntime,
+  type PopupTemporaryRuleCoordinator,
+  type RegisteredPopupTemporaryRuleRuntime,
+} from '../lib/popup-temporary-rule-runtime';
+import {
   currentProxyAuthenticationApi,
   ProxyAuthenticationRuntimeManager,
 } from '../lib/proxy-auth-runtime';
 
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
+let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 
-async function restoreProxyRuntime(manager: ProxyAuthenticationRuntimeManager): Promise<void> {
+async function restoreProxyRuntime(
+  manager: ProxyAuthenticationRuntimeManager,
+  temporaryRules: PopupTemporaryRuleCoordinator | undefined,
+): Promise<void> {
   const authenticationStatus = await manager.initialize();
   console.info(`[${productIdentity.name}] proxy authentication state: ${authenticationStatus}.`);
 
   const runtime = currentBrowserProxyRuntime();
-  const recovered = await recoverPendingActivation(
-    runtime.repository,
-    runtime.driver,
-    new Date().toISOString(),
-  );
+  const workflow = await new BrowserStorageProfileWorkflowRepository(browser.storage.local).read();
+  const repaired =
+    workflow && temporaryRules
+      ? await temporaryRules.repairMissingSessionPending(workflow.applied, runtime.repository)
+      : false;
+  const recovered = repaired
+    ? { status: 'nothing-pending' as const }
+    : await recoverPendingActivation(runtime.repository, runtime.driver, new Date().toISOString());
   if (recovered.status === 'failed') {
     console.error(`[${productIdentity.name}] proxy activation recovery failed:`, recovered.message);
+    return;
+  }
+
+  if (
+    workflow &&
+    temporaryRules &&
+    (repaired || (await temporaryRules.reconcileStartup(workflow.applied, runtime.repository)))
+  ) {
+    console.info(`[${productIdentity.name}] temporary-rule proxy runtime reconciled.`);
     return;
   }
 
@@ -47,19 +71,31 @@ export default defineBackground(() => {
     `[${productIdentity.name}] background initialized for ${productIdentity.milestone}.`,
   );
 
+  popupTemporaryRuleRuntime?.dispose();
   profileWorkflowRuntime?.dispose();
   authenticationManager?.dispose();
 
   authenticationManager = new ProxyAuthenticationRuntimeManager(currentProxyAuthenticationApi());
-  const activationDriver = new BrowserProfileWorkflowActivationDriver({
+  const baseActivationDriver = new BrowserProfileWorkflowActivationDriver({
     authentication: authenticationManager,
   });
+  const temporaryRuleApi = currentPopupTemporaryRuleRuntimeApi();
+  const temporaryRuleCoordinator = createPopupTemporaryRuleCoordinator(
+    temporaryRuleApi,
+    baseActivationDriver,
+  );
+  const activationDriver = temporaryRuleCoordinator ?? baseActivationDriver;
   profileWorkflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
     activationDriver,
     authentication: authenticationManager,
   });
+  popupTemporaryRuleRuntime = temporaryRuleCoordinator
+    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
+    : undefined;
 
-  void restoreProxyRuntime(authenticationManager).catch((error: unknown) => {
-    console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
-  });
+  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
+    (error: unknown) => {
+      console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
+    },
+  );
 });

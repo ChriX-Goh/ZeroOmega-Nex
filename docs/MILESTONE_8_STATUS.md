@@ -88,6 +88,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Current-site exact Head `716a765eac8279c2201b652187efddb9d800650a`: CI `30245778282`, Browser E2E `30245778414`, Parity Documentation `30245778397`.
+- Temporary current-site rules now use a hidden runtime Switch, session-only state and PAC snapshots, transparent activation wrapping, startup cleanup, and a dedicated manager. Chromium E2E verifies session-only storage, survival across a permanent Apply, and restoration after deletion.
 
 ## Automated acceptance state
 
@@ -105,9 +106,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - Virtual browser E2E creation and reference-migration coverage,
 - full Options `.bak` export and a real original-backup semantic round trip,
 - complete Simplified/Traditional Chinese coverage,
-- Popup temporary-rule, external-ownership, and bounded diagnostic functions,
+- Popup external-ownership and bounded diagnostic functions,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Proceed to the Popup temporary current-site rule runtime layer, preserving its non-persistent lifecycle and separation from permanent ProfileSpec conditions. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Proceed to the Popup external-extension ownership state, then bounded request diagnostics and Inspect controls. Update both canonical parity documents in the same product commit, pass full integration, then pass exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

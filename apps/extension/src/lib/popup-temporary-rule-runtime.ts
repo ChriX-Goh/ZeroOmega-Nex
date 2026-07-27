@@ -1,100 +1,8 @@
-from pathlib import Path
-
-
-def replace_once(path: str, old: str, new: str) -> None:
-    target = Path(path)
-    text = target.read_text()
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f'{path}: expected one match, found {count}')
-    target.write_text(text.replace(old, new))
-
-
-Path('apps/extension/src/lib/popup-temporary-rule-client.ts').write_text(r'''import type { ProfileRouteTarget } from '@zeroomega-nex/profile-spec';
-import type { PopupTemporaryRuleView } from '@zeroomega-nex/profile-workflow';
-import { browser } from 'wxt/browser';
-
-export const POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL =
-  'zeroomega-nex/popup-temporary-rules/v1' as const;
-
-export type PopupTemporaryRuleCommand =
-  | {
-      readonly channel: typeof POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL;
-      readonly action: 'get';
-    }
-  | {
-      readonly channel: typeof POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL;
-      readonly action: 'toggle';
-      readonly expectedAppliedRevisionId: string;
-      readonly domain: string;
-      readonly route: ProfileRouteTarget;
-    }
-  | {
-      readonly channel: typeof POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL;
-      readonly action: 'remove';
-      readonly expectedAppliedRevisionId: string;
-      readonly domain: string;
-    }
-  | {
-      readonly channel: typeof POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL;
-      readonly action: 'clear';
-      readonly expectedAppliedRevisionId: string;
-    };
-
-export type PopupTemporaryRuleCommandResponse =
-  | { readonly ok: true; readonly view: PopupTemporaryRuleView }
-  | { readonly ok: false; readonly code: 'invalid' | 'conflict' | 'activation-failed' | 'storage-failure'; readonly message: string; readonly view?: PopupTemporaryRuleView };
-
-export function isPopupTemporaryRuleCommand(value: unknown): value is PopupTemporaryRuleCommand {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const record = value as Record<string, unknown>;
-  if (record.channel !== POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL) return false;
-  if (record.action === 'get') return true;
-  if (
-    typeof record.expectedAppliedRevisionId !== 'string' ||
-    record.expectedAppliedRevisionId.length === 0
-  ) {
-    return false;
-  }
-  if (record.action === 'clear') return true;
-  if (typeof record.domain !== 'string' || record.domain.length === 0) return false;
-  if (record.action === 'remove') return true;
-  if (record.action !== 'toggle') return false;
-  if (record.route === null || typeof record.route !== 'object' || Array.isArray(record.route)) {
-    return false;
-  }
-  const route = record.route as Record<string, unknown>;
-  return (
-    route.kind === 'direct' ||
-    route.kind === 'system' ||
-    (route.kind === 'profile' && typeof route.profileId === 'string' && route.profileId.length > 0)
-  );
-}
-
-export async function sendPopupTemporaryRuleCommand(
-  command: Omit<PopupTemporaryRuleCommand, 'channel'>,
-): Promise<PopupTemporaryRuleCommandResponse> {
-  const response = await browser.runtime.sendMessage({
-    channel: POPUP_TEMPORARY_RULE_MESSAGE_CHANNEL,
-    ...command,
-  });
-  if (response === undefined) {
-    return { ok: false, code: 'storage-failure', message: 'temporary rule runtime did not respond' };
-  }
-  return response as PopupTemporaryRuleCommandResponse;
-}
-''')
-
-Path('apps/extension/src/lib/popup-temporary-rule-runtime.ts').write_text(r'''import type {
-  ProfileRouteTarget,
-  ProfileSpec,
-} from '@zeroomega-nex/profile-spec';
+import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 import {
   BrowserStorageProfileWorkflowRepository,
   buildPopupTemporaryRuleOverlay,
   clearPopupTemporaryRules,
-  createPopupTemporaryRuleState,
-  decodePopupTemporaryProfileId,
   decodePopupTemporarySnapshotId,
   inspectPopupTemporaryRuleView,
   isPopupTemporaryBaseRouteSupported,
@@ -111,19 +19,17 @@ import {
   type ProfileWorkflowRuntimeView,
   type ProfileWorkflowStorageArea,
 } from '@zeroomega-nex/profile-workflow';
-import type {
-  SnapshotActivationRepository,
-  SnapshotActivationState,
-} from '@zeroomega-nex/browser-adapters';
+import type { SnapshotActivationRepository } from '@zeroomega-nex/browser-adapters';
+import { browser } from 'wxt/browser';
 
 import { currentBrowserProxyRuntime } from './browser-proxy-runtime';
 import {
   isPopupTemporaryRuleCommand,
+  type PopupTemporaryRuleCommand,
   type PopupTemporaryRuleCommandResponse,
 } from './popup-temporary-rule-client';
 
-export const POPUP_TEMPORARY_RULE_STORAGE_KEY =
-  'zeroomega-nex/popup-temporary-rules/v1/state';
+export const POPUP_TEMPORARY_RULE_STORAGE_KEY = 'zeroomega-nex/popup-temporary-rules/v1/state';
 
 interface PopupTemporaryRuleStorageArea {
   get(keys: string | readonly string[]): Promise<Record<string, unknown>>;
@@ -133,7 +39,9 @@ interface PopupTemporaryRuleStorageArea {
 
 interface PopupTemporaryRuleMessageEvent {
   addListener(
-    listener: (message: unknown) => Promise<PopupTemporaryRuleCommandResponse | undefined>,
+    listener: (
+      message: unknown,
+    ) => PopupTemporaryRuleCommandResponse | Promise<PopupTemporaryRuleCommandResponse> | undefined,
   ): void;
   removeListener(listener: (message: unknown) => unknown): void;
 }
@@ -174,17 +82,16 @@ function errorMessage(error: unknown): string {
 
 function sameRoute(left: ProfileRouteTarget, right: ProfileRouteTarget): boolean {
   if (left.kind !== right.kind) return false;
-  return left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId);
+  return (
+    left.kind !== 'profile' || (right.kind === 'profile' && left.profileId === right.profileId)
+  );
 }
 
 function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRouteTarget | undefined {
-  if (runtime.activeRoute?.kind === 'profile') {
-    return decodePopupTemporaryProfileId(runtime.activeRoute.profileId) ?? runtime.activeRoute;
-  }
-  if (runtime.activeRoute) return runtime.activeRoute;
-  return runtime.activeSnapshotId
+  const temporaryBase = runtime.activeSnapshotId
     ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)
     : undefined;
+  return temporaryBase ?? runtime.activeRoute;
 }
 
 export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationDriver {
@@ -224,12 +131,7 @@ export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationD
     requestedRoute?: ProfileRouteTarget,
   ): Promise<ProfileWorkflowActivationResult> {
     const previousRuntime = await this.#base.inspectRuntime?.();
-    const decodedRequested =
-      requestedRoute?.kind === 'profile'
-        ? decodePopupTemporaryProfileId(requestedRoute.profileId)
-        : undefined;
-    const baseRoute =
-      decodedRequested ?? requestedRoute ?? candidate.settings.startup.route ?? { kind: 'direct' };
+    const baseRoute = requestedRoute ?? candidate.settings.startup.route ?? { kind: 'direct' };
     let state = await this.#repository.read();
     if (state.rules.length > 0 && isPopupTemporaryBaseRouteSupported(candidate, baseRoute)) {
       const sanitized = sanitizePopupTemporaryRuleState(state, candidate, baseRoute);
@@ -397,12 +299,7 @@ export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationD
       baseRoute = decodePopupTemporarySnapshotId(proxyState.activeSnapshotId);
       if (!baseRoute) {
         const snapshot = await repository.getSnapshot(proxyState.activeSnapshotId);
-        if (snapshot?.startRoute.kind === 'profile') {
-          baseRoute =
-            decodePopupTemporaryProfileId(snapshot.startRoute.profileId) ?? snapshot.startRoute;
-        } else {
-          baseRoute = snapshot?.startRoute;
-        }
+        baseRoute = snapshot?.startRoute;
       }
     } else if (proxyState.activeBuiltInMode) {
       baseRoute = { kind: proxyState.activeBuiltInMode };
@@ -438,8 +335,9 @@ export function registerPopupTemporaryRuleRuntime(
   coordinator: PopupTemporaryRuleCoordinator,
 ): RegisteredPopupTemporaryRuleRuntime {
   const workflow = new BrowserStorageProfileWorkflowRepository(api.storage.local);
-  const listener = async (message: unknown): Promise<PopupTemporaryRuleCommandResponse | undefined> => {
-    if (!isPopupTemporaryRuleCommand(message)) return undefined;
+  const handleMessage = async (
+    message: PopupTemporaryRuleCommand,
+  ): Promise<PopupTemporaryRuleCommandResponse> => {
     const state = await workflow.read();
     if (!state) return failure('storage-failure', 'profile workflow state is unavailable');
     if (message.action === 'get') {
@@ -465,8 +363,16 @@ export function registerPopupTemporaryRuleRuntime(
       }
       return response(await coordinator.clear(state.applied));
     } catch (error) {
-      return failure('activation-failed', errorMessage(error), await coordinator.view(state.applied));
+      return failure(
+        'activation-failed',
+        errorMessage(error),
+        await coordinator.view(state.applied),
+      );
     }
+  };
+  const listener = (message: unknown): Promise<PopupTemporaryRuleCommandResponse> | undefined => {
+    if (!isPopupTemporaryRuleCommand(message)) return undefined;
+    return handleMessage(message);
   };
   api.runtime.onMessage.addListener(listener);
   return { dispose: () => api.runtime.onMessage.removeListener(listener) };
@@ -484,96 +390,3 @@ export function createPopupTemporaryRuleCoordinator(
 export function currentPopupTemporaryRuleRuntimeApi(): PopupTemporaryRuleRuntimeApi {
   return browser as unknown as PopupTemporaryRuleRuntimeApi;
 }
-''')
-
-Path('apps/extension/src/lib/popup-temporary-rule-runtime.test.ts').write_text(r'''import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
-import {
-  createPopupTemporaryRuleState,
-  popupTemporaryProfileIdForBaseRoute,
-  popupTemporarySnapshotId,
-  togglePopupTemporaryRule,
-  type ProfileWorkflowActivationDriver,
-  type ProfileWorkflowRuntimeView,
-} from '@zeroomega-nex/profile-workflow';
-import { describe, expect, it } from 'vitest';
-
-import { PopupTemporaryRuleCoordinator } from './popup-temporary-rule-runtime';
-
-class Area {
-  readonly values = new Map<string, unknown>();
-  async get(keys: string | readonly string[]): Promise<Record<string, unknown>> {
-    const selected = Array.isArray(keys) ? keys : [keys];
-    return Object.fromEntries(selected.flatMap((key) => (this.values.has(key) ? [[key, this.values.get(key)]] : [])));
-  }
-  async set(items: Record<string, unknown>): Promise<void> {
-    for (const [key, value] of Object.entries(items)) this.values.set(key, structuredClone(value));
-  }
-  async remove(keys: string | readonly string[]): Promise<void> {
-    for (const key of Array.isArray(keys) ? keys : [keys]) this.values.delete(key);
-  }
-}
-
-class Driver implements ProfileWorkflowActivationDriver {
-  readonly calls: { spec: ProfileSpec; route?: ProfileRouteTarget }[] = [];
-  runtime: ProfileWorkflowRuntimeView = { activeRoute: { kind: 'profile', profileId: 'switch' } };
-  async activate(spec: ProfileSpec, route?: ProfileRouteTarget) {
-    this.calls.push({ spec: structuredClone(spec), ...(route === undefined ? {} : { route: structuredClone(route) }) });
-    this.runtime = { activeSnapshotId: route?.kind === 'profile' && route.profileId.startsWith('__zeroomega') ? popupTemporarySnapshotId(route.profileId, 'runtime') : 'normal', ...(route === undefined ? {} : { activeRoute: structuredClone(route) }) };
-    return { snapshotId: this.runtime.activeSnapshotId! };
-  }
-  async rollback(): Promise<void> {}
-  async inspectRuntime(): Promise<ProfileWorkflowRuntimeView> {
-    return structuredClone(this.runtime);
-  }
-}
-
-function spec(): ProfileSpec {
-  return {
-    schemaVersion: '1.0',
-    documentId: 'document',
-    revision: { id: 'revision', createdAt: '2026-07-27T13:00:00.000Z' },
-    profiles: [
-      { id: 'fixed', name: 'Fixed', kind: 'fixed', proxyByScheme: {}, bypass: [] },
-      { id: 'switch', name: 'Switch', kind: 'switch', rules: [], defaultRoute: { kind: 'direct' } },
-    ],
-    proxyEndpoints: [],
-    ruleSources: [],
-    settings: {
-      startup: { route: { kind: 'profile', profileId: 'switch' }, revertProxyChanges: true },
-      quickSwitch: { enabled: true, routes: [], refreshOnChange: false },
-      interface: { confirmDeletion: true, showInspectMenu: true, addConditionsToBottom: false, showResultProfileOnActionBadgeText: false, showExternalProfile: true, showAdvancedConditions: false, exportLegacyRuleList: false },
-      ruleSourceUpdateIntervalMinutes: 1440,
-    },
-  };
-}
-
-describe('Popup temporary rule coordinator', () => {
-  it('activates a hidden overlay and reports the underlying base route', async () => {
-    const area = new Area();
-    const driver = new Driver();
-    const coordinator = new PopupTemporaryRuleCoordinator(driver, area);
-    const view = await coordinator.toggle(
-      spec(),
-      'example.com',
-      { kind: 'profile', profileId: 'fixed' },
-    );
-    expect(view.active).toBe(true);
-    expect(driver.calls.at(-1)?.route).toEqual({
-      kind: 'profile',
-      profileId: popupTemporaryProfileIdForBaseRoute({ kind: 'profile', profileId: 'switch' }),
-    });
-    expect((await coordinator.inspectRuntime()).activeRoute).toEqual({ kind: 'profile', profileId: 'switch' });
-  });
-
-  it('retains rules but does not wrap System Proxy', async () => {
-    const area = new Area();
-    const driver = new Driver();
-    const coordinator = new PopupTemporaryRuleCoordinator(driver, area);
-    await coordinator.toggle(spec(), 'example.com', { kind: 'profile', profileId: 'fixed' });
-    driver.runtime = { activeRoute: { kind: 'system' } };
-    await coordinator.activate(spec(), { kind: 'system' });
-    expect(driver.calls.at(-1)?.route).toEqual({ kind: 'system' });
-    expect((await coordinator.view(spec())).rules).toHaveLength(1);
-  });
-});
-''')
