@@ -150,13 +150,15 @@ describe('Rule Source scheduler', () => {
   });
 
   it('uses lastAttemptAt to avoid retrying a failed source every minute', async () => {
-    const initial = scheduledState();
-    initial.ruleSourceUpdates = {
-      'source-scheduled': {
-        sourceId: 'source-scheduled',
-        url: 'https://rules.example.invalid/scheduled.txt',
-        lastAttemptAt: '2026-07-27T05:30:00.000Z',
-        lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+    const initial = {
+      ...scheduledState(),
+      ruleSourceUpdates: {
+        'source-scheduled': {
+          sourceId: 'source-scheduled',
+          url: 'https://rules.example.invalid/scheduled.txt',
+          lastAttemptAt: '2026-07-27T05:30:00.000Z',
+          lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+        },
       },
     };
     const repository = new MemoryProfileWorkflowRepository(initial);
