@@ -1,4 +1,4 @@
-# revision 2
+# revision 3
 name: Integrate Popup external profile import
 
 on:
@@ -40,6 +40,7 @@ jobs:
         run: |
           set -o pipefail
           {
+            python .github/patches/fix-popup-external-profile-types.py
             python .github/patches/apply-popup-external-profile-core.py
             python .github/patches/apply-popup-external-profile-command.py
             python .github/patches/apply-popup-external-profile-runtime.py
