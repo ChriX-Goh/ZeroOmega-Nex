@@ -50,6 +50,7 @@ jobs:
             python .github/patches/apply-request-diagnostics-hardening.py
             python .github/patches/fix-request-diagnostics-validator.py
             python .github/patches/fix-request-diagnostics-types.py
+            pnpm --filter @zeroomega-nex/profile-spec generate:validator
             pnpm format
           } 2>&1 | tee integration-apply.log
       - name: Verify repository
