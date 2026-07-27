@@ -99,6 +99,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
           pnpm test:e2e:chromium 2>&1 | tee /tmp/popup-inspect-chromium.log
       - name: Upload Chromium diagnostics
         if: always()
