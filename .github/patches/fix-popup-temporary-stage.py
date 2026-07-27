@@ -18,7 +18,44 @@ replace_once(
 '''
 if text.count(old) != 1:
     raise SystemExit(f'temporary runtime tail match count: {text.count(old)}')
-runtime.write_text(text.replace(old, '\n'))
+text = text.replace(old, '\n')
+old = """import { popupTemporaryProfileIdForBaseRoute, popupTemporarySnapshotId } from '@zeroomega-nex/profile-workflow';
+"""
+new = """import { popupTemporarySnapshotId } from '@zeroomega-nex/profile-workflow';
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary session test import match count: {text.count(old)}')
+text = text.replace(old, new)
+old = """    const id = popupTemporarySnapshotId(
+      popupTemporaryProfileIdForBaseRoute({ kind: 'direct' }),
+      'test',
+    );
+"""
+new = """    const id = popupTemporarySnapshotId({ kind: 'direct' }, 'test');
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary session test ID match count: {text.count(old)}')
+text = text.replace(old, new)
+old = """        const temporarySnapshotId =
+          route.kind === 'profile' && route.profileId.startsWith(POPUP_TEMPORARY_PROFILE_ID_PREFIX)
+            ? popupTemporarySnapshotId(route.profileId, this.#temporarySnapshotNonce())
+            : undefined;
+"""
+new = """        const temporaryProfile =
+          route.kind === 'profile' && route.profileId === POPUP_TEMPORARY_PROFILE_ID_PREFIX
+            ? spec.profiles.find((profile) => profile.id === route.profileId)
+            : undefined;
+        const temporarySnapshotId =
+          temporaryProfile?.kind === 'switch'
+            ? popupTemporarySnapshotId(
+                temporaryProfile.defaultRoute,
+                this.#temporarySnapshotNonce(),
+              )
+            : undefined;
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary activation snapshot match count: {text.count(old)}')
+runtime.write_text(text.replace(old, new))
 
 coordinator = Path('.github/patches/apply-popup-temporary-rules-coordinator.py')
 text = coordinator.read_text()
@@ -37,6 +74,7 @@ text = text.replace(old, new)
 
 for unused in (
     '  createPopupTemporaryRuleState,\n',
+    '  decodePopupTemporaryProfileId,\n',
     '  SnapshotActivationState,\n',
 ):
     if unused not in text:
@@ -77,4 +115,69 @@ export async function sendPopupTemporaryRuleCommand(
 """
 if text.count(client_signature) != 1:
     raise SystemExit(f'temporary command signature match count: {text.count(client_signature)}')
-coordinator.write_text(text.replace(client_signature, client_signature_replacement))
+text = text.replace(client_signature, client_signature_replacement)
+
+old = """function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRouteTarget | undefined {
+  if (runtime.activeRoute?.kind === 'profile') {
+    return decodePopupTemporaryProfileId(runtime.activeRoute.profileId) ?? runtime.activeRoute;
+  }
+  if (runtime.activeRoute) return runtime.activeRoute;
+  return runtime.activeSnapshotId
+    ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)
+    : undefined;
+}
+"""
+new = """function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRouteTarget | undefined {
+  const temporaryBase = runtime.activeSnapshotId
+    ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)
+    : undefined;
+  return temporaryBase ?? runtime.activeRoute;
+}
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary base route match count: {text.count(old)}')
+text = text.replace(old, new)
+
+old = """    const decodedRequested =
+      requestedRoute?.kind === 'profile'
+        ? decodePopupTemporaryProfileId(requestedRoute.profileId)
+        : undefined;
+    const baseRoute =
+      decodedRequested ?? requestedRoute ?? candidate.settings.startup.route ?? { kind: 'direct' };
+"""
+new = """    const baseRoute = requestedRoute ?? candidate.settings.startup.route ?? { kind: 'direct' };
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary requested route match count: {text.count(old)}')
+text = text.replace(old, new)
+
+old = """        if (snapshot?.startRoute.kind === 'profile') {
+          baseRoute =
+            decodePopupTemporaryProfileId(snapshot.startRoute.profileId) ?? snapshot.startRoute;
+        } else {
+          baseRoute = snapshot?.startRoute;
+        }
+"""
+new = """        baseRoute = snapshot?.startRoute;
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary startup route match count: {text.count(old)}')
+text = text.replace(old, new)
+
+old = """    this.runtime = { activeSnapshotId: route?.kind === 'profile' && route.profileId.startsWith('__zeroomega') ? popupTemporarySnapshotId(route.profileId, 'runtime') : 'normal', ...(route === undefined ? {} : { activeRoute: structuredClone(route) }) };
+"""
+new = """    const temporaryProfile =
+      route?.kind === 'profile'
+        ? spec.profiles.find((profile) => profile.id === route.profileId)
+        : undefined;
+    this.runtime = {
+      activeSnapshotId:
+        temporaryProfile?.kind === 'switch'
+          ? popupTemporarySnapshotId(temporaryProfile.defaultRoute, 'runtime')
+          : 'normal',
+      ...(route === undefined ? {} : { activeRoute: structuredClone(route) }),
+    };
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'temporary test driver match count: {text.count(old)}')
+coordinator.write_text(text.replace(old, new))
