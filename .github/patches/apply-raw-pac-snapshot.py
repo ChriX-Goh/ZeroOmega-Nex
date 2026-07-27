@@ -69,13 +69,19 @@ export async function createRawPacSnapshot(
 ): Promise<RawPacSnapshotResult> {
   const profile = profileForRoute(spec, startRoute);
   if (!profile) {
-    return failure('/startRoute', 'raw-pac.not-top-level-pac', 'Raw PAC snapshots require a top-level PAC Profile route.');
+    return failure(
+      '/startRoute',
+      'raw-pac.not-top-level-pac',
+      'Raw PAC snapshots require a top-level PAC Profile route.',
+    );
   }
 
   const profileIndex = spec.profiles.indexOf(profile);
   const scriptPath = `/profiles/${profileIndex}/source/script`;
   const script = scriptInput.replace(/^\uFEFF/u, '');
-  if (!script.trim()) return failure(scriptPath, 'raw-pac.empty-script', 'PAC Script must not be empty.');
+  if (!script.trim()) {
+    return failure(scriptPath, 'raw-pac.empty-script', 'PAC Script must not be empty.');
+  }
   if (script.includes('\u0000')) {
     return failure(scriptPath, 'raw-pac.nul-byte', 'PAC Script must not contain NUL bytes.');
   }
@@ -172,24 +178,47 @@ replace_once(
     "    readonly mode?: 'differential' | 'reference-safety' | 'structural';",
 )
 
-Path('packages/pac-compiler/src/raw-snapshot.test.ts').write_text(r'''import { createDefaultProfileSpec } from '@zeroomega-nex/profile-workflow';
+Path('packages/pac-compiler/src/raw-snapshot.test.ts').write_text(r'''import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
 import { createRawPacSnapshot, RAW_PAC_SNAPSHOT_VERSION } from './raw-snapshot.js';
 
-function fixture() {
-  const spec = createDefaultProfileSpec({
+function fixture(): ProfileSpec {
+  return {
+    schemaVersion: '1.0',
     documentId: 'raw-pac-document',
-    revisionId: 'raw-pac-revision',
-    createdAt: '2026-07-28T00:00:00.000Z',
-  });
-  spec.profiles.push({
-    id: 'pac-raw',
-    name: 'Raw PAC',
-    kind: 'pac',
-    source: { kind: 'inline', script: "function FindProxyForURL(url, host) { return 'DIRECT'; }" },
-  });
-  return spec;
+    revision: {
+      id: 'raw-pac-revision',
+      createdAt: '2026-07-28T00:00:00.000Z',
+    },
+    profiles: [
+      {
+        id: 'pac-raw',
+        name: 'Raw PAC',
+        kind: 'pac',
+        source: {
+          kind: 'inline',
+          script: "function FindProxyForURL(url, host) { return 'DIRECT'; }",
+        },
+      },
+    ],
+    proxyEndpoints: [],
+    ruleSources: [],
+    settings: {
+      startup: { revertProxyChanges: true },
+      quickSwitch: { enabled: false, refreshOnChange: false, routes: [] },
+      interface: {
+        confirmDeletion: true,
+        showInspectMenu: true,
+        addConditionsToBottom: false,
+        showResultProfileOnActionBadgeText: false,
+        showExternalProfile: true,
+        showAdvancedConditions: false,
+        exportLegacyRuleList: true,
+      },
+      ruleSourceUpdateIntervalMinutes: 1440,
+    },
+  };
 }
 
 describe('raw PAC snapshots', () => {
