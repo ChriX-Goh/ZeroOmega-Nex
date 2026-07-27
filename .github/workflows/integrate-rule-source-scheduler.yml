@@ -1,4 +1,4 @@
-# revision 8
+# revision 9
 name: Integrate automatic Rule Source scheduler
 
 on:
@@ -49,6 +49,8 @@ jobs:
             python .github/patches/fix-options-sync-script.py
             python .github/patches/fix-options-sync-disposer-type.py
             python .github/patches/fix-options-workflow-storage-sync.py
+            python .github/patches/fix-options-chain-test-script.py
+            python .github/patches/fix-options-sync-chain-race.py
             pnpm exec prettier --write \
               packages/profile-workflow/src/rule-source-update.ts \
               packages/profile-workflow/src/rule-source-schedule.test.ts \
