@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `15f835e88cb7d3237a3fe9a9271a578893dc7010`  
-**Latest integration verification:** run `30232967645` passed full `pnpm verify` and Chromium E2E before committing the responsive attached-header correction, permanent guards, and parity evidence  
-**Last completed exact-Head verification:** `196f7d332894b4e1dfa36a888494189c9856ab2f`; CI `30215434190`, Browser E2E `30215434168`, Parity Documentation `30215434165` passed
+**Current product implementation head:** `d9419f7303e40c11fca44bea3fb54df9913ce950`  
+**Latest integration verification:** run `30235776499` passed full `pnpm verify` and Chromium local-HTTP Rule Source E2E before committing the safe manual background update service  
+**Last completed exact-Head verification:** `03926165011436cb6f32fdbf6cced718f52e70fa`; CI `30233082555`, Browser E2E `30233082557`, Parity Documentation `30233082554` passed
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and the exact GitHub Actions runs; never infer completion from this document alone
 
@@ -100,17 +100,20 @@ This file is the durable execution context for Milestone 8. Repository contribut
 - Integration run `30215295471` passed full repository verification before product commit `5bf115091cc46e81347f851610f92343dc3a2ead`.
 - Exact-Head verification at `196f7d332894b4e1dfa36a888494189c9856ab2f` passed CI `30215434190`, Browser E2E `30215434168`, and Parity Documentation `30215434165`.
 
-### Attached Rule List core lifecycle
+### Attached Rule List core lifecycle and manual background updates
 
 - A Switch Profile can create one hidden `__ruleListOf_<parent name>` Rule List that never appears in normal navigation, Quick Switch, Startup, or ordinary route selectors.
 - Enable/disable semantics preserve the visible Switch default route exactly; match and default routes remain separately editable.
 - Switchy/AutoProxy, inline/URL, downloaded read-only cache, custom request headers, and editable inline text are represented in ProfileSpec.
 - Original backups reconstruct the hidden relationship and preserve downloaded URL content for offline interpretation and PAC compilation.
 - Parent rename/color, duplication, direct detach, and parent deletion update or remove the hidden profile/source transactionally.
-- Empty request-header rows remain valid Draft warnings, while Apply remains strict; successful background updates now refresh the visible header list through an explicit reactive dependency instead of leaving stale UI.
-- Chromium E2E covers creation, hidden navigation, enable/disable, match route, text/header edits, responsive header-row rendering, confirmation, and detach; Firefox extension E2E also passes.
-- Integration run `30232967645` passed full repository verification and Chromium E2E before product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
-- Manual background download/update now uses user-granted host permission, secret header resolution, bounded isolated fetches, atomic cached-content replacement, persisted timestamps/bytes/errors, and stale calculation. Automatic interval scheduling remains separate.
+- Empty request-header rows remain valid Draft warnings, while Apply remains strict; successful background updates refresh the visible header list through an explicit reactive dependency instead of leaving stale UI.
+- Manual URL updates request host permission directly from the Options user gesture, resolve secret headers only in the background, use isolated `credentials: omit`/no-referrer/no-store fetches, enforce a 10-second timeout and 4 MiB limit, and never expose secret values through ProfileSpec or responses.
+- Successful content plus timestamp/byte status commit atomically through workflow CAS; failures, empty/oversize responses, or concurrent edits retain the previous cache. Runtime status remains outside ProfileSpec and computes staleness from the configured interval.
+- Chromium E2E covers creation, hidden navigation, enable/disable, routes, text/header edits, local HTTP download with the transmitted custom header, cached-content replacement, confirmation, and detach; Firefox extension E2E also passes.
+- Core lifecycle integration run `30232967645` passed before product commit `15f835e88cb7d3237a3fe9a9271a578893dc7010`.
+- Manual background update integration run `30235776499` passed full repository verification and Chromium E2E before product commit `d9419f7303e40c11fca44bea3fb54df9913ce950`.
+- Automatic interval scheduling remains separate.
 
 ### Appearance
 
@@ -139,8 +142,9 @@ This file is the durable execution context for Milestone 8. Repository contribut
 
 ### Automated acceptance
 
-- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch/source editing, Draft/Apply separation, hidden attached Rule List ownership/lifecycle, and reactive request-header rendering.
-- The attached Rule List integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, packaging, and Chromium browser interaction E2E.
+- Permanent UI guards enforce original navigation, full-tab Options, independent settings/profile pages, direct legacy import, automatic theme, keyboard focus, responsive layout, rollback confirmation, blank semantic defaults, Fixed Profile structure, compact Switch/source editing, Draft/Apply separation, hidden attached Rule List ownership/lifecycle, reactive request-header rendering, and safe atomic remote Rule Source updates.
+- The latest integration passed architecture guards, UI compatibility guards, all 124 parity-document rows, formatting, lint, workspace type checks, unit/integration tests, component-rendering tests, manifests, MV3 CSP inspection, Chrome/Firefox builds, packaging, and Chromium local-HTTP Rule Source interaction E2E.
+- The test-only Chromium build pregrants localhost solely because headless Chromium cannot confirm an optional host-permission prompt; normal builds retain optional HTTP/HTTPS host permissions and request each origin from a real user gesture.
 - Four existing Svelte accessibility warnings remain tracked; no new Svelte errors were introduced.
 
 ## Remaining closure
@@ -162,4 +166,4 @@ Current blockers include:
 
 ## Current next action
 
-Verify the manual background Rule List download/update service, then implement automatic interval scheduling or proceed to the next source-backed blocker according to the audit matrix. The slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Implement automatic Rule Source interval scheduling and startup/due-source refresh, or take the next higher-priority source-backed blocker from the audit matrix. The next slice must update the knowledge graph and audit matrix in the same product commit and pass full integration plus exact-Head CI, Chromium/Firefox E2E, and Parity Documentation. Do not request repository-owner installation until a new consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
