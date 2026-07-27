@@ -15,11 +15,16 @@ replace_once(
     '''import {
   createBrowserSafePacSnapshot,
   type PacTarget,
+  type PacVerificationVector,
+} from '@zeroomega-nex/pac-compiler';
 ''',
     '''import {
   createBrowserSafePacSnapshot,
   createRawPacSnapshot,
+  type PacRuntimeSnapshot,
   type PacTarget,
+  type PacVerificationVector,
+} from '@zeroomega-nex/pac-compiler';
 ''',
 )
 replace_once(
@@ -44,6 +49,9 @@ replace_once(
       `PAC profile ${profile.name} uses a local file URL, which is not supported by the inline browser adapter`,
     );
   }
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    throw new Error(`PAC profile ${profile.name} uses unsupported URL protocol ${protocol}`);
+  }
   if (profile.source.script === undefined) {
     throw new Error(`PAC profile ${profile.name} has no downloaded script cache`);
   }
@@ -62,6 +70,18 @@ function rawSnapshotFailureMessage(
 function snapshotFailureMessage(
   result: Exclude<Awaited<ReturnType<typeof createBrowserSafePacSnapshot>>, { ok: true }>,
 ): string {
+''',
+)
+replace_once(
+    'apps/extension/src/lib/profile-workflow-activation.ts',
+    '''    const route: ProfileRouteTarget = startRoute ??
+      spec.settings.startup.route ?? { kind: 'direct' };
+    const authenticationPlan = createProxyAuthenticationPlan(spec, route);
+''',
+    '''    const route: ProfileRouteTarget = startRoute ??
+      spec.settings.startup.route ?? { kind: 'direct' };
+    const rawScript = rawPacScript(spec, route);
+    const authenticationPlan = createProxyAuthenticationPlan(spec, route);
 ''',
 )
 replace_once(
@@ -87,40 +107,42 @@ replace_once(
           runtime.driver,
           snapshot.snapshot,
 ''',
-    '''        const rawScript = rawPacScript(spec, route);
-        const snapshot =
-          rawScript === undefined
-            ? await createBrowserSafePacSnapshot(
-                spec,
-                route,
-                buildProfileWorkflowVerificationVectors(spec),
-                {
-                  createdAt: startedAt,
-                  ...(temporarySnapshotId === undefined
-                    ? {}
-                    : { snapshotId: temporarySnapshotId }),
-                },
-                { target: targetFor(runtime.driver) },
-              )
-            : await createRawPacSnapshot(
-                spec,
-                route,
-                rawScript,
-                { createdAt: startedAt },
-                targetFor(runtime.driver),
-              );
-        if (!snapshot.ok) {
-          throw new Error(
-            rawScript === undefined
-              ? `${'stage' in snapshot && snapshot.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(snapshot as Exclude<Awaited<ReturnType<typeof createBrowserSafePacSnapshot>>, { ok: true }> )}`
-              : `Raw PAC validation failed: ${rawSnapshotFailureMessage(snapshot as Exclude<Awaited<ReturnType<typeof createRawPacSnapshot>>, { ok: true }> )}`,
+    '''        let snapshot: PacRuntimeSnapshot;
+        if (rawScript === undefined) {
+          const generated = await createBrowserSafePacSnapshot(
+            spec,
+            route,
+            buildProfileWorkflowVerificationVectors(spec),
+            {
+              createdAt: startedAt,
+              ...(temporarySnapshotId === undefined ? {} : { snapshotId: temporarySnapshotId }),
+            },
+            { target: targetFor(runtime.driver) },
           );
+          if (!generated.ok) {
+            throw new Error(
+              `${generated.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(generated)}`,
+            );
+          }
+          snapshot = generated.snapshot;
+        } else {
+          const raw = await createRawPacSnapshot(
+            spec,
+            route,
+            rawScript,
+            { createdAt: startedAt },
+            targetFor(runtime.driver),
+          );
+          if (!raw.ok) {
+            throw new Error(`Raw PAC validation failed: ${rawSnapshotFailureMessage(raw)}`);
+          }
+          snapshot = raw.snapshot;
         }
 
         const activated = await activatePacSnapshot(
           runtime.repository,
           runtime.driver,
-          snapshot.snapshot,
+          snapshot,
 ''',
 )
 
@@ -172,16 +194,28 @@ coverage = r'''  it('installs a top-level raw PAC Profile without composing it i
     }
   });
 
-  it('rejects top-level PAC file URLs before changing browser state', async () => {
+  it('rejects top-level PAC file URLs before authentication or browser changes', async () => {
     const proxy = new FakeProxyDriver('chromium');
     const created = runtime(proxy);
-    const driver = new BrowserProfileWorkflowActivationDriver({ createRuntime: () => created.runtime });
+    const authentication = new FakeAuthenticationCoordinator();
+    const spec = rawPacSpec('file');
+    const profile = spec.profiles.find((candidate) => candidate.id === 'profile-raw-pac');
+    if (!profile || profile.kind !== 'pac') throw new Error('raw PAC test profile is missing');
+    profile.credential = {
+      username: 'file-user',
+      passwordSecretRef: 'secret-file-pac',
+    };
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+    });
     await expect(
-      driver.activate(rawPacSpec('file'), {
+      driver.activate(spec, {
         kind: 'profile',
         profileId: 'profile-raw-pac',
       }),
     ).rejects.toThrow('local file URL');
+    expect(authentication.preparedBindings).toEqual([]);
     expect(proxy.installCount).toBe(0);
   });
 
@@ -189,47 +223,3 @@ coverage = r'''  it('installs a top-level raw PAC Profile without composing it i
 if test.count(anchor) != 1:
     raise SystemExit('raw PAC activation test insertion anchor missing')
 test_path.write_text(test.replace(anchor, coverage + anchor, 1))
-
-# Remove cross-package test dependency from pac-compiler.
-raw_test = Path('packages/pac-compiler/src/raw-snapshot.test.ts')
-text = raw_test.read_text()
-text = text.replace("import { createDefaultProfileSpec } from '@zeroomega-nex/profile-workflow';\n", '')
-old = '''function fixture() {
-  const spec = createDefaultProfileSpec({
-    documentId: 'raw-pac-document',
-    revisionId: 'raw-pac-revision',
-    createdAt: '2026-07-28T00:00:00.000Z',
-  });
-  spec.profiles.push({
-'''
-new = '''function fixture() {
-  const spec = {
-    schemaVersion: 1 as const,
-    documentId: 'raw-pac-document',
-    revision: {
-      id: 'raw-pac-revision',
-      createdAt: '2026-07-28T00:00:00.000Z',
-    },
-    profiles: [],
-    proxyEndpoints: [],
-    ruleSources: [],
-    settings: {
-      startup: { revertProxyChanges: true },
-      quickSwitch: { enabled: false, refreshOnChange: false, routes: [] },
-      interface: {
-        confirmDeletion: true,
-        showInspectMenu: true,
-        addConditionsToBottom: false,
-        showResultProfileOnActionBadgeText: false,
-        showExternalProfile: true,
-        showAdvancedConditions: false,
-        exportLegacyRuleList: true,
-      },
-      ruleSourceUpdateIntervalMinutes: 1440,
-    },
-  };
-  spec.profiles.push({
-'''
-if text.count(old) != 1:
-    raise SystemExit('raw PAC test fixture anchor missing')
-raw_test.write_text(text.replace(old, new, 1))
