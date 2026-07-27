@@ -152,8 +152,8 @@ function profileBase(state: ExportState, profile: UserProfile, path: string): Mu
   const result: MutableJsonObject = {
     name: profile.name,
     profileType: profileType(profile),
-    revision: profile.legacy?.revision ?? state.spec.revision.id,
   };
+  if (profile.legacy?.revision !== undefined) result.revision = profile.legacy.revision;
   if (profile.color !== undefined) result.color = profile.color;
   if (profile.enabled === false) {
     result.enabled = false;
