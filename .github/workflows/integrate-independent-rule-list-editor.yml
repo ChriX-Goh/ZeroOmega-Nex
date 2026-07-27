@@ -49,6 +49,7 @@ jobs:
             python .github/patches/fix-independent-rule-list-e2e-selector.py
             python .github/patches/fix-independent-rule-list-apply-e2e.py
             python .github/patches/fix-independent-rule-list-apply-selector.py
+            python .github/patches/fix-independent-rule-list-apply-state.py
           } 2>&1 | tee independent-rule-list-apply.log
       - name: Format product slice
         run: pnpm format
@@ -86,6 +87,7 @@ jobs:
             .github/patches/fix-independent-rule-list-e2e-selector.py \
             .github/patches/fix-independent-rule-list-apply-e2e.py \
             .github/patches/fix-independent-rule-list-apply-selector.py \
+            .github/patches/fix-independent-rule-list-apply-state.py \
             independent-rule-list-apply.log \
             independent-rule-list-verify.log \
             independent-rule-list-e2e.log
