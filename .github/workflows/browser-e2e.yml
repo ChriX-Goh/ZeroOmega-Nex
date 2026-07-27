@@ -37,7 +37,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build Chromium extension
-        run: pnpm build:chromium
+        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
 
       - name: Run Chromium extension E2E
         shell: bash
