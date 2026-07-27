@@ -44,7 +44,6 @@ jobs:
           python /tmp/apply_inspect.py
           python - <<'PY'
           from pathlib import Path
-
           path = Path('scripts/validate-ui-compatibility.mjs')
           text = path.read_text()
           old = 'manifest.includes("permissions: [\'proxy\', \'storage\', \'alarms\', \'activeTab\']")'
@@ -52,52 +51,8 @@ jobs:
           if text.count(old) != 1:
               raise SystemExit(f'expected one manifest permission guard, found {text.count(old)}')
           path.write_text(text.replace(old, new, 1))
-
-          e2e = Path('scripts/e2e-chromium.mjs')
-          source = e2e.read_text()
-          old_wait = """  const temporarySelect = temporaryPopup.getByLabel('Temporary profile for example.co.uk');
-          await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
-"""
-          new_wait = """  const temporarySelect = temporaryPopup.getByLabel('Temporary profile for example.co.uk');
-          try {
-            await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
-          } catch (error) {
-            const diagnostic = await worker.evaluate(async () => {
-              const [local, session, tabs] = await Promise.all([
-                chrome.storage.local.get(null),
-                chrome.storage.session.get(null),
-                chrome.tabs.query({}),
-              ]);
-              const workflow = local['zeroomega-nex/profile-workflow/v1/state'];
-              const proxy = local['zeroomega-nex/browser-proxy/v1/state'];
-              return {
-                tabs: tabs.map((tab) => ({ id: tab.id, active: tab.active, url: tab.url })),
-                workflow: workflow
-                  ? {
-                      appliedRevisionId: workflow.applied?.revision?.id,
-                      draftRevisionId: workflow.draft?.revision?.id,
-                      profiles: workflow.applied?.profiles?.map((profile) => ({
-                        id: profile.id,
-                        name: profile.name,
-                        kind: profile.kind,
-                      })),
-                    }
-                  : undefined,
-                proxy,
-                temporary: session['zeroomega-nex/popup-temporary-rules/v1/state'],
-                inspect: session['zeroomega-nex/inspect/v1/state'],
-              };
-            });
-            console.error('TEMPORARY_POPUP_BODY\\n' + (await temporaryPopup.locator('body').innerText()));
-            console.error('TEMPORARY_POPUP_HTML\\n' + (await temporaryPopup.locator('body').innerHTML()));
-            console.error('TEMPORARY_POPUP_DIAGNOSTIC\\n' + JSON.stringify(diagnostic, null, 2));
-            throw error;
-          }
-"""
-          if source.count(old_wait) != 1:
-              raise SystemExit(f'expected one temporary Popup wait block, found {source.count(old_wait)}')
-          e2e.write_text(source.replace(old_wait, new_wait, 1))
           PY
+          python .github/patches/diagnose-popup-inspect-e2e.py
           rm -f .github/workflows/integrate-popup-inspect.yml
       - name: Format changed files
         run: |
@@ -119,27 +74,6 @@ jobs:
             docs/UI_AUDIT_MATRIX.md \
             docs/MILESTONE_8_STATUS.md
           git diff --check
-      - name: Capture applied Inspect sources
-        run: |
-          tar -czf /tmp/popup-inspect-sources.tar.gz \
-            apps/extension/src/lib/inspect-client.ts \
-            apps/extension/src/lib/inspect-runtime.ts \
-            apps/extension/src/lib/inspect-runtime.test.ts \
-            apps/extension/src/entrypoints/background.ts \
-            apps/extension/src/entrypoints/popup/App.svelte \
-            apps/extension/src/entrypoints/popup/style.css \
-            apps/extension/wxt.config.ts \
-            scripts/inspect-manifests.mjs \
-            scripts/validate-ui-compatibility.mjs \
-            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
-            docs/UI_AUDIT_MATRIX.md \
-            docs/MILESTONE_8_STATUS.md
-      - name: Upload applied Inspect sources
-        uses: actions/upload-artifact@v4
-        with:
-          name: popup-inspect-sources
-          path: /tmp/popup-inspect-sources.tar.gz
-          if-no-files-found: error
       - name: Verify complete repository
         id: verify
         continue-on-error: true
@@ -179,6 +113,8 @@ jobs:
       - name: Clean temporary integration files
         run: |
           git checkout -- scripts/e2e-chromium.mjs
+          rm -f .github/patches/diagnose-popup-inspect-e2e.py
+          rmdir .github/patches 2>/dev/null || true
           rm -f .github/workflows/run-popup-inspect.yml
           git clean -fdX
           git diff --check
