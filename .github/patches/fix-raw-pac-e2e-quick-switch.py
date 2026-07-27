@@ -9,8 +9,11 @@ old = '''  await pacAuthDialog.locator('[data-pac-auth-action="save"]').click();
 '''
 new = '''  await pacAuthDialog.locator('[data-pac-auth-action="save"]').click();
   await pacAuthDialog.waitFor({ state: 'detached', timeout: 20_000 });
-  await options.getByRole('button', { name: 'General', exact: true }).click();
+  await options.evaluate(() => {
+    window.location.hash = '#/general';
+  });
   const addPacQuickRoute = options.getByLabel('Add quick-switch route');
+  await addPacQuickRoute.waitFor({ state: 'visible', timeout: 20_000 });
   await addPacQuickRoute.selectOption({ label: 'pac' });
   await options
     .locator('ol[aria-label="Quick-switch route order"]')
