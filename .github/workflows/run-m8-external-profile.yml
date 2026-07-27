@@ -1,0 +1,78 @@
+name: Run M8 external profile slice
+
+on:
+  push:
+    branches:
+      - feat/m8-external-profile-import
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout slice branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-external-profile-import
+          fetch-depth: 2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Decode and apply source-backed slice
+        shell: bash
+        run: |
+          grep '^H4s' .github/workflows/apply-m8-external-profile.yml >/tmp/apply.py.gz.b64
+          base64 -d /tmp/apply.py.gz.b64 | gzip -d >/tmp/apply.py
+          python /tmp/apply.py
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            packages/browser-adapters/src/external-profile.ts \
+            packages/browser-adapters/src/external-profile.test.ts \
+            packages/browser-adapters/src/index.ts \
+            packages/browser-adapters/src/ownership.ts \
+            packages/browser-adapters/src/ownership.test.ts \
+            apps/extension/src/lib/external-profile-import.ts \
+            apps/extension/src/lib/external-profile-import.test.ts \
+            apps/extension/src/lib/proxy-ownership-client.ts \
+            apps/extension/src/lib/proxy-ownership-runtime.ts \
+            apps/extension/src/lib/proxy-ownership-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts \
+            apps/extension/src/entrypoints/popup/App.svelte \
+            apps/extension/src/entrypoints/popup/style.css \
+            apps/extension/src/lib/i18n.ts \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+
+      - name: Verify repository
+        run: pnpm verify
+
+      - name: Run Chromium extension E2E
+        run: pnpm test:e2e:chromium
+
+      - name: Commit verified product slice
+        shell: bash
+        run: |
+          rm -f .github/workflows/apply-m8-external-profile.yml
+          rm -f .github/workflows/run-m8-external-profile.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: import external browser proxy profiles'
+          git push origin HEAD:feat/m8-external-profile-import
