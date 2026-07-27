@@ -1,5 +1,5 @@
 name: Integrate legacy Options export
-# Attempt 6: run the exporter tests first with full import reports.
+# Attempt 7: accept the original empty startup-profile sentinel.
 
 on:
   pull_request:
@@ -81,6 +81,7 @@ jobs:
           {
             set -x
             python .github/patches/apply-legacy-export-integration.py
+            python .github/patches/fix-legacy-empty-startup.py
             python .github/patches/apply-legacy-export-ui.py
             python .github/patches/apply-legacy-export-e2e.py
             python .github/patches/apply-legacy-export-acceptance.py
@@ -124,6 +125,7 @@ jobs:
             .github/workflows/integrate-legacy-options-export.yml
           rm -f \
             .github/patches/apply-legacy-export-integration.py \
+            .github/patches/fix-legacy-empty-startup.py \
             .github/patches/apply-legacy-export-ui.py \
             .github/patches/apply-legacy-export-e2e.py \
             .github/patches/apply-legacy-export-acceptance.py \
