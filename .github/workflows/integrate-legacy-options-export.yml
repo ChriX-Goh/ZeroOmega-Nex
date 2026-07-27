@@ -1,0 +1,127 @@
+name: Integrate legacy Options export
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-legacy-options-export.yml
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: integrate-legacy-options-export-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Generate pinned original v3.5.0 backup fixture
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --location \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --output original-source.zip \
+            https://api.github.com/repos/ChriX-Goh/ZeroOmega-Nex/actions/artifacts/8625759489/zip
+          printf '%s  %s\n' \
+            '8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19' \
+            original-source.zip | sha256sum --check
+          unzip -q original-source.zip -d original-evidence
+          npm install --no-save --ignore-scripts coffee-script@1.12.7
+          mkdir -p fixtures/zeroomega-v2
+          node -r coffee-script/register <<'NODE'
+          const fs = require('node:fs');
+          const createDefaultOptions = require(
+            './original-evidence/original-source/omega-target-src/default_options.coffee'
+          );
+          const options = createDefaultOptions();
+          if (options.schemaVersion !== 2) throw new Error('Unexpected original schema version');
+          fs.writeFileSync(
+            'fixtures/zeroomega-v2/original-default-v3.5.0.bak',
+            JSON.stringify(options),
+            'utf8',
+          );
+          NODE
+          cat > fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json <<'JSON'
+          {
+            "originalVersion": "v3.5.0",
+            "sourceCaptureRun": 30181773502,
+            "sourceArtifactId": 8625759489,
+            "sourceArtifactSha256": "8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19",
+            "sourceModule": "original-source/omega-target-src/default_options.coffee",
+            "generation": "Executed with coffee-script 1.12.7, then serialized with JSON.stringify exactly as original IoCtrl.exportOptions."
+          }
+          JSON
+          rm -rf node_modules original-evidence original-source.zip package-lock.json package.json
+      - name: Apply exporter, importer, UI, E2E, and acceptance changes
+        env:
+          INTEGRATION_RUN_ID: ${{ github.run_id }}
+        run: |
+          python .github/patches/apply-legacy-export-integration.py
+          python .github/patches/apply-legacy-export-ui.py
+          python .github/patches/apply-legacy-export-e2e.py
+          python .github/patches/apply-legacy-export-acceptance.py
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Format product slice
+        run: pnpm format
+      - name: Verify repository
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee legacy-export-integration-verify.log
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium E2E host candidate
+        env:
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium regression and backup round trip
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee legacy-export-integration-e2e.log
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-export-integration-${{ github.run_id }}
+          path: legacy-export-integration-*.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Commit verified non-workflow product tree
+        run: |
+          git checkout HEAD -- \
+            .github/workflows/capture-original-default-backup.yml \
+            .github/workflows/integrate-legacy-options-export.yml
+          rm -f \
+            .github/patches/apply-legacy-export-integration.py \
+            .github/patches/apply-legacy-export-ui.py \
+            .github/patches/apply-legacy-export-e2e.py \
+            .github/patches/apply-legacy-export-acceptance.py \
+            legacy-export-integration-verify.log \
+            legacy-export-integration-e2e.log
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: export original-compatible Options backups"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
