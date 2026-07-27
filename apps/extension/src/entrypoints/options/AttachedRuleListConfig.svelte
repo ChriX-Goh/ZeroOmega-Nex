@@ -14,7 +14,9 @@
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
 
   let state = inspectAttachedRuleList(spec, switchProfileId);
+  let headerItems: readonly RuleSourceHeader[] = [];
   $: state = inspectAttachedRuleList(spec, switchProfileId);
+  $: headerItems = state?.source.headers ?? [];
 
   function valueFrom(event: Event): string {
     return (event.currentTarget as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)
@@ -71,10 +73,6 @@
     await mutateSource((source) => {
       source.updateIntervalMinutes = interval;
     });
-  }
-
-  function headers(): readonly RuleSourceHeader[] {
-    return state?.source.headers ?? [];
   }
 
   async function mutateHeaders(update: (headers: RuleSourceHeader[]) => void): Promise<void> {
@@ -217,12 +215,12 @@
   </section>
 
   <section class="settings-section" data-attached-rule-list-headers>
-    <details open={headers().length > 0}>
+    <details open={headerItems.length > 0}>
       <summary>Request headers</summary>
       <p class="section-help">
         Sensitive values must use secret references; raw secret values never enter ProfileSpec.
       </p>
-      {#each headers() as header, index (`${header.name}:${index}`)}
+      {#each headerItems as header, index (`${header.name}:${index}`)}
         <div class="header-row">
           <input
             aria-label={`Attached header ${index + 1} name`}
