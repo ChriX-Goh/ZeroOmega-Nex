@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** Inspect result-presentation product commit containing this document  
+**Current product implementation head:** `7e394cf23b6e0035fc58a2a55592c5d22e737367`  
 **Latest integration verification:** run `30294936789` validates Inspect result-route badge/title evaluation with full `pnpm verify`, Chromium/Firefox builds, and the complete Chromium regression suite  
-**Last completed exact-Head verification:** `fe35f31ec5d16aa02ed59fcd04d9c9eab50d6154`; CI `30289903445`, Browser E2E `30289903778`, Parity Documentation `30289903666` passed  
+**Last completed exact-Head verification:** `d155644f5fe7a691fb27a84b16cd55ca58990cd0`; CI `30293711901`, Browser E2E `30293710585`, Parity Documentation `30293710591` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -90,14 +90,15 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - A blocked Popup hides profiles, result selectors, permanent current-site conditions, and temporary rules, while preserving the original-style Cancel and Manage Extensions escape controls.
 - System-mode external import converts Chromium auto-detect, PAC URL/inline, and fixed-server settings in the background; normalizes single/fallback and per-scheme servers plus bypass; suppresses exact existing matches; validates original naming rules; and imports through CAS plus normal verified Apply before immediately activating the resulting profile.
 - Popup receives only the external profile kind and suggested label; proxy hosts, ports, and PAC script contents stay background-owned.
-- Inspect menus for frame, link, and media targets are reconciled from Applied `showInspectMenu`; valid HTTP/HTTPS/FTP targets are kept per tab in session storage, expire after 10 minutes, clear with their tab or a same-page selection, display a `#` toolbar badge, and replace the Popup current-site context without entering persistent configuration.
+- Inspect menus for frame, link, and media targets are reconciled from Applied `showInspectMenu`; valid HTTP/HTTPS/FTP targets are kept per tab in session storage, expire after 10 minutes, clear with their tab or a same-page selection, and replace the Popup current-site context without entering persistent configuration.
+- Inspect now evaluates the browser-confirmed active start route against the inspected URL. The `#` badge uses the resolved Profile/Direct/System color; the action title restores the original two-line `[Inspect]/[检查] target` plus current-to-result route shape. Evaluation failure keeps a neutral fallback without blocking inspection.
 - Current-site integration: run `30245478398`, product commit `8803d6e4ecf91024fc8d39ad047b3bbfb6dda17b`.
 - Result-profile integration: run `30268062637`, product commit `8ea05242cfd619f7eec24a5078fe09e0344b68e2`.
 - Temporary-rule integration: run `30281637537`, product commit `625ceb598423c0dda5641490e4a8cdefdf915cfb`.
 - Proxy-ownership integration: run `30283438960`, product commit `af25f7c2c2af5d305c3b06d2ee385a425763eb05`.
 - External-profile integration: run `30286217338`, product commit `e4c11f6684346510e44b1961b277159b5b13e854`.
 - Inspect-menu integration: run `30289377957`, product commit `e305394dae78ce98fa359f5ddc3521ed01675fe9`.
-- Inspect result-presentation integration: run `30294936789`; product commit containing this document.
+- Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
 
 ### Bounded request diagnostics and network inspection
 
@@ -110,7 +111,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 
 ## Automated acceptance state
 
-The bounded request-diagnostics integration passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and the complete Chromium regression suite after rebuilding with test-only pregranted diagnostics permissions. Production manifests retain optional WebRequest and HTTP(S) host permissions.
+The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, 388 unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, and the complete Chromium regression suite. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
 
 Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
 
