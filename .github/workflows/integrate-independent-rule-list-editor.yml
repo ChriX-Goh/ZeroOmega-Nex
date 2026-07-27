@@ -46,6 +46,7 @@ jobs:
             python .github/patches/fix-independent-rule-list-validator-patch.py
             python .github/patches/apply-independent-rule-list-editor.py
             python .github/patches/fix-independent-rule-list-unused-import.py
+            python .github/patches/fix-independent-rule-list-e2e-selector.py
           } 2>&1 | tee independent-rule-list-apply.log
       - name: Format product slice
         run: pnpm format
@@ -80,6 +81,7 @@ jobs:
             .github/patches/fix-independent-rule-list-patch-anchor.py \
             .github/patches/fix-independent-rule-list-validator-patch.py \
             .github/patches/fix-independent-rule-list-unused-import.py \
+            .github/patches/fix-independent-rule-list-e2e-selector.py \
             independent-rule-list-apply.log \
             independent-rule-list-verify.log \
             independent-rule-list-e2e.log
