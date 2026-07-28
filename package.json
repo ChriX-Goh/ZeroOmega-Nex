@@ -20,6 +20,7 @@
     "test:e2e": "pnpm test:e2e:chromium && pnpm test:e2e:firefox",
     "test:e2e:chromium": "node scripts/e2e-chromium.mjs",
     "test:e2e:firefox": "node scripts/e2e-firefox.mjs",
+    "evidence:visual": "node scripts/capture-visual-evidence.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

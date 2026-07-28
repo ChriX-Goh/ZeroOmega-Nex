@@ -545,3 +545,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Nex defers both backends beyond the first browser replacement. A later remote-sync milestone must own credentials in the background, define remote schema and optimistic concurrency, bound scheduling/responses, recover interrupted writes, expose conflict UX, and test background suspension independently on Chromium and Firefox.
 - Original built-in browser sync is a second channel that copies `gistId`, `gistToken`, `syncUsername`, `syncBackendType`, and `lastGistCommit` into browser `storage.sync`. For WebDAV, `gistToken` carries the password/bearer token. Nex intentionally does not port plaintext credential replication to vendor cloud sync.
 - File backup, online URL restore, Gist sync, WebDAV sync, and browser-native sync are five distinct capabilities. Completion of one never implies another.
+
+### Consolidated visual evidence matrix
+
+- Visual acceptance is a reproducible artifact, not a collection of ad-hoc screenshots. One exact Chromium Head captures `zh-CN/light`, `zh-CN/dark`, `zh-TW/light`, and `zh-TW/dark` in isolated browser profiles.
+- Each combination covers six representative surfaces: Options General/shell, Fixed Profile editor, Import/Export, Popup, Temporary Rules, and Network diagnostics. The matrix therefore contains exactly 24 PNG files.
+- `scripts/capture-visual-evidence.mjs` requires the typed locale marker and explicit `data-theme` before capture, disables animation/caret noise, records image dimensions and SHA-256, and writes `manifest.json`, `manifest.sha256`, and a human-readable table.
+- `.github/workflows/m8-visual-evidence.yml` builds the exact Chromium extension and uploads the complete artifact. Automated capture proves reproducibility and coverage; repository-owner visual acceptance remains a separate release gate.

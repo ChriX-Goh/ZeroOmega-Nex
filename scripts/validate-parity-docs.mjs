@@ -9,6 +9,8 @@ const legacyDecodePath = 'packages/legacy-zeroomega/src/decode.ts';
 const legacyImportTestPath = 'packages/legacy-zeroomega/src/import.test.ts';
 const schemaV1FixturePath = 'fixtures/zeroomega-v2/schema-v1-auto-detect.json';
 const manifestConfigPath = 'apps/extension/wxt.config.ts';
+const visualEvidenceScriptPath = 'scripts/capture-visual-evidence.mjs';
+const visualEvidenceWorkflowPath = '.github/workflows/m8-visual-evidence.yml';
 
 const [
   graph,
@@ -20,6 +22,8 @@ const [
   legacyImportTest,
   schemaV1Fixture,
   manifestConfig,
+  visualEvidenceScript,
+  visualEvidenceWorkflow,
 ] = await Promise.all([
   readFile(graphPath, 'utf8'),
   readFile(auditPath, 'utf8'),
@@ -30,6 +34,8 @@ const [
   readFile(legacyImportTestPath, 'utf8'),
   readFile(schemaV1FixturePath, 'utf8'),
   readFile(manifestConfigPath, 'utf8'),
+  readFile(visualEvidenceScriptPath, 'utf8'),
+  readFile(visualEvidenceWorkflowPath, 'utf8'),
 ]);
 
 const failures = [];
@@ -145,6 +151,28 @@ if (manifestConfig.includes('storage.sync') || manifestConfig.includes("'sync'")
     'production manifest/config must not add browser sync storage for credential propagation',
   );
 }
+
+requireAll('visual evidence script', visualEvidenceScript, [
+  "{ locale: 'zh-CN', theme: 'light' }",
+  "{ locale: 'zh-CN', theme: 'dark' }",
+  "{ locale: 'zh-TW', theme: 'light' }",
+  "{ locale: 'zh-TW', theme: 'dark' }",
+  "'options-general'",
+  "'fixed-profile'",
+  "'import-export'",
+  "'popup'",
+  "'temporary-rules'",
+  "'network'",
+  'manifest.sha256',
+  'entries.length, combinations.length * surfaces.length',
+]);
+
+requireAll('visual evidence workflow', visualEvidenceWorkflow, [
+  'Milestone 8 Visual Evidence',
+  'pnpm evidence:visual',
+  'm8-visual-evidence-${{ github.sha }}',
+  'retention-days: 30',
+]);
 
 requireAll('file PAC decision', decisions, [
   'ADR-015',

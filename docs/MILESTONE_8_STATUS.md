@@ -308,6 +308,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - ADR-018 marks original built-in browser sync as an `INTENTIONAL_DIVERGENCE`: Nex does not copy Gist tokens or WebDAV passwords into browser `storage.sync`. Future non-secret or encrypted cross-device synchronization requires a new cryptographic/recovery ADR.
 - G-13, G-14, and G-15 are now DONE scope decisions. File backup and bounded online restore remain separate completed capabilities and do not imply synchronization.
 
+### Reproducible consolidated visual-evidence workflow
+
+- The permanent `Milestone 8 Visual Evidence` workflow builds the exact Chromium Head and captures isolated light/dark × zh-CN/zh-TW sessions.
+- Six surfaces per combination produce exactly 24 PNGs: Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network. Every capture requires the expected typed-locale marker and explicit theme before writing.
+- The artifact includes a machine-readable manifest with exact Head, Chromium version, locale, theme, surface, URL, dimensions, byte size, and per-image SHA-256, plus `manifest.sha256` and a readable index.
+- A green workflow establishes reproducible coverage only; repository-owner visual review remains required before a consolidated candidate can be accepted.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 126 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
