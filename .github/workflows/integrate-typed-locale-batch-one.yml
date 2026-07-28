@@ -1,4 +1,4 @@
-# integration revision 2
+# integration revision 3
 name: Integrate typed locale batch one
 
 on:
@@ -42,6 +42,7 @@ jobs:
           set -o pipefail
           {
             set -x
+            python .github/patches/fix-typed-locale-fixed-marker.py
             python .github/patches/apply-typed-locale-batch-one.py
             python .github/patches/fix-typed-locale-ui-guards.py
           } 2>&1 | tee typed-locale-apply.log
@@ -80,6 +81,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-typed-locale-batch-one.yml
           rm -f \
+            .github/patches/fix-typed-locale-fixed-marker.py \
             .github/patches/apply-typed-locale-batch-one.py \
             .github/patches/fix-typed-locale-ui-guards.py \
             typed-locale-apply.log \
