@@ -1,4 +1,4 @@
-# integration revision 5
+# integration revision 6
 name: Integrate profile deletion protection
 
 on:
@@ -45,8 +45,8 @@ jobs:
             python .github/patches/fix-profile-deletion-app-anchor.py
             python .github/patches/fix-profile-deletion-validator-anchor.py
             python .github/patches/fix-profile-deletion-guard-string.py
-            python .github/patches/fix-profile-deletion-unused-import.py
             python .github/patches/apply-profile-deletion-protection.py
+            python .github/patches/fix-profile-deletion-unused-import.py
           } 2>&1 | tee profile-deletion-apply.log
       - name: Format product slice
         run: pnpm format
