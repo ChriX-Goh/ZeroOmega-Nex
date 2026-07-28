@@ -1,0 +1,46 @@
+name: Checkpoint typed locale batch one
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/checkpoint-typed-locale-batch-one.yml
+
+permissions:
+  contents: write
+
+jobs:
+  checkpoint:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Update and format durable status
+        run: |
+          python .github/patches/checkpoint-typed-locale-batch-one.py
+          pnpm exec prettier --write docs/MILESTONE_8_STATUS.md
+      - name: Commit checkpoint
+        run: |
+          git checkout HEAD -- .github/workflows/checkpoint-typed-locale-batch-one.yml
+          rm -f .github/patches/checkpoint-typed-locale-batch-one.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/MILESTONE_8_STATUS.md
+          git commit -m "docs: checkpoint typed locale batch one"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
