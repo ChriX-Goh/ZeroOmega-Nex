@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/integrate-sync-scope-decisions.yml
       - .github/patches/apply-sync-scope-decisions.py
+      - .github/patches/fix-sync-scope-validator.py
 
 permissions:
   contents: write
@@ -40,7 +41,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply synchronization scope decisions
-        run: python .github/patches/apply-sync-scope-decisions.py
+        run: |
+          python .github/patches/apply-sync-scope-decisions.py
+          python .github/patches/fix-sync-scope-validator.py
 
       - name: Format and verify repository
         run: |
@@ -56,7 +59,9 @@ jobs:
       - name: Commit verified decision slice
         run: |
           git checkout HEAD -- .github/workflows/integrate-sync-scope-decisions.yml
-          rm -f .github/patches/apply-sync-scope-decisions.py
+          rm -f \
+            .github/patches/apply-sync-scope-decisions.py \
+            .github/patches/fix-sync-scope-validator.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
