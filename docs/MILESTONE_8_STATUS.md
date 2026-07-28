@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `3f427b27a28bef113811599c578d989042403eb7` — Typed normal Options surfaces and Virtual Profile  
-**Latest integration verification:** run `30391735431` validates Built-in/About/shell/export/Virtual typed presentation, fresh locale inventory, full repository verification, and the complete Chromium interaction chain  
-**Last completed exact-Head verification:** `a8bf7529b40e900495c39fd76797dda61157f11d`; CI `30391968353`, Browser E2E `30391971791`, Parity Documentation `30391968361` passed  
+**Current product implementation head:** `d0d1e39bb2ba74cd7471438f21eb7fb301c0774f` — Typed imported Auto Detect and closed visible locale inventory  
+**Latest integration verification:** run `30393341874` validates fallback-only Auto Detect, locale inventory schema v2, zero untranslated user-visible candidates, full repository verification, and the complete Chromium migration chain  
+**Last completed exact-Head verification:** `eec8b0301e730550ccb27a9ed4b3742b3dc7754e`; CI `30393572363`, Browser E2E `30393572347`, Parity Documentation `30393572430` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -207,6 +207,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Auto Detect title, target-dependent help, fallback selector/options, route labels, and ARIA render directly in English, Simplified Chinese, and Traditional Chinese while preserving the existing Draft mutation and imported profile shape.
 - Chromium opens the source-backed `Auto Matrix` profile, verifies the typed zh-CN editor and selected `Target Proxy` fallback, confirms that Auto Detect still has no PAC export action, and continues through the full Virtual migration chain.
 - Locale inventory schema v2 classifies every remaining literal candidate. Verification now fails when any candidate is `user-visible-untranslated`; field keys, format names, keyboard keys, examples, stable technical codes, and scanner code fragments remain explicitly classified rather than mistranslated.
+- Integration run `30393341874`; product commit `d0d1e39bb2ba74cd7471438f21eb7fb301c0774f`; clean exact Head `eec8b0301e730550ccb27a9ed4b3742b3dc7754e` passed CI `30393572363`, Browser E2E `30393572347`, and Parity Documentation `30393572430`. Inventory schema v2 covers sixteen components, contains 25 classified technical candidates, and reports `untranslatedUserVisibleCount: 0`.
 
 ### Typed normal Options surfaces and Virtual Profile
 
