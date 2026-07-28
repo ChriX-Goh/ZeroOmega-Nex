@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** raw PAC activation/authentication product commit containing this document  
-**Latest integration verification:** run `30317075172` validates top-level raw PAC snapshots, browser activation, all-proxy authentication isolation, and Chromium runtime state with full `pnpm verify` and regression  
-**Last completed exact-Head verification:** `0c38408c3fa11fbac76eb55623057aac01e63461`; CI `30318764139`, Browser E2E `30318764071`, Parity Documentation `30318764078` passed  
+**Current product implementation head:** `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3` — Virtual creation/reference migration and Auto Detect fallback round-trip  
+**Latest integration verification:** run `30320204375` validates source-backed Virtual creation, complete typed reference migration, normal Apply, and Auto Detect fallback extension round-trip with full `pnpm verify` and Chromium regression  
+**Last completed exact-Head verification:** `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35`; CI `30320359259`, Browser E2E `30320359263`, Parity Documentation `30320359269` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -72,7 +72,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Original Virtual uses a target selector and a Replace Profile confirmation; replacement leaves both endpoint profiles intact while rewriting other profile references and global routes.
 - Nex performs this as one typed Draft transformation followed by the normal verified Apply transaction. Unit coverage now includes Startup, Quick Switch de-duplication, Switch rules/default, Rule List match/default, PAC/Auto Detect fallback, and other Virtual targets.
 - Chromium uses a separate user data directory, restores a source-backed schema-v2 cross-reference fixture, creates `Stable Alias` through the real four-type New Profile dialog, selects `Target Proxy`, confirms migration, verifies every typed route surface and both endpoint profiles, then commits through Apply.
-- Integration run `30320204375`; product commit containing this document.
+- Integration run `30320204375`; product commit `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3`; clean exact Head `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35` passed CI `30320359259`, Browser E2E `30320359263`, and Parity Documentation `30320359269`.
 
 ### Attached Rule List lifecycle and background updates
 
