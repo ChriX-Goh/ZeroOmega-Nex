@@ -36,10 +36,10 @@ text = text.replace(
     '    """  const modernRuleExport = await readFile(modernRulePath, \'utf8\');',
     '    r"""  const modernRuleExport = await readFile(modernRulePath, \'utf8\');',
 )
-broken_marker = '''  "uiMessage(\n        'options.exported'",'''
-fixed_marker = '''  `uiMessage(\n        'options.exported'`,'''
+broken_marker = r'''  "uiMessage(\n        'options.exported'",'''
+fixed_marker = r'''  `uiMessage(\n        'options.exported'`,'''
 if text.count(broken_marker) != 1:
-    raise SystemExit(f'{path}: expected one multiline export marker, found {text.count(broken_marker)}')
+    raise SystemExit(f'{path}: expected one escaped multiline export marker, found {text.count(broken_marker)}')
 text = text.replace(broken_marker, fixed_marker, 1)
 path.write_text(text)
-print('Fixed normal Options Chromium anchor and multiline locale guard marker.')
+print('Fixed normal Options Chromium anchor and escaped multiline locale guard marker.')
