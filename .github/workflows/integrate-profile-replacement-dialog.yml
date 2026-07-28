@@ -1,3 +1,4 @@
+# integration revision 2
 name: Integrate profile replacement dialog
 
 on:
@@ -43,6 +44,7 @@ jobs:
             set -x
             python .github/patches/fix-profile-replacement-patch.py
             python .github/patches/apply-profile-replacement-dialog.py
+            python .github/patches/fix-generated-profile-replacement-types.py
           } 2>&1 | tee profile-replacement-apply.log
       - name: Format product slice
         run: pnpm format
@@ -74,6 +76,7 @@ jobs:
           rm -f \
             .github/patches/fix-profile-replacement-patch.py \
             .github/patches/apply-profile-replacement-dialog.py \
+            .github/patches/fix-generated-profile-replacement-types.py \
             profile-replacement-apply.log \
             profile-replacement-verify.log \
             profile-replacement-e2e.log
