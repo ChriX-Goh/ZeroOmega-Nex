@@ -1,0 +1,121 @@
+name: Integrate online restore
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-online-restore.yml
+      - .github/patches/apply-online-restore-core.py
+      - .github/patches/fix-online-restore-core.py
+      - .github/patches/apply-online-restore-e2e-docs.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-online-restore-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply online restore slice
+        run: |
+          set -o pipefail
+          {
+            python .github/patches/apply-online-restore-core.py
+            python .github/patches/fix-online-restore-core.py
+            python .github/patches/apply-online-restore-e2e-docs.py
+          } 2>&1 | tee online-restore-apply.log
+
+      - name: Format product slice
+        run: |
+          set -o pipefail
+          pnpm format 2>&1 | tee online-restore-format.log
+
+      - name: Generate classified locale inventory
+        run: |
+          set -o pipefail
+          pnpm locale:inventory 2>&1 | tee online-restore-inventory.log
+          pnpm exec prettier --write docs/LOCALE_INVENTORY.json
+
+      - name: Verify repository
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee online-restore-verify.log
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Chromium E2E candidate
+        env:
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+
+      - name: Run Chromium online restore regression
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee online-restore-chromium.log
+
+      - name: Show Firefox version
+        run: firefox --version
+
+      - name: Build Firefox optional-origin candidate
+        run: pnpm build:firefox
+
+      - name: Run Firefox online restore regression
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox 2>&1 | tee online-restore-firefox.log
+
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-restore-${{ github.run_id }}
+          path: online-restore-*.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Commit verified product slice
+        run: |
+          git checkout HEAD -- .github/workflows/integrate-online-restore.yml
+          rm -f \
+            .github/patches/apply-online-restore-core.py \
+            .github/patches/fix-online-restore-core.py \
+            .github/patches/apply-online-restore-e2e-docs.py \
+            online-restore-apply.log \
+            online-restore-format.log \
+            online-restore-inventory.log \
+            online-restore-verify.log \
+            online-restore-chromium.log \
+            online-restore-firefox.log
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: add bounded online backup restore"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
