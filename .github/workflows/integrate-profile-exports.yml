@@ -1,4 +1,4 @@
-# integration revision 2
+# integration revision 3
 name: Integrate profile exports
 
 on:
@@ -42,6 +42,7 @@ jobs:
           set -o pipefail
           {
             set -x
+            python .github/patches/fix-profile-export-e2e-escape.py
             python .github/patches/apply-profile-exports.py
           } 2>&1 | tee profile-export-apply.log
       - name: Format product slice
@@ -74,6 +75,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-profile-exports.yml
           rm -f \
+            .github/patches/fix-profile-export-e2e-escape.py \
             .github/patches/apply-profile-exports.py \
             profile-export-apply.log \
             profile-export-format.log \
