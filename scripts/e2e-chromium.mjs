@@ -147,6 +147,28 @@ try {
     'Options Interface typed locale coverage regressed',
   );
 
+  await options.getByRole('button', { name: '内置情景模式', exact: true }).click();
+  const builtinSettings = options.locator('[data-builtin-settings][data-typed-locale="zh-CN"]');
+  await builtinSettings.waitFor({ state: 'visible', timeout: 20_000 });
+  await builtinSettings.getByRole('heading', { name: '内置情景模式', exact: true }).waitFor();
+  await options.getByLabel('直接连接情景模式颜色', { exact: true }).waitFor();
+  await options.getByLabel('系统代理情景模式颜色', { exact: true }).waitFor();
+  assert.doesNotMatch(
+    await options.locator('main').innerText(),
+    /Built-in Profiles|Connect without a proxy|operating-system proxy/u,
+    'Normal Options typed locale coverage regressed',
+  );
+
+  await options.locator('.side-brand button').click();
+  const aboutSettings = options.locator('[data-about-settings][data-typed-locale="zh-CN"]');
+  await aboutSettings.waitFor({ state: 'visible', timeout: 20_000 });
+  await aboutSettings.getByRole('heading', { name: '兼容性优先的延续版本', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await aboutSettings.innerText(),
+    /Compatibility-first continuation|This build preserves/u,
+    'Normal Options typed locale coverage regressed',
+  );
+
   await options.getByRole('button', { name: 'Proxy', exact: true }).click();
   await profileName.waitFor({ state: 'visible' });
 
@@ -1183,6 +1205,10 @@ try {
   const modernRulePath = await modernRuleDownload.path();
   assert.ok(modernRulePath, 'Modern Rule List download path was not available');
   const modernRuleExport = await readFile(modernRulePath, 'utf8');
+  await virtualOptions
+    .locator('[data-profile-export-status]')
+    .filter({ hasText: '已导出 OmegaRules_Route_Matrix.sorl。' })
+    .waitFor({ timeout: 20_000 });
   assert.match(modernRuleExport, /\[SwitchyOmega Conditions\]/u);
   assert.match(modernRuleExport, /; Require: ZeroOmega >= 2\.3\.2/u);
   assert.match(modernRuleExport, /\*\.virtual-migration\.invalid \+Target Proxy/u);
@@ -1278,6 +1304,12 @@ try {
   );
 
   await virtualOptions.locator('[data-new-profile-action]').click();
+  const newProfileShell = virtualOptions.locator(
+    '[data-new-profile-shell][data-typed-locale="zh-CN"]',
+  );
+  await newProfileShell
+    .getByText('按照原版 ZeroOmega 流程创建情景模式。', { exact: true })
+    .waitFor();
   const newVirtualDialog = virtualOptions.locator('.new-profile-dialog');
   await newVirtualDialog.waitFor({ state: 'visible', timeout: 20_000 });
   await newVirtualDialog.getByRole('heading', { name: '新建情景模式', exact: true }).waitFor();
@@ -1292,9 +1324,18 @@ try {
   await newVirtualName.fill('Stable Alias');
   await newVirtualDialog.locator('[data-new-profile-kind="virtual"]').check();
   await newVirtualDialog.locator('[data-new-profile-create]').click();
-  const virtualEditor = virtualOptions.locator('[data-virtual-profile-editor]');
+  const virtualEditor = virtualOptions.locator(
+    '[data-virtual-profile-editor][data-typed-locale="zh-CN"]',
+  );
   await virtualEditor.waitFor({ state: 'visible', timeout: 20_000 });
-  const virtualTarget = virtualEditor.locator('[data-virtual-target]');
+  await virtualEditor.getByRole('heading', { name: '目标情景模式', exact: true }).waitFor();
+  await virtualEditor.getByRole('heading', { name: '迁移到虚拟情景模式', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await virtualEditor.innerText(),
+    /Target profile|Migrate to Virtual Profile|Replace target profile/u,
+    'Virtual Profile typed locale coverage regressed',
+  );
+  const virtualTarget = virtualEditor.getByLabel('虚拟情景模式目标', { exact: true });
   await virtualTarget.selectOption({ label: 'Target Proxy' });
   const virtualIds = await assertEventuallyValue(async () => {
     return virtualWorker.evaluate(async () => {

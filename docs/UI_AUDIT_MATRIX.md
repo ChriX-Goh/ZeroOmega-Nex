@@ -204,3 +204,4 @@
 | 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁 |
 | 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环               |
 | 2026-07-29 | 完成 Temporary Rules/Network typed 三语、safe error、Chromium 完整交互及 Firefox zh-TW 页面守卫                               |
+| 2026-07-29 | 完成正常 Options/Virtual typed 三语、导出状态与 Chromium 实际页面/迁移守卫                                                    |

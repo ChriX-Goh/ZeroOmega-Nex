@@ -36,8 +36,8 @@
   import { onMount } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
-  import { currentAppLocale, translate } from '../../lib/i18n';
-  import { profileKindText, uiText } from '../../lib/ui-messages';
+  import { currentAppLocale } from '../../lib/i18n';
+  import { profileKindText, uiMessage, uiText } from '../../lib/ui-messages';
   import {
     createProfilePacExport,
     createSwitchRuleListExport,
@@ -533,10 +533,11 @@
       });
       if (!result.ok) throw new Error(result.issues.join(' '));
       downloadProfileText(result.exported);
-      profileExportMessage =
-        result.exported.warnings.length === 0
-          ? `Exported ${result.exported.filename}.`
-          : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
+      profileExportMessage = uiMessage(
+        'options.exported',
+        { filename: result.exported.filename, warnings: result.exported.warnings.length },
+        locale,
+      );
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
     } finally {
@@ -555,10 +556,11 @@
       });
       if (!result.ok) throw new Error(result.issues.join(' '));
       downloadProfileText(result.exported);
-      profileExportMessage =
-        result.exported.warnings.length === 0
-          ? `Exported ${result.exported.filename}.`
-          : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
+      profileExportMessage = uiMessage(
+        'options.exported',
+        { filename: result.exported.filename, warnings: result.exported.warnings.length },
+        locale,
+      );
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
     } finally {
@@ -933,7 +935,7 @@
     <header class="side-brand">
       <button type="button" onclick={() => void navigate('about')}>
         <span class="brand-mark" aria-hidden="true">Ω</span>
-        <span>Zero Omega</span>
+        <span>{productIdentity.name}</span>
       </button>
     </header>
 
@@ -1309,10 +1311,10 @@
         onRollbackSnapshot={rollbackSnapshot}
       />
     {:else if activeSection === 'builtin' && state}
-      <header class="editor-heading">
+      <header class="editor-heading" data-builtin-settings data-typed-locale={locale}>
         <div>
-          <h1>Built-in Profiles</h1>
-          <p>Direct and System Proxy are always available.</p>
+          <h1>{uiText('options.nav.builtIn', locale)}</h1>
+          <p>{uiText('options.builtin.help', locale)}</p>
         </div>
       </header>
       <section class="settings-section builtin-grid">
@@ -1321,8 +1323,10 @@
             kind="direct"
             color={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
             size={28}
-          /><strong>Direct</strong><span>Connect without a proxy.</span><input
-            aria-label="Direct profile color"
+          /><strong>{uiText('route.direct', locale)}</strong><span
+            >{uiText('options.builtin.directHelp', locale)}</span
+          ><input
+            aria-label={uiText('options.builtin.directColorAria', locale)}
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
             disabled={saving || view?.busy}
@@ -1334,9 +1338,10 @@
             kind="system"
             color={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
             size={28}
-          /><strong>System Proxy</strong><span>Use the browser or operating-system proxy.</span
+          /><strong>{uiText('route.system', locale)}</strong><span
+            >{uiText('options.builtin.systemHelp', locale)}</span
           ><input
-            aria-label="System profile color"
+            aria-label={uiText('options.builtin.systemColorAria', locale)}
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
             disabled={saving || view?.busy}
@@ -1345,9 +1350,14 @@
         >
       </section>
     {:else if activeSection === 'new-profile'}
-      <section class="settings-section shell-status" aria-hidden="true">
-        <h1>Profiles</h1>
-        <p>Create a profile using the original ZeroOmega workflow.</p>
+      <section
+        class="settings-section shell-status"
+        data-new-profile-shell
+        data-typed-locale={locale}
+        aria-hidden="true"
+      >
+        <h1>{uiText('options.nav.profiles', locale)}</h1>
+        <p>{uiText('options.newProfileShell.help', locale)}</p>
       </section>
       {#if state}
         <NewProfileDialog
@@ -1359,19 +1369,18 @@
         />
       {/if}
     {:else if activeSection === 'about'}
-      <header class="editor-heading">
-        <div>
-          <h1>ZeroOmega Nex</h1>
-          <p>{productIdentity.milestone}</p>
-        </div>
-      </header>
-      <section class="settings-section">
-        <h2>Compatibility-first continuation</h2>
-        <p>
-          This build preserves the original ZeroOmega navigation and migration workflow while
-          replacing the proxy control plane with a verified cross-browser implementation.
-        </p>
-      </section>
+      <div data-about-settings data-typed-locale={locale}>
+        <header class="editor-heading">
+          <div>
+            <h1>{productIdentity.name}</h1>
+            <p>{productIdentity.milestone}</p>
+          </div>
+        </header>
+        <section class="settings-section">
+          <h2>{uiText('options.about.compatibilityTitle', locale)}</h2>
+          <p>{uiText('options.about.compatibilityHelp', locale)}</p>
+        </section>
+      </div>
     {:else if selectedProfile && state}
       <header class="editor-heading">
         <div class="profile-title">
@@ -1392,22 +1401,22 @@
               class:warning={ruleListExportWarning.length > 0}
               data-profile-export-rule-list
               data-profile-export-rule-list-warning={ruleListExportWarning.length > 0}
-              title={ruleListExportWarning || 'Export this Switch Profile as a rule-list file.'}
+              title={ruleListExportWarning || uiText('options.export.ruleListTitle', locale)}
               disabled={view?.busy || saving || profileExporting}
               onclick={() => void exportSelectedRuleList()}
             >
-              {translate('Publish rule list')}
+              {uiText('options.export.ruleList', locale)}
             </button>
           {/if}
           {#if selectedProfile.kind !== 'auto-detect'}
             <button
               type="button"
               data-profile-export-pac
-              title="Export the current profile as a PAC file for another browser."
+              title={uiText('options.export.pacTitle', locale)}
               disabled={view?.busy || saving || profileExporting}
               onclick={() => void exportSelectedPac()}
             >
-              {translate('Export PAC')}
+              {uiText('options.export.pac', locale)}
             </button>
           {/if}
           <button
@@ -1478,6 +1487,7 @@
         {/key}
       {:else if virtualProfile}
         <VirtualProfileEditor
+          {locale}
           spec={state.draft}
           profileId={virtualProfile.id}
           disabled={saving || view?.busy === true}
@@ -1516,11 +1526,9 @@
         />
       {/if}
     {:else}
-      <section class="settings-section shell-status">
-        <h1>No user profiles</h1>
-        <p>
-          Create a new profile from the left navigation or restore an original ZeroOmega backup.
-        </p>
+      <section class="settings-section shell-status" data-empty-profiles data-typed-locale={locale}>
+        <h1>{uiText('options.empty.title', locale)}</h1>
+        <p>{uiText('options.empty.help', locale)}</p>
       </section>
     {/if}
   </main>

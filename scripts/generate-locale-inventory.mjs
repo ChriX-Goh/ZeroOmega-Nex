@@ -16,6 +16,7 @@ const typedBatchFiles = [
   'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
   'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
   'apps/extension/src/entrypoints/options/ThemePanel.svelte',
+  'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte',
   'apps/extension/src/entrypoints/popup/App.svelte',
   'apps/extension/src/entrypoints/temp-rules/App.svelte',
   'apps/extension/src/entrypoints/network/App.svelte',

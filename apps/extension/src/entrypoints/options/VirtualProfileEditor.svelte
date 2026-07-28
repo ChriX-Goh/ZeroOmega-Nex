@@ -8,6 +8,10 @@
   } from '@zeroomega-nex/profile-spec';
   import { attachedRuleListProfileIds } from '@zeroomega-nex/profile-workflow';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiText } from '../../lib/ui-messages';
+
+  export let locale: AppLocale = currentAppLocale();
   export let spec: ProfileSpec;
   export let profileId: string;
   export let disabled = false;
@@ -57,38 +61,34 @@
 </script>
 
 {#if profile}
-  <section class="settings-section" data-virtual-profile-editor>
-    <h2>Target profile</h2>
-    <p class="section-help">
-      A virtual profile is a stable alias. Change this target later without editing every rule that
-      refers to the virtual profile.
-    </p>
-    <select
-      aria-label="Virtual Profile target"
-      data-virtual-target
-      value={routeValue(profile.targetRoute)}
-      {disabled}
-      on:change={(event) => updateTarget((event.currentTarget as HTMLSelectElement).value)}
-    >
-      <option value="direct">Direct</option>
-      <option value="system">System Proxy</option>
-      {#each candidates as candidate (candidate.id)}
-        <option value={`profile:${candidate.id}`}>{candidate.name}</option>
-      {/each}
-    </select>
-  </section>
+  <div data-virtual-profile-editor data-typed-locale={locale}>
+    <section class="settings-section">
+      <h2>{uiText('virtual.target.title', locale)}</h2>
+      <p class="section-help">{uiText('virtual.target.help', locale)}</p>
+      <select
+        aria-label={uiText('virtual.target.aria', locale)}
+        data-virtual-target
+        value={routeValue(profile.targetRoute)}
+        {disabled}
+        on:change={(event) => updateTarget((event.currentTarget as HTMLSelectElement).value)}
+      >
+        <option value="direct">{uiText('route.direct', locale)}</option>
+        <option value="system">{uiText('route.system', locale)}</option>
+        {#each candidates as candidate (candidate.id)}
+          <option value={`profile:${candidate.id}`}>{candidate.name}</option>
+        {/each}
+      </select>
+    </section>
 
-  <section class="settings-section">
-    <h2>Migrate to Virtual Profile</h2>
-    <p class="section-help">
-      Replace references to the selected target with this virtual profile. Future target changes can
-      then be made here in one place.
-    </p>
-    <button
-      type="button"
-      data-virtual-replace
-      disabled={disabled || profile.targetRoute.kind !== 'profile'}
-      on:click={replaceTargetReferences}>Replace target profile</button
-    >
-  </section>
+    <section class="settings-section">
+      <h2>{uiText('virtual.migrate.title', locale)}</h2>
+      <p class="section-help">{uiText('virtual.migrate.help', locale)}</p>
+      <button
+        type="button"
+        data-virtual-replace
+        disabled={disabled || profile.targetRoute.kind !== 'profile'}
+        on:click={replaceTargetReferences}>{uiText('virtual.migrate.action', locale)}</button
+      >
+    </section>
+  </div>
 {/if}

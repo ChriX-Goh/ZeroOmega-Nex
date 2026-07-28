@@ -659,6 +659,42 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Replace target profile');
   });
 
+  it('renders the typed Virtual Profile editor in both Chinese locales', () => {
+    const mutation = createVirtualProfileDraft(baseSpec(), idFactory(), '虛擬');
+    const simplified = render(VirtualProfileEditor, {
+      props: {
+        locale: 'zh-CN',
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+        onRequestReplacement: async () => undefined,
+      },
+    }).body;
+    expect(simplified).toContain('data-typed-locale="zh-CN"');
+    expect(simplified).toContain('目标情景模式');
+    expect(simplified).toContain('迁移到虚拟情景模式');
+    expect(simplified).toContain('替换目标情景模式');
+    expect(simplified).not.toContain('Target profile');
+    expect(simplified).not.toContain('Migrate to Virtual Profile');
+
+    const traditional = render(VirtualProfileEditor, {
+      props: {
+        locale: 'zh-TW',
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+        onRequestReplacement: async () => undefined,
+      },
+    }).body;
+    expect(traditional).toContain('data-typed-locale="zh-TW"');
+    expect(traditional).toContain('目標情境模式');
+    expect(traditional).toContain('移轉到虛擬情境模式');
+    expect(traditional).toContain('取代目標情境模式');
+    expect(traditional).not.toContain('Target profile');
+  });
+
   it('renders typed Temporary Rules and Network loading shells in both Chinese locales', () => {
     const temporaryRules = render(TemporaryRulesApp, {
       props: { locale: 'zh-CN' },

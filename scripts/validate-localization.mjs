@@ -16,6 +16,7 @@ const files = {
   popup: 'apps/extension/src/entrypoints/popup/App.svelte',
   temporaryRules: 'apps/extension/src/entrypoints/temp-rules/App.svelte',
   network: 'apps/extension/src/entrypoints/network/App.svelte',
+  virtual: 'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte',
   chromiumE2e: 'scripts/e2e-chromium.mjs',
   firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
@@ -60,6 +61,7 @@ for (const [name, source] of [
   ['Popup', entries.popup],
   ['Temporary Rules', entries.temporaryRules],
   ['Network', entries.network],
+  ['Virtual Profile', entries.virtual],
 ]) {
   requireText(
     source,
@@ -228,6 +230,43 @@ for (const [source, marker, message] of [
     'error instanceof Error ? error.message',
     'Network diagnostics must not render raw exception messages.',
   ],
+  [
+    entries.virtual,
+    '<h2>Target profile</h2>',
+    'Virtual target title regressed to literal English.',
+  ],
+  [
+    entries.virtual,
+    'aria-label="Virtual Profile target"',
+    'Virtual target ARIA regressed to literal English.',
+  ],
+  [
+    entries.virtual,
+    '>Replace target profile</button>',
+    'Virtual migration action regressed to literal English.',
+  ],
+  [entries.app, '<h1>Built-in Profiles</h1>', 'Built-in page title regressed to literal English.'],
+  [
+    entries.app,
+    '<h2>Compatibility-first continuation</h2>',
+    'About compatibility text regressed to literal English.',
+  ],
+  [entries.app, '<h1>No user profiles</h1>', 'Empty profile state regressed to literal English.'],
+  [
+    entries.app,
+    "translate('Publish rule list')",
+    'Profile Rule List export action regressed to the observer translation layer.',
+  ],
+  [
+    entries.app,
+    "translate('Export PAC')",
+    'Profile PAC export action regressed to the observer translation layer.',
+  ],
+  [
+    entries.app,
+    '`Exported ${result.exported.filename}.`',
+    'Profile export status regressed to literal English.',
+  ],
   [entries.app, '<h1>General</h1>', 'General heading regressed to literal English.'],
   [entries.app, '<h1>Interface</h1>', 'Interface heading regressed to literal English.'],
   [
@@ -337,6 +376,39 @@ requireText(
   entries.firefoxE2e,
   '[data-network-diagnostics][data-typed-locale="zh-TW"]',
   'Firefox Network typed-locale coverage is missing.',
+);
+
+requireText(
+  entries.app,
+  `uiMessage(
+        'options.exported'`,
+  'Profile export status must use the typed dynamic message.',
+);
+requireText(
+  entries.app,
+  'data-builtin-settings data-typed-locale={locale}',
+  'Built-in Profiles must expose typed browser evidence.',
+);
+requireText(
+  entries.app,
+  'data-about-settings data-typed-locale={locale}',
+  'About must expose typed browser evidence.',
+);
+requireText(
+  entries.app,
+  `<VirtualProfileEditor
+          {locale}`,
+  'Options must pass locale to Virtual Profile.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Normal Options typed locale coverage regressed',
+  'Chromium normal Options typed-locale coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Virtual Profile typed locale coverage regressed',
+  'Chromium Virtual Profile typed-locale coverage is missing.',
 );
 requireText(
   entries.catalog,

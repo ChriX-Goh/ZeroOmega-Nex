@@ -565,6 +565,9 @@ const requirements = [
       profileExport.includes('advanced conditions require the SwitchyOmega .sorl format') &&
       optionsApp.includes('data-profile-export-rule-list') &&
       optionsApp.includes('data-profile-export-pac') &&
+      optionsApp.includes("uiText('options.export.ruleList', locale)") &&
+      optionsApp.includes("uiText('options.export.pac', locale)") &&
+      optionsApp.includes("uiMessage(\n        'options.exported'") &&
       optionsApp.includes('commitActiveProfileEditor') &&
       optionsApp.includes('downloadProfileText') &&
       chromiumE2e.includes('OmegaRules_Route_Matrix.sorl') &&
@@ -658,6 +661,17 @@ const requirements = [
     'Options must provide typed Automatic, Light, and Dark appearance modes while sharing the selected theme with Popup.',
   ],
   [
+    optionsApp.includes('data-builtin-settings data-typed-locale={locale}') &&
+      optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&
+      optionsApp.includes('data-about-settings data-typed-locale={locale}') &&
+      optionsApp.includes("uiText('options.about.compatibilityTitle', locale)") &&
+      optionsApp.includes('data-new-profile-shell') &&
+      optionsApp.includes('data-empty-profiles') &&
+      !optionsApp.includes('<span>Zero Omega</span>') &&
+      chromiumE2e.includes('Normal Options typed locale coverage regressed'),
+    'Built-in Profiles, About, new-profile shell, empty state, branding, and profile export presentation must render through the typed catalog.',
+  ],
+  [
     ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
       fixedProfile.includes(`key: '${scheme}'`),
     ) &&
@@ -688,6 +702,9 @@ const requirements = [
       optionsApp.includes('onRegisterBeforeAction={registerBeforeProfileEditorAction}') &&
       optionsApp.includes('data-new-profile-action') &&
       virtualProfile.includes('data-virtual-profile-editor') &&
+      virtualProfile.includes('data-typed-locale={locale}') &&
+      virtualProfile.includes("uiText('virtual.target.title', locale)") &&
+      virtualProfile.includes("uiText('virtual.migrate.action', locale)") &&
       virtualProfile.includes('data-virtual-target') &&
       virtualProfile.includes('data-virtual-replace') &&
       profileOperations.includes('replaceProfileReferencesDraft') &&

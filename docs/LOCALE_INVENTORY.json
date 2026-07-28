@@ -13,11 +13,12 @@
     "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
     "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
     "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+    "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
     "apps/extension/src/entrypoints/popup/App.svelte",
     "apps/extension/src/entrypoints/temp-rules/App.svelte",
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 90,
+  "candidateCount": 62,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -211,16 +212,6 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
-      "text": "Direct profile color"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
-      "text": "System profile color"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
       "text": "addConditionsToBottom"
     },
@@ -232,27 +223,12 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "Export PAC"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Export this Switch Profile as a rule-list file."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
       "text": "exportLegacyRuleList"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
       "text": "monitorWebRequests"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Publish rule list"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -278,81 +254,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
       "text": "showResultProfileOnActionBadgeText"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Built-in Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Compatibility-first continuation"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Connect without a proxy."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Create a new profile from the left navigation or restore an original ZeroOmega backup."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Create a profile using the original ZeroOmega workflow."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Direct"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Direct and System Proxy are always available."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "No user profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "System Proxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "This build preserves the original ZeroOmega navigation and migration workflow while replacing the proxy control plane with a verified cross-browser implementation."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Use the browser or operating-system proxy."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Zero Omega"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "ZeroOmega Nex"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "title",
-      "text": "Export the current profile as a PAC file for another browser."
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
@@ -428,46 +329,6 @@
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
       "text": "startHour"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Virtual Profile target"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "A virtual profile is a stable alias. Change this target later without editing every rule that refers to the virtual profile."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "Direct"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "Migrate to Virtual Profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "Replace references to the selected target with this virtual profile. Future target changes can then be made here in one place."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "Replace target profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "System Proxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
-      "kind": "text",
-      "text": "Target profile"
     }
   ]
 }

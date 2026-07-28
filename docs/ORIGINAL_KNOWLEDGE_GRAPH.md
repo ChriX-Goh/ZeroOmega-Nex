@@ -487,3 +487,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Network diagnostics remain explicit-session and bounded: monitoring starts only from the diagnostics page, stores sanitized failures in session storage, renders URLs as non-navigating code, and never collects headers, bodies, cookies, credentials, query strings, fragments, or response content.
 - Both pages resolve one typed locale at entry, render all user-facing labels/status/ARIA through `ui-messages.ts`, and replace unstable backend or exception prose with safe semantic summaries. Stable request error codes remain visible as technical evidence.
 - Chromium proves zh-CN temporary-rule deletion plus diagnostics start/capture/clear/stop. Firefox proves zh-TW empty/stopped shells without granting or starting request monitoring.
+
+### Normal Options and Virtual typed presentation boundary
+
+- Built-in Profiles, About, new-profile/empty shells, product branding, and profile export presentation are part of the normal Options information architecture and resolve through the typed three-locale catalog.
+- Profile exports still commit the active editor first, preserve Draft/Applied separation, use the original filenames/MIME contracts, and expose warning counts without rendering raw issue text.
+- Virtual target changes remain ordinary Draft mutations. General reference replacement still requires the existing Apply boundary and rewrites every typed route surface without deleting either endpoint profile.
+- Chromium verifies the real zh-CN Built-in, About, export status, and Virtual migration path. Imported Auto Detect remains a separate compatibility editor and is not claimed by this slice.

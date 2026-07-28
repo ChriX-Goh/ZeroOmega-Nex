@@ -201,6 +201,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Typed normal Options surfaces and Virtual Profile
+
+- Built-in Profiles, About, new-profile shell, empty-profile state, product branding, profile export actions/titles/status, and Virtual target/migration controls now render directly in English, Simplified Chinese, and Traditional Chinese.
+- Profile export keeps the existing Draft commit, warning calculation, filenames, MIME types, and download semantics; only the visible action/title/status contract moved to typed messages.
+- Virtual keeps the same target Draft mutation and complete reference-replacement workflow. Direct/System route labels and target/migration ARIA now use the shared semantic catalog.
+- Chromium visits the real Built-in and About pages, verifies localized color controls, observes localized profile export status, and completes the existing Virtual creation/reference migration chain through the typed zh-CN editor.
+
 ### Typed Temporary Rules and Network
 
 - Temporary Rules and Network now directly render English, Simplified Chinese, and Traditional Chinese for page shells, tables, actions, empty/loading/error states, permission/session status, dynamic bounds, titles, buttons, and ARIA.
@@ -266,7 +273,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Audit and migrate the remaining literal-English Options surfaces from `docs/LOCALE_INVENTORY.json`, beginning with Built-in Profiles, About, new-profile shell text, profile headers/export actions, and any residual lifecycle status while preserving the original navigation and Draft/Applied boundaries.
+Audit the remaining imported Auto Detect editor and classify residual locale inventory entries as user-visible text, stable technical identifiers, or non-rendered source tokens before deciding the final localization slice.
 
 ### Typed locale inventory and first vertical batch
 
