@@ -621,6 +621,19 @@
               "items": {
                 "$ref": "#/$defs/ruleSourceHeader"
               }
+            },
+            "credential": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["passwordSecretRef"],
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "passwordSecretRef": {
+                  "$ref": "#/$defs/identifier"
+                }
+              }
             }
           }
         },

@@ -347,6 +347,7 @@ function profileSpecReferencesSecret(spec: ProfileSpec, secretRef: string): bool
     }
   }
   for (const profile of spec.profiles) {
+    if (profile.kind === 'pac' && profile.credential?.passwordSecretRef === secretRef) return true;
     if (
       profile.kind === 'pac' &&
       profile.headers?.some(

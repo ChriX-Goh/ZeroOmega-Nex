@@ -60,6 +60,12 @@ const originalBackupProvenancePath =
   'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json';
 const pacProfileEditorPath = 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte';
 const pacSourceUpdatePath = 'packages/profile-workflow/src/pac-source-update.ts';
+const rawPacSnapshotPath = 'packages/pac-compiler/src/raw-snapshot.ts';
+const profileWorkflowActivationPath = 'apps/extension/src/lib/profile-workflow-activation.ts';
+const proxyAuthenticationPath = 'packages/browser-adapters/src/authentication.ts';
+const proxyAuthenticationPlanPath = 'packages/browser-adapters/src/authentication-plan.ts';
+const proxyAuthenticationPermissionClientPath =
+  'apps/extension/src/lib/proxy-auth-permission-client.ts';
 const independentRuleListEditorPath =
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte';
 
@@ -172,6 +178,11 @@ const [
   independentRuleListEditor,
   pacProfileEditor,
   pacSourceUpdate,
+  rawPacSnapshot,
+  profileWorkflowActivation,
+  proxyAuthentication,
+  proxyAuthenticationPlan,
+  proxyAuthenticationPermissionClient,
 ] = await Promise.all([
   readFile(nativeInspectE2ePath, 'utf8'),
   readFile(browserE2eWorkflowPath, 'utf8'),
@@ -181,6 +192,11 @@ const [
   readFile(independentRuleListEditorPath, 'utf8'),
   readFile(pacProfileEditorPath, 'utf8'),
   readFile(pacSourceUpdatePath, 'utf8'),
+  readFile(rawPacSnapshotPath, 'utf8'),
+  readFile(profileWorkflowActivationPath, 'utf8'),
+  readFile(proxyAuthenticationPath, 'utf8'),
+  readFile(proxyAuthenticationPlanPath, 'utf8'),
+  readFile(proxyAuthenticationPermissionClientPath, 'utf8'),
 ]);
 
 const requirements = [
@@ -378,8 +394,26 @@ const requirements = [
       chromiumE2e.includes('data-pac-source-update-now') &&
       chromiumE2e.includes("name: 'Clear PAC URL'") &&
       legacyImportImplementation.includes('pac.downloaded-cache-preserved') &&
-      legacyExport.includes('profile.source.script !== undefined'),
-    'PAC URL sources must preserve imported/downloaded cache, use bounded background update records and headers, render original URL/script/file-warning state, and retain Clear URL → inline semantics with Chromium coverage.',
+      legacyImportImplementation.includes('secret.unknown-pac-auth-slot') &&
+      legacyExport.includes('profile.source.script !== undefined') &&
+      legacyExport.includes('secret.pac-credential-omitted') &&
+      pacProfileEditor.includes('data-pac-authentication') &&
+      pacProfileEditor.includes('data-pac-auth-dialog') &&
+      pacProfileEditor.includes('onReplaceDraftWithSecrets') &&
+      pacProfileEditor.includes('onRequestAuthenticationPermission') &&
+      pacProfileEditor.includes('Proxy authentication permission was not granted.') &&
+      proxyAuthenticationPermissionClient.includes("'webRequestAuthProvider'") &&
+      proxyAuthenticationPermissionClient.includes("'webRequestBlocking'") &&
+      proxyAuthenticationPermissionClient.includes("'http://*/*'") &&
+      rawPacSnapshot.includes("RAW_PAC_SNAPSHOT_VERSION = 'raw-pac/1'") &&
+      rawPacSnapshot.includes("mode: 'structural'") &&
+      profileWorkflowActivation.includes('createRawPacSnapshot') &&
+      profileWorkflowActivation.includes('const rawScript = rawPacScript(spec, route)') &&
+      proxyAuthentication.includes("scope: 'all-proxies'") &&
+      proxyAuthenticationPlan.includes("profile?.kind === 'pac'") &&
+      chromiumE2e.includes("snapshot?.compilerVersion === 'raw-pac/1'") &&
+      chromiumE2e.includes("bindings[0]?.scope === 'all-proxies'"),
+    'PAC must preserve remote cache and original editor states, install arbitrary scripts only as structurally verified top-level raw snapshots, keep nested composition unsupported, and isolate one all-proxy authentication credential in background storage with Chromium evidence.',
   ],
   [
     popupStyle.includes("font-family: 'Segoe UI'"),

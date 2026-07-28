@@ -396,3 +396,9 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - PAC Profile 的 URL 与脚本不是互斥丢弃关系：URL 非空表示 remote 模式，`source.script` 保存最近下载缓存；修改 URL 保留缓存但因更新账本 URL 不匹配而标记 obsolete/stale；清空 URL 将同一缓存转为可编辑 inline script。
 - PAC 远程更新复用已验证的后台 downloader、secret header、10 秒/4 MiB 边界、CAS 与单一 alarms 调度器。持久状态仍使用兼容的 `ruleSourceUpdates` 账本，但 PAC 项以 `pac:<profileId>` 键隔离；ProfileSpec 不保存 `lastUpdate` 等运行时字段。
 - `file:` PAC 不通过后台下载器；独立编辑页按原版显示本地文件警告，隐藏缓存脚本文本，并在被其他 Profile 引用时明确报错。真正的文件 PAC 激活能力仍需目标适配器范围决定。
+
+- 任意 PAC Script 只有“直接作为顶层活动 PAC Profile”时可安装；Switch/Rule List/Virtual 中嵌套引用仍进入 typed PAC capability analysis，并因无法安全组合任意脚本而明确拒绝。顶层脚本生成 `raw-pac/1` 快照，要求非空、无 NUL、存在 `FindProxyForURL`、不超过统一脚本预算；记录 ProfileSpec/script 哈希、target-dependent 警告和 structural 验证，再复用浏览器 install→confirm→rollback/last-known-good 事务。
+- `file:` PAC 当前明确不由 inline browser adapter 激活；UI 保留原版警告与“被引用时错误”，运行时在准备认证和修改浏览器前失败。此限制必须作为 target 能力决策保留，不能静默改用旧缓存。
+- 原版 PAC `auth.all` 映射为 PacProfile 的一个 `credential` secret ref；密码只存在后台 proxy-auth secret store。顶层 PAC 激活时注册一个 `all-proxies` binding，只响应代理 Basic/Digest challenge；精确 endpoint binding 优先，多个 wildcard binding 视为歧义并拒绝，普通网站认证永不响应。普通 `.bak` 明确省略该凭据并告警。
+
+- PAC `auth.all` 保存必须先由 Options 用户手势请求认证权限：Chromium=`webRequest + webRequestAuthProvider + http/https origins`，Firefox=`webRequest + webRequestBlocking + http/https origins`。拒绝或异常时不写 ProfileSpec credential、secret 或 active binding；授权后仍由激活事务决定何时注册 listener。

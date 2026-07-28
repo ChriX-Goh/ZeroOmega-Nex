@@ -29,6 +29,11 @@ export {
 export { sha256Hex } from './hash.js';
 export { verifyPacReferenceSafety } from './reference-safety.js';
 export {
+  createRawPacSnapshot,
+  RAW_PAC_SNAPSHOT_VERSION,
+  type RawPacSnapshotResult,
+} from './raw-snapshot.js';
+export {
   createVerifiedPacSnapshot,
   type PacRuntimeSnapshot,
   type PacSnapshotContext,

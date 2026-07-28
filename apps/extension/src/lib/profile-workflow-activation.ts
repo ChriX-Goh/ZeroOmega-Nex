@@ -8,6 +8,8 @@ import {
 } from '@zeroomega-nex/browser-adapters';
 import {
   createBrowserSafePacSnapshot,
+  createRawPacSnapshot,
+  type PacRuntimeSnapshot,
   type PacTarget,
   type PacVerificationVector,
 } from '@zeroomega-nex/pac-compiler';
@@ -282,6 +284,40 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function rawPacScript(spec: ProfileSpec, route: ProfileRouteTarget): string | undefined {
+  if (route.kind !== 'profile') return undefined;
+  const profile = spec.profiles.find((candidate) => candidate.id === route.profileId);
+  if (!profile || profile.kind !== 'pac') return undefined;
+  if (profile.source.kind === 'inline') return profile.source.script;
+  let protocol: string;
+  try {
+    protocol = new URL(profile.source.url).protocol;
+  } catch {
+    throw new Error(`PAC profile ${profile.name} has an invalid source URL`);
+  }
+  if (protocol === 'file:') {
+    throw new Error(
+      `PAC profile ${profile.name} uses a local file URL, which is not supported by the inline browser adapter`,
+    );
+  }
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    throw new Error(`PAC profile ${profile.name} uses unsupported URL protocol ${protocol}`);
+  }
+  if (profile.source.script === undefined) {
+    throw new Error(`PAC profile ${profile.name} has no downloaded script cache`);
+  }
+  return profile.source.script;
+}
+
+function rawSnapshotFailureMessage(
+  result: Exclude<Awaited<ReturnType<typeof createRawPacSnapshot>>, { ok: true }>,
+): string {
+  return result.issues
+    .slice(0, 8)
+    .map((issue) => `${issue.code}: ${issue.message}`)
+    .join('; ');
+}
+
 function snapshotFailureMessage(
   result: Exclude<Awaited<ReturnType<typeof createBrowserSafePacSnapshot>>, { ok: true }>,
 ): string {
@@ -365,6 +401,7 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
   ): Promise<ProfileWorkflowActivationResult> {
     const route: ProfileRouteTarget = startRoute ??
       spec.settings.startup.route ?? { kind: 'direct' };
+    const rawScript = rawPacScript(spec, route);
     const authenticationPlan = createProxyAuthenticationPlan(spec, route);
     if (authenticationPlan.unsupported.length > 0) {
       const endpoints = authenticationPlan.unsupported
@@ -421,28 +458,42 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
                 this.#temporarySnapshotNonce(),
               )
             : undefined;
-        const snapshot = await createBrowserSafePacSnapshot(
-          spec,
-          route,
-          buildProfileWorkflowVerificationVectors(spec),
-          {
-            createdAt: startedAt,
-            ...(temporarySnapshotId === undefined ? {} : { snapshotId: temporarySnapshotId }),
-          },
-          { target: targetFor(runtime.driver) },
-        );
-        if (!snapshot.ok) {
-          throw new Error(
-            `${snapshot.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(snapshot)}`,
+        let snapshot: PacRuntimeSnapshot;
+        if (rawScript === undefined) {
+          const generated = await createBrowserSafePacSnapshot(
+            spec,
+            route,
+            buildProfileWorkflowVerificationVectors(spec),
+            {
+              createdAt: startedAt,
+              ...(temporarySnapshotId === undefined ? {} : { snapshotId: temporarySnapshotId }),
+            },
+            { target: targetFor(runtime.driver) },
           );
+          if (!generated.ok) {
+            throw new Error(
+              `${generated.stage === 'compile' ? 'PAC compilation' : 'PAC verification'} failed: ${snapshotFailureMessage(generated)}`,
+            );
+          }
+          snapshot = generated.snapshot;
+        } else {
+          const raw = await createRawPacSnapshot(
+            spec,
+            route,
+            rawScript,
+            { createdAt: startedAt },
+            targetFor(runtime.driver),
+          );
+          if (!raw.ok) {
+            throw new Error(`Raw PAC validation failed: ${rawSnapshotFailureMessage(raw)}`);
+          }
+          snapshot = raw.snapshot;
         }
 
-        const activated = await activatePacSnapshot(
-          runtime.repository,
-          runtime.driver,
-          snapshot.snapshot,
-          { startedAt, failedAt: this.#now().toISOString() },
-        );
+        const activated = await activatePacSnapshot(runtime.repository, runtime.driver, snapshot, {
+          startedAt,
+          failedAt: this.#now().toISOString(),
+        });
         if (!activated.ok) {
           throw new Error(
             `browser proxy activation failed at ${activated.stage}: ${activated.message}`,

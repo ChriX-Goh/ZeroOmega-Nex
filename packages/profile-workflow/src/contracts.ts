@@ -63,7 +63,7 @@ export interface ProfileWorkflowSnapshotHistoryEntry {
   readonly sourceProfileSpecSha256Prefix: string;
   readonly verification: {
     readonly passed: true;
-    readonly mode?: 'differential' | 'reference-safety';
+    readonly mode?: 'differential' | 'reference-safety' | 'structural';
     readonly vectorCount: number;
     readonly matchedCount: number;
   };

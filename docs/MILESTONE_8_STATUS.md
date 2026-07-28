@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** independent Rule List editor product commit containing this document  
-**Latest integration verification:** run `30303532476` validates the original independent Rule List Config/URL/Text editor, bounded remote update, URL-clear inline restoration, and Chromium interaction with full `pnpm verify` and regression  
-**Last completed exact-Head verification:** `43361d20e065fc83c0fadf54b19ef787df8700f7`; CI `30301191730`, Browser E2E `30301191783`, Parity Documentation `30301191992` passed  
+**Current product implementation head:** raw PAC activation/authentication product commit containing this document  
+**Latest integration verification:** run `30317075172` validates top-level raw PAC snapshots, browser activation, all-proxy authentication isolation, and Chromium runtime state with full `pnpm verify` and regression  
+**Last completed exact-Head verification:** `f5412dc66940849a58f1aa056d1b904cf984490f`; CI `30313437508`, Browser E2E `30313437519`, Parity Documentation `30313437487` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -101,6 +101,16 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Inspect result-presentation integration: run `30294936789`, product commit `7e394cf23b6e0035fc58a2a55592c5d22e737367`.
 - Native Inspect context-menu E2E integration: run `30297644740`, product commit `944644f3d4588e70429de65224402d8bdc37863a`.
 
+### Top-level raw PAC activation and all-proxy authentication
+
+- Directly selected inline or downloaded-cache PAC Profiles now create deterministic `raw-pac/1` snapshots instead of entering the generated typed PAC graph.
+- Raw snapshots enforce script bounds and entrypoint structure, hash the ProfileSpec and script, record a target-dependent warning plus structural verification, then reuse the existing browser install, confirmation, rollback, and last-known-good transaction.
+- Arbitrary PAC remains non-composable: nested references continue to fail typed capability analysis. `file:` and URL sources without cache fail before authentication preparation or browser mutation.
+- Original `auth.all` maps to one PAC credential secret ref. The Options dialog reads/writes only through background commands; the password remains in proxy-auth secret storage and ordinary `.bak` export omits it with a warning.
+- Runtime authentication gives exact endpoint bindings priority; otherwise exactly one active PAC all-proxy binding may answer proxy Basic/Digest challenges. Ambiguous wildcard credentials and ordinary website challenges receive no credentials.
+- Chromium E2E edits PAC credentials, applies the Draft normally, activates the PAC through the typed background command, and verifies the `raw-pac/1` snapshot, all-proxies binding, isolated secret, and absence of plaintext in ProfileSpec or command response.
+- Integration run `30317075172`; product commit containing this document.
+
 ### PAC remote source state machine
 
 - URL PAC now retains an optional downloaded script cache in typed ProfileSpec; runtime timestamps/errors remain outside ProfileSpec in the update ledger.
@@ -150,11 +160,11 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Switch source-editor localization, browser interaction coverage, and edit-mode persistence across reloads,
 - complete Switch localization and Chromium drag-order E2E,
-- PAC URL/download/cache/authentication semantics,
+- PAC localization, Firefox activation/download coverage, real proxy-challenge manual QC, and explicit file-URL target decision,
 - Virtual browser E2E creation and reference-migration coverage,
 - complete Simplified/Traditional Chinese coverage,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Add verified top-level raw PAC activation and original all-proxy authentication semantics; keep nested arbitrary PAC composition and file activation under explicit target capability decisions. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue Switch localization/source-editor browser persistence, Virtual browser E2E, and complete localization; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

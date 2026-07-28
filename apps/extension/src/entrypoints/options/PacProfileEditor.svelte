@@ -10,12 +10,19 @@
   import {
     attachedRuleListProfileIds,
     type ProfileWorkflowPacSourceUpdateView,
+    type ProfileWorkflowSecretMaterial,
   } from '@zeroomega-nex/profile-workflow';
 
   export let spec: ProfileSpec;
   export let profileId: string;
   export let disabled = false;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let onReplaceDraftWithSecrets: (
+    draft: ProfileSpec,
+    materials: readonly ProfileWorkflowSecretMaterial[],
+  ) => Promise<boolean> = async (draft) => onReplaceDraft(draft);
+  export let onReadSecret: (secretRef: string) => Promise<string> = async () => '';
+  export let onRequestAuthenticationPermission: () => Promise<boolean> = async () => false;
   export let onGetPacSourceUpdateStatus: (
     profileId: string,
   ) => Promise<ProfileWorkflowPacSourceUpdateView | undefined> = async () => undefined;
@@ -30,6 +37,15 @@
   let updateView: ProfileWorkflowPacSourceUpdateView | undefined;
   let updateLoading = false;
   let loadedUpdateKey = '';
+  let authOpen = false;
+  let authUsername = '';
+  let authPassword = '';
+  let authOriginalPassword = '';
+  let authSecretRef = '';
+  let authLoading = false;
+  let authSaving = false;
+  let authError = '';
+  let showAuthPassword = false;
 
   $: profile = spec.profiles.find(
     (candidate): candidate is PacProfile => candidate.id === profileId && candidate.kind === 'pac',
@@ -209,6 +225,107 @@
     }
   }
 
+  async function openAuthentication(): Promise<void> {
+    if (!profile || authSaving) return;
+    authOpen = true;
+    authUsername = profile.credential?.username ?? '';
+    authPassword = '';
+    authOriginalPassword = '';
+    authSecretRef = profile.credential?.passwordSecretRef ?? '';
+    authError = '';
+    showAuthPassword = false;
+    if (!authSecretRef) return;
+    authLoading = true;
+    try {
+      authPassword = await onReadSecret(authSecretRef);
+      authOriginalPassword = authPassword;
+    } catch (error) {
+      authError = error instanceof Error ? error.message : String(error);
+    } finally {
+      authLoading = false;
+    }
+  }
+
+  function closeAuthentication(): void {
+    if (authSaving) return;
+    authOpen = false;
+    authPassword = '';
+    authOriginalPassword = '';
+    authError = '';
+  }
+
+  async function saveAuthentication(): Promise<void> {
+    if (!profile || authSaving) return;
+    authSaving = true;
+    authError = '';
+    let granted = false;
+    try {
+      granted = await onRequestAuthenticationPermission();
+    } catch (error) {
+      authError = error instanceof Error ? error.message : String(error);
+      authSaving = false;
+      return;
+    }
+    if (!granted) {
+      authError = 'Proxy authentication permission was not granted.';
+      authSaving = false;
+      return;
+    }
+    const draft = cloneProfileSpecDraft(spec);
+    const target = draft.profiles.find(
+      (candidate): candidate is PacProfile =>
+        candidate.id === profileId && candidate.kind === 'pac',
+    );
+    if (!target) {
+      authError = 'PAC Profile no longer exists.';
+      return;
+    }
+    const previousRef = target.credential?.passwordSecretRef;
+    const secretRef = previousRef ?? `secret-pac-${crypto.randomUUID()}`;
+    const username = authUsername.trim();
+    target.credential = {
+      ...(username ? { username } : {}),
+      passwordSecretRef: secretRef,
+    };
+    const materials: ProfileWorkflowSecretMaterial[] =
+      previousRef === undefined || authPassword !== authOriginalPassword
+        ? [{ ref: secretRef, value: authPassword }]
+        : [];
+    try {
+      if (!(await onReplaceDraftWithSecrets(draft, materials))) return;
+      authOpen = false;
+      authPassword = '';
+      authOriginalPassword = '';
+    } catch (error) {
+      authError = error instanceof Error ? error.message : String(error);
+    } finally {
+      authSaving = false;
+    }
+  }
+
+  async function removeAuthentication(): Promise<void> {
+    if (!profile || authSaving) return;
+    const draft = cloneProfileSpecDraft(spec);
+    const target = draft.profiles.find(
+      (candidate): candidate is PacProfile =>
+        candidate.id === profileId && candidate.kind === 'pac',
+    );
+    if (!target) return;
+    delete target.credential;
+    authSaving = true;
+    authError = '';
+    try {
+      if (!(await onReplaceDraft(draft))) return;
+      authOpen = false;
+      authPassword = '';
+      authOriginalPassword = '';
+    } catch (error) {
+      authError = error instanceof Error ? error.message : String(error);
+    } finally {
+      authSaving = false;
+    }
+  }
+
   function formatTimestamp(value: string | undefined): string {
     if (!value) return 'never';
     const parsed = new Date(value);
@@ -328,6 +445,29 @@
       {/if}
     </section>
 
+    <section class="settings-section" data-pac-authentication>
+      <h2>Proxy Authentication</h2>
+      <p class="section-help">
+        These credentials answer Basic or Digest authentication challenges from any proxy returned
+        by this top-level PAC Script. Ordinary website authentication is never answered.
+      </p>
+      <div class="authentication-row">
+        <button
+          type="button"
+          data-pac-auth-action="edit"
+          disabled={disabled || authLoading || authSaving}
+          onclick={() => void openAuthentication()}
+        >
+          {profile.credential ? 'Edit all-proxy authentication' : 'Set all-proxy authentication'}
+        </button>
+        <span role="status">
+          {profile.credential
+            ? `Configured${profile.credential.username ? ` for ${profile.credential.username}` : ''}.`
+            : 'Not configured.'}
+        </span>
+      </div>
+    </section>
+
     <section class="settings-section" data-pac-fallback-section>
       <h2>Target capability fallback</h2>
       <p class="section-help">
@@ -351,9 +491,92 @@
   </div>
 {/if}
 
+{#if authOpen && profile}
+  <div class="modal-backdrop" role="presentation">
+    <section
+      class="auth-dialog"
+      data-pac-auth-dialog
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pac-auth-title"
+    >
+      <header>
+        <h2 id="pac-auth-title">PAC Proxy Authentication</h2>
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close PAC authentication"
+          onclick={closeAuthentication}>×</button
+        >
+      </header>
+      <div class="dialog-body">
+        <p>
+          One credential is used only for proxy authentication challenges while this PAC Profile is
+          the active top-level route.
+        </p>
+        <label>
+          Username
+          <input
+            aria-label="PAC authentication username"
+            autocomplete="username"
+            value={authUsername}
+            disabled={authLoading || authSaving}
+            oninput={(event) => (authUsername = (event.currentTarget as HTMLInputElement).value)}
+          />
+        </label>
+        <label>
+          Password
+          <input
+            aria-label="PAC authentication password"
+            type={showAuthPassword ? 'text' : 'password'}
+            autocomplete="current-password"
+            value={authPassword}
+            disabled={authLoading || authSaving}
+            oninput={(event) => (authPassword = (event.currentTarget as HTMLInputElement).value)}
+          />
+        </label>
+        <label class="show-password-row">
+          <input
+            type="checkbox"
+            checked={showAuthPassword}
+            disabled={authLoading || authSaving}
+            onchange={(event) =>
+              (showAuthPassword = (event.currentTarget as HTMLInputElement).checked)}
+          />
+          Show password
+        </label>
+        {#if authError}<p class="source-update-error" role="alert">{authError}</p>{/if}
+      </div>
+      <footer>
+        {#if profile.credential}
+          <button
+            type="button"
+            class="danger"
+            data-pac-auth-action="remove"
+            disabled={authLoading || authSaving}
+            onclick={() => void removeAuthentication()}>Remove authentication</button
+          >
+        {/if}
+        <span class="dialog-spacer"></span>
+        <button type="button" disabled={authSaving} onclick={closeAuthentication}>Cancel</button>
+        <button
+          type="button"
+          class="primary"
+          data-pac-auth-action="save"
+          disabled={authLoading || authSaving}
+          onclick={() => void saveAuthentication()}
+        >
+          {authSaving ? 'Saving…' : 'Save authentication'}
+        </button>
+      </footer>
+    </section>
+  </div>
+{/if}
+
 <style>
   .url-row,
-  .download-row {
+  .download-row,
+  .authentication-row {
     display: flex;
     align-items: center;
     gap: 0.65rem;
@@ -366,6 +589,10 @@
 
   .download-row {
     margin-top: 0.75rem;
+  }
+
+  .authentication-row {
+    justify-content: flex-start;
   }
 
   .download-row p {
@@ -393,6 +620,64 @@
 
   select {
     width: min(100%, 34rem);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgb(0 0 0 / 42%);
+    padding: 1rem;
+  }
+
+  .auth-dialog {
+    width: min(100%, 34rem);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    background: var(--panel-bg);
+    box-shadow: 0 14px 40px rgb(0 0 0 / 28%);
+  }
+
+  .auth-dialog header,
+  .auth-dialog footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0.9rem;
+  }
+
+  .auth-dialog footer {
+    border-top: 1px solid var(--border);
+    border-bottom: 0;
+  }
+
+  .auth-dialog header h2 {
+    flex: 1;
+    margin: 0;
+  }
+
+  .dialog-body {
+    padding: 0.9rem;
+  }
+
+  .dialog-body label:not(.show-password-row) {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.65rem;
+  }
+
+  .show-password-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+
+  .dialog-spacer {
+    flex: 1;
   }
 
   @media (max-width: 760px) {

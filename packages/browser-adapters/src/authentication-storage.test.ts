@@ -47,6 +47,23 @@ describe('proxy authentication storage repository', () => {
     expect(serializedBindings).not.toContain(secretValue);
   });
 
+  it('persists one PAC all-proxy binding without storing its secret inline', async () => {
+    const area = new MemoryArea();
+    const repository = new BrowserStorageProxyAuthenticationRepository(area);
+    const pacBinding = {
+      scope: 'all-proxies' as const,
+      profileId: 'pac-all',
+      username: 'pac-user',
+      passwordSecretRef: 'secret/pac-all',
+    };
+    await repository.putBindings([pacBinding]);
+    await repository.putSecret(pacBinding.passwordSecretRef, secretValue);
+    await expect(repository.getBindings()).resolves.toEqual([pacBinding]);
+    expect(JSON.stringify(area.values.get('zeroomega-nex/proxy-auth/v1/bindings'))).not.toContain(
+      secretValue,
+    );
+  });
+
   it('rejects duplicate endpoints and invalid records', async () => {
     const area = new MemoryArea();
     const repository = new BrowserStorageProxyAuthenticationRepository(area);

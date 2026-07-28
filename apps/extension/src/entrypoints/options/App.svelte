@@ -39,6 +39,7 @@
     sendProfileWorkflowCommand,
     subscribeProfileWorkflowStateChanges,
   } from '../../lib/profile-workflow-client';
+  import { requestProxyAuthenticationPermission } from '../../lib/proxy-auth-permission-client';
   import {
     hasRequestDiagnosticsPermission,
     requestRequestDiagnosticsPermission,
@@ -1305,6 +1306,9 @@
           profileId={selectedProfile.id}
           disabled={saving || view?.busy === true}
           onReplaceDraft={replaceDraft}
+          onReplaceDraftWithSecrets={replaceDraftWithSecrets}
+          onReadSecret={readSecret}
+          onRequestAuthenticationPermission={requestProxyAuthenticationPermission}
           onGetPacSourceUpdateStatus={getPacSourceUpdateStatus}
           onUpdatePacSource={updatePacSource}
         />

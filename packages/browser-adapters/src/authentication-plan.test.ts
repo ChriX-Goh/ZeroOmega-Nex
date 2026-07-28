@@ -148,12 +148,16 @@ describe('proxy authentication planning', () => {
       profileId: 'profile-switch',
     });
 
-    expect(plan.bindings.map((binding) => binding.endpointId)).toEqual([
+    const endpointBindings = plan.bindings.filter(
+      (binding): binding is Extract<typeof binding, { readonly endpointId: string }> =>
+        binding.scope !== 'all-proxies',
+    );
+    expect(endpointBindings.map((binding) => binding.endpointId)).toEqual([
       'endpoint-primary',
       'endpoint-secondary',
     ]);
-    expect(plan.bindings[1]?.username).toBe('');
-    expect(plan.bindings.map((binding) => binding.endpointId)).not.toContain(
+    expect(endpointBindings[1]?.username).toBe('');
+    expect(endpointBindings.map((binding) => binding.endpointId)).not.toContain(
       'endpoint-unreachable',
     );
   });
@@ -180,6 +184,34 @@ describe('proxy authentication planning', () => {
     ).toEqual({
       bindings: [],
       unsupported: [{ endpointId: 'endpoint-primary', protocol: 'socks5' }],
+    });
+  });
+
+  it('creates one all-proxy binding for a directly selected PAC and ignores fallback endpoints', () => {
+    const spec = profileSpec();
+    spec.profiles.push({
+      id: 'pac-auth-all',
+      name: 'PAC auth all',
+      kind: 'pac',
+      source: { kind: 'inline', script: "function FindProxyForURL() { return 'DIRECT'; }" },
+      fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
+      credential: {
+        username: 'pac-user',
+        passwordSecretRef: 'secret-pac-all',
+      },
+    });
+    expect(
+      createProxyAuthenticationPlan(spec, { kind: 'profile', profileId: 'pac-auth-all' }),
+    ).toEqual({
+      bindings: [
+        {
+          scope: 'all-proxies',
+          profileId: 'pac-auth-all',
+          username: 'pac-user',
+          passwordSecretRef: 'secret-pac-all',
+        },
+      ],
+      unsupported: [],
     });
   });
 

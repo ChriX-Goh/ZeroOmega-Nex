@@ -100,19 +100,19 @@
 
 ## F. PacProfile 与 VirtualProfile
 
-| ID   | 界面/功能              | 原版源码                                 | 原版布局与行为                     | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                | 下一步                       |
-| ---- | ---------------------- | ---------------------------------------- | ---------------------------------- | ---------- | -------- | -------- | ---------------------------------------------------------------------------------------- | ---------------------------- |
-| F-01 | PAC URL                | `profile_pac.jade`                       | 单独 URL 输入/清除                 | MUST_MATCH | DONE     | PARTIAL  | 已恢复独立 URL 输入；URL 存在即 remote，Clear 保留缓存并回到 inline；Chromium E2E 覆盖   | 补 locale 与 Firefox         |
-| F-02 | file URL 警告          | 同上                                     | 按引用和 target 显示               | MUST_MATCH | PARTIAL  | PARTIAL  | 已显示 file 警告、被其他 Profile 引用错误并隐藏脚本；目标适配器尚未支持 file 激活        | 明确现代能力范围             |
-| F-03 | PAC 请求头             | 同上                                     | 远程 URL 时可展开                  | MUST_MATCH | DONE     | PARTIAL  | HTTP/HTTPS URL 时显示空白可增删 header；敏感值保持 secret ref；组件守卫覆盖              | 补秘密值编辑 UX 与 locale    |
-| F-04 | PAC 立即下载           | 同上                                     | 更新远程脚本                       | MUST_MATCH | DONE     | PARTIAL  | 复用安全 downloader、权限、10 秒/4 MiB、CAS、失败保旧缓存与调度器；Chromium 真实下载覆盖 | 补 Firefox 与 locale         |
-| F-05 | PAC Script             | 同上                                     | URL 时下载结果/只读；无 URL 可编辑 | MUST_MATCH | DONE     | PARTIAL  | URL 缓存只读、URL 改变标 obsolete、Clear 后同一脚本可编辑；原版备份导入导出保留 cache    | 补激活与 locale              |
-| F-06 | PAC 认证全部代理       | 同上                                     | 入口和浏览器警告                   | MUST_MATCH | MISSING  | MISSING  | 后端局部认证存在但无等价 UI                                                              | 研究实现                     |
-| F-07 | 不支持目标提示         | 同上                                     | 明确错误                           | MUST_MATCH | PARTIAL  | PARTIAL  | 有泛化说明                                                                               | 对齐 target 能力             |
-| F-08 | invalid PAC URL 默认值 | 原版无此强制默认                         | 示例只能是 placeholder             | MUST_MATCH | DONE     | N/A      | URL 模式以空值初始化；永久守卫拒绝 example.invalid 回归                                  | 保持测试                     |
-| F-09 | Virtual 编辑页         | `profile_virtual.jade`                   | 目标 selector + 帮助               | MUST_MATCH | DONE     | COMPLETE | 新增真实 Virtual 类型、目标选择器和帮助                                                  | 增加浏览器 E2E               |
-| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`profile.coffee` | 用目标替换所有 Virtual 引用        | MUST_MATCH | DONE     | PARTIAL  | 已有排除目标/Virtual 本身的 typed 引用替换和去重                                         | 补确认文案翻译与复杂引用测试 |
-| F-11 | Auto Detect 普通新建   | `options.coffee` upgrade                 | 原版不是独立普通类型               | MUST_MATCH | DONE     | COMPLETE | 已从普通新建移除；旧导入类型暂保留兼容                                                   | 后续迁移为 WPAD PAC          |
+| ID   | 界面/功能              | 原版源码                                 | 原版布局与行为                     | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                            | 下一步                        |
+| ---- | ---------------------- | ---------------------------------------- | ---------------------------------- | ---------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| F-01 | PAC URL                | `profile_pac.jade`                       | 单独 URL 输入/清除                 | MUST_MATCH | DONE     | PARTIAL  | 已恢复独立 URL 输入；URL 存在即 remote，Clear 保留缓存并回到 inline；Chromium E2E 覆盖                               | 补 locale 与 Firefox          |
+| F-02 | file URL 警告          | 同上                                     | 按引用和 target 显示               | MUST_MATCH | PARTIAL  | PARTIAL  | 已显示 file 警告、被其他 Profile 引用错误并隐藏脚本；目标适配器尚未支持 file 激活                                    | 明确现代能力范围              |
+| F-03 | PAC 请求头             | 同上                                     | 远程 URL 时可展开                  | MUST_MATCH | DONE     | PARTIAL  | HTTP/HTTPS URL 时显示空白可增删 header；敏感值保持 secret ref；组件守卫覆盖                                          | 补秘密值编辑 UX 与 locale     |
+| F-04 | PAC 立即下载           | 同上                                     | 更新远程脚本                       | MUST_MATCH | DONE     | PARTIAL  | 复用安全 downloader、权限、10 秒/4 MiB、CAS、失败保旧缓存与调度器；Chromium 真实下载覆盖                             | 补 Firefox 与 locale          |
+| F-05 | PAC Script             | 同上                                     | URL 时下载结果/只读；无 URL 可编辑 | MUST_MATCH | DONE     | PARTIAL  | URL 缓存只读、Clear 后可编辑；直接选择时生成 `raw-pac/1` structural 快照并走浏览器确认事务                           | 补 locale 与 Firefox          |
+| F-06 | PAC 认证全部代理       | 同上                                     | 入口和浏览器警告                   | MUST_MATCH | DONE     | PARTIAL  | 独立认证入口；`auth.all` secret ref 后台保存；exact endpoint 优先、单 wildcard、普通网站不响应；单测与 Chromium 覆盖 | 补 locale 与真实 407 人工巡查 |
+| F-07 | 不支持目标提示         | 同上                                     | 明确错误                           | MUST_MATCH | DONE     | PARTIAL  | 顶层 inline/缓存 PAC 可激活；file/无缓存/无入口点明确失败；嵌套任意 PAC 继续被 capability analysis 阻断              | 补完整 locale 与 Firefox      |
+| F-08 | invalid PAC URL 默认值 | 原版无此强制默认                         | 示例只能是 placeholder             | MUST_MATCH | DONE     | N/A      | URL 模式以空值初始化；永久守卫拒绝 example.invalid 回归                                                              | 保持测试                      |
+| F-09 | Virtual 编辑页         | `profile_virtual.jade`                   | 目标 selector + 帮助               | MUST_MATCH | DONE     | COMPLETE | 新增真实 Virtual 类型、目标选择器和帮助                                                                              | 增加浏览器 E2E                |
+| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`profile.coffee` | 用目标替换所有 Virtual 引用        | MUST_MATCH | DONE     | PARTIAL  | 已有排除目标/Virtual 本身的 typed 引用替换和去重                                                                     | 补确认文案翻译与复杂引用测试  |
+| F-11 | Auto Detect 普通新建   | `options.coffee` upgrade                 | 原版不是独立普通类型               | MUST_MATCH | DONE     | COMPLETE | 已从普通新建移除；旧导入类型暂保留兼容                                                                               | 后续迁移为 WPAD PAC           |
 
 ## G. 导入 / 导出 / 同步
 
@@ -170,18 +170,18 @@
 
 ## J. 测试与证据门槛
 
-| ID   | 验收项                             | 分类       | Nex 状态 | 证据/问题                                                                                                                  | 下一步                           |
-| ---- | ---------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| J-01 | 原版源码固定证据                   | MUST_MATCH | DONE     | Artifact `8625759489`, v3.5.0                                                                                              | 保留来源摘要                     |
-| J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | DONE     | 固定 Artifact 中执行原版 v3.5.0 `default_options.coffee` 生成 fixture；单测与 Chromium export→clear→import→export 字节等价 | 保持 provenance 与永久守卫       |
-| J-03 | 五个现有 Nex 编辑页截图巡查        | MUST_MATCH | MISSING  | 无逐屏证据                                                                                                                 | 每页 light/dark/zh-CN/zh-TW 截图 |
-| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | 已有组件渲染与后端类型测试，尚缺真实浏览器创建四类                                                                         | 增加 Chromium/Firefox E2E        |
-| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | MISSING  | 无                                                                                                                         | 重构后增加                       |
-| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建、隐藏、启停、路由、文本/header 与解除；拖序仍缺                                                      | 增加拖放与 Firefox 附属 E2E      |
-| J-07 | PAC URL/download/header E2E        | MUST_MATCH | PARTIAL  | Chromium 已覆盖真实 HTTP PAC 下载、状态、只读缓存、Clear→inline；顶层激活/auth 与 Firefox 仍缺                             | 补激活、auth、Firefox            |
-| J-08 | Virtual 引用 E2E                   | MUST_MATCH | PARTIAL  | ProfileSpec、解释器、PAC、迁移、引用替换已有单元/组件覆盖                                                                  | 增加真实浏览器 E2E               |
-| J-09 | 导出→清空→导入→等价                | MUST_MATCH | DONE     | Chromium 真实下载 `.bak`、清空 local/session storage、重新导入启用并再次导出；JSON 字节完全一致                            | 保持 E2E                         |
-| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | PARTIAL  | 将由永久 workflow 执行                                                                                                     | 启用后观察                       |
+| ID   | 验收项                             | 分类       | Nex 状态 | 证据/问题                                                                                                                                  | 下一步                           |
+| ---- | ---------------------------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| J-01 | 原版源码固定证据                   | MUST_MATCH | DONE     | Artifact `8625759489`, v3.5.0                                                                                                              | 保留来源摘要                     |
+| J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | DONE     | 固定 Artifact 中执行原版 v3.5.0 `default_options.coffee` 生成 fixture；单测与 Chromium export→clear→import→export 字节等价                 | 保持 provenance 与永久守卫       |
+| J-03 | 五个现有 Nex 编辑页截图巡查        | MUST_MATCH | MISSING  | 无逐屏证据                                                                                                                                 | 每页 light/dark/zh-CN/zh-TW 截图 |
+| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | 已有组件渲染与后端类型测试，尚缺真实浏览器创建四类                                                                                         | 增加 Chromium/Firefox E2E        |
+| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | MISSING  | 无                                                                                                                                         | 重构后增加                       |
+| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建、隐藏、启停、路由、文本/header 与解除；拖序仍缺                                                                      | 增加拖放与 Firefox 附属 E2E      |
+| J-07 | PAC URL/download/header E2E        | MUST_MATCH | DONE     | Chromium 覆盖真实下载、只读缓存、Clear→inline、认证 secret 隔离、`raw-pac/1` 顶层激活及 all-proxies binding；核心单测覆盖精确优先/歧义拒绝 | 补 Firefox 与真实 407 人工巡查   |
+| J-08 | Virtual 引用 E2E                   | MUST_MATCH | PARTIAL  | ProfileSpec、解释器、PAC、迁移、引用替换已有单元/组件覆盖                                                                                  | 增加真实浏览器 E2E               |
+| J-09 | 导出→清空→导入→等价                | MUST_MATCH | DONE     | Chromium 真实下载 `.bak`、清空 local/session storage、重新导入启用并再次导出；JSON 字节完全一致                                            | 保持 E2E                         |
+| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | PARTIAL  | 将由永久 workflow 执行                                                                                                                     | 启用后观察                       |
 
 ## 当前结论
 

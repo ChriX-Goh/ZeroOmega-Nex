@@ -89,6 +89,25 @@ export function createProxyAuthenticationPlan(
   spec: ProfileSpec,
   startRoute: ProfileRouteTarget,
 ): ProxyAuthenticationPlan {
+  if (startRoute.kind === 'profile') {
+    const profile = spec.profiles.find((candidate) => candidate.id === startRoute.profileId);
+    if (profile?.kind === 'pac') {
+      return {
+        bindings:
+          profile.credential === undefined
+            ? []
+            : [
+                {
+                  scope: 'all-proxies',
+                  profileId: profile.id,
+                  username: profile.credential.username ?? '',
+                  passwordSecretRef: profile.credential.passwordSecretRef,
+                },
+              ],
+        unsupported: [],
+      };
+    }
+  }
   const reachable = reachableEndpointIds(spec, startRoute);
   const bindings: ProxyAuthenticationBinding[] = [];
   const unsupported: UnsupportedProxyAuthenticationEndpoint[] = [];

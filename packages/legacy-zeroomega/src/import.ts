@@ -1024,6 +1024,20 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
 
 function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacProfile {
   const raw = descriptor.raw;
+  const auth = isRecord(raw.auth) ? raw.auth : undefined;
+  if (auth) {
+    for (const slot of Object.keys(auth)) {
+      if (slot !== 'all') {
+        state.report.add(
+          'rejected',
+          'secret.unknown-pac-auth-slot',
+          `${descriptor.path}/auth/${slot}`,
+          'PAC authentication supports only the legacy auth.all credential.',
+        );
+      }
+    }
+  }
+  const credential = extractProxyCredential(auth, 'all', 'http', descriptor.path, state);
   const pacUrl = stringValue(raw.pacUrl);
   const pacScript = stringValue(raw.pacScript);
   let source: PacProfile['source'];
@@ -1086,6 +1100,7 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     'pacUrl',
     'pacScript',
     'headers',
+    'auth',
     'fallbackProfileName',
     'lastUpdate',
     'sha256',
@@ -1096,6 +1111,7 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     kind: 'pac',
     source,
     ...headerMapping,
+    ...(credential === undefined ? {} : { credential }),
     ...(typeof raw.fallbackProfileName === 'string'
       ? {
           fallbackRoute: routeForName(

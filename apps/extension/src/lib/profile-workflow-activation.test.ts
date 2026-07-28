@@ -28,6 +28,23 @@ function defaultSpec() {
   });
 }
 
+function rawPacSpec(source: 'inline' | 'url' | 'file' = 'inline') {
+  const spec = cloneProfileSpec(defaultSpec());
+  const script = "function FindProxyForURL(url, host) { return 'DIRECT'; }";
+  spec.profiles.push({
+    id: 'profile-raw-pac',
+    name: 'Raw PAC',
+    kind: 'pac',
+    source:
+      source === 'inline'
+        ? { kind: 'inline', script }
+        : source === 'url'
+          ? { kind: 'url', url: 'https://pac.example.invalid/proxy.pac', script }
+          : { kind: 'url', url: 'file:///tmp/proxy.pac' },
+  });
+  return spec;
+}
+
 function authenticatedSpec(protocol: 'http' | 'socks5' = 'http') {
   const spec = cloneProfileSpec(defaultSpec());
   const endpoint = spec.proxyEndpoints[0]!;
@@ -213,6 +230,53 @@ describe('ProfileSpec PAC activation driver', () => {
       lastKnownGoodSnapshotId: result.snapshotId,
     });
     expect(created.disposed()).toBe(true);
+  });
+
+  it('installs a top-level raw PAC Profile without composing it into the typed graph', async () => {
+    for (const source of ['inline', 'url'] as const) {
+      const proxy = new FakeProxyDriver('chromium');
+      const created = runtime(proxy);
+      const driver = new BrowserProfileWorkflowActivationDriver({
+        createRuntime: () => created.runtime,
+        now: () => new Date('2026-07-25T09:01:30.000Z'),
+      });
+      const result = await driver.activate(rawPacSpec(source), {
+        kind: 'profile',
+        profileId: 'profile-raw-pac',
+      });
+      expect(result.snapshotId).toMatch(/^raw-pac-/u);
+      expect(proxy.installed).toMatchObject({
+        compilerVersion: 'raw-pac/1',
+        startRoute: { kind: 'profile', profileId: 'profile-raw-pac' },
+        verification: { mode: 'structural' },
+      });
+      expect(proxy.installed?.script).toContain('function FindProxyForURL');
+    }
+  });
+
+  it('rejects top-level PAC file URLs before authentication or browser changes', async () => {
+    const proxy = new FakeProxyDriver('chromium');
+    const created = runtime(proxy);
+    const authentication = new FakeAuthenticationCoordinator();
+    const spec = rawPacSpec('file');
+    const profile = spec.profiles.find((candidate) => candidate.id === 'profile-raw-pac');
+    if (!profile || profile.kind !== 'pac') throw new Error('raw PAC test profile is missing');
+    profile.credential = {
+      username: 'file-user',
+      passwordSecretRef: 'secret-file-pac',
+    };
+    const driver = new BrowserProfileWorkflowActivationDriver({
+      createRuntime: () => created.runtime,
+      authentication,
+    });
+    await expect(
+      driver.activate(spec, {
+        kind: 'profile',
+        profileId: 'profile-raw-pac',
+      }),
+    ).rejects.toThrow('local file URL');
+    expect(authentication.preparedBindings).toEqual([]);
+    expect(proxy.installCount).toBe(0);
   });
 
   it('targets Firefox when the runtime driver is Firefox', async () => {

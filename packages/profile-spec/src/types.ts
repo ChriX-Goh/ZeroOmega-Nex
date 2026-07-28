@@ -133,6 +133,7 @@ export interface PacProfile extends ProfileBase {
   source: PacSource;
   headers?: RuleSourceHeader[];
   fallbackRoute?: ProfileRouteTarget;
+  credential?: ProxyCredentialReference;
 }
 
 export interface AutoDetectProfile extends ProfileBase {

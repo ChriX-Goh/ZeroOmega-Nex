@@ -418,6 +418,16 @@ function exportRuleList(
 
 function exportPac(state: ExportState, profile: PacProfile, path: string): MutableJsonObject {
   const result = profileBase(state, profile, path);
+  if (profile.credential) {
+    issue(
+      state,
+      'warning',
+      'secret.pac-credential-omitted',
+      `${path}/auth/all`,
+      'All-proxy PAC authentication credentials were omitted from the ordinary backup.',
+    );
+    state.omittedSecretCount += 1;
+  }
   if (profile.source.kind === 'url') {
     result.pacUrl = profile.source.url;
     if (profile.source.script !== undefined) result.pacScript = profile.source.script;

@@ -352,6 +352,23 @@ try {
     "function FindProxyForURL(url, host) { return 'PROXY proxy.invalid:8080'; }\n",
   );
   await pacScript.press('Tab');
+  await pacEditor.locator('[data-pac-auth-action="edit"]').click();
+  const pacAuthDialog = options.locator('[data-pac-auth-dialog]');
+  await pacAuthDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await pacAuthDialog.getByLabel('PAC authentication username').fill('pac-e2e-user');
+  await pacAuthDialog.getByLabel('PAC authentication password').fill('pac-e2e-secret');
+  await pacAuthDialog.locator('[data-pac-auth-action="save"]').click();
+  await pacAuthDialog.waitFor({ state: 'detached', timeout: 20_000 });
+  await options.evaluate(() => {
+    window.location.hash = '#/general';
+  });
+  const addPacQuickRoute = options.getByLabel('Add quick-switch route');
+  await addPacQuickRoute.waitFor({ state: 'visible', timeout: 20_000 });
+  await addPacQuickRoute.selectOption({ label: 'pac' });
+  await options
+    .locator('ol[aria-label="Quick-switch route order"]')
+    .getByText('pac', { exact: true })
+    .waitFor({ state: 'visible', timeout: 20_000 });
 
   await options.getByRole('button', { name: 'rule-switchy', exact: true }).click();
   const independentRuleEditor = options.locator('[data-rule-list-profile-editor]');
@@ -725,6 +742,66 @@ try {
   await attachedRow.getByRole('button', { name: 'Delete attached Rule List' }).click();
   await attachRuleList.waitFor();
   assert.equal(await options.locator('[data-attached-rule-list-row]').count(), 0);
+
+  const rawPacActivation = await options.evaluate(async () => {
+    const workflowKey = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(workflowKey))[workflowKey];
+    const pac = workflow?.applied?.profiles?.find((profile) => profile.name === 'pac');
+    if (!workflow || !pac || pac.kind !== 'pac') throw new Error('Applied PAC profile is missing');
+    const response = await chrome.runtime.sendMessage({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'activate-route',
+      expectedAppliedRevisionId: workflow.applied.revision.id,
+      route: { kind: 'profile', profileId: pac.id },
+    });
+    return {
+      response,
+      profileId: pac.id,
+      secretRef: pac.credential?.passwordSecretRef,
+      quickSwitchRoutes: workflow.applied.settings.quickSwitch.routes,
+      appliedRevisionId: workflow.applied.revision.id,
+      draftRevisionId: workflow.draft.revision.id,
+    };
+  });
+  if (rawPacActivation.response?.ok !== true) {
+    console.error(`[Raw PAC activation diagnostics] ${JSON.stringify(rawPacActivation)}`);
+  }
+  assert.equal(
+    rawPacActivation.response?.ok,
+    true,
+    `Top-level raw PAC activation was rejected: ${JSON.stringify(rawPacActivation.response)}`,
+  );
+  assert.doesNotMatch(JSON.stringify(rawPacActivation.response), /pac-e2e-secret/u);
+  await assertEventually(
+    async () => {
+      const storage = await worker.evaluate(async () => chrome.storage.local.get(null));
+      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+      const snapshot = proxyState?.activeSnapshotId
+        ? storage[`zeroomega-nex/browser-proxy/v1/snapshot/${proxyState.activeSnapshotId}`]
+        : undefined;
+      const bindings = storage['zeroomega-nex/proxy-auth/v1/bindings'];
+      const secret = rawPacActivation.secretRef
+        ? storage[`zeroomega-nex/proxy-auth/v1/secret/${rawPacActivation.secretRef}`]
+        : undefined;
+      return (
+        snapshot?.compilerVersion === 'raw-pac/1' &&
+        snapshot?.verification?.mode === 'structural' &&
+        snapshot?.startRoute?.kind === 'profile' &&
+        snapshot.startRoute.profileId === rawPacActivation.profileId &&
+        snapshot.script.includes("return 'PROXY proxy.invalid:8080'") &&
+        Array.isArray(bindings) &&
+        bindings.length === 1 &&
+        bindings[0]?.scope === 'all-proxies' &&
+        bindings[0]?.profileId === rawPacActivation.profileId &&
+        bindings[0]?.username === 'pac-e2e-user' &&
+        secret === 'pac-e2e-secret' &&
+        !JSON.stringify(workflow).includes('pac-e2e-secret')
+      );
+    },
+    'Raw PAC snapshot, all-proxy binding, or isolated secret was not installed',
+    20_000,
+  );
 
   conflictContext = await chromium.launchPersistentContext(conflictUserDataDir, {
     channel: 'chromium',

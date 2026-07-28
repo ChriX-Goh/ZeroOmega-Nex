@@ -26,7 +26,7 @@ export interface PacSnapshotContext {
 
 export interface PacSnapshotVerification {
   readonly passed: true;
-  readonly mode?: 'differential' | 'reference-safety';
+  readonly mode?: 'differential' | 'reference-safety' | 'structural';
   readonly vectorCount: number;
   readonly matchedCount: number;
 }

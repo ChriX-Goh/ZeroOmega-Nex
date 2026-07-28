@@ -219,12 +219,19 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     profile.headers = [
       { name: 'X-Component', value: { kind: 'literal', value: 'component-value' } },
     ];
+    profile.credential = {
+      username: 'component-user',
+      passwordSecretRef: 'secret-pac-component',
+    };
     const { body } = render(PacProfileEditor, {
       props: {
         spec: mutation.draft,
         profileId: mutation.profileId,
         disabled: false,
         onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
+        onReadSecret: async () => '',
+        onRequestAuthenticationPermission: async () => true,
       },
     });
 
@@ -239,6 +246,10 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('aria-label="PAC Script"');
     expect(body).toContain('readonly');
     expect(body).toContain("function FindProxyForURL() { return 'DIRECT'; }");
+    expect(body).toContain('data-pac-authentication');
+    expect(body).toContain('data-pac-auth-action="edit"');
+    expect(body).toContain('Configured for component-user.');
+    expect(body).not.toContain('secret-pac-component');
   });
 
   it('renders the inactive legacy import review entry point without secret values', () => {
