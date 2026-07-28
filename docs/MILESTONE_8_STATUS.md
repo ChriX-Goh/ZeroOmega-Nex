@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `19ed3d66b52be16366842912f0461cd203e1a825` — Typed Snapshot History and real Chromium atomic rollback  
-**Latest integration verification:** run `30375459826` validates typed History in three locales, import-delivery reconciliation, fresh locale inventory, full repository verification, and a real Chromium rollback that converges browser, Applied, Draft, and UI state  
-**Last completed exact-Head verification:** `b3d54fc266f7472cecca336022f75f56652b84e5`; CI `30375737690`, Browser E2E `30375737649`, Parity Documentation `30375737656` passed  
+**Current product implementation head:** `b6dc3d0937296b91f83a917a74cfae6711318e08` — Typed Legacy Import and browser-confirmed imported startup activation  
+**Latest integration verification:** run `30378560992` validates typed Legacy Import in three locales, safe code/path diagnostics, fresh locale inventory, full repository verification, schema-v2 byte-equivalent restoration, and browser-confirmed non-default startup activation  
+**Last completed exact-Head verification:** `713079a86fe81aa8ae2c615ea52e2b98e5813e43`; CI `30378787419`, Browser E2E `30378787402`, Parity Documentation `30378787342` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -214,6 +214,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Report details show localized status plus stable code/source/target paths. Backend `item.message` and exception `error.message` are not rendered; local failures use non-secret typed summaries.
 - The original schema-v2 export → clear → import → export byte-equivalence remains intact. Chromium also requires the fixture's non-default `switch` startup route to converge across Applied settings, the active verified snapshot, Draft/Applied revision identity, `chrome.proxy.settings` PAC mode, and extension control ownership.
 - This closes local import translation and startup activation. Online URL restore, schema-v1 upgrade, v1 AutoDetect migration, and repository-owner real complex-backup QC remain separate open items.
+- Integration run `30378560992`; product commit `b6dc3d0937296b91f83a917a74cfae6711318e08`; clean exact Head `713079a86fe81aa8ae2c615ea52e2b98e5813e43` passed CI `30378787419`, Browser E2E `30378787402`, and Parity Documentation `30378787342`. The typed inventory now covers ten components and reports 202 remaining candidates.
 
 ### Typed Snapshot History and real rollback closure
 
@@ -221,7 +222,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Snapshot History now renders English, Simplified Chinese, and Traditional Chinese directly for page/navigation text, revision and snapshot metadata, verification modes, status, warnings, empty/error states, confirmation, actions, and ARIA.
 - The page continues to receive metadata only. ProfileSpec content, PAC source, request headers, and secret material remain background-owned and are never returned by the history command.
 - Chromium captures a verified persistent snapshot, activates a distinct raw PAC snapshot, then uses the real History confirmation flow to restore the first snapshot. The regression requires browser `activeSnapshotId`, Applied revision, Draft revision, and the History Active marker to converge.
-- The import-review audit confirmed the existing compatibility summary, technical migration details, secret-material warning, inactive import, immediate apply, and byte-identical backup round trip; its remaining gap is direct typed locale coverage rather than missing workflow behavior.
+- The import-review audit is now closed for local files: compatibility summary, stable code/path technical details, secret-material warning, inactive import, immediate apply, byte-identical backup round trip, and direct typed locale coverage are all verified. Online URL restore remains a separate scope item.
 - Integration run `30375459826`; product commit `19ed3d66b52be16366842912f0461cd203e1a825`; clean exact Head `b3d54fc266f7472cecca336022f75f56652b84e5` passed CI `30375737690`, Browser E2E `30375737649`, and Parity Documentation `30375737656`. The typed inventory now covers nine components and reports 229 remaining candidates.
 
 ## Automated acceptance state
@@ -236,7 +237,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
 - stable Rule Source/PAC downloader failure codes for complete semantic error localization,
-- remaining General/Interface/Import/Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
+- remaining General/Interface/Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
