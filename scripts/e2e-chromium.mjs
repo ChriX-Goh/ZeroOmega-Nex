@@ -1268,6 +1268,20 @@ try {
 
   await virtualOptions.getByRole('button', { name: 'Auto Matrix', exact: true }).click();
   await virtualOptions.getByRole('heading', { name: 'Auto Matrix', exact: true }).waitFor();
+  const autoDetectEditor = virtualOptions.locator(
+    '[data-auto-detect-profile-editor][data-typed-locale="zh-CN"]',
+  );
+  await autoDetectEditor.waitFor({ state: 'visible', timeout: 20_000 });
+  await autoDetectEditor.getByRole('heading', { name: '自动检测情景模式', exact: true }).waitFor();
+  const autoDetectFallback = autoDetectEditor.getByLabel('自动检测失败时使用的情景模式', {
+    exact: true,
+  });
+  assert.equal(await autoDetectFallback.locator('option:checked').innerText(), 'Target Proxy');
+  assert.doesNotMatch(
+    await autoDetectEditor.innerText(),
+    /Browser auto-detection support|Fallback route|No fallback/u,
+    'Auto Detect typed locale coverage regressed',
+  );
   assert.equal(await virtualOptions.locator('[data-profile-export-pac]').count(), 0);
 
   await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).click();

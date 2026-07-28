@@ -12,6 +12,7 @@ import {
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 
+import AdvancedProfileEditor from './entrypoints/options/AdvancedProfileEditor.svelte';
 import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte';
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
 import PacProfileEditor from './entrypoints/options/PacProfileEditor.svelte';
@@ -657,6 +658,46 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Target profile');
     expect(body).toContain('Migrate to Virtual Profile');
     expect(body).toContain('Replace target profile');
+  });
+
+  it('renders the imported Auto Detect editor through the typed catalog', () => {
+    const autoDetect = baseSpec();
+    autoDetect.profiles.push({
+      id: 'auto-detect-component',
+      name: '自动检测测试',
+      kind: 'auto-detect',
+      fallbackRoute: { kind: 'direct' },
+    });
+    const simplified = render(AdvancedProfileEditor, {
+      props: {
+        locale: 'zh-CN',
+        spec: autoDetect,
+        profileId: 'auto-detect-component',
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+      },
+    }).body;
+    expect(simplified).toContain('data-auto-detect-profile-editor');
+    expect(simplified).toContain('data-typed-locale="zh-CN"');
+    expect(simplified).toContain('自动检测');
+    expect(simplified).toContain('后备情景模式');
+    expect(simplified).toContain('自动检测失败时使用的情景模式');
+    expect(simplified).not.toContain('Browser auto-detection support');
+    expect(simplified).not.toContain('Fallback route');
+
+    const traditional = render(AdvancedProfileEditor, {
+      props: {
+        locale: 'zh-TW',
+        spec: autoDetect,
+        profileId: 'auto-detect-component',
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+      },
+    }).body;
+    expect(traditional).toContain('data-typed-locale="zh-TW"');
+    expect(traditional).toContain('自動偵測');
+    expect(traditional).toContain('後備情境模式');
+    expect(traditional).not.toContain('Auto Detect');
   });
 
   it('renders the typed Virtual Profile editor in both Chinese locales', () => {

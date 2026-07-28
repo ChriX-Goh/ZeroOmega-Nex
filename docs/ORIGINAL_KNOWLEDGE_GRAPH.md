@@ -494,3 +494,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Profile exports still commit the active editor first, preserve Draft/Applied separation, use the original filenames/MIME contracts, and expose warning counts without rendering raw issue text.
 - Virtual target changes remain ordinary Draft mutations. General reference replacement still requires the existing Apply boundary and rewrites every typed route surface without deleting either endpoint profile.
 - Chromium verifies the real zh-CN Built-in, About, export status, and Virtual migration path. Imported Auto Detect remains a separate compatibility editor and is not claimed by this slice.
+
+### Imported Auto Detect and locale classification boundary
+
+- Auto Detect is not a normal New Profile choice. It survives only as an imported compatibility profile with an optional fallback route; Options therefore exposes one fallback-only editor and no PAC export action.
+- Rule List and PAC no longer share `AdvancedProfileEditor`; their dedicated editors own their complete source, download, authentication, and request-header workflows.
+- Literal-English inventory schema v2 distinguishes unresolved user-facing text from source tokens, format names, standard technical terms, keyboard keys, examples, stable error codes, and scanner code fragments. Exact-Head verification fails whenever `user-visible-untranslated` is non-zero.
+- Chromium proves the imported Auto Detect page, typed fallback selection, and absence of PAC export while retaining complete cross-profile reference migration.

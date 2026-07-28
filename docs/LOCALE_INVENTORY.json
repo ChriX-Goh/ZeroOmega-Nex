@@ -1,12 +1,13 @@
 {
-  "schemaVersion": 1,
-  "description": "Machine-generated candidate inventory of remaining literal English text in Svelte templates. Typed uiText/uiMessage calls are excluded; candidates require human classification before migration.",
+  "schemaVersion": 2,
+  "description": "Machine-generated inventory of literal-English candidates remaining in Svelte templates. Each entry is explicitly classified; typed uiText/uiMessage calls are excluded.",
   "typedBatchFiles": [
     "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
     "apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte",
     "apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte",
     "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
     "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
@@ -18,317 +19,167 @@
     "apps/extension/src/entrypoints/temp-rules/App.svelte",
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 62,
+  "candidateCount": 25,
+  "untranslatedUserVisibleCount": 0,
+  "classificationSummary": {
+    "example-placeholder": 1,
+    "format-name": 4,
+    "keyboard-key": 2,
+    "scanner-code-fragment": 2,
+    "source-token": 14,
+    "stable-technical-code": 1,
+    "standard-technical-term": 1
+  },
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
       "kind": "expression-literal",
-      "text": "ERR_TIMEOUT"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Downloaded rule source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Inline PAC script"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Inline rule source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "PAC URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Rule source URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "defaultRoute"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "fallbackRoute"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "matchRoute"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "secret reference"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Add header"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Arbitrary PAC code is preserved, but it is outside the deterministic compiler path and remains target-dependent."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Auto Detect"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "AutoProxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Browser auto-detection support is target-dependent. Configure an explicit fallback for deterministic failure handling."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Default route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Direct"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Fallback route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Format"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Inline"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Literal"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Location"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Matching rules use"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "No fallback"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "PAC source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Remove"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Request headers"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Routing"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rule source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Secret reference"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Sensitive values must use secret references. Secret values are never stored in ProfileSpec."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Source name"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Switchy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "System Proxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "The source definition is saved in Draft. Network updates remain separate from activation."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "Update interval (minutes)"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
-      "kind": "text",
-      "text": "URL"
+      "text": "ERR_TIMEOUT",
+      "classification": "stable-technical-code"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "addConditionsToBottom"
+      "text": "addConditionsToBottom",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "confirmDeletion"
+      "text": "confirmDeletion",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "exportLegacyRuleList"
+      "text": "exportLegacyRuleList",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "monitorWebRequests"
+      "text": "monitorWebRequests",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "refreshOnChange"
+      "text": "refreshOnChange",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "showAdvancedConditions"
+      "text": "showAdvancedConditions",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "showExternalProfile"
+      "text": "showExternalProfile",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "showInspectMenu"
+      "text": "showInspectMenu",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "showResultProfileOnActionBadgeText"
+      "text": "showResultProfileOnActionBadgeText",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
       "kind": "text",
-      "text": "AutoProxy"
+      "text": "AutoProxy",
+      "classification": "format-name"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
       "kind": "text",
-      "text": "Switchy"
+      "text": "Switchy",
+      "classification": "format-name"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
       "kind": "text",
-      "text": "URL"
+      "text": "URL",
+      "classification": "standard-technical-term"
     },
     {
       "path": "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "example.com"
+      "text": "example.com",
+      "classification": "example-placeholder"
     },
     {
       "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
       "kind": "expression-literal",
-      "text": "; errorMessage ="
+      "text": "; errorMessage =",
+      "classification": "scanner-code-fragment"
     },
     {
       "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
       "kind": "expression-literal",
-      "text": "; result = undefined; analyzedGeneration = undefined; acceptedMessage ="
+      "text": "; result = undefined; analyzedGeneration = undefined; acceptedMessage =",
+      "classification": "scanner-code-fragment"
     },
     {
       "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
       "kind": "expression-literal",
-      "text": "Enter"
+      "text": "Enter",
+      "classification": "keyboard-key"
     },
     {
       "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
       "kind": "expression-literal",
-      "text": "Escape"
+      "text": "Escape",
+      "classification": "keyboard-key"
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "defaultRoute"
+      "text": "defaultRoute",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "matchRoute"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "AutoProxy"
+      "text": "matchRoute",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "text",
-      "text": "Switchy"
+      "text": "AutoProxy",
+      "classification": "format-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Switchy",
+      "classification": "format-name"
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "endHour"
+      "text": "endHour",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "prefixLength"
+      "text": "prefixLength",
+      "classification": "source-token"
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
-      "text": "startHour"
+      "text": "startHour",
+      "classification": "source-token"
     }
   ]
 }

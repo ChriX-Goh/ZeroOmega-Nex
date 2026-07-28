@@ -108,6 +108,28 @@ export const typedUiTextCatalog = {
     'zh-CN': '将当前情景模式导出为可供其他浏览器使用的 PAC 文件。',
     'zh-TW': '將目前情境模式匯出為可供其他瀏覽器使用的 PAC 檔案。',
   },
+  'autoDetect.help': {
+    en: 'Browser auto-detection support depends on the browser target. Choose an explicit fallback for deterministic failure handling.',
+    'zh-CN':
+      '浏览器自动检测能力取决于浏览器目标。请选择明确的后备情景模式，以便在检测失败时确定处理方式。',
+    'zh-TW':
+      '瀏覽器自動偵測能力取決於瀏覽器目標。請選擇明確的後備情境模式，以便在偵測失敗時確定處理方式。',
+  },
+  'autoDetect.fallback': {
+    en: 'Fallback profile',
+    'zh-CN': '后备情景模式',
+    'zh-TW': '後備情境模式',
+  },
+  'autoDetect.fallbackAria': {
+    en: 'Profile used when automatic detection fails',
+    'zh-CN': '自动检测失败时使用的情景模式',
+    'zh-TW': '自動偵測失敗時使用的情境模式',
+  },
+  'autoDetect.noFallback': {
+    en: 'No fallback',
+    'zh-CN': '不使用后备情景模式',
+    'zh-TW': '不使用後備情境模式',
+  },
   'virtual.target.title': {
     en: 'Target profile',
     'zh-CN': '目标情景模式',

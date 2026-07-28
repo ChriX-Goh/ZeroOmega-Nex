@@ -10,6 +10,7 @@ const typedBatchFiles = [
   'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte',
   'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
   'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte',
+  'apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte',
   'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
@@ -44,6 +45,26 @@ function visibleCandidate(value) {
   if (/^[a-z][a-z0-9_-]*$/u.test(text)) return undefined;
   if (/^(?:true|false|undefined|null)$/u.test(text)) return undefined;
   return text;
+}
+
+const formatNames = new Set(['AutoProxy', 'Switchy']);
+const keyboardKeys = new Set(['Enter', 'Escape']);
+const stableTechnicalCodes = new Set(['ERR_TIMEOUT']);
+
+function classifyCandidate(candidate) {
+  const { kind, path: pathname, text } = candidate;
+  if (stableTechnicalCodes.has(text)) return 'stable-technical-code';
+  if (formatNames.has(text)) return 'format-name';
+  if (text === 'URL') return 'standard-technical-term';
+  if (keyboardKeys.has(text)) return 'keyboard-key';
+  if (text === 'example.com') return 'example-placeholder';
+  if (pathname.endsWith('/LegacyImportPanel.svelte') && text.startsWith('; ')) {
+    return 'scanner-code-fragment';
+  }
+  if (kind === 'expression-literal' && /^[a-z][A-Za-z0-9]*$/u.test(text)) {
+    return 'source-token';
+  }
+  return 'user-visible-untranslated';
 }
 
 function extract(pathname, source) {
@@ -86,13 +107,29 @@ candidates.sort(
     left.kind.localeCompare(right.kind) ||
     left.text.localeCompare(right.text),
 );
+const classifiedCandidates = candidates.map((candidate) => ({
+  ...candidate,
+  classification: classifyCandidate(candidate),
+}));
+const classificationSummary = Object.fromEntries(
+  [...new Set(classifiedCandidates.map((candidate) => candidate.classification))]
+    .sort()
+    .map((classification) => [
+      classification,
+      classifiedCandidates.filter((candidate) => candidate.classification === classification)
+        .length,
+    ]),
+);
+const untranslatedUserVisibleCount = classificationSummary['user-visible-untranslated'] ?? 0;
 const inventory = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   description:
-    'Machine-generated candidate inventory of remaining literal English text in Svelte templates. Typed uiText/uiMessage calls are excluded; candidates require human classification before migration.',
+    'Machine-generated inventory of literal-English candidates remaining in Svelte templates. Each entry is explicitly classified; typed uiText/uiMessage calls are excluded.',
   typedBatchFiles,
-  candidateCount: candidates.length,
-  candidates,
+  candidateCount: classifiedCandidates.length,
+  untranslatedUserVisibleCount,
+  classificationSummary,
+  candidates: classifiedCandidates,
 };
 const serialized = `${JSON.stringify(inventory, null, 2)}\n`;
 if (process.argv.includes('--write')) {
@@ -101,6 +138,17 @@ if (process.argv.includes('--write')) {
   const existing = await readFile(outputPath, 'utf8').catch(() => '');
   if (existing !== serialized) {
     console.error(`${outputPath} is stale. Run pnpm locale:inventory.`);
+    process.exitCode = 1;
+  }
+  if (untranslatedUserVisibleCount > 0) {
+    console.error(
+      `${outputPath} contains ${untranslatedUserVisibleCount} unclassified user-visible English candidate(s).`,
+    );
+    for (const candidate of classifiedCandidates.filter(
+      (entry) => entry.classification === 'user-visible-untranslated',
+    )) {
+      console.error(`- ${candidate.path}: ${candidate.text}`);
+    }
     process.exitCode = 1;
   }
 } else {

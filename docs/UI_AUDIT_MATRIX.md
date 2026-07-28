@@ -111,7 +111,7 @@
 | F-07 | 不支持目标提示         | 同上                                                      | 明确错误                                    | MUST_MATCH | DONE     | COMPLETE | 顶层 inline/缓存 PAC 跨 Chromium/Firefox 激活；file/无缓存/无入口点及嵌套任意 PAC 继续明确失败；UI 能力/fallback 文案三语化                                                  | 明确 `file:` 范围       |
 | F-08 | invalid PAC URL 默认值 | 原版无此强制默认                                          | 示例只能是 placeholder                      | MUST_MATCH | DONE     | N/A      | URL 模式以空值初始化；永久守卫拒绝 example.invalid 回归                                                                                                                      | 保持测试                |
 | F-09 | Virtual 编辑页         | `profile_virtual.jade`                                    | 目标 selector + 帮助                        | MUST_MATCH | DONE     | COMPLETE | 真实 Virtual 类型、目标选择器和帮助；Chromium 通过 New Profile 模态框创建并选择目标                                                                                          | 保持双浏览器回归        |
-| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`master.coffee`、`options.coffee` | 用 Virtual 替换目标的全部引用；两个端点不变 | MUST_MATCH | DONE     | PARTIAL  | typed 事务覆盖 Startup、Quick Switch、Switch、Rule List、PAC/Auto Detect fallback 与其他 Virtual；Chromium 创建/确认/Apply 全链验证；Quick Switch 映射后去重为已记录安全差异 | 补确认文案翻译          |
+| F-10 | Virtual 引用替换       | `profile_virtual.jade`、`master.coffee`、`options.coffee` | 用 Virtual 替换目标的全部引用；两个端点不变 | MUST_MATCH | DONE     | COMPLETE | typed 事务覆盖 Startup、Quick Switch、Switch、Rule List、PAC/Auto Detect fallback 与其他 Virtual；Chromium 创建/确认/Apply 全链验证；Quick Switch 映射后去重为已记录安全差异 | 保持跨类型回归          |
 | F-11 | Auto Detect 普通新建   | `options.coffee` upgrade                                  | 原版不是独立普通类型                        | MUST_MATCH | DONE     | COMPLETE | 已从普通新建移除；旧导入类型暂保留兼容                                                                                                                                       | 后续迁移为 WPAD PAC     |
 
 ## G. 导入 / 导出 / 同步
@@ -205,3 +205,4 @@
 | 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环               |
 | 2026-07-29 | 完成 Temporary Rules/Network typed 三语、safe error、Chromium 完整交互及 Firefox zh-TW 页面守卫                               |
 | 2026-07-29 | 完成正常 Options/Virtual typed 三语、导出状态与 Chromium 实际页面/迁移守卫                                                    |
+| 2026-07-29 | 完成 imported Auto Detect typed 三语与 locale schema v2 分类门禁，删除不可达 Rule List/PAC 重复分支                           |

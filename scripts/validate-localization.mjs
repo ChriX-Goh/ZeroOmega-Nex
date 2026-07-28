@@ -7,6 +7,7 @@ const files = {
   deletion: 'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte',
   replacement: 'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
   switchProfile: 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte',
+  autoDetect: 'apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte',
   attachedRuleList: 'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
   independentRuleList: 'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   pac: 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
@@ -52,6 +53,7 @@ for (const [name, source] of [
   ['Profile replacement', entries.replacement],
   ['Fixed Profile', entries.fixed],
   ['Switch Profile', entries.switchProfile],
+  ['Auto Detect', entries.autoDetect],
   ['Attached Rule List', entries.attachedRuleList],
   ['Independent Rule List', entries.independentRuleList],
   ['PAC Profile', entries.pac],
@@ -267,6 +269,27 @@ for (const [source, marker, message] of [
     '`Exported ${result.exported.filename}.`',
     'Profile export status regressed to literal English.',
   ],
+  [entries.autoDetect, '<h2>Auto Detect</h2>', 'Auto Detect title regressed to literal English.'],
+  [
+    entries.autoDetect,
+    '>Fallback route',
+    'Auto Detect fallback label regressed to literal English.',
+  ],
+  [
+    entries.autoDetect,
+    '>No fallback</option>',
+    'Auto Detect fallback option regressed to literal English.',
+  ],
+  [
+    entries.autoDetect,
+    "candidate.kind === 'rule-list'",
+    'Advanced Profile editor regressed to the superseded Rule List branch.',
+  ],
+  [
+    entries.autoDetect,
+    "profile?.kind === 'pac'",
+    'Advanced Profile editor regressed to the superseded PAC branch.',
+  ],
   [entries.app, '<h1>General</h1>', 'General heading regressed to literal English.'],
   [entries.app, '<h1>Interface</h1>', 'Interface heading regressed to literal English.'],
   [
@@ -409,6 +432,22 @@ requireText(
   entries.chromiumE2e,
   'Virtual Profile typed locale coverage regressed',
   'Chromium Virtual Profile typed-locale coverage is missing.',
+);
+
+requireText(
+  entries.autoDetect,
+  "uiText('autoDetect.fallbackAria', locale)",
+  'Auto Detect fallback ARIA must use the typed catalog.',
+);
+requireText(
+  entries.app,
+  '<AdvancedProfileEditor\n          {locale}',
+  'Options must pass locale to imported Auto Detect.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Auto Detect typed locale coverage regressed',
+  'Chromium imported Auto Detect typed-locale coverage is missing.',
 );
 requireText(
   entries.catalog,

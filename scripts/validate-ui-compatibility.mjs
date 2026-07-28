@@ -894,6 +894,19 @@ const requirements = [
     'Snapshot history must disclose browser-safe runtime verification mode.',
   ],
   [
+    advancedProfileEditor.includes('data-auto-detect-profile-editor') &&
+      advancedProfileEditor.includes('data-typed-locale={locale}') &&
+      advancedProfileEditor.includes("uiText('autoDetect.help', locale)") &&
+      advancedProfileEditor.includes("uiText('autoDetect.fallbackAria', locale)") &&
+      advancedProfileEditor.includes('cloneProfileSpecDraft') &&
+      !advancedProfileEditor.includes("candidate.kind === 'rule-list'") &&
+      !advancedProfileEditor.includes("profile?.kind === 'pac'") &&
+      optionsApp.includes("selectedProfile.kind === 'auto-detect'") &&
+      optionsApp.includes('<AdvancedProfileEditor\n          {locale}') &&
+      chromiumE2e.includes('Auto Detect typed locale coverage regressed'),
+    'Imported Auto Detect must use one typed fallback-only editor without the superseded Rule List or PAC branches.',
+  ],
+  [
     !advancedProfileEditor.includes('https://example.invalid/') &&
       !advancedProfileEditor.includes('! Add rules here.') &&
       !advancedProfileEditor.includes("value: 'ZeroOmega Nex'"),

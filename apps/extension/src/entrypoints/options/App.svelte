@@ -1519,6 +1519,7 @@
         />
       {:else if selectedProfile.kind === 'auto-detect'}
         <AdvancedProfileEditor
+          {locale}
           spec={state.draft}
           profileId={selectedProfile.id}
           disabled={saving || view?.busy === true}

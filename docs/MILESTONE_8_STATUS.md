@@ -201,6 +201,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Typed imported Auto Detect and closed visible locale inventory
+
+- `AdvancedProfileEditor` now has one actual responsibility: editing the optional fallback of an imported Auto Detect profile. Superseded Rule List and PAC branches were removed because those types use their dedicated editors.
+- Auto Detect title, target-dependent help, fallback selector/options, route labels, and ARIA render directly in English, Simplified Chinese, and Traditional Chinese while preserving the existing Draft mutation and imported profile shape.
+- Chromium opens the source-backed `Auto Matrix` profile, verifies the typed zh-CN editor and selected `Target Proxy` fallback, confirms that Auto Detect still has no PAC export action, and continues through the full Virtual migration chain.
+- Locale inventory schema v2 classifies every remaining literal candidate. Verification now fails when any candidate is `user-visible-untranslated`; field keys, format names, keyboard keys, examples, stable technical codes, and scanner code fragments remain explicitly classified rather than mistranslated.
+
 ### Typed normal Options surfaces and Virtual Profile
 
 - Built-in Profiles, About, new-profile shell, empty-profile state, product branding, profile export actions/titles/status, and Virtual target/migration controls now render directly in English, Simplified Chinese, and Traditional Chinese.
@@ -274,7 +281,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Audit the remaining imported Auto Detect editor and classify residual locale inventory entries as user-visible text, stable technical identifiers, or non-rendered source tokens before deciding the final localization slice.
+Proceed to non-localization closure: Firefox remote-origin PAC/Rule Source permission and download coverage, stable downloader failure codes, explicit `file:` PAC scope, schema-v1/online restore decisions, and consolidated owner visual/real-backup QC.
 
 ### Typed locale inventory and first vertical batch
 
