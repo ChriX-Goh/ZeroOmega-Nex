@@ -280,6 +280,15 @@ p {
   border-color: var(--danger);
   color: var(--danger);
 }
+.profile-actions .warning {
+  border-color: #b77800;
+  color: #9a6500;
+}
+.profile-export-status {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
 .import-actions .primary {
   border-color: var(--accent);
   background: var(--accent);

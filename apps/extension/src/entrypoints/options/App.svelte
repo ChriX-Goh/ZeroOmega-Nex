@@ -38,6 +38,12 @@
   import ProfileIcon from '../../components/ProfileIcon.svelte';
   import { translate } from '../../lib/i18n';
   import {
+    createProfilePacExport,
+    createSwitchRuleListExport,
+    inspectSwitchRuleListExport,
+    type ProfileTextExport,
+  } from '../../lib/profile-export';
+  import {
     requestRuleSourceOriginPermission,
     sendProfileWorkflowCommand,
     subscribeProfileWorkflowStateChanges,
@@ -115,6 +121,9 @@
   let requestingDiagnosticsPermission = false;
   let pendingProfileDeletion: PendingProfileDeletion | undefined;
   let pendingProfileReplacement: PendingProfileReplacement | undefined;
+  let profileExporting = false;
+  let profileExportMessage = '';
+  let ruleListExportWarning = '';
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -132,6 +141,10 @@
   $: switchProfile = selectedProfile?.kind === 'switch' ? selectedProfile : undefined;
   $: virtualProfile = selectedProfile?.kind === 'virtual' ? selectedProfile : undefined;
   $: hasUnappliedChanges = Boolean(view?.dirty || profileEditorDirty);
+  $: ruleListExportWarning =
+    state && switchProfile
+      ? (inspectSwitchRuleListExport(state.draft, switchProfile.id).warning ?? '')
+      : '';
 
   const createWorkflowId: ProfileWorkflowIdFactory = (kind) => `${kind}-${crypto.randomUUID()}`;
 
@@ -497,6 +510,73 @@
       }
     } catch (error) {
       errorMessage = messageFrom(error);
+    }
+  }
+
+  function downloadProfileText(exported: ProfileTextExport): void {
+    const blob = new Blob([exported.content], { type: exported.mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exported.filename;
+    anchor.style.display = 'none';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  async function prepareSelectedProfileExport(): Promise<
+    { readonly spec: ProfileSpec; readonly profileId: string } | undefined
+  > {
+    if (!state || !selectedProfile || saving || profileExporting || view?.busy) return undefined;
+    const profileId = selectedProfile.id;
+    if (!(await commitActiveProfileEditor()) || !state) return undefined;
+    if (!state.draft.profiles.some((profile) => profile.id === profileId)) return undefined;
+    return { spec: structuredClone(state.draft), profileId };
+  }
+
+  async function exportSelectedPac(): Promise<void> {
+    const prepared = await prepareSelectedProfileExport();
+    if (!prepared) return;
+    profileExporting = true;
+    profileExportMessage = '';
+    try {
+      const result = await createProfilePacExport(prepared.spec, prepared.profileId, {
+        createdAt: new Date(),
+      });
+      if (!result.ok) throw new Error(result.issues.join(' '));
+      downloadProfileText(result.exported);
+      profileExportMessage =
+        result.exported.warnings.length === 0
+          ? `Exported ${result.exported.filename}.`
+          : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    } finally {
+      profileExporting = false;
+    }
+  }
+
+  async function exportSelectedRuleList(): Promise<void> {
+    const prepared = await prepareSelectedProfileExport();
+    if (!prepared) return;
+    profileExporting = true;
+    profileExportMessage = '';
+    try {
+      const result = createSwitchRuleListExport(prepared.spec, prepared.profileId, {
+        createdAt: new Date(),
+      });
+      if (!result.ok) throw new Error(result.issues.join(' '));
+      downloadProfileText(result.exported);
+      profileExportMessage =
+        result.exported.warnings.length === 0
+          ? `Exported ${result.exported.filename}.`
+          : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    } finally {
+      profileExporting = false;
     }
   }
 
@@ -880,6 +960,7 @@
         <h2>Settings</h2>
         <button
           class:active={activeSection === 'interface'}
+          data-interface-action
           type="button"
           onclick={() => void navigate('interface')}
         >
@@ -1154,6 +1235,7 @@
         <label class="checkbox-row"
           ><input
             type="checkbox"
+            data-show-advanced-conditions-setting
             checked={state.draft.settings.interface.showAdvancedConditions}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('showAdvancedConditions', checkedFrom(event))}
@@ -1190,6 +1272,7 @@
         <label class="checkbox-row"
           ><input
             type="checkbox"
+            data-export-legacy-rule-list-setting
             checked={state.draft.settings.interface.exportLegacyRuleList}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('exportLegacyRuleList', checkedFrom(event))}
@@ -1309,8 +1392,34 @@
           </div>
         </div>
         <div class="profile-actions">
-          <button type="button" disabled={view?.busy || saving} onclick={duplicateSelectedProfile}
-            >Duplicate</button
+          {#if switchProfile}
+            <button
+              type="button"
+              class:warning={ruleListExportWarning.length > 0}
+              data-profile-export-rule-list
+              data-profile-export-rule-list-warning={ruleListExportWarning.length > 0}
+              title={ruleListExportWarning || 'Export this Switch Profile as a rule-list file.'}
+              disabled={view?.busy || saving || profileExporting}
+              onclick={() => void exportSelectedRuleList()}
+            >
+              {translate('Publish rule list')}
+            </button>
+          {/if}
+          {#if selectedProfile.kind !== 'auto-detect'}
+            <button
+              type="button"
+              data-profile-export-pac
+              title="Export the current profile as a PAC file for another browser."
+              disabled={view?.busy || saving || profileExporting}
+              onclick={() => void exportSelectedPac()}
+            >
+              {translate('Export PAC')}
+            </button>
+          {/if}
+          <button
+            type="button"
+            disabled={view?.busy || saving || profileExporting}
+            onclick={duplicateSelectedProfile}>Duplicate</button
           ><button
             type="button"
             class="danger"
@@ -1320,6 +1429,11 @@
           >
         </div>
       </header>
+      {#if profileExportMessage}
+        <p class="profile-export-status" role="status" data-profile-export-status>
+          {profileExportMessage}
+        </p>
+      {/if}
       <section class="settings-section profile-identity-editor">
         <label>
           <span>Profile name</span>

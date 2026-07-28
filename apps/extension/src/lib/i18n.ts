@@ -59,6 +59,8 @@ const translations: Readonly<Record<string, TranslationPair>> = {
   'Virtual Profile target': { 'zh-CN': '虚拟情景模式目标', 'zh-TW': '虛擬情景模式目標' },
   'Migrate to Virtual Profile': { 'zh-CN': '迁移到虚拟情景模式', 'zh-TW': '移轉到虛擬情景模式' },
   'Replace target profile': { 'zh-CN': '替换目标情景模式', 'zh-TW': '取代目標情景模式' },
+  'Publish rule list': { 'zh-CN': '发布规则列表', 'zh-TW': '釋出規則清單' },
+  'Export PAC': { 'zh-CN': '导出PAC', 'zh-TW': '匯出 PAC' },
   'Apply changes': { 'zh-CN': '应用选项', 'zh-TW': '套用選項' },
   'Discard changes': { 'zh-CN': '撤销更改', 'zh-TW': '復原變更' },
   'Working…': { 'zh-CN': '处理中…', 'zh-TW': '處理中…' },

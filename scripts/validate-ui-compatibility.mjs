@@ -28,6 +28,7 @@ const profileDeletionDialogPath =
   'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
+const profileExportPath = 'apps/extension/src/lib/profile-export.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
 const manifestPath = 'apps/extension/wxt.config.ts';
 const defaultsPath = 'packages/profile-workflow/src/defaults.ts';
@@ -100,6 +101,7 @@ const [
   profileDeletionDialog,
   optionsHtml,
   i18n,
+  profileExport,
   profileIcon,
   manifest,
   defaults,
@@ -152,6 +154,7 @@ const [
   readFile(profileDeletionDialogPath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
+  readFile(profileExportPath, 'utf8'),
   readFile(profileIconPath, 'utf8'),
   readFile(manifestPath, 'utf8'),
   readFile(defaultsPath, 'utf8'),
@@ -498,6 +501,28 @@ const requirements = [
       chromiumE2e.includes("replacementFrom.selectOption({ label: 'Unrelated Proxy' })") &&
       chromiumE2e.includes("replacementTo.selectOption({ label: 'Existing Alias' })"),
     'Virtual replacement must open the original general two-selector dialog after the dirty-Draft Apply boundary, preview both endpoints, and produce one typed replacement Draft without changing either profile.',
+  ],
+  [
+    profileExport.includes("PROFILE_TEXT_EXPORT_MIME = 'text/plain;charset=utf-8'") &&
+      profileExport.includes('sanitizeProfileExportName') &&
+      profileExport.includes('/\\W+/g') &&
+      profileExport.includes('OmegaProfile_') &&
+      profileExport.includes('OmegaRules_') &&
+      profileExport.includes('SwitchyRules_') &&
+      profileExport.includes('; Require: ZeroOmega >= 2.3.2') &&
+      profileExport.includes('; Summary: Proxy Switchy! Exported Rule List') &&
+      profileExport.includes('createRawPacSnapshot') &&
+      profileExport.includes('compilePac') &&
+      profileExport.includes('advanced conditions require the SwitchyOmega .sorl format') &&
+      optionsApp.includes('data-profile-export-rule-list') &&
+      optionsApp.includes('data-profile-export-pac') &&
+      optionsApp.includes('commitActiveProfileEditor') &&
+      optionsApp.includes('downloadProfileText') &&
+      chromiumE2e.includes('OmegaRules_Route_Matrix.sorl') &&
+      chromiumE2e.includes('SwitchyRules_Route_Matrix.ssrl') &&
+      chromiumE2e.includes('OmegaProfile_Target_Proxy.pac') &&
+      chromiumE2e.includes('OmegaProfile_PAC_Matrix.pac'),
+    'Profile headers must export current-Draft PAC and Switch rule-list files with original filenames, UTF-8 MIME, legacy fallback warning, raw PAC validation, and real Chromium downloads.',
   ],
   [
     optionsApp.includes('class="nav-group actions"'),

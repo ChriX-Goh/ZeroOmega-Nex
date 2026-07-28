@@ -74,6 +74,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium uses a separate user data directory, restores a source-backed schema-v2 cross-reference fixture, creates `Stable Alias` through the real four-type New Profile dialog, selects `Target Proxy`, confirms migration, verifies every typed route surface and both endpoint profiles, then commits through Apply.
 - Integration run `30320204375`; product commit `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3`; clean exact Head `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35` passed CI `30320359259`, Browser E2E `30320359263`, and Parity Documentation `30320359269`.
 
+### Profile-level PAC and Rule List exports
+
+- Original profile-header exports operate on the current in-memory Options state rather than forcing Apply. Nex commits only an active Switch source editor into Draft, then exports without changing Applied state or browser traffic.
+- Fixed, Switch, Rule List, and Virtual profiles compile to cross-browser PAC; PAC Profiles export structurally validated top-level inline/downloaded scripts; Auto Detect is excluded and uncached remote PAC fails explicitly.
+- Switch exports modern result-enabled `OmegaRules_*.sorl` with Require/Date/Usage metadata. When legacy export is requested and all conditions remain basic, `SwitchyRules_*.ssrl` is produced; advanced conditions show a warning and safely fall back to `.sorl`.
+- All files use original `/\W+/g` filename sanitization and `text/plain;charset=utf-8`. Chromium verifies modern, legacy, warning fallback, generated PAC, raw PAC, and Auto Detect exclusion through real downloads.
+- Integration run `30328853989`; product commit containing this document.
+
 ### General Replace Profile dialog
 
 - Original v3.5.0 exposes replacement from the Virtual page, but the modal is general: both `from` and `to` remain selectable, both endpoints are previewed, and the help text covers rules, Startup, Quick Switch, and other options while preserving both profiles.
@@ -194,4 +202,4 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Continue profile-level PAC/Rule List export actions and typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue typed locale coverage and remaining accessibility warnings; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

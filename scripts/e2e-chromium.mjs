@@ -921,6 +921,76 @@ try {
     .getByText('导入完成，原版配置现已启用。')
     .waitFor({ state: 'visible', timeout: 20_000 });
 
+  await virtualOptions.getByRole('button', { name: 'Route Matrix', exact: true }).click();
+  const [modernRuleDownload] = await Promise.all([
+    virtualOptions.waitForEvent('download'),
+    virtualOptions.locator('[data-profile-export-rule-list]').click(),
+  ]);
+  assert.equal(modernRuleDownload.suggestedFilename(), 'OmegaRules_Route_Matrix.sorl');
+  const modernRulePath = await modernRuleDownload.path();
+  assert.ok(modernRulePath, 'Modern Rule List download path was not available');
+  const modernRuleExport = await readFile(modernRulePath, 'utf8');
+  assert.match(modernRuleExport, /\[SwitchyOmega Conditions\]/u);
+  assert.match(modernRuleExport, /; Require: ZeroOmega >= 2\.3\.2/u);
+  assert.match(modernRuleExport, /\*\.virtual-migration\.invalid \+Target Proxy/u);
+
+  await virtualOptions.locator('[data-interface-action]').click();
+  await virtualOptions.locator('[data-export-legacy-rule-list-setting]').check();
+  await virtualOptions.getByRole('button', { name: 'Route Matrix', exact: true }).click();
+  const [legacyRuleDownload] = await Promise.all([
+    virtualOptions.waitForEvent('download'),
+    virtualOptions.locator('[data-profile-export-rule-list]').click(),
+  ]);
+  assert.equal(legacyRuleDownload.suggestedFilename(), 'SwitchyRules_Route_Matrix.ssrl');
+  const legacyRulePath = await legacyRuleDownload.path();
+  assert.ok(legacyRulePath, 'Legacy Rule List download path was not available');
+  const legacyRuleExport = await readFile(legacyRulePath, 'utf8');
+  assert.match(legacyRuleExport, /; Summary: Proxy Switchy! Exported Rule List/u);
+  assert.match(legacyRuleExport, /@\*:\/\/\*\.virtual-migration\.invalid\/\*/u);
+
+  await virtualOptions.locator('[data-interface-action]').click();
+  await virtualOptions.locator('[data-show-advanced-conditions-setting]').check();
+  await virtualOptions.getByRole('button', { name: 'Route Matrix', exact: true }).click();
+  const warnedRuleExport = virtualOptions.locator('[data-profile-export-rule-list]');
+  assert.equal(
+    await warnedRuleExport.getAttribute('data-profile-export-rule-list-warning'),
+    'true',
+  );
+  const [fallbackRuleDownload] = await Promise.all([
+    virtualOptions.waitForEvent('download'),
+    warnedRuleExport.click(),
+  ]);
+  assert.equal(fallbackRuleDownload.suggestedFilename(), 'OmegaRules_Route_Matrix.sorl');
+
+  await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).click();
+  const [generatedPacDownload] = await Promise.all([
+    virtualOptions.waitForEvent('download'),
+    virtualOptions.locator('[data-profile-export-pac]').click(),
+  ]);
+  assert.equal(generatedPacDownload.suggestedFilename(), 'OmegaProfile_Target_Proxy.pac');
+  const generatedPacPath = await generatedPacDownload.path();
+  assert.ok(generatedPacPath, 'Generated PAC download path was not available');
+  const generatedPacExport = await readFile(generatedPacPath, 'utf8');
+  assert.match(generatedPacExport, /function FindProxyForURL/u);
+  assert.match(generatedPacExport, /PROXY target\.proxy\.invalid:8080/u);
+
+  await virtualOptions.getByRole('button', { name: 'PAC Matrix', exact: true }).click();
+  const [rawPacDownload] = await Promise.all([
+    virtualOptions.waitForEvent('download'),
+    virtualOptions.locator('[data-profile-export-pac]').click(),
+  ]);
+  assert.equal(rawPacDownload.suggestedFilename(), 'OmegaProfile_PAC_Matrix.pac');
+  const rawPacPath = await rawPacDownload.path();
+  assert.ok(rawPacPath, 'Raw PAC download path was not available');
+  assert.equal(
+    await readFile(rawPacPath, 'utf8'),
+    "function FindProxyForURL(url, host) { return 'DIRECT'; }\n",
+  );
+
+  await virtualOptions.getByRole('button', { name: 'Auto Matrix', exact: true }).click();
+  await virtualOptions.getByRole('heading', { name: 'Auto Matrix', exact: true }).waitFor();
+  assert.equal(await virtualOptions.locator('[data-profile-export-pac]').count(), 0);
+
   await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).click();
   await virtualOptions.locator('[data-profile-delete-action]').click();
   const blockedDeletion = virtualOptions.locator(

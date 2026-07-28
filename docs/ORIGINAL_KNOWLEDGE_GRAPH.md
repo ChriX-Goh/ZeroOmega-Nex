@@ -419,3 +419,8 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - 原版通用 Replace Profile 实际只有 Virtual 页面入口，但 `master.coffee` 的 `$rootScope.replaceProfile(fromName, toName)` 会先执行 `applyOptionsConfirm()`，再打开 `replace_profile.jade`；对话框内 `fromName` 与 `toName` 都是可重新选择的普通 Profile，而不是固定确认框。
 - `replace_profile.jade` 同时展示两个 Profile 的行内预览与箭头；帮助文案明确所有规则、Startup、Quick Switch 等引用会从 from 改为 to，但 from/to 两个 Profile 本身均不改变也不删除。
 - Nex 因此由 Options 持有 Apply-before-dialog 边界与 `replaceProfileReferencesDraft` 事务；Virtual 编辑器只传入默认端点。对话框排除隐藏附属 Rule List，但允许用户把 from/to 改为任意可见 Profile；确认后只更新 Draft，仍需正常 Apply。
+
+- 原版 `profile.jade` 在普通 Profile 页头显示 PAC 导出；Switch 另外注册 Rule List 导出。`MasterCtrl.exportScript` 使用当前内存 Options（不先 Apply）、`text/plain;charset=utf-8`、`OmegaProfile_<name.replace(/\W+/g, '_')>.pac`。Nex 同样只先提交当前 Switch 源码到 Draft，不改变 Applied 或当前流量。
+- Typed Fixed/Switch/Rule List/Virtual 通过 cross-browser PAC compiler 导出；PAC Profile 通过与激活相同的顶层 raw-PAC 结构验证导出 inline/已下载缓存；Auto Detect 不显示 PAC 导出，未下载的远程 PAC 明确失败。导出文件不访问 secret store，凭据不会进入 PAC。
+- Switch modern 导出为 `OmegaRules_*.sorl`，保留 result-enabled SwitchyOmega Conditions，并插入 Require/Date/Usage 元数据。legacy 选项仅在基础条件且高级条件界面关闭时导出 `SwitchyRules_*.ssrl`；否则按钮显示警告并回退 `.sorl`，避免静默丢失高级语义。
+- legacy `.ssrl` 只表示 default 与 non-default 两类：与有效 default route 相同的规则加 `!`；Host wildcard、URL wildcard、URL regex 分别按原版写入 wildcard/regexp 区，False 忽略。附属 Rule List 启用时使用其 default route。
