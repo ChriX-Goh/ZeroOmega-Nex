@@ -10,6 +10,8 @@ const files = {
   attachedRuleList: 'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
   independentRuleList: 'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   pac: 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
+  history: 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
+  chromiumE2e: 'scripts/e2e-chromium.mjs',
   firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
   package: 'package.json',
@@ -47,6 +49,7 @@ for (const [name, source] of [
   ['Attached Rule List', entries.attachedRuleList],
   ['Independent Rule List', entries.independentRuleList],
   ['PAC Profile', entries.pac],
+  ['Snapshot History', entries.history],
 ]) {
   requireText(
     source,
@@ -127,6 +130,16 @@ for (const [source, marker, message] of [
   [entries.pac, 'aria-label="PAC Script"', 'PAC Script ARIA regressed to literal English.'],
   [entries.pac, '>Download now</button>', 'PAC download action regressed to literal English.'],
   [
+    entries.history,
+    '<h2>Configuration history</h2>',
+    'History heading regressed to literal English.',
+  ],
+  [
+    entries.history,
+    '>Rollback to this snapshot</button>',
+    'History rollback action regressed to literal English.',
+  ],
+  [
     entries.pac,
     'Proxy authentication permission was not granted.',
     'PAC auth error regressed to literal English.',
@@ -177,6 +190,11 @@ requireText(
   entries.catalog,
   "readonly 'pac.lastUpdated'",
   'Typed PAC update status messages are missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'data-snapshot-rollback-confirm',
+  'Chromium real snapshot rollback interaction coverage is missing.',
 );
 requireText(
   entries.firefoxE2e,

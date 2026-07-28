@@ -984,7 +984,7 @@
           disabled={!state || saving || view?.busy}
           onclick={() => void navigate('history')}
         >
-          <span aria-hidden="true">↶</span><span>Snapshot History</span>
+          <span aria-hidden="true">↶</span><span>{uiText('history.nav', locale)}</span>
         </button>
       </section>
 
@@ -1295,11 +1295,12 @@
     {:else if activeSection === 'history' && state}
       <header class="editor-heading">
         <div>
-          <h1>Configuration History</h1>
-          <p>Inspect or restore a previously verified configuration.</p>
+          <h1>{uiText('history.pageTitle', locale)}</h1>
+          <p>{uiText('history.pageHelp', locale)}</p>
         </div>
       </header>
       <SnapshotHistoryPanel
+        {locale}
         disabled={saving || view?.busy === true}
         dirty={view?.dirty === true}
         generation={state.generation}

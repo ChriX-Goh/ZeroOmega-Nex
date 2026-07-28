@@ -9,9 +9,10 @@
     "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
     "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-    "apps/extension/src/entrypoints/options/PacProfileEditor.svelte"
+    "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte"
   ],
-  "candidateCount": 270,
+  "candidateCount": 229,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -461,11 +462,6 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Configuration History"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "Confirm before deleting a profile"
     },
     {
@@ -532,11 +528,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "Import / Export"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Inspect or restore a previously verified configuration."
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -637,11 +628,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "Show result profile on the toolbar badge"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Snapshot History"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -887,196 +873,6 @@
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "text",
       "text": "Switchy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "aria-label",
-      "text": "ProfileSpec revision history"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "aria-label",
-      "text": "Snapshot status"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Confirm rollback"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Currently active"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Refresh history"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Refreshing…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Rollback to this snapshot"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Rolling back…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Active"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Applied"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Browser target"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Cancel"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Capability"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Compiler"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Conditions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Configuration history"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Confirm snapshot rollback"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Device"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Draft contains unapplied changes. Apply or Revert those changes before rolling back a snapshot."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Endpoints"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Last known good"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Loading verified snapshot and revision history…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "No archived revisions are available."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "No verified PAC snapshots are stored yet. Direct and System activations do not create PAC snapshots."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "PAC hash"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "PAC size"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Parent"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "ProfileSpec hash"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "ProfileSpec revisions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Revision, compiler, and verification metadata. Profile contents, PAC source, and secret material are never returned to this page."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Rule sources"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Source revision"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Start route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "The source ProfileSpec revision is unavailable; rollback is disabled."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Verification mode"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Verification vectors"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-      "kind": "text",
-      "text": "Verified PAC snapshots"
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",

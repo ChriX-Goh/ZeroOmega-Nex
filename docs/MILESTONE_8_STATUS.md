@@ -201,6 +201,21 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Delivery-plan reconciliation: Import review
+
+- The user-visible import review was confirmed as implemented rather than a placeholder: file-first input, optional pasted JSON/base64, compatibility summary, technical details, safe secret extraction, explicit activate/non-activate actions, and no traffic change during selection or analysis.
+- Object, JSON string, base64 JSON, and schema-v2 support have direct decoder/importer tests. Chromium verifies original backup upload, explicit activation, full storage clear, restore, and byte-identical re-export.
+- The stale G-04/G-05/G-06 `UNVERIFIED/BROKEN` statuses are corrected. Remaining import-review work is typed three-locale rendering, stable error presentation, a non-default imported startup-route browser assertion, and repository-owner real complex-backup acceptance.
+- Online URL restore, schema-v1 upgrade, and v1 AutoDetect migration remain separate missing/scope items.
+
+### Typed Snapshot History and real rollback closure
+
+- The existing revision/snapshot repositories and atomic rollback command were retained; no second state machine was introduced.
+- Snapshot History now renders English, Simplified Chinese, and Traditional Chinese directly for page/navigation text, revision and snapshot metadata, verification modes, status, warnings, empty/error states, confirmation, actions, and ARIA.
+- The page continues to receive metadata only. ProfileSpec content, PAC source, request headers, and secret material remain background-owned and are never returned by the history command.
+- Chromium captures a verified persistent snapshot, activates a distinct raw PAC snapshot, then uses the real History confirmation flow to restore the first snapshot. The regression requires browser `activeSnapshotId`, Applied revision, Draft revision, and the History Active marker to converge.
+- The import-review audit confirmed the existing compatibility summary, technical migration details, secret-material warning, inactive import, immediate apply, and byte-identical backup round trip; its remaining gap is direct typed locale coverage rather than missing workflow behavior.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
@@ -213,13 +228,13 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
 - stable Rule Source/PAC downloader failure codes for complete semantic error localization,
-- remaining General/Interface/Import/Theme/History/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
+- remaining General/Interface/Import/Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Reconcile the remaining Milestone 8 delivery-plan obligations before another broad locale batch. Audit the user-visible import review and snapshot history/rollback UI against the fixed source baseline and current implementation, classify each row as implemented, missing, or an explicit scope decision, then implement the first missing `MUST_MATCH` slice. Continue General/Interface/Import/History/Popup/Temporary Rules/Network typed localization from the resulting closure order.
+Migrate the existing Legacy Import review panel as the next typed vertical batch. Cover export, file/pasted input, compatibility category counts, technical details, secret-material notices, inactive import, immediate apply, success/error states, buttons, titles, placeholders, and ARIA in all three locales while preserving the verified schema-v2 round trip and secret isolation.
 
 ### Typed locale inventory and first vertical batch
 

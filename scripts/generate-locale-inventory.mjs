@@ -13,6 +13,7 @@ const typedBatchFiles = [
   'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
+  'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
 ];
 
 async function collect(directory) {

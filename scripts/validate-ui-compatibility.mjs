@@ -439,6 +439,18 @@ const requirements = [
     'PAC must preserve remote cache and original editor states, install arbitrary scripts only as structurally verified top-level raw snapshots, keep nested composition unsupported, and isolate one all-proxy authentication credential in background storage with Chromium evidence.',
   ],
   [
+    snapshotHistory.includes('data-snapshot-history-panel') &&
+      snapshotHistory.includes('data-typed-locale={locale}') &&
+      snapshotHistory.includes('data-snapshot-rollback-request') &&
+      snapshotHistory.includes('data-snapshot-rollback-confirm') &&
+      snapshotHistory.includes("uiText('history.confirmTitle', locale)") &&
+      optionsApp.includes('<SnapshotHistoryPanel\n        {locale}') &&
+      chromiumE2e.includes('historyRollbackTarget') &&
+      chromiumE2e.includes('data-snapshot-rollback-confirm') &&
+      chromiumE2e.includes('History rollback did not restore browser state'),
+    'Snapshot History must render through the typed catalog and retain a real Chromium rollback that converges browser, Applied, Draft, and UI state.',
+  ],
+  [
     popupStyle.includes("font-family: 'Segoe UI'"),
     'Popup must use explicit Windows typography for browser parity.',
   ],
@@ -794,7 +806,7 @@ const requirements = [
     'Snapshot rollback must use an explicit confirmation dialog semantic.',
   ],
   [
-    snapshotHistory.includes('Confirm rollback'),
+    snapshotHistory.includes("uiText('history.confirmRollback', locale)"),
     'Snapshot rollback must require an explicit second confirmation action.',
   ],
   [
@@ -802,7 +814,7 @@ const requirements = [
     'Options must surface background errors independently of the selected section.',
   ],
   [
-    snapshotHistory.includes('Extension reference-safety check plus browser install confirmation'),
+    snapshotHistory.includes("uiText('history.verificationReferenceSafety', locale)"),
     'Snapshot history must disclose browser-safe runtime verification mode.',
   ],
   [

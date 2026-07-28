@@ -460,6 +460,37 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Loading verified snapshot and revision history');
     expect(body).not.toContain('Confirm rollback');
   });
+
+  it('renders typed snapshot history text in both Chinese locales', () => {
+    const simplified = render(SnapshotHistoryPanel, {
+      props: {
+        locale: 'zh-CN',
+        disabled: false,
+        dirty: true,
+        generation: 4,
+        onRollbackSnapshot: async () => true,
+      },
+    }).body;
+    expect(simplified).toContain('配置历史');
+    expect(simplified).toContain('草稿包含尚未应用的更改');
+    expect(simplified).toContain('正在加载已验证的快照和修订历史');
+    expect(simplified).not.toContain('Configuration history');
+
+    const traditional = render(SnapshotHistoryPanel, {
+      props: {
+        locale: 'zh-TW',
+        disabled: false,
+        dirty: true,
+        generation: 4,
+        onRollbackSnapshot: async () => true,
+      },
+    }).body;
+    expect(traditional).toContain('設定歷史');
+    expect(traditional).toContain('草稿包含尚未套用的變更');
+    expect(traditional).toContain('正在載入已驗證的快照與修訂歷史');
+    expect(traditional).not.toContain('Configuration history');
+  });
+
   it('renders the original four new-profile choices and name validation shell', () => {
     const { body } = render(NewProfileDialog, {
       props: {

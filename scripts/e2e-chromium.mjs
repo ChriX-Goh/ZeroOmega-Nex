@@ -687,6 +687,29 @@ try {
   }, 'Deleting the final temporary rule did not restore the underlying route');
   await temporaryManager.close();
 
+  const historyRollbackTarget = await assertEventuallyValue(async () => {
+    return worker.evaluate(async () => {
+      const storage = await chrome.storage.local.get(null);
+      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+      const snapshotId = proxyState?.activeSnapshotId;
+      if (
+        !workflow ||
+        typeof snapshotId !== 'string' ||
+        snapshotId.startsWith('popup-temporary-v1/')
+      ) {
+        return undefined;
+      }
+      const snapshot = storage[`zeroomega-nex/browser-proxy/v1/snapshot/${snapshotId}`];
+      if (!snapshot || snapshot.sourceRevisionId !== workflow.applied.revision.id) return undefined;
+      return {
+        snapshotId,
+        sourceRevisionId: snapshot.sourceRevisionId,
+        startRoute: snapshot.startRoute,
+      };
+    });
+  }, 'Underlying verified snapshot was not restored after removing the final temporary rule');
+
   const diagnosticsPage = await context.newPage();
   await diagnosticsPage.goto(
     `chrome-extension://${extensionId}/network.html?tabId=${currentSiteTabId}`,
@@ -866,6 +889,28 @@ try {
   await attachRuleList.waitFor();
   assert.equal(await options.locator('[data-attached-rule-list-row]').count(), 0);
 
+  const revertedDraft = await options.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    if (!workflow) throw new Error('Workflow state is unavailable before History rollback E2E');
+    if (workflow.draft.revision.id === workflow.applied.revision.id) return { ok: true };
+    return chrome.runtime.sendMessage({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'revert',
+      expectedGeneration: workflow.generation,
+    });
+  });
+  assert.equal(revertedDraft?.ok, true, 'Draft could not be reverted before History rollback E2E');
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return workflow?.draft?.revision?.id === workflow?.applied?.revision?.id;
+      }),
+    'Draft remained dirty before History rollback E2E',
+  );
+
   const rawPacActivation = await options.evaluate(async () => {
     const workflowKey = 'zeroomega-nex/profile-workflow/v1/state';
     const workflow = (await chrome.storage.local.get(workflowKey))[workflowKey];
@@ -924,6 +969,57 @@ try {
     },
     'Raw PAC snapshot, all-proxy binding, or isolated secret was not installed',
     20_000,
+  );
+
+  await options.bringToFront();
+  await options.getByRole('button', { name: '配置历史', exact: true }).click();
+  const historyPanel = options.locator('[data-snapshot-history-panel]');
+  await historyPanel.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await historyPanel.getAttribute('data-typed-locale'), 'zh-CN');
+  await historyPanel.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await historyPanel.innerText(),
+    /Configuration history|Verified PAC snapshots/u,
+  );
+  const rollbackEntry = historyPanel.locator(
+    `[data-snapshot-history-entry="${historyRollbackTarget.snapshotId}"]`,
+  );
+  await rollbackEntry.waitFor({ state: 'visible', timeout: 20_000 });
+  await rollbackEntry
+    .locator(`[data-snapshot-rollback-request="${historyRollbackTarget.snapshotId}"]`)
+    .click();
+  const rollbackDialog = historyPanel.locator(
+    `[data-snapshot-rollback-dialog="${historyRollbackTarget.snapshotId}"]`,
+  );
+  await rollbackDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await rollbackDialog.getByText('确认回滚快照', { exact: true }).waitFor();
+  await rollbackDialog
+    .locator(`[data-snapshot-rollback-confirm="${historyRollbackTarget.snapshotId}"]`)
+    .click();
+  await assertEventually(
+    async () => {
+      const state = await worker.evaluate(async () => {
+        const storage = await chrome.storage.local.get(null);
+        const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+        const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+        return {
+          activeSnapshotId: proxyState?.activeSnapshotId,
+          appliedRevisionId: workflow?.applied?.revision?.id,
+          draftRevisionId: workflow?.draft?.revision?.id,
+        };
+      });
+      return (
+        state.activeSnapshotId === historyRollbackTarget.snapshotId &&
+        state.appliedRevisionId === historyRollbackTarget.sourceRevisionId &&
+        state.draftRevisionId === historyRollbackTarget.sourceRevisionId
+      );
+    },
+    'History rollback did not restore browser state and both workflow revisions',
+    20_000,
+  );
+  await assertEventually(
+    async () => (await rollbackEntry.getAttribute('data-snapshot-active')) === 'true',
+    'History UI did not mark the restored snapshot active',
   );
 
   virtualContext = await chromium.launchPersistentContext(virtualUserDataDir, {

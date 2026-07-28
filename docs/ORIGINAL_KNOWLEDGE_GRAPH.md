@@ -337,6 +337,26 @@ graph TD
 | `! Add rules here.`                     | Nex 临时内容                   | 不得作为自动保存的默认规则正文                                         |
 | `User-Agent: ZeroOmega Nex`             | Nex 临时 header                | 新增请求头必须为空白行；名称和值只可由用户输入，永久守卫阻止回归       |
 
+## 15.4 Nex 导入审阅现状
+
+- `LegacyImportPanel` 已实现本地文件优先选择、可选粘贴 JSON/base64、非激活兼容性分析、统计分类、技术明细、秘密材料抽离提示，以及“导入并立即使用/仅导入”两个明确动作。
+- 选择或分析备份不会改变浏览器流量。“导入并立即使用”先接受候选 Draft，再走普通 verified Apply；“仅导入”保持 Applied 与浏览器状态不变。
+- decoder/importer 已直接覆盖对象、JSON 字符串、base64 JSON、schemaVersion 2、资源边界、循环对象、非法编码和 unsafe fixture。旧矩阵中 G-04/G-05/G-06 的 `UNVERIFIED/BROKEN` 是状态漂移，不是当前实现事实。
+- Chromium 已执行原版备份上传、显式启用、清空 local/session、恢复导出备份与字节级再次导出。剩余缺口是 typed 三语、稳定用户错误映射、非默认 imported startup route 专项断言和仓库所有者真实复杂备份 QC。
+- 在线 URL 恢复、schema v1 升级和 v1 AutoDetect→WPAD PAC 仍是独立开放项，不能用它们否定本地导入审阅已实现，也不能把本地审阅完成误当作这些开放项完成。
+
+## 15.5 Nex 已验证快照历史与回滚
+
+原版 Options 的导入/恢复、启动情景模式应用和浏览器代理回退语义是兼容基线；Nex 另外把新架构中的不可变已验证快照暴露为用户可见历史。这是保障原子激活与可恢复性的 Nex 产品能力，不得冒充原版 v3.5.0 页面。
+
+- History 页面只读取修订、编译器、哈希、能力、验证、统计和 warning 元数据；不得把 ProfileSpec 内容、PAC 正文、请求头或秘密材料返回页面。
+- 每个快照必须关联可恢复的 `sourceRevisionId`。缺少源修订时仅显示元数据，回滚按钮禁用。
+- Draft 脏时回滚禁用；用户必须先 Apply 或 Discard，防止历史操作覆盖未应用工作。
+- 回滚确认必须明确会立即切换浏览器流量，并同时替换 Applied 与 Draft。
+- 后台先验证并安装归档快照，再以 CAS 提交源修订；工作流提交失败时必须恢复操作前浏览器状态，不能把部分成功报告为完成。
+- Chromium 永久 E2E 必须从 History 页面真实点击回滚，并同时验证 `activeSnapshotId`、Applied revision、Draft revision 与页面 Active 标记收敛到同一快照。
+- History 的标题、帮助、状态、元数据标签、确认框、按钮、空状态、错误和 ARIA 必须直接通过 typed 英文/简体中文/正體中文 catalog 渲染。
+
 ## 16. 实现决策分类
 
 | 分类                     | 含义                                                   |

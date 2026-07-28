@@ -78,9 +78,13 @@ const statusCounts = Object.fromEntries(
   ]),
 );
 
-for (const [status, count] of Object.entries(statusCounts)) {
-  if (count === 0) failures.push(`UI audit has no ${status} rows`);
+for (const status of ['DONE', 'PARTIAL', 'MISSING', 'UNVERIFIED']) {
+  if (statusCounts[status] === 0) failures.push(`UI audit has no ${status} rows`);
 }
+
+const openCount =
+  statusCounts.PARTIAL + statusCounts.MISSING + statusCounts.BROKEN + statusCounts.UNVERIFIED;
+if (openCount === 0) failures.push('UI audit has no open rows while PR #11 remains Draft');
 
 if (failures.length > 0) {
   console.error('Parity documentation validation failed:');
