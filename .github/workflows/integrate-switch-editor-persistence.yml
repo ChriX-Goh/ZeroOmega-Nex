@@ -1,3 +1,4 @@
+# integration revision 2
 name: Integrate Switch editor persistence
 
 on:
@@ -42,6 +43,7 @@ jobs:
           {
             set -x
             python .github/patches/apply-switch-editor-persistence.py
+            python .github/patches/fix-switch-editor-validator-loads.py
           } 2>&1 | tee switch-editor-apply.log
       - name: Format product slice
         run: pnpm format
@@ -72,6 +74,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-switch-editor-persistence.yml
           rm -f \
             .github/patches/apply-switch-editor-persistence.py \
+            .github/patches/fix-switch-editor-validator-loads.py \
             switch-editor-apply.log \
             switch-editor-verify.log \
             switch-editor-e2e.log
