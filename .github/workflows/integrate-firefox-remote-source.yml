@@ -9,6 +9,7 @@ on:
       - .github/patches/apply-firefox-remote-source.py
       - .github/patches/fix-firefox-remote-source-guard.py
       - .github/patches/fix-firefox-remote-source-null.py
+      - .github/patches/fix-firefox-pac-create-wait.py
 
 permissions:
   contents: write
@@ -48,6 +49,7 @@ jobs:
             python .github/patches/apply-firefox-remote-source.py
             python .github/patches/fix-firefox-remote-source-guard.py
             python .github/patches/fix-firefox-remote-source-null.py
+            python .github/patches/fix-firefox-pac-create-wait.py
           } 2>&1 | tee firefox-remote-source-apply.log
 
       - name: Format product slice
@@ -93,6 +95,7 @@ jobs:
             .github/patches/apply-firefox-remote-source.py \
             .github/patches/fix-firefox-remote-source-guard.py \
             .github/patches/fix-firefox-remote-source-null.py \
+            .github/patches/fix-firefox-pac-create-wait.py \
             firefox-remote-source-apply.log \
             firefox-remote-source-format.log \
             firefox-remote-source-inventory.log \
