@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `e0dec06345cf496ceb4a4ac18725223a8b3b0937` — Typed three-locale catalog, machine inventory, and first complete vertical localization batch  
-**Latest integration verification:** run `30332516697` validates semantic typed keys, parameterized messages, fresh locale inventory, 417 core tests, 15 component tests, zero Svelte warnings, dual-target builds, and real Chromium zh-CN lifecycle workflows  
-**Last completed exact-Head verification:** `999ec55f13529176c7032e2d7f40acd8383e03e5`; CI `30332908321`, Browser E2E `30332908331`, Parity Documentation `30332908361` passed  
+**Current product implementation head:** `85ce92bd443591f94a11adce4191f8c648b4d0fc` — Typed Switch, Attached Rule List, and Independent Rule List three-locale vertical batch  
+**Latest integration verification:** run `30368429932` validates typed condition/help/source errors, attached and independent Rule List controls/status/ARIA, fresh locale inventory, zero Svelte warnings, full repository verification, dual-target builds, and real Chromium zh-CN workflows  
+**Last completed exact-Head verification:** `6998ddf6d42e646403856e0372943c2778b6ad7a`; CI `30368666864`, Browser E2E `30368666918`, Parity Documentation `30368666640` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -203,13 +203,14 @@ The latest product slices passed architecture guards, permanent UI compatibility
 
 PR #11 is not a replacement release candidate. Current blockers include:
 
-- typed Switch plus Attached/Independent Rule List localization, including condition help, source-editor errors, update states, headers, actions, placeholders, and ARIA,
 - PAC localization, Firefox activation/download coverage, real proxy-challenge manual QC, and explicit file-URL target decision,
+- stable Rule Source downloader failure codes for complete semantic error localization,
 - remaining General/Interface/Import/Theme/History/Popup/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
+- online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 
 ## Current next action
 
-Use `docs/LOCALE_INVENTORY.json` to migrate Switch plus Attached/Independent Rule List as the second typed vertical batch; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Use `docs/LOCALE_INVENTORY.json` and the fixed v3.5.0 PAC locale/templates to migrate the PAC editor as the next typed vertical batch: URL/Clear, request headers, download/cache states, script text, authentication, file warnings, errors, titles, placeholders, and ARIA. Add Firefox PAC interaction coverage while keeping `file:` activation under an explicit target-capability decision.
 
 ### Typed locale inventory and first vertical batch
 
@@ -225,3 +226,4 @@ Use `docs/LOCALE_INVENTORY.json` to migrate Switch plus Attached/Independent Rul
 - Attached and independent Rule List editors localize Config/URL/Text structure, route selectors, formats, source mode, headers, update actions/status, downloaded cache, placeholders, and ARIA. English ARIA contracts remain stable while zh-CN/zh-TW use source-backed terminology.
 - Switch parser errors use stable `SwitchSourceError.code` plus line numbers. Rule Source update records do not yet expose stable failure codes, so the UI deliberately shows a localized failure summary instead of leaking an unstable English downloader message; complete downloader error localization remains open.
 - Component tests cover zh-CN Switch/attached flows and zh-TW independent Rule List. Chromium asserts direct zh-CN headings, table columns, field ARIA, update status, and URL/text controls. Inventory and locale regression guards include all three components.
+- Integration run `30368429932`; product commit `85ce92bd443591f94a11adce4191f8c648b4d0fc`; clean exact Head `6998ddf6d42e646403856e0372943c2778b6ad7a` passed CI `30368666864`, Browser E2E `30368666918`, and Parity Documentation `30368666640`.
