@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `29db0982ea57a230861c095968794d9363bf0261` — Original-compatible profile-level PAC and Rule List exports  
-**Latest integration verification:** run `30328853989` validates current-Draft generated/raw PAC, modern/legacy Rule List formats, advanced-condition fallback, original filename/MIME, and real Chromium downloads with full `pnpm verify`  
-**Last completed exact-Head verification:** `e0870bad4d90d11ad606dc7a5592203536653e49`; CI `30329080792`, Browser E2E `30329080770`, Parity Documentation `30329080845` passed  
+**Current product implementation head:** `f6ed558ad14e5be6a5a2565f236fc278817ab1b7` — Zero-warning accessible Options dialogs and deterministic initial focus  
+**Latest integration verification:** run `30330515929` validates all seven former Svelte warnings are removed, warning-fatal checks, 414 core tests, 14 component tests, dual-target builds, and real Chromium dialog focus  
+**Last completed exact-Head verification:** `65b8fe0741178c1053f9ff1680e7487dbf647dc5`; CI `30330704000`, Browser E2E `30330703868`, Parity Documentation `30330703871` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -80,7 +80,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Neutral dialog containers preserve the existing original interaction layout while removing invalid section roles. New Profile, Fixed/PAC authentication, and deletion dialogs now move focus deterministically to their first meaningful control.
 - Table validation keeps native table semantics by placing `role=alert` inside the error cell. Chromium verifies each focus transition through the real Options workflows.
 - The extension check now uses `svelte-check --fail-on-warnings`, permanently making any future warning a CI failure.
-- Integration run `30330515929`; product commit containing this document.
+- Integration run `30330515929`; product commit `f6ed558ad14e5be6a5a2565f236fc278817ab1b7`; clean exact Head `65b8fe0741178c1053f9ff1680e7487dbf647dc5` passed CI `30330704000`, Browser E2E `30330703868`, and Parity Documentation `30330703871`.
 
 ### Profile-level PAC and Rule List exports
 
@@ -197,7 +197,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
 
-Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte error was introduced.
+`svelte-check --fail-on-warnings` reports 0 errors and 0 warnings; future Svelte compiler or accessibility warnings fail CI.
 
 ## Remaining closure
 

@@ -16,7 +16,7 @@
 | A-01 | Options 三组导航         | `options.jade`                      | Settings / Profiles / Actions，Apply 与 Discard 固定在 Actions | MUST_MATCH  | DONE     | PARTIAL  | 结构已有；仍有动态英文                                 | 完成逐键翻译巡查       |
 | A-02 | 情景模式独立页面         | `profile.jade`                      | 统一页头 + 类型专属模板                                        | MUST_MATCH  | PARTIAL  | PARTIAL  | 当前有独立页面，但类型内容被简化/合并                  | 按 B–F 重构            |
 | A-03 | 新建入口                 | `options.jade`                      | 左侧单一“New profile…”入口                                     | MUST_MATCH  | DONE     | COMPLETE | 已有入口                                               | 保持                   |
-| A-04 | 新建模态框               | `new_profile.jade`                  | 模态框；名称在前，类型单选在后，Cancel/Create                  | MUST_MATCH  | DONE     | COMPLETE | 已改为原版结构的模态框                                 | 增加双浏览器视觉 E2E   |
+| A-04 | 新建模态框               | `new_profile.jade`                  | 模态框；名称在前，类型单选在后，Cancel/Create                  | MUST_MATCH  | DONE     | COMPLETE | 原版结构；中性 `div role=dialog`，名称输入程序化初始焦点；0-warning 与 Chromium 焦点回归已验证 | 增加双浏览器视觉 E2E   |
 | A-05 | 名称必填校验             | `new_profile.jade`                  | 空名称即时错误                                                 | MUST_MATCH  | DONE     | COMPLETE | 模态框即时阻止空名称                                   | 保持组件与浏览器测试   |
 | A-06 | 保留名称校验             | `new_profile.jade`、`master.coffee` | 双下划线及内置名称不可用                                       | MUST_MATCH  | DONE     | COMPLETE | 已阻止 `__*`、direct、system                           | 补原版边界 fixture     |
 | A-07 | 重名校验                 | 同上                                | 已有情景模式名称冲突提示                                       | MUST_MATCH  | DONE     | COMPLETE | 已做不区分大小写的现有名称检查                         | 保持测试               |
@@ -35,8 +35,8 @@
 | B-01 | 情景模式颜色      | `profile.jade`                                 | 标题旁可调色；全 UI 图标同步                                  | MUST_MATCH | DONE     | PARTIAL  | 已支持普通类型颜色                                                                                                         | 补齐标签翻译               |
 | B-02 | Virtual 继承颜色  | `profile.jade`                                 | Virtual 不直接选色，显示目标颜色                              | MUST_MATCH | DONE     | PARTIAL  | 已继承目标 Profile 颜色并禁用直接选色；内置目标使用中性色                                                                  | 补内置颜色映射             |
 | B-03 | 重命名按钮/对话框 | `profile.jade`、`rename_profile.jade`          | 页头按钮，校验同新建                                          | MUST_MATCH | PARTIAL  | PARTIAL  | 当前直接编辑名称字段                                                                                                       | 改为原版动作或明确差异决策 |
-| B-04 | 删除按钮/确认     | `profile.jade`、`delete_profile.jade`          | 页头删除，按设置确认                                          | MUST_MATCH | DONE     | PARTIAL  | 页头删除按 `confirmDeletion` 使用显式可访问对话框；未确认只改 Draft，Chromium 验证确认→Apply 全链                          | 补完整 locale              |
-| B-05 | 被引用时禁止删除  | `cannot_delete_profile.jade`、`profile.coffee` | 列出引用者，不允许损坏引用                                    | MUST_MATCH | DONE     | PARTIAL  | typed blocker 覆盖所有 Profile route 面；隐藏附属 Rule List 折叠为父 Switch；UI `alertdialog` 与 Chromium 原版备份回归验证 | 补 locale                  |
+| B-04 | 删除按钮/确认     | `profile.jade`、`delete_profile.jade`          | 页头删除，按设置确认                                          | MUST_MATCH | DONE     | PARTIAL  | 页头删除按 `confirmDeletion` 使用中性可访问对话框；Cancel 初始焦点、Draft→Apply 全链及 0-warning 均验证                   | 补完整 locale              |
+| B-05 | 被引用时禁止删除  | `cannot_delete_profile.jade`、`profile.coffee` | 列出引用者，不允许损坏引用                                    | MUST_MATCH | DONE     | PARTIAL  | typed blocker 覆盖所有 route；附属 Rule List 折叠为父 Switch；中性 `alertdialog`、Close 初始焦点与 Chromium 回归均验证     | 补 locale                  |
 | B-06 | 替换情景模式引用  | `replace_profile.jade`、`master.coffee`        | Virtual 入口打开双选择器通用对话框；批量把 from 引用替换为 to | MUST_MATCH | DONE     | PARTIAL  | Apply-before-dialog、双端选择/预览、完整 typed transaction、端点保留及 Chromium 全链均已验证                               | 补完整 locale              |
 | B-07 | 导出 PAC          | `profile.jade`、`master.coffee`                | scriptable 类型页头导出；原版文件名与 UTF-8 MIME              | MUST_MATCH | DONE     | COMPLETE | typed Profile 生成 PAC；PAC Profile raw 结构验证；Auto Detect 隐藏；Chromium 验证 generated/raw 下载                       | 保持双浏览器回归           |
 | B-08 | 导出规则列表      | `profile.jade`、`switch_profile.coffee`        | Switch 页头导出 `.sorl`；可选 `.ssrl`，高级条件时警告回退     | MUST_MATCH | DONE     | COMPLETE | result-enabled `.sorl`、legacy `.ssrl`、warning fallback、原版文件名/MIME 与 Chromium 下载均验证                           | 保持回归                   |
@@ -53,7 +53,7 @@
 | C-05 | FTP 行/目标差异    | 同上                     | 原版包含 scheme 行；现代支持需核对          | UNCERTAIN  | PARTIAL  | COMPLETE | UI 已恢复；Chromium/Firefox 应用能力仍需实测                     | 双浏览器能力测试       |
 | C-06 | 高级行折叠         | 同上                     | 默认隐藏，展开后显示                        | MUST_MATCH | DONE     | COMPLETE | 无高级映射时默认折叠；已有映射自动展开                           | 保持                   |
 | C-07 | 继承值 placeholder | 同上                     | 未设置行显示 fallback host/port placeholder | MUST_MATCH | DONE     | COMPLETE | 未单独设置时禁用输入并显示 fallback 值                           | 保持                   |
-| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`   | 锁形按钮打开认证编辑                        | MUST_MATCH | PARTIAL  | COMPLETE | 对话框、密码读取/显示、秘密存储及 Chromium E2E；SOCKS 受目标限制 | Firefox/SOCKS 能力测试 |
+| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`   | 锁形按钮打开认证编辑                        | MUST_MATCH | PARTIAL  | COMPLETE | 对话框、秘密存储、用户名初始焦点、0-warning 及 Chromium E2E 已验证；SOCKS 受目标限制 | Firefox/SOCKS 能力测试 |
 | C-09 | 协议选项限制       | `fixed_profile.coffee`   | 按 scheme/target 提供允许协议               | MUST_MATCH | PARTIAL  | COMPLETE | 原版协议项已恢复；认证支持按现代目标显式限制                     | 能力矩阵验证           |
 | C-10 | Bypass 独立区块    | `profile_fixed.jade`     | 帮助、链接、多行输入                        | MUST_MATCH | DONE     | COMPLETE | 原版标题、帮助、链接与多行输入已恢复                             | 保持                   |
 | C-11 | 默认 bypass        | `default_options.coffee` | 127.0.0.1 / [::1] / localhost               | MUST_MATCH | DONE     | N/A      | 新建 Fixed 显式测试三条原版默认值                                | 保持                   |
@@ -128,12 +128,12 @@
 | G-08 | v1 auto_detect 升级        | 同上                          | PacProfile + WPAD URL             | MUST_MATCH | MISSING    | N/A     | 当前独立 AutoDetect 模型不等价                                                                                       | 实现迁移映射             |
 | G-09 | 恢复后 startup 应用        | `options.coffee#reset`        | init 后应用 startupProfile        | MUST_MATCH | UNVERIFIED | N/A     | 当前“导入并使用”路径不同                                                                                             | 做 round-trip E2E        |
 | G-10 | 导入错误分类               | `io.coffee`                   | 格式错误/下载错误分开             | MUST_MATCH | PARTIAL    | PARTIAL | 有技术报告但不等价                                                                                                   | 本地化和明确错误         |
-| G-11 | 单 Profile PAC 导出        | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                                                                                                                   | 见 B-07                  |
-| G-12 | 单 Profile RuleList 导出   | `profile.jade`                | 页头动作                          | MUST_MATCH | MISSING    | MISSING | 无                                                                                                                   | 见 B-08                  |
+| G-11 | 单 Profile PAC 导出        | `profile.jade`                | 页头动作                          | MUST_MATCH | DONE       | COMPLETE | Fixed/Switch/Rule List/Virtual 生成 PAC；PAC raw 结构验证；Chromium 真实下载                                          | 保持 B-07 回归           |
+| G-12 | 单 Profile RuleList 导出   | `profile.jade`                | 页头动作                          | MUST_MATCH | DONE       | COMPLETE | Switch 页头现代 `.sorl`、eligible legacy `.ssrl`、高级条件 warning fallback 与 Chromium 下载均验证                  | 保持 B-08 回归           |
 | G-13 | Gist 同步                  | `io.jade`、`io.coffee`        | 私有 Gist、token、冲突处理        | UNCERTAIN  | MISSING    | MISSING | 安全/范围未决定                                                                                                      | 形成 ADR 后决定          |
 | G-14 | WebDAV 同步                | 同上                          | URL/用户/密码、冲突处理           | UNCERTAIN  | MISSING    | MISSING | 同上                                                                                                                 | 形成 ADR 后决定          |
 | G-15 | Built-in browser sync      | 同上                          | 可选增强同步                      | UNCERTAIN  | MISSING    | MISSING | 浏览器 MV3/配额需研究                                                                                                | 形成 ADR                 |
-| G-16 | 导出 legacy rule list 选项 | `io.jade`                     | 可选 legacy 格式                  | MUST_MATCH | PARTIAL    | PARTIAL | 设置旗标存在但无真实导出                                                                                             | 完成导出后验证           |
+| G-16 | 导出 legacy rule list 选项 | `io.jade`                     | 可选 legacy 格式                  | MUST_MATCH | DONE       | COMPLETE | 基础条件导出 `.ssrl`；高级条件显示警告并安全回退 `.sorl`；真实下载已验证                                             | 保持回归                 |
 
 ## H. 本地化、默认值与示例
 
@@ -176,17 +176,17 @@
 | J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | DONE     | 固定 Artifact 中执行原版 v3.5.0 `default_options.coffee` 生成 fixture；单测与 Chromium export→clear→import→export 字节等价                 | 保持 provenance 与永久守卫       |
 | J-03 | 五个现有 Nex 编辑页截图巡查        | MUST_MATCH | MISSING  | 无逐屏证据                                                                                                                                 | 每页 light/dark/zh-CN/zh-TW 截图 |
 | J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | 已有组件渲染与后端类型测试，尚缺真实浏览器创建四类                                                                                         | 增加 Chromium/Firefox E2E        |
-| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | MISSING  | 无                                                                                                                                         | 重构后增加                       |
-| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建、隐藏、启停、路由、文本/header 与解除；拖序仍缺                                                                      | 增加拖放与 Firefox 附属 E2E      |
+| J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | DONE     | Chromium 覆盖 fallback 配置、继承 placeholder、展开 scheme、认证秘密保存及用户名初始焦点；0-warning 门禁已固定       | 补 Firefox/SOCKS 能力测试         |
+| J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | PARTIAL  | Chromium 覆盖附属创建/更新/解除、source-mode 重载，以及真实拖放后的 DOM、Draft 与重载顺序                              | 补 Firefox 附属交互 E2E           |
 | J-07 | PAC URL/download/header E2E        | MUST_MATCH | DONE     | Chromium 覆盖真实下载、只读缓存、Clear→inline、认证 secret 隔离、`raw-pac/1` 顶层激活及 all-proxies binding；核心单测覆盖精确优先/歧义拒绝 | 补 Firefox 与真实 407 人工巡查   |
-| J-08 | Virtual 引用 E2E                   | MUST_MATCH | PARTIAL  | ProfileSpec、解释器、PAC、迁移、引用替换已有单元/组件覆盖                                                                                  | 增加真实浏览器 E2E               |
+| J-08 | Virtual 引用 E2E                   | MUST_MATCH | DONE     | Chromium 真实创建 Virtual，并验证 Startup/Quick Switch/Switch/Rule List/PAC/Auto Detect/Virtual 全引用迁移与最终 Apply | 保持跨类型回归                    |
 | J-09 | 导出→清空→导入→等价                | MUST_MATCH | DONE     | Chromium 真实下载 `.bak`、清空 local/session storage、重新导入启用并再次导出；JSON 字节完全一致                                            | 保持 E2E                         |
-| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | PARTIAL  | 将由永久 workflow 执行                                                                                                                     | 启用后观察                       |
+| J-10 | 每次 parity-sensitive 提交同步文档 | MUST_MATCH | DONE     | Parity Documentation workflow 已持续阻断缺失/未同步文档提交，并在 Exact Head 重复验证                                 | 保持 workflow                    |
 
 ## 当前结论
 
-- **明确 BROKEN**：编辑器翻译仍不完整；Fixed 主编辑器与 Switch 规则表结构、完整 Options 导出和基础本地恢复已恢复。
-- **明确 MISSING**：在线恢复、单 Profile 导出；完整 Options `.bak` 与原版默认备份 round-trip 已自动验收；Virtual 浏览器创建 E2E 仍不完整。
+- **明确 BROKEN**：编辑器翻译仍不完整；Fixed/Switch/PAC/Rule List 核心结构、Profile 导出、完整 Options 导出和基础本地恢复已恢复。
+- **明确 MISSING**：在线 URL 恢复与逐屏 light/dark/zh-CN/zh-TW 截图巡查；Profile 导出、Options round-trip 与 Virtual 浏览器迁移 E2E 已自动验收。
 - **UNCERTAIN**：Gist/WebDAV/浏览器同步、FTP scheme 的现代浏览器能力；未获范围决定前不得标记 `NOT_PORTING`。
 - 当前 PR 必须继续保持 Draft，现有安装包不再作为功能完整候选。
 
@@ -200,3 +200,4 @@
 | 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                       |
 | 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern |
 | 2026-07-27 | 恢复 Switch 附属 Rule List 核心生命周期、隐藏关系、URL 缓存、请求头 Draft 语义、复制/删除事务与原版备份重建    |
+| 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁 |
