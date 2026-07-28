@@ -405,3 +405,9 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 - 原版 `SwitchProfileCtrl` 使用 `omegaTarget.state('web._profileEditor.' + profile.name)` 保存 `{editSource}`，页面初始化时恢复；规则正文仍从当前 Profile compose，不把未提交源码文本塞入 UI 状态。Nex 对齐该边界，但以稳定 Profile ID 作为 localStorage key，重命名不丢模式；进入/成功退出时写/清状态，compose 失败时回退表格。
 - 原版规则表使用 `ui-sortable` + `.sort-bar` 直接改变 `profile.rules` 顺序。Nex 的 drag handle 现在有 Chromium 真实拖放、Draft 顺序及重载后 DOM 顺序三重验证，键盘 Up/Down 仍作为无拖放环境后备。
+
+- 原版 `profile_virtual.jade` 提供 Target Profile selector 与 Replace Profile 操作；`master.coffee` 先执行 `applyOptionsConfirm()`，确认后调用 target `replaceRef(fromName,toName)`。`Options#_replaceRefChanges` 明确跳过 from/to 两个 Profile 本体，改写其他 Profile 内引用、Startup，并按避免重复的规则处理 Quick Switch；两个端点都不删除。
+- Nex 保留 typed Draft/Apply 不变量：Virtual shortcut 只生成一次完整 Draft 引用迁移，用户再走正常 Apply；不会直接改 Applied 或浏览器代理。当前 typed Quick Switch 采用“映射后去重”，比原版“目标已存在则不改 Quick Switch”更积极，这是为稳定 route ID 与无重复列表保留的已记录安全差异。
+- Chromium 独立用户目录从原版 schema-v2 备份恢复跨类型引用图，通过真实 New Profile 模态框创建 Virtual、选择目标、确认 Replace，再验证 Startup、Quick Switch、Switch default/rules、Rule List match/default、PAC/Auto Detect fallback、其他 Virtual target 全部迁移，同时源 Profile 与新 Virtual 本体保持不变，最后经正常 Apply 提交。
+
+- `AutoDetectProfile.fallbackRoute` 是 Nex typed 兼容字段，不是原版 v3.5.0 消费的标准字段。为避免 schema-v2 备份往返与 Virtual 引用迁移静默丢失，Nex 以 `fallbackProfileName` 扩展字段导入/导出，并始终产生 `auto-detect.fallback-nex-extension` preserved/warning 证据；不得把它宣称为原版浏览器行为。

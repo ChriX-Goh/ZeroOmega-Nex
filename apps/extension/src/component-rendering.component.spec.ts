@@ -332,6 +332,9 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       },
     });
 
+    expect(body).toContain('data-virtual-profile-editor');
+    expect(body).toContain('data-virtual-target');
+    expect(body).toContain('data-virtual-replace');
     expect(body).toContain('Target profile');
     expect(body).toContain('Migrate to Virtual Profile');
     expect(body).toContain('Replace target profile');

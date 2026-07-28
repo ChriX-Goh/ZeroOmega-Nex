@@ -514,6 +514,18 @@ const requirements = [
       optionsApp.includes('commitActiveProfileEditor') &&
       optionsApp.includes('profileEditorDirty') &&
       optionsApp.includes('onRegisterBeforeAction={registerBeforeProfileEditorAction}') &&
+      optionsApp.includes('data-new-profile-action') &&
+      virtualProfile.includes('data-virtual-profile-editor') &&
+      virtualProfile.includes('data-virtual-target') &&
+      virtualProfile.includes('data-virtual-replace') &&
+      profileOperations.includes('replaceProfileReferencesDraft') &&
+      legacyImportImplementation.includes('auto-detect.fallback-nex-extension') &&
+      legacyExport.includes('auto-detect.fallback-nex-extension') &&
+      chromiumE2e.includes('virtual-reference-migration.json') &&
+      chromiumE2e.includes(
+        'Virtual reference migration did not rewrite every typed route surface',
+      ) &&
+      chromiumE2e.includes('Virtual reference migration did not commit through normal Apply') &&
       switchSource.includes('export function composeSwitchProfileSource') &&
       switchSource.includes('export function parseSwitchProfileSourceDraft') &&
       switchSource.includes("const HEADER = '[SwitchyOmega Conditions]'") &&

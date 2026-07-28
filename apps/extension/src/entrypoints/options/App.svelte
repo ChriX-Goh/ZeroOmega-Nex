@@ -860,6 +860,7 @@
         {/each}
         <button
           class:active={activeSection === 'new-profile'}
+          data-new-profile-action
           type="button"
           disabled={!state || view?.busy || saving}
           onclick={() => void navigate('new-profile')}

@@ -113,6 +113,7 @@
               type="radio"
               name="profile-type"
               value={choice.kind}
+              data-new-profile-kind={choice.kind}
               checked={kind === choice.kind}
               disabled={disabled || (choice.kind === 'pac' && !pacSupported)}
               on:change={() => (kind = choice.kind)}
@@ -134,7 +135,13 @@
 
     <footer>
       <button type="button" disabled={submitting} on:click={onCancel}>Cancel</button>
-      <button type="button" class="primary" disabled={!canCreate} on:click={create}>
+      <button
+        type="button"
+        class="primary"
+        data-new-profile-create
+        disabled={!canCreate}
+        on:click={create}
+      >
         {submitting ? 'Creating…' : 'Create'}
       </button>
     </footer>

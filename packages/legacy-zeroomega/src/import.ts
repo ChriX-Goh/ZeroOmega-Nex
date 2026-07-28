@@ -1145,9 +1145,37 @@ function mapAutoDetectProfile(
       );
     }
   }
-  const known = new Set([...COMMON_PROFILE_FIELDS, 'pacUrl', 'pacScript', 'lastUpdate', 'sha256']);
+  const known = new Set([
+    ...COMMON_PROFILE_FIELDS,
+    'pacUrl',
+    'pacScript',
+    'lastUpdate',
+    'sha256',
+    'fallbackProfileName',
+  ]);
   const fields = safeUnknownFields(raw, known, descriptor.path, state.report);
-  return { ...profileBase(descriptor, fields), kind: 'auto-detect' };
+  const fallbackName = stringValue(raw.fallbackProfileName);
+  if (fallbackName !== undefined) {
+    state.report.add(
+      'preserved',
+      'auto-detect.fallback-nex-extension',
+      `${descriptor.path}/fallbackProfileName`,
+      'Auto-detect fallback route was restored as a Nex extension field.',
+    );
+  }
+  return {
+    ...profileBase(descriptor, fields),
+    kind: 'auto-detect',
+    ...(fallbackName === undefined
+      ? {}
+      : {
+          fallbackRoute: routeForName(
+            fallbackName,
+            `${descriptor.path}/fallbackProfileName`,
+            state,
+          ),
+        }),
+  };
 }
 
 function mapVirtualProfile(descriptor: ProfileDescriptor, state: ImportState): VirtualProfile {

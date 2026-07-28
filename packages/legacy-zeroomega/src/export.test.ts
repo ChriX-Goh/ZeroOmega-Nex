@@ -79,7 +79,7 @@ describe('ZeroOmega schema-v2 exporter', () => {
     expect(exported.content).not.toContain('Authorization');
   });
 
-  it('preserves Nex-only disabled, regex-flag, PAC-fallback, and per-source interval state', () => {
+  it('preserves Nex-only disabled, regex-flag, PAC/Auto fallback, and per-source interval state', () => {
     const imported = successfulImport(
       JSON.stringify({
         schemaVersion: 2,
@@ -102,6 +102,11 @@ describe('ZeroOmega schema-v2 exporter', () => {
           name: 'pac',
           profileType: 'PacProfile',
           pacScript: 'function FindProxyForURL(){return "DIRECT";}',
+          fallbackProfileName: 'fixed',
+        },
+        '+auto': {
+          name: 'auto',
+          profileType: 'AutoDetectProfile',
           fallbackProfileName: 'fixed',
         },
         '+rules': {
@@ -145,6 +150,7 @@ describe('ZeroOmega schema-v2 exporter', () => {
         'switch-rule.disabled-nex-extension',
         'condition.regex-flags-nex-extension',
         'pac.fallback-nex-extension',
+        'auto-detect.fallback-nex-extension',
         'rule-source.interval-nex-extension',
       ]),
     );

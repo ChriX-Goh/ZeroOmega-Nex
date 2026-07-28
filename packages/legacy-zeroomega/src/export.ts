@@ -1,5 +1,6 @@
 import {
   validateProfileSpec,
+  type AutoDetectProfile,
   type BypassEntry,
   type Condition,
   type FixedProfile,
@@ -451,6 +452,29 @@ function exportPac(state: ExportState, profile: PacProfile, path: string): Mutab
   return result;
 }
 
+function exportAutoDetect(
+  state: ExportState,
+  profile: AutoDetectProfile,
+  path: string,
+): MutableJsonObject {
+  const result = profileBase(state, profile, path);
+  if (profile.fallbackRoute) {
+    result.fallbackProfileName = routeName(
+      state,
+      profile.fallbackRoute,
+      `${path}/fallbackProfileName`,
+    );
+    issue(
+      state,
+      'warning',
+      'auto-detect.fallback-nex-extension',
+      `${path}/fallbackProfileName`,
+      'Auto-detect fallback route is stored as a Nex extension field; original v3.5.0 ignores it.',
+    );
+  }
+  return result;
+}
+
 function exportVirtual(
   state: ExportState,
   profile: VirtualProfile,
@@ -474,7 +498,7 @@ function exportProfile(state: ExportState, profile: UserProfile, path: string): 
     case 'pac':
       return exportPac(state, profile, path);
     case 'auto-detect':
-      return profileBase(state, profile, path);
+      return exportAutoDetect(state, profile, path);
     case 'virtual':
       return exportVirtual(state, profile, path);
   }

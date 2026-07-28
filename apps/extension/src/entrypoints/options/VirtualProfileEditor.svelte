@@ -65,7 +65,7 @@
 </script>
 
 {#if profile}
-  <section class="settings-section">
+  <section class="settings-section" data-virtual-profile-editor>
     <h2>Target profile</h2>
     <p class="section-help">
       A virtual profile is a stable alias. Change this target later without editing every rule that
@@ -73,6 +73,7 @@
     </p>
     <select
       aria-label="Virtual Profile target"
+      data-virtual-target
       value={routeValue(profile.targetRoute)}
       {disabled}
       on:change={(event) => updateTarget((event.currentTarget as HTMLSelectElement).value)}
@@ -93,6 +94,7 @@
     </p>
     <button
       type="button"
+      data-virtual-replace
       disabled={disabled || profile.targetRoute.kind !== 'profile'}
       on:click={replaceTargetReferences}>Replace target profile</button
     >

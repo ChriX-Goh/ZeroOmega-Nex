@@ -8,8 +8,12 @@ import { chromium } from '@playwright/test';
 
 const extensionPath = resolve('dist/chrome-mv3');
 const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
+const virtualMigrationBackupPath = resolve(
+  'fixtures/zeroomega-v2/virtual-reference-migration.json',
+);
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
 const conflictUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-user-'));
+const virtualUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-virtual-user-'));
 const conflictExtensionPath = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-ext-'));
 await mkdir(conflictExtensionPath, { recursive: true });
 await writeFile(
@@ -65,6 +69,7 @@ const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
 const remotePacUrl = `http://127.0.0.1:${ruleAddress.port}/proxy.pac`;
 let context;
 let conflictContext;
+let virtualContext;
 
 try {
   context = await chromium.launchPersistentContext(userDataDir, {
@@ -896,6 +901,132 @@ try {
     20_000,
   );
 
+  virtualContext = await chromium.launchPersistentContext(virtualUserDataDir, {
+    channel: 'chromium',
+    headless: true,
+    locale: 'zh-CN',
+    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+  });
+  let [virtualWorker] = virtualContext.serviceWorkers();
+  virtualWorker ??= await virtualContext.waitForEvent('serviceworker', { timeout: 15_000 });
+  const virtualOptions = await virtualContext.newPage();
+  await virtualOptions.goto(`chrome-extension://${extensionId}/options.html`);
+  await virtualOptions.waitForLoadState('domcontentloaded');
+  await virtualOptions.locator('[data-new-profile-action]').waitFor({ timeout: 20_000 });
+  await virtualOptions.getByRole('button', { name: '导入 / 导出', exact: true }).click();
+  await virtualOptions.getByLabel('原版备份文件').setInputFiles(virtualMigrationBackupPath);
+  await virtualOptions.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();
+  await virtualOptions.locator('.import-actions button.primary').click();
+  await virtualOptions
+    .getByText('导入完成，原版配置现已启用。')
+    .waitFor({ state: 'visible', timeout: 20_000 });
+
+  await virtualOptions.locator('[data-new-profile-action]').click();
+  const newVirtualDialog = virtualOptions.locator('.new-profile-dialog');
+  await newVirtualDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await newVirtualDialog.locator('.profile-name-field input').fill('Stable Alias');
+  await newVirtualDialog.locator('[data-new-profile-kind="virtual"]').check();
+  await newVirtualDialog.locator('[data-new-profile-create]').click();
+  const virtualEditor = virtualOptions.locator('[data-virtual-profile-editor]');
+  await virtualEditor.waitFor({ state: 'visible', timeout: 20_000 });
+  const virtualTarget = virtualEditor.locator('[data-virtual-target]');
+  await virtualTarget.selectOption({ label: 'Target Proxy' });
+  const virtualIds = await assertEventuallyValue(async () => {
+    return virtualWorker.evaluate(async () => {
+      const key = 'zeroomega-nex/profile-workflow/v1/state';
+      const workflow = (await chrome.storage.local.get(key))[key];
+      const target = workflow?.draft?.profiles?.find((profile) => profile.name === 'Target Proxy');
+      const alias = workflow?.draft?.profiles?.find((profile) => profile.name === 'Stable Alias');
+      if (
+        target?.kind !== 'fixed' ||
+        alias?.kind !== 'virtual' ||
+        alias.targetRoute?.kind !== 'profile' ||
+        alias.targetRoute.profileId !== target.id
+      ) {
+        return undefined;
+      }
+      return { targetId: target.id, aliasId: alias.id };
+    });
+  }, 'Virtual target selection did not reach the Draft');
+
+  virtualOptions.once('dialog', (dialog) => dialog.accept());
+  await virtualOptions.locator('[data-virtual-replace]').click();
+  await assertEventually(
+    async () =>
+      virtualWorker.evaluate(async ({ targetId, aliasId }) => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        const draft = workflow?.draft;
+        if (!draft) return false;
+        const routeMatches = (route) => route?.kind === 'profile' && route.profileId === aliasId;
+        const target = draft.profiles.find((profile) => profile.id === targetId);
+        const alias = draft.profiles.find((profile) => profile.id === aliasId);
+        const routeMatrix = draft.profiles.find((profile) => profile.name === 'Route Matrix');
+        const ruleMatrix = draft.profiles.find((profile) => profile.name === 'Rule Matrix');
+        const pacMatrix = draft.profiles.find((profile) => profile.name === 'PAC Matrix');
+        const autoMatrix = draft.profiles.find((profile) => profile.name === 'Auto Matrix');
+        const existingAlias = draft.profiles.find((profile) => profile.name === 'Existing Alias');
+        const aliasQuickRoutes = draft.settings.quickSwitch.routes.filter(
+          (route) => route.kind === 'profile' && route.profileId === aliasId,
+        );
+        return (
+          target?.kind === 'fixed' &&
+          alias?.kind === 'virtual' &&
+          alias.targetRoute?.kind === 'profile' &&
+          alias.targetRoute.profileId === targetId &&
+          routeMatches(draft.settings.startup.route) &&
+          aliasQuickRoutes.length === 1 &&
+          !draft.settings.quickSwitch.routes.some(
+            (route) => route.kind === 'profile' && route.profileId === targetId,
+          ) &&
+          routeMatrix?.kind === 'switch' &&
+          routeMatches(routeMatrix.defaultRoute) &&
+          routeMatrix.rules.every((rule) => routeMatches(rule.route)) &&
+          ruleMatrix?.kind === 'rule-list' &&
+          routeMatches(ruleMatrix.matchRoute) &&
+          routeMatches(ruleMatrix.defaultRoute) &&
+          pacMatrix?.kind === 'pac' &&
+          routeMatches(pacMatrix.fallbackRoute) &&
+          autoMatrix?.kind === 'auto-detect' &&
+          routeMatches(autoMatrix.fallbackRoute) &&
+          existingAlias?.kind === 'virtual' &&
+          routeMatches(existingAlias.targetRoute)
+        );
+      }, virtualIds),
+    'Virtual reference migration did not rewrite every typed route surface',
+    20_000,
+  );
+  const virtualApply = virtualOptions.locator('.nav-group.actions button.primary');
+  await assertEventually(
+    async () => !(await virtualApply.isDisabled()),
+    'Virtual migration did not leave an applicable Draft',
+  );
+  await virtualApply.click();
+  await assertEventually(
+    async () =>
+      virtualWorker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return (
+          workflow !== undefined &&
+          workflow.pendingApply === undefined &&
+          JSON.stringify(workflow.draft) === JSON.stringify(workflow.applied)
+        );
+      }),
+    'Virtual reference migration did not commit through normal Apply',
+    20_000,
+  );
+  assert.equal(
+    await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).count(),
+    1,
+  );
+  assert.equal(
+    await virtualOptions.getByRole('button', { name: 'Stable Alias', exact: true }).count(),
+    1,
+  );
+  await virtualContext.close();
+  virtualContext = undefined;
+
   conflictContext = await chromium.launchPersistentContext(conflictUserDataDir, {
     channel: 'chromium',
     headless: true,
@@ -943,11 +1074,23 @@ try {
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
   await conflictContext?.close();
+  await virtualContext?.close();
   await context?.close();
   await new Promise((resolveClose) => ruleServer.close(resolveClose));
   await rm(userDataDir, { recursive: true, force: true });
   await rm(conflictUserDataDir, { recursive: true, force: true });
+  await rm(virtualUserDataDir, { recursive: true, force: true });
   await rm(conflictExtensionPath, { recursive: true, force: true });
+}
+
+async function assertEventuallyValue(check, message, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const value = await check();
+    if (value !== undefined) return value;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+  }
+  assert.fail(message);
 }
 
 async function assertEventually(check, message, timeout = 15_000) {

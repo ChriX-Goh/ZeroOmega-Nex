@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** raw PAC activation/authentication product commit containing this document  
 **Latest integration verification:** run `30317075172` validates top-level raw PAC snapshots, browser activation, all-proxy authentication isolation, and Chromium runtime state with full `pnpm verify` and regression  
-**Last completed exact-Head verification:** `5a2f545cf06f66fc494de8b23a8b330937dacd36`; CI `30317928641`, Browser E2E `30317928583`, Parity Documentation `30317928587` passed  
+**Last completed exact-Head verification:** `0c38408c3fa11fbac76eb55623057aac01e63461`; CI `30318764139`, Browser E2E `30318764071`, Parity Documentation `30318764078` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -66,6 +66,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Entering source mode stores the preference; successful exit clears it; parse failure keeps the user in source mode; compose failure safely returns to table mode.
 - Chromium E2E enters source mode, reloads and restores it, exits and verifies key cleanup, then performs a real drag-handle reorder and verifies visible order, typed Draft order, and reload persistence.
 - Integration run `30318613443`; product commit containing this document.
+
+### Virtual creation and complete reference migration
+
+- Original Virtual uses a target selector and a Replace Profile confirmation; replacement leaves both endpoint profiles intact while rewriting other profile references and global routes.
+- Nex performs this as one typed Draft transformation followed by the normal verified Apply transaction. Unit coverage now includes Startup, Quick Switch de-duplication, Switch rules/default, Rule List match/default, PAC/Auto Detect fallback, and other Virtual targets.
+- Chromium uses a separate user data directory, restores a source-backed schema-v2 cross-reference fixture, creates `Stable Alias` through the real four-type New Profile dialog, selects `Target Proxy`, confirms migration, verifies every typed route surface and both endpoint profiles, then commits through Apply.
+- Integration run `30320204375`; product commit containing this document.
 
 ### Attached Rule List lifecycle and background updates
 
@@ -167,10 +174,9 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - complete Switch localization and source-editor error/confirmation locale coverage,
 - PAC localization, Firefox activation/download coverage, real proxy-challenge manual QC, and explicit file-URL target decision,
-- Virtual browser E2E creation and reference-migration coverage,
 - complete Simplified/Traditional Chinese coverage,
 - remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Continue Virtual browser creation/reference-migration E2E and typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue typed locale coverage, profile deletion/reference protection, and profile-level export actions; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

@@ -225,4 +225,115 @@ describe('virtual profile draft operations', () => {
     });
     expect(validateProfileSpec(replaced).valid).toBe(true);
   });
+
+  it('rewrites every supported reference surface and keeps both endpoint profiles unchanged', () => {
+    const source = workflowFixture();
+    const created = createVirtualProfileDraft(source, deterministicIds(), 'Stable Alias');
+    const virtual = created.draft.profiles.find((profile) => profile.id === created.profileId);
+    if (!virtual || virtual.kind !== 'virtual') throw new Error('virtual profile missing');
+    virtual.targetRoute = { kind: 'profile', profileId: 'profile-primary' };
+    created.draft.profiles.push(
+      {
+        id: 'profile-switch-matrix',
+        name: 'Switch Matrix',
+        kind: 'switch',
+        rules: [
+          {
+            id: 'rule-matrix',
+            condition: { kind: 'host-wildcard', pattern: '*.virtual.invalid' },
+            route: { kind: 'profile', profileId: 'profile-primary' },
+          },
+        ],
+        defaultRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-rule-matrix',
+        name: 'Rule Matrix',
+        kind: 'rule-list',
+        sourceId: 'source-rule-matrix',
+        matchRoute: { kind: 'profile', profileId: 'profile-primary' },
+        defaultRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-pac-matrix',
+        name: 'PAC Matrix',
+        kind: 'pac',
+        source: { kind: 'inline', script: "function FindProxyForURL() { return 'DIRECT'; }" },
+        fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-auto-matrix',
+        name: 'Auto Matrix',
+        kind: 'auto-detect',
+        fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-existing-alias',
+        name: 'Existing Alias',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+    );
+    created.draft.ruleSources.push({
+      id: 'source-rule-matrix',
+      name: 'Rule Matrix source',
+      format: 'switchy',
+      location: { kind: 'inline', content: '[SwitchyOmega Conditions]\n@with result\n' },
+    });
+    created.draft.settings.startup.route = { kind: 'profile', profileId: 'profile-primary' };
+    created.draft.settings.quickSwitch.routes = [
+      { kind: 'profile', profileId: 'profile-primary' },
+      { kind: 'profile', profileId: created.profileId },
+      { kind: 'profile', profileId: 'profile-secondary' },
+    ];
+
+    const beforePrimary = structuredClone(
+      created.draft.profiles.find((profile) => profile.id === 'profile-primary'),
+    );
+    const beforeVirtual = structuredClone(virtual);
+    const replaced = replaceProfileReferencesDraft(
+      created.draft,
+      'profile-primary',
+      created.profileId,
+    );
+    const route = { kind: 'profile', profileId: created.profileId } as const;
+
+    expect(replaced.settings.startup.route).toEqual(route);
+    expect(replaced.settings.quickSwitch.routes).toEqual([
+      route,
+      { kind: 'profile', profileId: 'profile-secondary' },
+    ]);
+    expect(
+      replaced.profiles.find((profile) => profile.id === 'profile-switch-matrix'),
+    ).toMatchObject({
+      defaultRoute: route,
+      rules: [expect.objectContaining({ route })],
+    });
+    expect(replaced.profiles.find((profile) => profile.id === 'profile-rule-matrix')).toMatchObject(
+      {
+        matchRoute: route,
+        defaultRoute: route,
+      },
+    );
+    expect(replaced.profiles.find((profile) => profile.id === 'profile-pac-matrix')).toMatchObject({
+      fallbackRoute: route,
+    });
+    expect(replaced.profiles.find((profile) => profile.id === 'profile-auto-matrix')).toMatchObject(
+      {
+        fallbackRoute: route,
+      },
+    );
+    expect(
+      replaced.profiles.find((profile) => profile.id === 'profile-existing-alias'),
+    ).toMatchObject({
+      targetRoute: route,
+    });
+    expect(replaced.profiles.find((profile) => profile.id === 'profile-primary')).toEqual(
+      beforePrimary,
+    );
+    expect(replaced.profiles.find((profile) => profile.id === created.profileId)).toEqual(
+      beforeVirtual,
+    );
+    expect(validateProfileSpec(replaced).valid).toBe(true);
+  });
 });

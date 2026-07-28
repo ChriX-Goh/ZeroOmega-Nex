@@ -48,6 +48,25 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.report.summary.rejected).toBe(0);
   });
 
+  it('imports the Virtual cross-reference browser fixture without rejected entries', async () => {
+    const result = importZeroOmegaBackup(
+      await fixture('virtual-reference-migration.json'),
+      context,
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    expect(result.ok).toBe(true);
+    expect(result.report.summary.rejected).toBe(0);
+    expect(result.candidate.profiles.map((profile) => profile.name)).toEqual([
+      'Target Proxy',
+      'Unrelated Proxy',
+      'Route Matrix',
+      'Rule Matrix',
+      'PAC Matrix',
+      'Auto Matrix',
+      'Existing Alias',
+    ]);
+  });
+
   it('imports a base64-encoded backup through the full migration pipeline', async () => {
     const source = await fixture('minimal-profile-types.json');
     const result = importZeroOmegaBackup(btoa(source), context);
