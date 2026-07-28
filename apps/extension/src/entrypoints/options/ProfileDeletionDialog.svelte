@@ -2,9 +2,13 @@
   import type { ProfileReferenceBlocker } from '@zeroomega-nex/profile-workflow';
   import { onMount, tick } from 'svelte';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { profileKindText, uiMessage, uiText } from '../../lib/ui-messages';
+
   export let profileName: string;
   export let blockers: readonly ProfileReferenceBlocker[] = [];
   export let disabled = false;
+  export let locale: AppLocale = currentAppLocale();
   export let onCancel: () => void;
   export let onConfirm: () => Promise<void>;
 
@@ -23,29 +27,32 @@
       tabindex="-1"
       aria-modal="true"
       aria-labelledby="profile-deletion-blocked-title"
-      aria-describedby="profile-deletion-blocked-description"
+      aria-describedby="profile-deletion-blocked-description profile-deletion-blocked-instruction"
       data-profile-deletion-dialog
       data-profile-deletion-mode="blocked"
+      data-typed-locale={locale}
     >
-      <h2 id="profile-deletion-blocked-title">Cannot delete profile</h2>
+      <h2 id="profile-deletion-blocked-title">{uiText('profile.delete.blockedTitle', locale)}</h2>
       <p id="profile-deletion-blocked-description">
-        “{profileName}” is still referenced by the following profiles. Modify those profiles before
-        deleting it.
+        {uiMessage('profile.delete.blockedDescription', { profileName }, locale)}
       </p>
       <ul class="reference-list" data-profile-deletion-blockers>
         {#each blockers as blocker (blocker.profileId)}
           <li data-profile-deletion-blocker={blocker.profileId}>
             <strong>{blocker.profileName}</strong>
-            <span>{blocker.profileKind}</span>
+            <span>{profileKindText(blocker.profileKind, locale)}</span>
           </li>
         {/each}
       </ul>
+      <p id="profile-deletion-blocked-instruction">
+        {uiText('profile.delete.blockedInstruction', locale)}
+      </p>
       <div class="dialog-actions">
         <button
           bind:this={initialButton}
           type="button"
           data-profile-deletion-close
-          onclick={onCancel}>Close</button
+          onclick={onCancel}>{uiText('common.close', locale)}</button
         >
       </div>
     </div>
@@ -59,10 +66,11 @@
       aria-describedby="profile-deletion-confirm-description"
       data-profile-deletion-dialog
       data-profile-deletion-mode="confirm"
+      data-typed-locale={locale}
     >
-      <h2 id="profile-deletion-confirm-title">Delete profile</h2>
+      <h2 id="profile-deletion-confirm-title">{uiText('profile.delete.confirmTitle', locale)}</h2>
       <p id="profile-deletion-confirm-description">
-        Delete “{profileName}”? This changes only the Draft until Apply.
+        {uiMessage('profile.delete.confirmDescription', { profileName }, locale)}
       </p>
       <div class="dialog-actions">
         <button
@@ -70,14 +78,14 @@
           type="button"
           data-profile-deletion-cancel
           {disabled}
-          onclick={onCancel}>Cancel</button
+          onclick={onCancel}>{uiText('common.cancel', locale)}</button
         >
         <button
           type="button"
           class="danger"
           data-profile-deletion-confirm
           {disabled}
-          onclick={() => void onConfirm()}>Delete</button
+          onclick={() => void onConfirm()}>{uiText('common.delete', locale)}</button
         >
       </div>
     </div>

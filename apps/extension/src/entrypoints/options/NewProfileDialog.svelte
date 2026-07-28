@@ -2,44 +2,47 @@
   import { onMount, tick } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiText, type UiTextKey } from '../../lib/ui-messages';
 
   type NewProfileKind = 'fixed' | 'switch' | 'pac' | 'virtual';
 
   export let existingNames: readonly string[] = [];
   export let disabled = false;
   export let pacSupported = true;
+  export let locale: AppLocale = currentAppLocale();
   export let onCancel: () => void;
   export let onCreate: (kind: NewProfileKind, name: string) => Promise<void>;
 
   const choices: readonly {
     kind: NewProfileKind;
     color: string;
-    title: string;
-    description: string;
+    titleKey: UiTextKey;
+    descriptionKey: UiTextKey;
   }[] = [
     {
       kind: 'fixed',
       color: '#64b5f6',
-      title: 'Proxy Profile',
-      description: 'Configure proxy servers separately for each URL scheme.',
+      titleKey: 'newProfile.fixed.title',
+      descriptionKey: 'newProfile.fixed.description',
     },
     {
       kind: 'switch',
       color: '#8bc34a',
-      title: 'Switch Profile',
-      description: 'Select another profile by URL, host, or other switching conditions.',
+      titleKey: 'newProfile.switch.title',
+      descriptionKey: 'newProfile.switch.description',
     },
     {
       kind: 'pac',
       color: '#ffb74d',
-      title: 'PAC Profile',
-      description: 'Use a PAC script from a URL or edit the script directly.',
+      titleKey: 'newProfile.pac.title',
+      descriptionKey: 'newProfile.pac.description',
     },
     {
       kind: 'virtual',
       color: '#9575cd',
-      title: 'Virtual Profile',
-      description: 'Create a stable alias that points to another profile.',
+      titleKey: 'newProfile.virtual.title',
+      descriptionKey: 'newProfile.virtual.description',
     },
   ];
 
@@ -61,15 +64,16 @@
   );
   $: reserved = normalizedName.startsWith('__') || /^(?:direct|system)$/iu.test(normalizedName);
   $: hidden = normalizedName.startsWith('_') && !reserved;
-  $: error =
+  $: errorKey =
     normalizedName.length === 0
-      ? 'Profile name cannot be empty.'
+      ? ('newProfile.error.empty' as const)
       : reserved
-        ? 'Names beginning with two underscores and built-in profile names are reserved.'
+        ? ('newProfile.error.reserved' as const)
         : duplicate
-          ? 'A profile with the same name already exists.'
-          : '';
-  $: canCreate = !disabled && !submitting && error === '' && (kind !== 'pac' || pacSupported);
+          ? ('newProfile.error.conflict' as const)
+          : undefined;
+  $: canCreate =
+    !disabled && !submitting && errorKey === undefined && (kind !== 'pac' || pacSupported);
 
   async function create(): Promise<void> {
     if (!canCreate) return;
@@ -89,19 +93,20 @@
     tabindex="-1"
     aria-modal="true"
     aria-labelledby="new-profile-title"
+    data-typed-locale={locale}
   >
     <header>
-      <h1 id="new-profile-title">New Profile</h1>
+      <h1 id="new-profile-title">{uiText('newProfile.title', locale)}</h1>
     </header>
 
     <div class="dialog-body">
       <label class="profile-name-field">
-        <span>Profile name</span>
+        <span>{uiText('profile.name', locale)}</span>
         <input
           bind:this={nameInput}
           data-new-profile-name-input
           aria-describedby="new-profile-name-message"
-          aria-invalid={error !== ''}
+          aria-invalid={errorKey !== undefined}
           value={name}
           {disabled}
           on:input={(event) => (name = (event.currentTarget as HTMLInputElement).value)}
@@ -111,13 +116,20 @@
           }}
         />
       </label>
-      <div id="new-profile-name-message" class:error-message={error !== ''} class="field-message">
-        {#if error}{error}{:else if hidden}Profiles beginning with an underscore are hidden from the
-          popup but can still be used as switching results.{/if}
+      <div
+        id="new-profile-name-message"
+        class:error-message={errorKey !== undefined}
+        class="field-message"
+      >
+        {#if errorKey}
+          {uiText(errorKey, locale)}
+        {:else if hidden}
+          {uiText('newProfile.hidden', locale)}
+        {/if}
       </div>
 
       <fieldset class="profile-type-choices" {disabled}>
-        <legend>Profile type</legend>
+        <legend>{uiText('newProfile.type', locale)}</legend>
         {#each choices as choice (choice.kind)}
           <label class:disabled-choice={choice.kind === 'pac' && !pacSupported}>
             <input
@@ -131,12 +143,10 @@
             />
             <ProfileIcon kind={choice.kind} color={choice.color} size={31} />
             <span>
-              <strong>{choice.title}</strong>
-              <small>{choice.description}</small>
+              <strong>{uiText(choice.titleKey, locale)}</strong>
+              <small>{uiText(choice.descriptionKey, locale)}</small>
               {#if choice.kind === 'pac' && !pacSupported}
-                <small class="error-message"
-                  >PAC profiles are not supported by this browser target.</small
-                >
+                <small class="error-message">{uiText('newProfile.pac.unsupported', locale)}</small>
               {/if}
             </span>
           </label>
@@ -145,7 +155,9 @@
     </div>
 
     <footer>
-      <button type="button" disabled={submitting} on:click={onCancel}>Cancel</button>
+      <button type="button" disabled={submitting} on:click={onCancel}
+        >{uiText('common.cancel', locale)}</button
+      >
       <button
         type="button"
         class="primary"
@@ -153,7 +165,7 @@
         disabled={!canCreate}
         on:click={create}
       >
-        {submitting ? 'Creating…' : 'Create'}
+        {submitting ? uiText('common.creating', locale) : uiText('common.create', locale)}
       </button>
     </footer>
   </div>

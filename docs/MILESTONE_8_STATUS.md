@@ -210,3 +210,10 @@ PR #11 is not a replacement release candidate. Current blockers include:
 ## Current next action
 
 Continue typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+
+### Typed locale inventory and first vertical batch
+
+- Fixed v3.5.0 `zh_CN` / `zh_TW` PO files and original New/Delete/Cannot Delete/Replace/Fixed Auth templates are the wording evidence. A semantic `ui-messages.ts` catalog now gives compile-time keys and typed parameter objects instead of relying on English text matching after render.
+- New Profile, shared deletion/replacement dialogs, Fixed Profile, shared Profile-kind labels, and Direct/System/Missing route labels render English, Simplified Chinese, and Traditional Chinese directly. The global observer remains only as a compatibility layer for pending components.
+- Unit tests validate every catalog entry has all three locales and dynamic messages never fall back to English. Component tests cover zh-CN and zh-TW; Chromium verifies zh-CN headings, ARIA selectors, blocker kind labels, and locale identity through real workflows.
+- `scripts/generate-locale-inventory.mjs` produces `docs/LOCALE_INVENTORY.json`; `validate:locale` blocks a stale inventory or literal-English regression in the completed batch and is part of `pnpm verify`.

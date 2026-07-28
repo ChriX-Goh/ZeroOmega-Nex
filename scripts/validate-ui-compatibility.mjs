@@ -500,7 +500,7 @@ const requirements = [
       profileReplacementDialog.includes('data-profile-replacement-from') &&
       profileReplacementDialog.includes('data-profile-replacement-to') &&
       profileReplacementDialog.includes('data-profile-replacement-preview') &&
-      profileReplacementDialog.includes('The two profiles') &&
+      profileReplacementDialog.includes("uiText('profile.replace.help', locale)") &&
       chromiumE2e.includes(
         'Profile replacement dialog opened before the dirty Draft was applied',
       ) &&
@@ -587,8 +587,8 @@ const requirements = [
     ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
       fixedProfile.includes(`key: '${scheme}'`),
     ) &&
-      fixedProfile.includes('Show Advanced') &&
-      fixedProfile.includes('Proxy Authentication') &&
+      fixedProfile.includes("uiText('fixed.showAdvanced', locale)") &&
+      fixedProfile.includes("uiText('fixed.authTitle', locale)") &&
       fixedProfile.includes('fallbackPlaceholder'),
     'Fixed Profile must preserve the original default/HTTP/HTTPS/FTP table, advanced rows, inherited placeholders, and per-row authentication.',
   ],

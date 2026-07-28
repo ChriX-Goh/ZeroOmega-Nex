@@ -428,3 +428,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Options 模态框的原版信息结构保持不变，但现代 Svelte 可访问性边界收紧：New Profile、Fixed/PAC authentication、删除阻断/确认均使用中性 `div` + `role=dialog/alertdialog`，不再把交互角色强加给 `section`；表格错误在 `td` 内部用 `span role=alert`，避免破坏表格语义。
 - New Profile 不再使用 HTML `autofocus`，而是在组件挂载后聚焦名称输入；Fixed/PAC 认证在打开后聚焦用户名；删除对话框聚焦 Close/Cancel。Chromium 对这些真实焦点转移做回归验证。
 - `@zeroomega-nex/extension check` 固定使用 `svelte-check --fail-on-warnings`。从此任何 Svelte 编译/可访问性警告都视为 CI 失败，不允许重新积累警告债务。
+
+- 原版 locale 证据来自固定 v3.5.0 Artifact 的 `locale-zh_CN/omega-web.po`、`locale-zh_TW/omega-web.po` 及 New/Delete/Cannot Delete/Replace/Fixed Auth Jade。第一批不再依赖 DOM MutationObserver 猜测英文原文，而使用 `ui-messages.ts` 的 semantic typed keys 与参数化消息。
+- `NewProfileDialog`、`ProfileDeletionDialog`、`ProfileReplacementDialog`、`FixedProfileEditor` 直接接收 `AppLocale` 并同步渲染正文、按钮、错误、placeholder、title 与 ARIA；Options 只解析一次 locale 并传入。旧 observer 暂留给尚未迁移页面，形成可逐批收缩的兼容层。
+- `LOCALE_INVENTORY.json` 由源码扫描器稳定生成，记录剩余 Svelte 模板中的字面英文候选；typed `uiText/uiMessage/profileKindText` 调用被排除。`validate:locale` 同时检查 inventory 新鲜度和第一批英文回流，纳入全仓 `verify`。

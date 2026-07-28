@@ -137,20 +137,20 @@
 
 ## H. 本地化、默认值与示例
 
-| ID   | 界面/功能              | 原版源码                 | 原版布局与行为                    | 分类       | Nex 状态   | 翻译     | 证据/问题                                      | 下一步                    |
-| ---- | ---------------------- | ------------------------ | --------------------------------- | ---------- | ---------- | -------- | ---------------------------------------------- | ------------------------- |
-| H-01 | 英文默认               | locale                   | 其他语言回退英文                  | MUST_MATCH | DONE       | COMPLETE | 已实现                                         | 保持                      |
-| H-02 | 简体中文               | `zh_CN`                  | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 主导航可用，编辑器大量英文                     | 建立键级清单              |
-| H-03 | 正體中文               | `zh_TW/zh_Hant`          | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | 同上                                           | 键级清单                  |
-| H-04 | 动态文本               | locale/controller        | 状态变化后仍翻译                  | MUST_MATCH | PARTIAL    | PARTIAL  | observer 已修，但词典不全                      | 组件级验证                |
-| H-05 | select option          | locale                   | 条件/协议/格式均翻译              | MUST_MATCH | BROKEN     | MISSING  | 大量硬编码英文                                 | 移到 typed locale catalog |
-| H-06 | placeholder/title/aria | locale/template          | 一同翻译                          | MUST_MATCH | PARTIAL    | PARTIAL  | 部分已覆盖                                     | 自动 DOM 巡查             |
-| H-07 | 错误和确认框           | locale                   | 全部本地化                        | MUST_MATCH | BROKEN     | MISSING  | 端口错误、删除确认等英文                       | 统一错误码翻译            |
-| H-08 | 内置名显示翻译         | locale/filter            | 内部 direct/system 与显示名分离   | MUST_MATCH | PARTIAL    | PARTIAL  | Popup 好于 Options select                      | 统一 route label          |
-| H-09 | example.invalid URL    | 非原版默认               | 不得写入配置                      | MUST_MATCH | DONE       | N/A      | PAC/Rule List URL 模式均从空值开始，守卫已覆盖 | 保持守卫                  |
-| H-10 | `! Add rules here.`    | 非原版默认               | 不得自动保存                      | MUST_MATCH | DONE       | N/A      | 新建及模式切换均为空规则正文，守卫已覆盖       | 保持守卫                  |
-| H-11 | 自动填 User-Agent      | 非原版默认               | 新 header 应为空                  | MUST_MATCH | DONE       | N/A      | 新增 header 名称和值均为空，守卫已覆盖         | 保持守卫                  |
-| H-12 | 原版初始示例           | `default_options.coffee` | 初始 proxy/auto switch 示例可保留 | MUST_MATCH | UNVERIFIED | PARTIAL  | 需区分首次安装与新建                           | 加生命周期测试            |
+| ID   | 界面/功能              | 原版源码                 | 原版布局与行为                    | 分类       | Nex 状态   | 翻译     | 证据/问题                                                                                             | 下一步                    |
+| ---- | ---------------------- | ------------------------ | --------------------------------- | ---------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------- | ------------------------- |
+| H-01 | 英文默认               | locale                   | 其他语言回退英文                  | MUST_MATCH | DONE       | COMPLETE | 已实现                                                                                                | 保持                      |
+| H-02 | 简体中文               | `zh_CN`                  | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | typed 第一批已覆盖 New Profile、生命周期对话框、Fixed、路由/Profile 类型；机器 inventory 跟踪其余页面 | 继续 Switch/PAC/Rule List |
+| H-03 | 正體中文               | `zh_TW/zh_Hant`          | 全 UI locale                      | MUST_MATCH | PARTIAL    | PARTIAL  | typed 第一批使用原版 `情境模式/代理認證/連接埠` 术语；组件覆盖，机器 inventory 跟踪其余页面           | 继续 Switch/PAC/Rule List |
+| H-04 | 动态文本               | locale/controller        | 状态变化后仍翻译                  | MUST_MATCH | PARTIAL    | PARTIAL  | 删除说明、Fixed 错误/ARIA 已改为 typed 参数消息；observer 仅作为未迁移页面兼容层                      | 继续迁移动态状态          |
+| H-05 | select option          | locale                   | 条件/协议/格式均翻译              | MUST_MATCH | BROKEN     | MISSING  | 大量硬编码英文                                                                                        | 移到 typed locale catalog |
+| H-06 | placeholder/title/aria | locale/template          | 一同翻译                          | MUST_MATCH | PARTIAL    | PARTIAL  | 第一批 Fixed/New/Profile 生命周期的 placeholder/title/ARIA 直接 typed；Chromium zh-CN 断言覆盖        | 扩展自动 DOM 巡查         |
+| H-07 | 错误和确认框           | locale                   | 全部本地化                        | MUST_MATCH | PARTIAL    | PARTIAL  | New Profile 校验、Fixed 错误、删除/替换确认已 typed 覆盖三语；其余编辑器仍待迁移                      | 继续统一错误码翻译        |
+| H-08 | 内置名显示翻译         | locale/filter            | 内部 direct/system 与显示名分离   | MUST_MATCH | DONE       | COMPLETE | Options/Popup 的 Direct/System 显示与内部 route 值分离；共享 routeLabel 使用 typed catalog            | 保持 route 守卫           |
+| H-09 | example.invalid URL    | 非原版默认               | 不得写入配置                      | MUST_MATCH | DONE       | N/A      | PAC/Rule List URL 模式均从空值开始，守卫已覆盖                                                        | 保持守卫                  |
+| H-10 | `! Add rules here.`    | 非原版默认               | 不得自动保存                      | MUST_MATCH | DONE       | N/A      | 新建及模式切换均为空规则正文，守卫已覆盖                                                              | 保持守卫                  |
+| H-11 | 自动填 User-Agent      | 非原版默认               | 新 header 应为空                  | MUST_MATCH | DONE       | N/A      | 新增 header 名称和值均为空，守卫已覆盖                                                                | 保持守卫                  |
+| H-12 | 原版初始示例           | `default_options.coffee` | 初始 proxy/auto switch 示例可保留 | MUST_MATCH | UNVERIFIED | PARTIAL  | 需区分首次安装与新建                                                                                  | 加生命周期测试            |
 
 ## I. Popup 与辅助页面
 

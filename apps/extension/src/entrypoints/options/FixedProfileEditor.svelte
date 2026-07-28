@@ -11,6 +11,9 @@
   } from '@zeroomega-nex/profile-workflow';
   import { tick } from 'svelte';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
+
   type SchemeKey = keyof FixedProfile['proxyByScheme'];
   type ProxyProtocol = ProxyEndpoint['protocol'];
 
@@ -22,6 +25,7 @@
 
   export let spec: ProfileSpec;
   export let profileId: string;
+  export let locale: AppLocale = currentAppLocale();
   export let generation: number;
   export let disabled = false;
   export let idFactory: ProfileWorkflowIdFactory;
@@ -176,6 +180,10 @@
           : 'SOCKS5';
   }
 
+  function rowDisplayLabel(row: SchemeRow): string {
+    return row.key === 'fallback' ? uiText('fixed.default', locale) : row.label;
+  }
+
   function clearRowError(scheme: SchemeKey): void {
     const next = { ...rowErrors };
     delete next[scheme];
@@ -207,11 +215,11 @@
     const host = hostDraft[scheme].trim();
     const port = Number(portDraft[scheme]);
     if (!host) {
-      rowErrors = { ...rowErrors, [scheme]: 'Server is required.' };
+      rowErrors = { ...rowErrors, [scheme]: uiText('fixed.error.serverRequired', locale) };
       return false;
     }
     if (!Number.isInteger(port) || port < 1 || port > 65_535) {
-      rowErrors = { ...rowErrors, [scheme]: 'Port must be an integer from 1 to 65535.' };
+      rowErrors = { ...rowErrors, [scheme]: uiText('fixed.error.portRange', locale) };
       return false;
     }
 
@@ -323,7 +331,11 @@
   async function saveAuthentication(): Promise<void> {
     if (!authEndpointId) return;
     if (authUsername.trim() && !authSupported(authProtocol)) {
-      authError = `Your browser does not support ${protocolLabel(authProtocol)} proxy authentication.`;
+      authError = uiMessage(
+        'fixed.authUnsupported',
+        { protocol: protocolLabel(authProtocol) },
+        locale,
+      );
       return;
     }
     const draft = cloneProfileSpecDraft(spec);
@@ -333,7 +345,7 @@
     );
     const endpoint = current ? editableEndpoint(draft, current, authScheme) : undefined;
     if (!endpoint) {
-      authError = 'Proxy server no longer exists.';
+      authError = uiText('fixed.error.serverMissing', locale);
       return;
     }
 
@@ -364,34 +376,42 @@
 </script>
 
 {#if profile}
-  <section class="settings-section fixed-proxy-section">
-    <h2>Proxy servers</h2>
+  <section class="settings-section fixed-proxy-section" data-typed-locale={locale}>
+    <h2>{uiText('fixed.proxyServers', locale)}</h2>
     <div class="table-scroller">
       <table class="fixed-proxy-table" data-fixed-proxy-table>
         <thead>
           <tr>
-            <th>Scheme</th>
-            <th>Protocol</th>
-            <th>Server</th>
-            <th>Port</th>
-            <th><span class="sr-only">Authentication</span></th>
+            <th>{uiText('fixed.scheme', locale)}</th>
+            <th>{uiText('fixed.protocol', locale)}</th>
+            <th>{uiText('fixed.server', locale)}</th>
+            <th>{uiText('fixed.port', locale)}</th>
+            <th><span class="sr-only">{uiText('fixed.authentication', locale)}</span></th>
           </tr>
         </thead>
         <tbody>
           {#each rows as row (row.key)}
             {#if !row.advanced || showAdvanced}
               <tr data-proxy-scheme={row.key}>
-                <td>{row.label}</td>
+                <td>{rowDisplayLabel(row)}</td>
                 <td>
                   <select
-                    aria-label={`${row.label} proxy protocol`}
+                    aria-label={uiMessage(
+                      'fixed.fieldAria',
+                      { scheme: rowDisplayLabel(row), field: 'protocol' },
+                      locale,
+                    )}
                     data-proxy-field="protocol"
                     value={protocolDraft[row.key]}
                     {disabled}
                     on:change={(event) =>
                       changeProtocol(row.key, (event.currentTarget as HTMLSelectElement).value)}
                   >
-                    <option value="">{row.advanced ? '(use default)' : 'DIRECT'}</option>
+                    <option value=""
+                      >{row.advanced
+                        ? uiText('fixed.useDefault', locale)
+                        : uiText('fixed.direct', locale)}</option
+                    >
                     {#each protocols as protocol (protocol)}
                       <option value={protocol}>{protocolLabel(protocol)}</option>
                     {/each}
@@ -399,7 +419,11 @@
                 </td>
                 <td>
                   <input
-                    aria-label={`${row.label} proxy server`}
+                    aria-label={uiMessage(
+                      'fixed.fieldAria',
+                      { scheme: rowDisplayLabel(row), field: 'server' },
+                      locale,
+                    )}
                     data-proxy-field="server"
                     value={hostDraft[row.key]}
                     placeholder={row.advanced && !protocolDraft[row.key]
@@ -416,7 +440,11 @@
                 </td>
                 <td>
                   <input
-                    aria-label={`${row.label} proxy port`}
+                    aria-label={uiMessage(
+                      'fixed.fieldAria',
+                      { scheme: rowDisplayLabel(row), field: 'port' },
+                      locale,
+                    )}
                     data-proxy-field="port"
                     type="number"
                     min="1"
@@ -441,8 +469,8 @@
                     type="button"
                     class:active-auth={Boolean(endpointFor(profile, row.key, spec)?.credential)}
                     data-proxy-action="authentication"
-                    aria-label="Authentication"
-                    title="Authentication"
+                    aria-label={uiText('fixed.authentication', locale)}
+                    title={uiText('fixed.authentication', locale)}
                     disabled={disabled || !endpointFor(profile, row.key, spec)}
                     on:click={() => openAuthentication(row.key)}
                   >
@@ -468,7 +496,8 @@
                   type="button"
                   class="link-button"
                   data-proxy-action="show-advanced"
-                  on:click={() => (showAdvanced = true)}>⌄ Show Advanced</button
+                  on:click={() => (showAdvanced = true)}
+                  >⌄ {uiText('fixed.showAdvanced', locale)}</button
                 >
               </td>
             </tr>
@@ -479,20 +508,20 @@
   </section>
 
   <section class="settings-section">
-    <h2>Bypass List</h2>
+    <h2>{uiText('fixed.bypassList', locale)}</h2>
     <p class="section-help">
-      Servers for which you do not want to use any proxy: (One server on each line.)
+      {uiText('fixed.bypassHelp', locale)}
     </p>
     <p class="section-help">
       <a
         href="https://developer.chrome.com/docs/extensions/reference/api/proxy#bypass_list"
         target="_blank"
-        rel="noreferrer">(Wildcards and more available…)</a
+        rel="noreferrer">{uiText('fixed.bypassMore', locale)}</a
       >
     </p>
     <textarea
       class="monospace"
-      aria-label="Bypass List"
+      aria-label={uiText('fixed.bypassList', locale)}
       rows="10"
       value={bypassText}
       {disabled}
@@ -512,53 +541,64 @@
       aria-labelledby="auth-title"
     >
       <header>
-        <h2 id="auth-title">Proxy Authentication</h2>
-        <button type="button" class="close-button" aria-label="Close" on:click={closeAuthentication}
-          >×</button
+        <h2 id="auth-title">{uiText('fixed.authTitle', locale)}</h2>
+        <button
+          type="button"
+          class="close-button"
+          aria-label={uiText('common.close', locale)}
+          on:click={closeAuthentication}>×</button
         >
       </header>
       <div class="dialog-body">
         {#if !authSupported(authProtocol)}
           <p class="auth-warning" role="alert">
-            Your browser does not support {protocolLabel(authProtocol)} proxy authentication.
+            {uiMessage('fixed.authUnsupported', { protocol: protocolLabel(authProtocol) }, locale)}
           </p>
         {/if}
         <label>
-          <span class="sr-only">Username</span>
+          <span class="sr-only">{uiText('fixed.username', locale)}</span>
           <input
             bind:this={authUsernameInput}
-            aria-label="Username"
-            placeholder="Username"
+            aria-label={uiText('fixed.username', locale)}
+            placeholder={uiText('fixed.username', locale)}
             value={authUsername}
             disabled={authLoading || authSaving}
             on:input={(event) => (authUsername = (event.currentTarget as HTMLInputElement).value)}
           />
         </label>
         <label>
-          <span class="sr-only">Password</span>
+          <span class="sr-only">{uiText('fixed.password', locale)}</span>
           <span class="password-row">
             <input
-              aria-label="Password"
+              aria-label={uiText('fixed.password', locale)}
               type={showPassword ? 'text' : 'password'}
-              placeholder={authUsername ? 'Password' : 'No Authentication'}
+              placeholder={authUsername
+                ? uiText('fixed.password', locale)
+                : uiText('fixed.noAuthentication', locale)}
               value={authPassword}
               disabled={!authUsername || authLoading || authSaving}
               on:input={(event) => (authPassword = (event.currentTarget as HTMLInputElement).value)}
             />
             <button
               type="button"
-              title={showPassword ? 'Hide password' : 'Show password'}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword
+                ? uiText('fixed.hidePassword', locale)
+                : uiText('fixed.showPassword', locale)}
+              aria-label={showPassword
+                ? uiText('fixed.hidePassword', locale)
+                : uiText('fixed.showPassword', locale)}
               disabled={!authUsername || authLoading || authSaving}
               on:click={() => (showPassword = !showPassword)}>{showPassword ? '◉' : '◎'}</button
             >
           </span>
         </label>
-        {#if authLoading}<p>Loading…</p>{/if}
+        {#if authLoading}<p>{uiText('common.loading', locale)}</p>{/if}
         {#if authError}<p class="auth-warning" role="alert">{authError}</p>{/if}
       </div>
       <footer>
-        <button type="button" disabled={authSaving} on:click={closeAuthentication}>Cancel</button>
+        <button type="button" disabled={authSaving} on:click={closeAuthentication}
+          >{uiText('common.cancel', locale)}</button
+        >
         <button
           type="button"
           class="primary"
@@ -566,7 +606,10 @@
           disabled={authSaving ||
             authLoading ||
             (Boolean(authUsername.trim()) && !authSupported(authProtocol))}
-          on:click={saveAuthentication}>{authSaving ? 'Saving…' : 'Save changes'}</button
+          on:click={saveAuthentication}
+          >{authSaving
+            ? uiText('common.saving', locale)
+            : uiText('common.saveChanges', locale)}</button
         >
       </footer>
     </div>

@@ -385,6 +385,73 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('Auto Detect Profile');
   });
 
+  it('renders the first typed locale batch in both Chinese locales', () => {
+    const ids = idFactory();
+    const fixed = createFixedProfileDraft(baseSpec(), ids, '固定代理');
+    const newProfile = render(NewProfileDialog, {
+      props: {
+        locale: 'zh-CN',
+        existingNames: [],
+        disabled: false,
+        pacSupported: false,
+        onCancel: () => undefined,
+        onCreate: async () => undefined,
+      },
+    }).body;
+    expect(newProfile).toContain('新建情景模式');
+    expect(newProfile).toContain('请选择情景模式的类型：');
+    expect(newProfile).toContain('代理服务器');
+    expect(newProfile).toContain('由于技术限制');
+    expect(newProfile).not.toContain('New Profile');
+
+    const fixedEditor = render(FixedProfileEditor, {
+      props: {
+        locale: 'zh-TW',
+        spec: fixed.draft,
+        profileId: fixed.profileId,
+        generation: 0,
+        disabled: false,
+        idFactory: ids,
+        onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
+        onReadSecret: async () => '',
+      },
+    }).body;
+    expect(fixedEditor).toContain('代理伺服器');
+    expect(fixedEditor).toContain('網址協定');
+    expect(fixedEditor).toContain('不代理的位址清單');
+    expect(fixedEditor).not.toContain('Proxy servers');
+
+    const deletion = render(ProfileDeletionDialog, {
+      props: {
+        locale: 'zh-CN',
+        profileName: '目标',
+        blockers: [{ profileId: 'ref', profileName: '引用者', profileKind: 'switch' }],
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    }).body;
+    expect(deletion).toContain('情景模式无法删除');
+    expect(deletion).toContain('自动切换情景模式');
+    expect(deletion).not.toContain('Cannot delete profile');
+
+    const virtual = createVirtualProfileDraft(fixed.draft, ids, '別名');
+    const replacement = render(ProfileReplacementDialog, {
+      props: {
+        locale: 'zh-TW',
+        spec: virtual.draft,
+        initialFromProfileId: fixed.profileId,
+        initialToProfileId: virtual.profileId,
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    }).body;
+    expect(replacement).toContain('取代情境模式');
+    expect(replacement).toContain('您確定要使用');
+    expect(replacement).toContain('兩個情境模式本身不會被修改或刪除');
+    expect(replacement).not.toContain('Replace Profile');
+  });
+
   it('renders a Virtual Profile target and migration workflow', () => {
     const mutation = createVirtualProfileDraft(baseSpec(), idFactory(), 'Virtual');
     const { body } = render(VirtualProfileEditor, {

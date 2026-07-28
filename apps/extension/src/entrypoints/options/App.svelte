@@ -36,7 +36,8 @@
   import { onMount } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
-  import { translate } from '../../lib/i18n';
+  import { currentAppLocale, translate } from '../../lib/i18n';
+  import { profileKindText, uiText } from '../../lib/ui-messages';
   import {
     createProfilePacExport,
     createSwitchRuleListExport,
@@ -124,6 +125,7 @@
   let profileExporting = false;
   let profileExportMessage = '';
   let ruleListExportWarning = '';
+  const locale = currentAppLocale();
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -149,20 +151,7 @@
   const createWorkflowId: ProfileWorkflowIdFactory = (kind) => `${kind}-${crypto.randomUUID()}`;
 
   function profileType(profile: UserProfile): string {
-    switch (profile.kind) {
-      case 'fixed':
-        return 'Fixed Profile';
-      case 'switch':
-        return 'Switch Profile';
-      case 'rule-list':
-        return 'Rule List Profile';
-      case 'pac':
-        return 'PAC Profile';
-      case 'auto-detect':
-        return 'Auto Detect Profile';
-      case 'virtual':
-        return 'Virtual Profile';
-    }
+    return profileKindText(profile.kind, locale);
   }
 
   function profileDisplayColor(profile: UserProfile): string {
@@ -191,10 +180,11 @@
   }
 
   function routeLabel(spec: ProfileSpec, route: ProfileRouteTarget): string {
-    if (route.kind === 'direct') return 'Direct';
-    if (route.kind === 'system') return 'System Proxy';
+    if (route.kind === 'direct') return uiText('route.direct', locale);
+    if (route.kind === 'system') return uiText('route.system', locale);
     return (
-      spec.profiles.find((profile) => profile.id === route.profileId)?.name ?? 'Missing profile'
+      spec.profiles.find((profile) => profile.id === route.profileId)?.name ??
+      uiText('route.missing', locale)
     );
   }
 
@@ -1092,8 +1082,8 @@
             onchange={(event) => updateStartupRoute(valueFrom(event))}
           >
             <option value="">Keep current browser setting</option>
-            <option value="direct">Direct</option>
-            <option value="system">System Proxy</option>
+            <option value="direct">{uiText('route.direct', locale)}</option>
+            <option value="system">{uiText('route.system', locale)}</option>
             {#each profiles as profile (profile.id)}<option value={`profile:${profile.id}`}
                 >{profile.name}</option
               >{/each}
@@ -1164,8 +1154,8 @@
           onchange={(event) => addQuickSwitchRoute(valueFrom(event), event)}
         >
           <option value="">Add profile…</option>
-          <option value="direct">Direct</option>
-          <option value="system">System Proxy</option>
+          <option value="direct">{uiText('route.direct', locale)}</option>
+          <option value="system">{uiText('route.system', locale)}</option>
           {#each profiles as profile (profile.id)}<option value={`profile:${profile.id}`}
               >{profile.name}</option
             >{/each}
@@ -1358,6 +1348,7 @@
       </section>
       {#if state}
         <NewProfileDialog
+          {locale}
           existingNames={profiles.map((profile) => profile.name)}
           disabled={saving || view?.busy === true}
           onCancel={cancelNewProfile}
@@ -1419,13 +1410,13 @@
           <button
             type="button"
             disabled={view?.busy || saving || profileExporting}
-            onclick={duplicateSelectedProfile}>Duplicate</button
+            onclick={duplicateSelectedProfile}>{uiText('common.duplicate', locale)}</button
           ><button
             type="button"
             class="danger"
             data-profile-delete-action
             disabled={view?.busy || saving}
-            onclick={deleteSelectedProfile}>Delete</button
+            onclick={deleteSelectedProfile}>{uiText('common.delete', locale)}</button
           >
         </div>
       </header>
@@ -1436,18 +1427,18 @@
       {/if}
       <section class="settings-section profile-identity-editor">
         <label>
-          <span>Profile name</span>
+          <span>{uiText('profile.name', locale)}</span>
           <input
-            aria-label="Profile name"
+            aria-label={uiText('profile.name', locale)}
             value={selectedProfile.name}
             disabled={saving || view?.busy}
             onchange={(event) => updateProfileName(valueFrom(event))}
           />
         </label>
         <label class="profile-color-field">
-          <span>Profile color</span>
+          <span>{uiText('profile.color', locale)}</span>
           <input
-            aria-label="Profile color"
+            aria-label={uiText('profile.color', locale)}
             type="color"
             value={profileDisplayColor(selectedProfile)}
             disabled={saving || view?.busy || selectedProfile.kind === 'virtual'}
@@ -1457,6 +1448,7 @@
       </section>
       {#if fixedProfile}
         <FixedProfileEditor
+          {locale}
           spec={state.draft}
           profileId={fixedProfile.id}
           generation={state.generation}
@@ -1530,6 +1522,7 @@
 
 {#if pendingProfileDeletion}
   <ProfileDeletionDialog
+    {locale}
     profileName={pendingProfileDeletion.profileName}
     blockers={pendingProfileDeletion.blockers}
     disabled={saving || view?.busy === true}
@@ -1540,6 +1533,7 @@
 
 {#if pendingProfileReplacement && state}
   <ProfileReplacementDialog
+    {locale}
     spec={state.draft}
     initialFromProfileId={pendingProfileReplacement.fromProfileId}
     initialToProfileId={pendingProfileReplacement.toProfileId}

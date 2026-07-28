@@ -1,0 +1,1983 @@
+{
+  "schemaVersion": 1,
+  "description": "Machine-generated candidate inventory of remaining literal English text in Svelte templates. Typed uiText/uiMessage calls are excluded; candidates require human classification before migration.",
+  "typedBatchFiles": [
+    "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+    "apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte",
+    "apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte"
+  ],
+  "candidateCount": 394,
+  "candidates": [
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Clear diagnostics"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "ERR_TIMEOUT"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Error"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Failed"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Failed and timed-out requests for this browser session."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Loading…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Monitoring is disabled in Options."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Monitoring is stopped for this browser session."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "No request errors recorded."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Permission will be requested when monitoring starts."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Refresh"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Request diagnostics"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Start monitoring"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Status"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Stop monitoring"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Time"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Timed out"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "Type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Downloaded rule source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Inline PAC script"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Inline rule source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Rule source URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "defaultRoute"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "fallbackRoute"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "matchRoute"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "secret reference"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Add header"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Arbitrary PAC code is preserved, but it is outside the deterministic compiler path and remains target-dependent."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Auto Detect"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "AutoProxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Browser auto-detection support is target-dependent. Configure an explicit fallback for deterministic failure handling."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Default route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Fallback route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Format"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Inline"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Literal"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Location"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Matching rules use"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "No fallback"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "PAC source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Remove"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Request headers"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Routing"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rule source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Secret reference"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Sensitive values must use secret references. Secret values are never stored in ProfileSpec."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Source name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Switchy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "The source definition is saved in Draft. Network updates remain separate from activation."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "Update interval (minutes)"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+      "kind": "text",
+      "text": "URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "Add quick-switch route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "Direct profile color"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "Quick-switch route order"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "Startup route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "System profile color"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "aria-label",
+      "text": "ZeroOmega options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "addConditionsToBottom"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Allow bounded request diagnostics"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Apply changes"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Browser permission granted."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "confirmDeletion"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Export PAC"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Export this Switch Profile as a rule-list file."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "exportLegacyRuleList"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Grant monitoring permission"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Monitoring starts only from the diagnostics page for this browser session. Headers, bodies, cookies, credentials, query strings, and response content are never collected."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "monitorWebRequests"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Open request diagnostics"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Publish rule list"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "refreshOnChange"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Request diagnostics"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Requesting…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showAdvancedConditions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showExternalProfile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showInspectMenu"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showResultProfileOnActionBadgeText"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "Working…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Actions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Add new switching conditions to the bottom"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Add profile…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Behavior matching the original ZeroOmega options page."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Built-in Profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Compatibility-first continuation"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Configuration History"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Confirm before deleting a profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Confirmation and editing"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Connect without a proxy."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Create a new profile from the left navigation or restore an original ZeroOmega backup."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Create a profile using the original ZeroOmega workflow."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Default: follow the operating-system appearance."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Direct and System Proxy are always available."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Discard changes"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Down"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Enable quick switching in the popup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Export legacy rule-list format when requested"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "General"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Import / Export"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Inspect or restore a previously verified configuration."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Interface"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Keep current browser setting"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Loading profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Menus and status"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Move from original ZeroOmega or SwitchyOmega without rebuilding profiles."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "New profile…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "No user profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Operation failed"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Profile used when the extension starts"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Quick Switch"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Reading the saved ZeroOmega configuration."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Refresh active tabs after switching"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Remove"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Revert proxy changes when ZeroOmega releases control"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Settings"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Show advanced condition types"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Show inspect menu"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Show profiles controlled by other extensions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Show result profile on the toolbar badge"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Snapshot History"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Startup and quick-switch behavior."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Startup profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Theme"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "This build preserves the original ZeroOmega navigation and migration workflow while replacing the proxy control plane with a verified cross-browser implementation."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Up"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Use the browser or operating-system proxy."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Zero Omega"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega Nex"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega Nex Options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "title",
+      "text": "Export the current profile as a PAC file for another browser."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "aria-label",
+      "text": "Attached Rule List downloaded text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "aria-label",
+      "text": "Attached Rule List source type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "aria-label",
+      "text": "Attached Rule List text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "aria-label",
+      "text": "Attached Rule List URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "expression-literal",
+      "text": "Download now"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "expression-literal",
+      "text": "Downloading…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Add header"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Attached Rule List configuration"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "AutoProxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Format"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Inline text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Literal"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Remote content is downloaded by the background service with isolated credentials, bounded size, and atomic cache replacement. Failed downloads keep the previous cache."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Remove"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Request headers"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Rule List text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Rule List URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Secret reference"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Sensitive values must use secret references; raw secret values never enter ProfileSpec."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Source type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Switchy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "The attached profile remains hidden from normal navigation and participates only through this Switch Profile."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Update interval (minutes)"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "example.com"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "aria-label",
+      "text": "Export options backup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "aria-label",
+      "text": "Import status totals"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "aria-label",
+      "text": "Legacy backup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "aria-label",
+      "text": "Legacy backup file"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "; result = undefined; analyzedGeneration = undefined; acceptedMessage ="
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Export options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Import and use now"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Importing…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "None"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Preparing backup…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Read backup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Reading backup…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Will be migrated securely"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "placeholder",
+      "text": "Paste the complete ZeroOmega / SwitchyOmega backup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Backup file"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Compatibility check"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Credentials"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Download an original-compatible schema-v2 .bak file. Current editor changes are applied first, matching the original extension. Passwords and sensitive request headers are never included."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Encoding"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Export options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Import without activating"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Paste backup text instead"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Proxy endpoints"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Restore original ZeroOmega / SwitchyOmega backup"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Rule sources"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "Select the backup file exported by the original extension. JSON, base64 backup text, and common .bak/.txt files are accepted."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "text",
+      "text": "This backup contains unsupported or invalid entries. Open the technical details above."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Enter"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Escape"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Clear PAC URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Close PAC authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC authentication password"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC authentication username"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC fallback profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC Script"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "PAC URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Download now"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Downloading…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Edit all-proxy authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Save authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Saving…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Set all-proxy authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "A file PAC cannot be referenced by another profile. Use it only as a top-level route."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Add header"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Cancel"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Clear"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Leave the URL empty to edit PAC Script directly."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Literal"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Local file PAC URLs depend on browser file-access capability."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "No fallback"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "One credential is used only for proxy authentication challenges while this PAC Profile is the active top-level route."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "PAC Proxy Authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "PAC Script"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "PAC URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Password"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Proxy Authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Remove"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Remove authentication"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Request headers"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Secret reference"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Sensitive values use background-owned secret references."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Show password"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Target capability fallback"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "The browser reads this local file directly; cached script text is hidden."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "These credentials answer Basic or Digest authentication challenges from any proxy returned by this top-level PAC Script. Ordinary website authentication is never answered."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Used only when the selected browser cannot activate this PAC source. It does not compose the arbitrary PAC script into another profile."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+      "kind": "text",
+      "text": "Username"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Clear Rule List URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Rule List default profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Rule List match profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Rule List text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Rule List URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "defaultRoute"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Download now"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Downloading…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "matchRoute"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Add header"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "AutoProxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Clear"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Default profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Leave the URL empty to edit the Rule List text directly. Remote downloads replace the cache atomically; failures preserve the previous text."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Literal"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Match profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Remove"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Request headers"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rule List Config"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rule List format"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rule List Text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rule List URL"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Secret reference"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Sensitive values use secret references and remain background-owned."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Switchy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "aria-label",
+      "text": "ProfileSpec revision history"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "aria-label",
+      "text": "Snapshot status"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Confirm rollback"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Currently active"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Refresh history"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Refreshing…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Rollback to this snapshot"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "expression-literal",
+      "text": "Rolling back…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Active"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Applied"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Browser target"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Cancel"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Capability"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Compiler"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Conditions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Configuration history"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Confirm snapshot rollback"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Device"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Draft contains unapplied changes. Apply or Revert those changes before rolling back a snapshot."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Endpoints"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Last known good"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Loading verified snapshot and revision history…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "No archived revisions are available."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "No verified PAC snapshots are stored yet. Direct and System activations do not create PAC snapshots."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "PAC hash"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "PAC size"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Parent"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "ProfileSpec hash"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "ProfileSpec revisions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Revision, compiler, and verification metadata. Profile contents, PAC source, and secret material are never returned to this page."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Rule sources"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Source revision"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Start route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "The source ProfileSpec revision is unavailable; rollback is disabled."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Verification mode"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Verification vectors"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+      "kind": "text",
+      "text": "Verified PAC snapshots"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Attached Rule List matching route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Close condition help"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Delete attached Rule List"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Switch Profile default route"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Switch Profile source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Attached rules are retained but bypassed."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "endHour"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "Matching attached rules use the selected result profile."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "prefixLength"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "startHour"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "placeholder",
+      "text": "Optional note"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "? Condition help"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "＋ Add condition"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "＋ Attach Rule List"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "✎ Edit Source"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Actions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Always matches"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Attach a hidden Rule List Profile to extend this Switch Profile without adding another normal navigation entry."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Attach Profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Condition details"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Condition help"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Condition type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Default profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Format help"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Full-URL conditions depend on browser request information and may be limited for some requests."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Legacy Nex-only rule state cannot be represented in original source format."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Never matches"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "No conditions. Requests use the default profile below."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Normalize"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Note"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Result profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Rules are evaluated from top to bottom. The first matching rule selects its result profile."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Sort"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Switch rules"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Use attached Rule List"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "text",
+      "text": "Uses the original result-enabled SwitchyOmega conditions format. Invalid source remains in this editor until corrected."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "title",
+      "text": "Add note"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "title",
+      "text": "Clone rule"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "title",
+      "text": "Delete rule"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "title",
+      "text": "Drag to reorder"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "title",
+      "text": "Remove legacy Nex-only rule state"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+      "kind": "aria-label",
+      "text": "Options theme"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+      "kind": "text",
+      "text": "Appearance"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+      "kind": "text",
+      "text": "Automatic is the default and changes immediately when the system appearance changes."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "aria-label",
+      "text": "Virtual Profile target"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "A virtual profile is a stable alias. Change this target later without editing every rule that refers to the virtual profile."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "Direct"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "Migrate to Virtual Profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "Replace references to the selected target with this virtual profile. Future target changes can then be made here in one place."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "Replace target profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "System Proxy"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+      "kind": "text",
+      "text": "Target profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Current profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Current site actions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Current site condition pattern"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Current site condition type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Current site result profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "External profile name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Open ZeroOmega Nex options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Profiles"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "Temporary rules"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "aria-label",
+      "text": "ZeroOmega Nex profile switcher"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Add condition"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Adding…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Cancel"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "External Profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Inspect requests"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Manage extensions"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Opening…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Options"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Profile name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "request errors"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Save name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Saving…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "Switching…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "expression-literal",
+      "text": "ZeroOmega cannot switch profiles until this problem is resolved."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Cancel"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Condition type"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Inspecting context target"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Loading applied profiles…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "No quick-switch routes are configured."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "No temporary rule"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Pattern"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Quick switching is disabled in Options."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Result"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/popup/App.svelte",
+      "kind": "text",
+      "text": "Result profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Action"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Delete"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Delete all temporary rules"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Domain"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Loading temporary rules…"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "No temporary rules are active."
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Result profile"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "Temporary Rules"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
+      "kind": "text",
+      "text": "These rules last for the current browser session and are not written to Options."
+    }
+  ]
+}

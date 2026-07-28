@@ -3,11 +3,14 @@
   import { attachedRuleListProfileIds } from '@zeroomega-nex/profile-workflow';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiText } from '../../lib/ui-messages';
 
   export let spec: ProfileSpec;
   export let initialFromProfileId: string;
   export let initialToProfileId: string;
   export let disabled = false;
+  export let locale: AppLocale = currentAppLocale();
   export let onCancel: () => void;
   export let onConfirm: (fromProfileId: string, toProfileId: string) => Promise<void>;
 
@@ -51,31 +54,57 @@
     aria-labelledby="profile-replacement-title"
     aria-describedby="profile-replacement-description"
     data-profile-replacement-dialog
+    data-typed-locale={locale}
   >
-    <h2 id="profile-replacement-title">Replace Profile</h2>
+    <h2 id="profile-replacement-title">{uiText('profile.replace.title', locale)}</h2>
     <p id="profile-replacement-description" class="replacement-question">
-      Do you really want to replace
-      <select
-        aria-label="Profile to replace"
-        data-profile-replacement-from
-        bind:value={fromProfileId}
-        {disabled}
-      >
-        {#each candidates as candidate (candidate.id)}
-          <option value={candidate.id}>{candidate.name}</option>
-        {/each}
-      </select>
-      with
-      <select
-        aria-label="Replacement profile"
-        data-profile-replacement-to
-        bind:value={toProfileId}
-        {disabled}
-      >
-        {#each candidates as candidate (candidate.id)}
-          <option value={candidate.id}>{candidate.name}</option>
-        {/each}
-      </select>?
+      {#if locale === 'en'}
+        {uiText('profile.replace.questionPrefix', locale)}
+        <select
+          aria-label={uiText('profile.replace.fromAria', locale)}
+          data-profile-replacement-from
+          bind:value={fromProfileId}
+          {disabled}
+        >
+          {#each candidates as candidate (candidate.id)}
+            <option value={candidate.id}>{candidate.name}</option>
+          {/each}
+        </select>
+        {uiText('profile.replace.questionMiddle', locale)}
+        <select
+          aria-label={uiText('profile.replace.toAria', locale)}
+          data-profile-replacement-to
+          bind:value={toProfileId}
+          {disabled}
+        >
+          {#each candidates as candidate (candidate.id)}
+            <option value={candidate.id}>{candidate.name}</option>
+          {/each}
+        </select>{uiText('profile.replace.questionSuffix', locale)}
+      {:else}
+        {uiText('profile.replace.questionPrefix', locale)}
+        <select
+          aria-label={uiText('profile.replace.toAria', locale)}
+          data-profile-replacement-to
+          bind:value={toProfileId}
+          {disabled}
+        >
+          {#each candidates as candidate (candidate.id)}
+            <option value={candidate.id}>{candidate.name}</option>
+          {/each}
+        </select>
+        {uiText('profile.replace.questionMiddle', locale)}
+        <select
+          aria-label={uiText('profile.replace.fromAria', locale)}
+          data-profile-replacement-from
+          bind:value={fromProfileId}
+          {disabled}
+        >
+          {#each candidates as candidate (candidate.id)}
+            <option value={candidate.id}>{candidate.name}</option>
+          {/each}
+        </select>{uiText('profile.replace.questionSuffix', locale)}
+      {/if}
     </p>
 
     <div class="replacement-preview" data-profile-replacement-preview>
@@ -85,31 +114,28 @@
           color={profileColor(fromProfile)}
           size={24}
         />
-        <strong>{fromProfile?.name ?? 'Missing profile'}</strong>
+        <strong>{fromProfile?.name ?? uiText('route.missing', locale)}</strong>
       </span>
       <span class="replacement-arrow" aria-hidden="true">→</span>
       <span class="profile-inline">
         <ProfileIcon kind={toProfile?.kind ?? 'fixed'} color={profileColor(toProfile)} size={24} />
-        <strong>{toProfile?.name ?? 'Missing profile'}</strong>
+        <strong>{toProfile?.name ?? uiText('route.missing', locale)}</strong>
       </span>
     </div>
 
-    <p class="replacement-help">
-      If you proceed, all rules pointing to the first profile will use the second profile instead.
-      Startup profile, Quick Switch, and other profile references are updated too. The two profiles
-      themselves are not changed or deleted.
-    </p>
+    <p class="replacement-help">{uiText('profile.replace.help', locale)}</p>
 
     <div class="dialog-actions">
       <button type="button" data-profile-replacement-cancel {disabled} onclick={onCancel}
-        >Cancel</button
+        >{uiText('common.cancel', locale)}</button
       >
       <button
         type="button"
         class="warning"
         data-profile-replacement-confirm
         disabled={disabled || !fromProfile || !toProfile}
-        onclick={() => void onConfirm(fromProfileId, toProfileId)}>Replace Profile</button
+        onclick={() => void onConfirm(fromProfileId, toProfileId)}
+        >{uiText('common.replace', locale)}</button
       >
     </div>
   </div>

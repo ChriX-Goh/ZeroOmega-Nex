@@ -1007,6 +1007,9 @@ try {
     '[data-profile-deletion-dialog][data-profile-deletion-mode="blocked"]',
   );
   await blockedDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  await blockedDeletion.getByRole('heading', { name: '情景模式无法删除', exact: true }).waitFor();
+  assert.equal(await blockedDeletion.getAttribute('data-typed-locale'), 'zh-CN');
+  assert.match(await blockedDeletion.innerText(), /自动切换情景模式/u);
   await assertEventually(
     async () =>
       blockedDeletion
@@ -1034,6 +1037,10 @@ try {
   await virtualOptions.locator('[data-new-profile-action]').click();
   const newVirtualDialog = virtualOptions.locator('.new-profile-dialog');
   await newVirtualDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await newVirtualDialog.getByRole('heading', { name: '新建情景模式', exact: true }).waitFor();
+  assert.equal(await newVirtualDialog.getAttribute('data-typed-locale'), 'zh-CN');
+  assert.match(await newVirtualDialog.innerText(), /请选择情景模式的类型/u);
+  assert.doesNotMatch(await newVirtualDialog.innerText(), /New Profile|Profile type/u);
   const newVirtualName = newVirtualDialog.locator('[data-new-profile-name-input]');
   await assertEventually(
     async () => newVirtualName.evaluate((element) => element === document.activeElement),
@@ -1071,6 +1078,10 @@ try {
   await virtualOptions.locator('[data-virtual-replace]').click();
   const replacementDialog = virtualOptions.locator('[data-profile-replacement-dialog]');
   await replacementDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await replacementDialog.getByRole('heading', { name: '替换情景模式', exact: true }).waitFor();
+  assert.equal(await replacementDialog.getAttribute('data-typed-locale'), 'zh-CN');
+  await replacementDialog.getByLabel('要被替换的情景模式', { exact: true }).waitFor();
+  await replacementDialog.getByLabel('用于替换的情景模式', { exact: true }).waitFor();
   const replacementFrom = replacementDialog.locator('[data-profile-replacement-from]');
   const replacementTo = replacementDialog.locator('[data-profile-replacement-to]');
   assert.equal(await replacementFrom.inputValue(), virtualIds.targetId);
@@ -1191,6 +1202,8 @@ try {
     '[data-profile-deletion-dialog][data-profile-deletion-mode="confirm"]',
   );
   await confirmDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  await confirmDeletion.getByRole('heading', { name: '删除情景模式', exact: true }).waitFor();
+  assert.equal(await confirmDeletion.getAttribute('data-typed-locale'), 'zh-CN');
   await assertEventually(
     async () =>
       confirmDeletion
