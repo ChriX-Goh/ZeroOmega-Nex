@@ -1,8 +1,4 @@
-import {
-  validateProfileSpec,
-  type FixedProfile,
-  type SwitchProfile,
-} from '@zeroomega-nex/profile-spec';
+import { validateProfileSpec, type FixedProfile } from '@zeroomega-nex/profile-spec';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -14,6 +10,7 @@ import {
   createVirtualProfileDraft,
   deleteProfileDraft,
   duplicateProfileDraft,
+  listProfileReferenceBlockers,
   replaceProfileReferencesDraft,
   type ProfileWorkflowIdFactory,
 } from './profile-operations.js';
@@ -136,47 +133,102 @@ describe('profile draft operations', () => {
     expect(validateProfileSpec(draft).valid).toBe(true);
   });
 
-  it('rewrites surviving references to a deleted profile as Direct', () => {
+  it('blocks deletion and reports every profile reference surface', () => {
     const spec = workflowFixture();
-    spec.profiles.push({
-      id: 'profile-switch',
-      name: 'Auto Switch',
-      kind: 'switch',
-      rules: [
-        {
-          id: 'rule-primary',
-          condition: { kind: 'host-wildcard', pattern: '*.example.invalid' },
-          route: { kind: 'profile', profileId: 'profile-primary' },
-        },
-      ],
-      defaultRoute: { kind: 'profile', profileId: 'profile-primary' },
+    spec.profiles.push(
+      {
+        id: 'profile-switch',
+        name: 'Switch Referrer',
+        kind: 'switch',
+        rules: [
+          {
+            id: 'rule-primary',
+            condition: { kind: 'host-wildcard', pattern: '*.example.invalid' },
+            route: { kind: 'profile', profileId: 'profile-primary' },
+          },
+        ],
+        defaultRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-rule-list',
+        name: 'Rule List Referrer',
+        kind: 'rule-list',
+        sourceId: 'source-referrer',
+        matchRoute: { kind: 'profile', profileId: 'profile-primary' },
+        defaultRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-pac',
+        name: 'PAC Referrer',
+        kind: 'pac',
+        source: { kind: 'inline', script: "function FindProxyForURL() { return 'DIRECT'; }" },
+        fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-auto',
+        name: 'Auto Referrer',
+        kind: 'auto-detect',
+        fallbackRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+      {
+        id: 'profile-virtual',
+        name: 'Virtual Referrer',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
+    );
+    spec.ruleSources.push({
+      id: 'source-referrer',
+      name: 'Referrer source',
+      format: 'switchy',
+      location: { kind: 'inline', content: '[SwitchyOmega Conditions]\n@with result\n' },
     });
 
-    const draft = deleteProfileDraft(spec, 'profile-primary');
-    const switchProfile = draft.profiles.find(
-      (profile): profile is SwitchProfile =>
-        profile.id === 'profile-switch' && profile.kind === 'switch',
+    expect(
+      listProfileReferenceBlockers(spec, 'profile-primary').map((entry) => entry.profileName),
+    ).toEqual([
+      'Switch Referrer',
+      'Rule List Referrer',
+      'PAC Referrer',
+      'Auto Referrer',
+      'Virtual Referrer',
+    ]);
+    expect(() => deleteProfileDraft(spec, 'profile-primary')).toThrow(
+      'profile Proxy is referenced by Switch Referrer, Rule List Referrer, PAC Referrer, Auto Referrer, Virtual Referrer',
     );
-
-    expect(draft.settings.startup.route).toEqual({ kind: 'direct' });
-    expect(switchProfile?.defaultRoute).toEqual({ kind: 'direct' });
-    expect(switchProfile?.rules[0]?.route).toEqual({ kind: 'direct' });
-    expect(draft.proxyEndpoints.map((endpoint) => endpoint.id)).not.toContain('endpoint-primary');
-    expect(validateProfileSpec(draft).valid).toBe(true);
   });
 
-  it('keeps Direct and System available after deleting the final quick-switch profile', () => {
-    const withoutSecondary = deleteProfileDraft(workflowFixture(), 'profile-secondary');
-    withoutSecondary.settings.quickSwitch.routes = [
-      { kind: 'profile', profileId: 'profile-primary' },
-    ];
+  it('collapses hidden attached Rule List references to their visible owner Switch', () => {
+    const ids = deterministicIds();
+    const created = createSwitchProfileDraft(workflowFixture(), ids, 'Visible Owner');
+    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const state = inspectAttachedRuleList(attached, created.profileId);
+    if (!state) throw new Error('attached Rule List missing');
+    state.profile.matchRoute = { kind: 'profile', profileId: 'profile-primary' };
+    state.profile.defaultRoute = { kind: 'profile', profileId: 'profile-primary' };
 
-    const draft = deleteProfileDraft(withoutSecondary, 'profile-primary');
+    expect(listProfileReferenceBlockers(attached, 'profile-primary')).toEqual([
+      {
+        profileId: created.profileId,
+        profileName: 'Visible Owner',
+        profileKind: 'switch',
+        viaAttachedRuleListProfileId: state.profile.id,
+      },
+    ]);
+    expect(() => deleteProfileDraft(attached, 'profile-primary')).toThrow(
+      'profile Proxy is referenced by Visible Owner',
+    );
+  });
 
-    expect(draft.profiles).toEqual([]);
-    expect(draft.proxyEndpoints).toEqual([]);
-    expect(draft.settings.startup.route).toEqual({ kind: 'direct' });
-    expect(draft.settings.quickSwitch.routes).toEqual([{ kind: 'direct' }, { kind: 'system' }]);
+  it('clears Startup and removes Quick Switch references without injecting built-ins', () => {
+    const spec = workflowFixture();
+    spec.settings.startup.route = { kind: 'profile', profileId: 'profile-secondary' };
+    spec.settings.quickSwitch.routes = [{ kind: 'profile', profileId: 'profile-secondary' }];
+
+    const draft = deleteProfileDraft(spec, 'profile-secondary');
+
+    expect(draft.settings.startup.route).toBeUndefined();
+    expect(draft.settings.quickSwitch.routes).toEqual([]);
     expect(validateProfileSpec(draft).valid).toBe(true);
   });
 

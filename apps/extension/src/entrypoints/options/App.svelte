@@ -18,11 +18,13 @@
     deleteProfileDraft,
     duplicateProfileDraft,
     inspectProfileWorkflow,
+    listProfileReferenceBlockers,
     parseProfileWorkflowState,
   } from '@zeroomega-nex/profile-workflow';
   import type {
     ProfileWorkflowCommandResponse,
     ProfileWorkflowIdFactory,
+    ProfileReferenceBlocker,
     ProfileWorkflowPacSourceUpdateView,
     ProfileWorkflowProfileMutation,
     ProfileWorkflowRuleSourceUpdateView,
@@ -55,6 +57,7 @@
   import LegacyImportPanel from './LegacyImportPanel.svelte';
   import NewProfileDialog from './NewProfileDialog.svelte';
   import PacProfileEditor from './PacProfileEditor.svelte';
+  import ProfileDeletionDialog from './ProfileDeletionDialog.svelte';
   import RuleListProfileEditor from './RuleListProfileEditor.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
@@ -73,6 +76,12 @@
     | 'new-profile'
     | 'profile'
     | 'about';
+  interface PendingProfileDeletion {
+    readonly profileId: string;
+    readonly profileName: string;
+    readonly blockers: readonly ProfileReferenceBlocker[];
+  }
+
   type InterfaceFlag =
     | 'confirmDeletion'
     | 'showInspectMenu'
@@ -97,6 +106,7 @@
   let hasUnappliedChanges = false;
   let diagnosticsPermissionGranted = false;
   let requestingDiagnosticsPermission = false;
+  let pendingProfileDeletion: PendingProfileDeletion | undefined;
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -471,20 +481,40 @@
     }
   }
 
-  async function deleteSelectedProfile(): Promise<void> {
-    if (!state || !selectedProfile || !(await commitActiveProfileEditor())) return;
-    const shouldConfirm = state.draft.settings.interface.confirmDeletion;
-    if (
-      shouldConfirm &&
-      !globalThis.confirm(`Delete profile “${selectedProfile.name}”? This changes only the Draft.`)
-    ) {
-      return;
-    }
+  async function performProfileDeletion(profileId: string): Promise<void> {
+    if (!state) return;
     try {
-      await replaceDraft(deleteProfileDraft(state.draft, selectedProfile.id));
+      if (await replaceDraft(deleteProfileDraft(state.draft, profileId))) {
+        pendingProfileDeletion = undefined;
+      }
     } catch (error) {
       errorMessage = messageFrom(error);
     }
+  }
+
+  async function deleteSelectedProfile(): Promise<void> {
+    if (!state || !selectedProfile || !(await commitActiveProfileEditor())) return;
+    try {
+      const blockers = listProfileReferenceBlockers(state.draft, selectedProfile.id);
+      const request: PendingProfileDeletion = {
+        profileId: selectedProfile.id,
+        profileName: selectedProfile.name,
+        blockers,
+      };
+      if (blockers.length > 0 || state.draft.settings.interface.confirmDeletion) {
+        pendingProfileDeletion = request;
+        return;
+      }
+      await performProfileDeletion(request.profileId);
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
+  }
+
+  async function confirmProfileDeletion(): Promise<void> {
+    const request = pendingProfileDeletion;
+    if (!request || request.blockers.length > 0) return;
+    await performProfileDeletion(request.profileId);
   }
 
   async function updateProfileName(name: string): Promise<void> {
@@ -1234,6 +1264,7 @@
           ><button
             type="button"
             class="danger"
+            data-profile-delete-action
             disabled={view?.busy || saving}
             onclick={deleteSelectedProfile}>Delete</button
           >
@@ -1331,3 +1362,13 @@
     {/if}
   </main>
 </div>
+
+{#if pendingProfileDeletion}
+  <ProfileDeletionDialog
+    profileName={pendingProfileDeletion.profileName}
+    blockers={pendingProfileDeletion.blockers}
+    disabled={saving || view?.busy === true}
+    onCancel={() => (pendingProfileDeletion = undefined)}
+    onConfirm={confirmProfileDeletion}
+  />
+{/if}

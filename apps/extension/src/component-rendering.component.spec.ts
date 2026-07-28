@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest';
 import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte';
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
 import PacProfileEditor from './entrypoints/options/PacProfileEditor.svelte';
+import ProfileDeletionDialog from './entrypoints/options/ProfileDeletionDialog.svelte';
 import RuleListProfileEditor from './entrypoints/options/RuleListProfileEditor.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
@@ -45,6 +46,39 @@ function idFactory(): ProfileWorkflowIdFactory {
 const replaceDraft = async () => true;
 
 describe('Milestone 8 Svelte component rendering contracts', () => {
+  it('renders blocked and confirm profile-deletion dialogs without a destructive blocked action', () => {
+    const blocked = render(ProfileDeletionDialog, {
+      props: {
+        profileName: 'Target',
+        blockers: [
+          {
+            profileId: 'profile-referrer',
+            profileName: 'Referrer',
+            profileKind: 'switch',
+          },
+        ],
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    }).body;
+    expect(blocked).toContain('role="alertdialog"');
+    expect(blocked).toContain('data-profile-deletion-mode="blocked"');
+    expect(blocked).toContain('Referrer');
+    expect(blocked).not.toContain('data-profile-deletion-confirm');
+
+    const confirm = render(ProfileDeletionDialog, {
+      props: {
+        profileName: 'Disposable',
+        blockers: [],
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    }).body;
+    expect(confirm).toContain('role="dialog"');
+    expect(confirm).toContain('data-profile-deletion-mode="confirm"');
+    expect(confirm).toContain('data-profile-deletion-confirm');
+  });
+
   it('renders distinct colored profile type icons', () => {
     for (const kind of [
       'direct',

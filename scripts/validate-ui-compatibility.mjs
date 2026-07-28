@@ -22,6 +22,8 @@ const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileE
 const attachedRuleListConfigPath =
   'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte';
 const virtualProfilePath = 'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte';
+const profileDeletionDialogPath =
+  'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
 const i18nPath = 'apps/extension/src/lib/i18n.ts';
 const profileIconPath = 'apps/extension/src/components/ProfileIcon.svelte';
@@ -92,6 +94,7 @@ const [
   switchProfile,
   attachedRuleListConfig,
   virtualProfile,
+  profileDeletionDialog,
   optionsHtml,
   i18n,
   profileIcon,
@@ -142,6 +145,7 @@ const [
   readFile(switchProfilePath, 'utf8'),
   readFile(attachedRuleListConfigPath, 'utf8'),
   readFile(virtualProfilePath, 'utf8'),
+  readFile(profileDeletionDialogPath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
   readFile(profileIconPath, 'utf8'),
@@ -457,6 +461,22 @@ const requirements = [
     'Default Popup order must list Direct before System Proxy.',
   ],
   [optionsApp.includes('class="sidebar"'), 'Options must retain familiar left profile navigation.'],
+  [
+    profileOperations.includes('export function listProfileReferenceBlockers') &&
+      profileOperations.includes('profileReferencesTarget') &&
+      profileOperations.includes('viaAttachedRuleListProfileId') &&
+      profileOperations.includes('is referenced by') &&
+      !profileOperations.includes('rewriteProfileRoutes(profile, deletedId)') &&
+      optionsApp.includes('listProfileReferenceBlockers') &&
+      optionsApp.includes('data-profile-delete-action') &&
+      optionsApp.includes('<ProfileDeletionDialog') &&
+      profileDeletionDialog.includes('role="alertdialog"') &&
+      profileDeletionDialog.includes('data-profile-deletion-mode="blocked"') &&
+      profileDeletionDialog.includes('data-profile-deletion-mode="confirm"') &&
+      chromiumE2e.includes('Existing Alias') &&
+      chromiumE2e.includes('Confirmed profile deletion did not commit through normal Apply'),
+    'Profile deletion must block typed references with an explicit referrer dialog, collapse hidden attached Rule Lists to their owner, and only delete unreferenced profiles through Draft plus normal Apply.',
+  ],
   [
     optionsApp.includes('class="nav-group actions"'),
     'Options must retain original sidebar Apply/Discard actions.',

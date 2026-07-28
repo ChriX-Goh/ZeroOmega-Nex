@@ -3,7 +3,7 @@
   "-enableQuickSwitch": true,
   "-refreshOnProfileChange": false,
   "-startupProfileName": "Target Proxy",
-  "-quickSwitchProfiles": ["Target Proxy", "Existing Alias", "direct"],
+  "-quickSwitchProfiles": ["Target Proxy", "Unrelated Proxy", "Existing Alias", "direct"],
   "-revertProxyChanges": true,
   "-confirmDeletion": true,
   "-showInspectMenu": true,

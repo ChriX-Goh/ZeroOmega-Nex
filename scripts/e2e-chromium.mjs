@@ -921,6 +921,29 @@ try {
     .getByText('导入完成，原版配置现已启用。')
     .waitFor({ state: 'visible', timeout: 20_000 });
 
+  await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).click();
+  await virtualOptions.locator('[data-profile-delete-action]').click();
+  const blockedDeletion = virtualOptions.locator(
+    '[data-profile-deletion-dialog][data-profile-deletion-mode="blocked"]',
+  );
+  await blockedDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  const blockerNames = await blockedDeletion
+    .locator('[data-profile-deletion-blocker] strong')
+    .allTextContents();
+  assert.deepEqual(blockerNames.sort(), [
+    'Auto Matrix',
+    'Existing Alias',
+    'PAC Matrix',
+    'Route Matrix',
+    'Rule Matrix',
+  ]);
+  assert.equal(await blockedDeletion.locator('[data-profile-deletion-confirm]').count(), 0);
+  await blockedDeletion.locator('[data-profile-deletion-close]').click();
+  assert.equal(
+    await virtualOptions.getByRole('button', { name: 'Target Proxy', exact: true }).count(),
+    1,
+  );
+
   await virtualOptions.locator('[data-new-profile-action]').click();
   const newVirtualDialog = virtualOptions.locator('.new-profile-dialog');
   await newVirtualDialog.waitFor({ state: 'visible', timeout: 20_000 });
@@ -1023,6 +1046,64 @@ try {
   assert.equal(
     await virtualOptions.getByRole('button', { name: 'Stable Alias', exact: true }).count(),
     1,
+  );
+
+  const unrelatedProfileId = await virtualWorker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    const profile = workflow?.applied?.profiles?.find(
+      (candidate) => candidate.name === 'Unrelated Proxy',
+    );
+    if (!profile) throw new Error('Unrelated Proxy is missing');
+    return profile.id;
+  });
+  await virtualOptions.getByRole('button', { name: 'Unrelated Proxy', exact: true }).click();
+  await virtualOptions.locator('[data-profile-delete-action]').click();
+  const confirmDeletion = virtualOptions.locator(
+    '[data-profile-deletion-dialog][data-profile-deletion-mode="confirm"]',
+  );
+  await confirmDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  await confirmDeletion.locator('[data-profile-deletion-confirm]').click();
+  await assertEventually(
+    async () =>
+      (await virtualOptions
+        .getByRole('button', { name: 'Unrelated Proxy', exact: true })
+        .count()) === 0,
+    'Unreferenced profile remained in navigation after confirmed deletion',
+  );
+  await assertEventually(
+    async () =>
+      virtualWorker.evaluate(async (deletedId) => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return (
+          workflow?.draft?.profiles?.every((profile) => profile.id !== deletedId) &&
+          workflow.draft.settings.quickSwitch.routes.every(
+            (route) => route.kind !== 'profile' || route.profileId !== deletedId,
+          )
+        );
+      }, unrelatedProfileId),
+    'Confirmed deletion did not remove the profile and its Quick Switch route from Draft',
+  );
+  await assertEventually(
+    async () => !(await virtualApply.isDisabled()),
+    'Confirmed profile deletion did not leave an applicable Draft',
+  );
+  await virtualApply.click();
+  await assertEventually(
+    async () =>
+      virtualWorker.evaluate(async (deletedId) => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return (
+          workflow !== undefined &&
+          workflow.pendingApply === undefined &&
+          workflow.applied.profiles.every((profile) => profile.id !== deletedId) &&
+          JSON.stringify(workflow.draft) === JSON.stringify(workflow.applied)
+        );
+      }, unrelatedProfileId),
+    'Confirmed profile deletion did not commit through normal Apply',
+    20_000,
   );
   await virtualContext.close();
   virtualContext = undefined;

@@ -411,3 +411,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Chromium 独立用户目录从原版 schema-v2 备份恢复跨类型引用图，通过真实 New Profile 模态框创建 Virtual、选择目标、确认 Replace，再验证 Startup、Quick Switch、Switch default/rules、Rule List match/default、PAC/Auto Detect fallback、其他 Virtual target 全部迁移，同时源 Profile 与新 Virtual 本体保持不变，最后经正常 Apply 提交。
 
 - `AutoDetectProfile.fallbackRoute` 是 Nex typed 兼容字段，不是原版 v3.5.0 消费的标准字段。为避免 schema-v2 备份往返与 Virtual 引用迁移静默丢失，Nex 以 `fallbackProfileName` 扩展字段导入/导出，并始终产生 `auto-detect.fallback-nex-extension` preserved/warning 证据；不得把它宣称为原版浏览器行为。
+
+- 原版 `ProfileCtrl.deleteProfile` 先调用 `OmegaPac.Profiles.referencedBySet`；若存在 Profile 引用，`cannot_delete_profile.jade` 列出引用者并只允许关闭，附属 `__ruleListOf_*` 通过 `getParentName` 折叠成父 Profile。Startup 与 Quick Switch 不属于阻断引用：确认删除后 Startup 清空、Quick Switch 移除该项；不会把剩余 Profile 引用静默改成 Direct。
+- Nex 删除采用同样双层边界：`listProfileReferenceBlockers` 覆盖 Switch rules/default、Rule List match/default、PAC/Auto Detect fallback、Virtual target，并对隐藏附属 Rule List 去重映射父 Switch；Options 显式 `alertdialog` 列引用者，typed `deleteProfileDraft` 再次拒绝绕过 UI 的删除。未被引用时按 `confirmDeletion` 显示确认对话框或直接生成 Draft，随后仍需正常 Apply。
+- ProfileSpec 允许 Startup route 缺省且 Quick Switch routes 为空，因此删除目标后对齐原版为删除 Startup 字段、过滤 Quick Switch 项，不注入 Nex-only Direct/System 默认。

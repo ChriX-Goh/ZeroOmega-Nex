@@ -74,6 +74,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium uses a separate user data directory, restores a source-backed schema-v2 cross-reference fixture, creates `Stable Alias` through the real four-type New Profile dialog, selects `Target Proxy`, confirms migration, verifies every typed route surface and both endpoint profiles, then commits through Apply.
 - Integration run `30320204375`; product commit `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3`; clean exact Head `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35` passed CI `30320359259`, Browser E2E `30320359263`, and Parity Documentation `30320359269`.
 
+### Profile deletion and reference protection
+
+- Original deletion refuses any profile that is referenced by another Profile, lists visible referrers, and collapses attached Rule List references to the parent profile. Startup and Quick Switch references are cleaned after deletion but do not block it.
+- Nex now exposes a typed blocker list across Switch, Rule List, PAC, Auto Detect, and Virtual routes; `deleteProfileDraft` rejects referenced deletion even when called outside Options.
+- Options uses explicit accessible blocked/confirmation dialogs instead of a generic browser confirm. Unreferenced deletion changes Draft only and commits through normal Apply; Startup becomes unset and Quick Switch only removes deleted routes.
+- Chromium restores the cross-reference fixture, verifies that `Target Proxy` cannot be deleted and lists all five referrers, then confirms deletion of `Unrelated Proxy`, verifies Draft/resource cleanup, and applies it normally.
+- Integration run `30325486940`; product commit containing this document.
+
 ### Attached Rule List lifecycle and background updates
 
 - A Switch Profile owns one hidden `__ruleListOf_<parent name>` profile/source that is excluded from normal navigation and route selectors.
@@ -179,4 +187,4 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Continue typed locale coverage, profile deletion/reference protection, and profile-level export actions; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue the general Replace Profile dialog, profile-level export actions, and typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

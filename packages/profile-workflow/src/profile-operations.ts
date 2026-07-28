@@ -44,17 +44,6 @@ function routeTargetsProfile(route: ProfileRouteTarget | undefined, profileId: s
   return route?.kind === 'profile' && route.profileId === profileId;
 }
 
-function directRoute(): ProfileRouteTarget {
-  return { kind: 'direct' };
-}
-
-function replaceDeletedRoute(
-  route: ProfileRouteTarget | undefined,
-  profileId: string,
-): ProfileRouteTarget | undefined {
-  return routeTargetsProfile(route, profileId) ? directRoute() : route;
-}
-
 function appendQuickSwitchRoute(spec: ProfileSpec, profileId: string): void {
   if (
     spec.settings.quickSwitch.routes.some(
@@ -211,31 +200,80 @@ export function duplicateProfileDraft(
   return { draft, profileId };
 }
 
-function rewriteProfileRoutes(profile: UserProfile, deletedProfileId: string): void {
+export interface ProfileReferenceBlocker {
+  readonly profileId: string;
+  readonly profileName: string;
+  readonly profileKind: UserProfile['kind'];
+  readonly viaAttachedRuleListProfileId?: string;
+}
+
+function profileReferencesTarget(profile: UserProfile, targetProfileId: string): boolean {
   switch (profile.kind) {
     case 'fixed':
-      return;
+      return false;
     case 'switch':
-      profile.defaultRoute = replaceDeletedRoute(profile.defaultRoute, deletedProfileId)!;
-      profile.rules = profile.rules.map((rule) => ({
-        ...rule,
-        route: replaceDeletedRoute(rule.route, deletedProfileId)!,
-      }));
-      return;
+      return (
+        routeTargetsProfile(profile.defaultRoute, targetProfileId) ||
+        profile.rules.some((rule) => routeTargetsProfile(rule.route, targetProfileId))
+      );
     case 'rule-list':
-      profile.matchRoute = replaceDeletedRoute(profile.matchRoute, deletedProfileId)!;
-      profile.defaultRoute = replaceDeletedRoute(profile.defaultRoute, deletedProfileId)!;
-      return;
-    case 'virtual':
-      profile.targetRoute = replaceDeletedRoute(profile.targetRoute, deletedProfileId)!;
-      return;
+      return (
+        routeTargetsProfile(profile.matchRoute, targetProfileId) ||
+        routeTargetsProfile(profile.defaultRoute, targetProfileId)
+      );
     case 'pac':
-    case 'auto-detect': {
-      const fallbackRoute = replaceDeletedRoute(profile.fallbackRoute, deletedProfileId);
-      if (fallbackRoute === undefined) delete profile.fallbackRoute;
-      else profile.fallbackRoute = fallbackRoute;
-    }
+    case 'auto-detect':
+      return routeTargetsProfile(profile.fallbackRoute, targetProfileId);
+    case 'virtual':
+      return routeTargetsProfile(profile.targetRoute, targetProfileId);
   }
+}
+
+function deletionProfileIds(profile: UserProfile): ReadonlySet<string> {
+  return new Set([
+    profile.id,
+    ...(profile.kind === 'switch' && profile.attachedRuleListProfileId !== undefined
+      ? [profile.attachedRuleListProfileId]
+      : []),
+  ]);
+}
+
+function attachedRuleListOwnerById(spec: ProfileSpec): ReadonlyMap<string, SwitchProfile> {
+  return new Map(
+    spec.profiles.flatMap((profile) =>
+      profile.kind === 'switch' && profile.attachedRuleListProfileId !== undefined
+        ? [[profile.attachedRuleListProfileId, profile] as const]
+        : [],
+    ),
+  );
+}
+
+export function listProfileReferenceBlockers(
+  spec: ProfileSpec,
+  profileId: string,
+): readonly ProfileReferenceBlocker[] {
+  const deleted = spec.profiles.find((profile) => profile.id === profileId);
+  if (!deleted) throw new RangeError(`profile ${profileId} does not exist`);
+  const deletedIds = deletionProfileIds(deleted);
+  const attachedOwners = attachedRuleListOwnerById(spec);
+  const blockers = new Map<string, ProfileReferenceBlocker>();
+
+  for (const profile of spec.profiles) {
+    if (deletedIds.has(profile.id)) continue;
+    if (![...deletedIds].some((deletedId) => profileReferencesTarget(profile, deletedId))) continue;
+
+    const owner = attachedOwners.get(profile.id);
+    const visibleProfile = owner && !deletedIds.has(owner.id) ? owner : profile;
+    if (deletedIds.has(visibleProfile.id) || blockers.has(visibleProfile.id)) continue;
+    blockers.set(visibleProfile.id, {
+      profileId: visibleProfile.id,
+      profileName: visibleProfile.name,
+      profileKind: visibleProfile.kind,
+      ...(owner === undefined ? {} : { viaAttachedRuleListProfileId: profile.id }),
+    });
+  }
+
+  return [...blockers.values()];
 }
 
 export function createVirtualProfileDraft(
@@ -371,11 +409,20 @@ function referencedRuleSourceIds(spec: ProfileSpec): Set<string> {
 }
 
 export function deleteProfileDraft(spec: ProfileSpec, profileId: string): ProfileSpec {
-  const draft = cloneProfileSpecDraft(spec);
-  const deleted = draft.profiles.find((profile) => profile.id === profileId);
-  if (!deleted) throw new RangeError(`profile ${profileId} does not exist`);
+  const deletedSource = spec.profiles.find((profile) => profile.id === profileId);
+  if (!deletedSource) throw new RangeError(`profile ${profileId} does not exist`);
+  const blockers = listProfileReferenceBlockers(spec, profileId);
+  if (blockers.length > 0) {
+    throw new RangeError(
+      `profile ${deletedSource.name} is referenced by ${blockers
+        .map((blocker) => blocker.profileName)
+        .join(', ')}`,
+    );
+  }
 
-  const deletedProfileIds = new Set<string>([profileId]);
+  const draft = cloneProfileSpecDraft(spec);
+  const deleted = draft.profiles.find((profile) => profile.id === profileId)!;
+  const deletedProfileIds = new Set<string>(deletionProfileIds(deleted));
   const attachedOwner = draft.profiles.find(
     (profile): profile is SwitchProfile =>
       profile.kind === 'switch' && profile.attachedRuleListProfileId === profileId,
@@ -403,22 +450,16 @@ export function deleteProfileDraft(spec: ProfileSpec, profileId: string): Profil
   );
 
   draft.profiles = draft.profiles.filter((profile) => !deletedProfileIds.has(profile.id));
-  for (const deletedId of deletedProfileIds) {
-    for (const profile of draft.profiles) rewriteProfileRoutes(profile, deletedId);
-  }
 
   if (
     draft.settings.startup.route?.kind === 'profile' &&
     deletedProfileIds.has(draft.settings.startup.route.profileId)
   ) {
-    draft.settings.startup.route = directRoute();
+    delete draft.settings.startup.route;
   }
   draft.settings.quickSwitch.routes = draft.settings.quickSwitch.routes.filter(
     (route) => route.kind !== 'profile' || !deletedProfileIds.has(route.profileId),
   );
-  if (draft.settings.quickSwitch.routes.length === 0) {
-    draft.settings.quickSwitch.routes = [{ kind: 'direct' }, { kind: 'system' }];
-  }
 
   const retainedEndpointIds = referencedEndpointIds(draft);
   draft.proxyEndpoints = draft.proxyEndpoints.filter(
