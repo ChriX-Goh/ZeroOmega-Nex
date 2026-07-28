@@ -42,6 +42,7 @@ jobs:
             set -x
             python .github/patches/fix-typed-general-interface-patch.py
             python .github/patches/apply-typed-general-interface.py
+            python .github/patches/fix-typed-general-interface-guards.py
           } 2>&1 | tee typed-general-interface-apply.log
       - name: Format product slice
         run: |
@@ -79,6 +80,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-general-interface.yml
           rm -f \
             .github/patches/fix-typed-general-interface-patch.py \
+            .github/patches/fix-typed-general-interface-guards.py \
             .github/patches/apply-typed-general-interface.py \
             typed-general-interface-apply.log \
             typed-general-interface-format.log \
