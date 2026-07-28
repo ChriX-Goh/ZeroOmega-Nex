@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `c96ceb4a3a871951a23a58989df02dfe2689d1b8` — Bounded online backup restore with local compatibility review  
-**Latest integration verification:** run `30402596911` validates secret-safe online download errors, local-review-only behavior, full repository verification, real Chromium download, and real Firefox optional-origin download  
-**Last completed exact-Head verification:** `e71ef1d71baab380dc1e972eeb787108cef0f207`; CI `30403288077`, Browser E2E `30403287902`, Parity Documentation `30403287912` passed  
+**Current product implementation head:** `1eb20d1d57cc53887d5d53df7963b8e85709ea24` — Exact-Head consolidated visual-evidence workflow and artifact  
+**Latest integration verification:** run `30407422010` validates the permanent capture script, four locale/theme combinations, six representative surfaces, 24 PNGs, image hashes, manifest generation, and full repository verification  
+**Last completed exact-Head verification:** `1eb20d1d57cc53887d5d53df7963b8e85709ea24`; CI `30407814006`, Browser E2E `30407814062`, Parity Documentation `30407814058`, Visual Evidence `30407814012` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -299,7 +299,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Restore from online is a dedicated Options-page downloader, not a runtime command and not a Rule Source update ledger. Raw backup text can contain credentials, so it remains in the page and enters only the existing local decoder/review flow.
 - The Restore click requests one normalized HTTP(S) origin, performs an isolated bounded GET with a ten-second timeout and the decoder input-size limit, rejects redirects and embedded credentials, and classifies URL/permission/timeout/network/HTTP/size/empty failures with stable typed codes.
 - Download success populates the existing compatibility review only. Applied, Draft, generation, proxy state, and activation remain unchanged until the user separately chooses Import and use now or Import without activating.
-- Chromium and Firefox use real HTTP backups and assert one request, local review, retained permission, and byte-for-byte unchanged workflow state before import. G-03 and G-10 are now DONE; Gist/WebDAV/browser sync remain separate UNCERTAIN scope.
+- Chromium and Firefox use real HTTP backups and assert one request, local review, retained permission, and byte-for-byte unchanged workflow state before import. G-03 and G-10 are DONE; Gist/WebDAV/browser sync were subsequently closed by ADR-016–018.
 
 ### Gist, WebDAV, and browser-native sync scope decisions
 
@@ -313,7 +313,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - The permanent `Milestone 8 Visual Evidence` workflow builds the exact Chromium Head and captures isolated light/dark × zh-CN/zh-TW sessions.
 - Six surfaces per combination produce exactly 24 PNGs: Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network. Every capture requires the expected typed-locale marker and explicit theme before writing.
 - The artifact includes a machine-readable manifest with exact Head, Chromium version, locale, theme, surface, URL, dimensions, byte size, and per-image SHA-256, plus `manifest.sha256` and a readable index.
-- A green workflow establishes reproducible coverage only; repository-owner visual review remains required before a consolidated candidate can be accepted.
+- Exact-Head run `30407814012` produced artifact `m8-visual-evidence-1eb20d1d57cc53887d5d53df7963b8e85709ea24`, ID `8707237406`, artifact digest `sha256:c61b7ea58e8dccd59fb1e0a628af6b9fec2303a824ab070f730ed08d354e30f2`, and manifest digest `176dcfbbb0e1c152f8c16016be98c8ffd2ca78b46fe981e56e7ce422d2160206`. All 24 files were independently rehashed successfully. Repository-owner visual review remains required before a consolidated candidate can be accepted.
 
 ## Automated acceptance state
 
@@ -326,11 +326,11 @@ The latest product slices passed architecture guards, permanent UI compatibility
 PR #11 is not a replacement release candidate. Current blockers include:
 
 - real proxy-challenge manual QC,
-- consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
+- repository-owner review of the consolidated visual artifact and real complex-backup acceptance,
 
 ## Current next action
 
-Prepare consolidated light/dark/zh-CN/zh-TW visual evidence, then stage real proxy-challenge and repository-owner complex-backup QC for one consolidated candidate.
+Attempt to close the real proxy 407 challenge through controlled Chromium/Firefox E2E; then stage repository-owner visual and real complex-backup QC for one consolidated candidate.
 
 ### Typed locale inventory and first vertical batch
 

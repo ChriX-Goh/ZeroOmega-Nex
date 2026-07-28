@@ -69,16 +69,16 @@ Rebuild the familiar ZeroOmega v3.5.0 UI and profile workflow on top of the new 
 - Warning-fatal Svelte checks with zero current warnings.
 - Direct typed English, Simplified Chinese, and Traditional Chinese presentation across normal Options, profiles, Popup, Temporary Rules, Network, Import, History, Theme, lifecycle dialogs, dynamic messages, and ARIA.
 - Machine-generated locale inventory with zero untranslated user-visible candidates plus permanent parity/localization guards.
+- Exact-Head visual evidence: light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network, with 24 per-image hashes plus artifact/manifest digests.
 
 ### Current closure blockers
 
 - Real proxy-challenge manual QC.
-- Consolidated light/dark/zh-CN/zh-TW visual evidence.
-- Repository-owner real complex backup and final installable-candidate acceptance.
+- Repository-owner visual-artifact review, real complex backup, and final installable-candidate acceptance.
 
 ### Immediate direction
 
-ADR-016–018 close Gist, WebDAV, and browser-native sync for the first browser release. Milestone 8 now moves to consolidated light/dark/zh-CN/zh-TW visual evidence, real proxy-challenge QC, repository-owner complex-backup acceptance, and formal consolidated-candidate preparation.
+The exact-Head visual matrix is generated and integrity-checked. Milestone 8 now attempts controlled Chromium/Firefox proxy-407 challenge coverage, then moves to repository-owner visual/complex-backup acceptance and formal consolidated-candidate preparation.
 
 ## Partially pulled forward — Milestone 9
 
