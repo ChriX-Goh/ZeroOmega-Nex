@@ -13,7 +13,7 @@
     "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
     "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte"
   ],
-  "candidateCount": 202,
+  "candidateCount": 156,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -298,22 +298,7 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "aria-label",
-      "text": "Add quick-switch route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
       "text": "Direct profile color"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
-      "text": "Quick-switch route order"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
-      "text": "Startup route"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -322,28 +307,8 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "aria-label",
-      "text": "ZeroOmega options"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
       "text": "addConditionsToBottom"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Allow bounded request diagnostics"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Apply changes"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Browser permission granted."
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -368,22 +333,7 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
-      "text": "Grant monitoring permission"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Monitoring starts only from the diagnostics page for this browser session. Headers, bodies, cookies, credentials, query strings, and response content are never collected."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
       "text": "monitorWebRequests"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Open request diagnostics"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -394,16 +344,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "expression-literal",
       "text": "refreshOnChange"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Request diagnostics"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Requesting…"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -427,31 +367,6 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "expression-literal",
-      "text": "Working…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Actions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Add new switching conditions to the bottom"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Add profile…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Behavior matching the original ZeroOmega options page."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "Built-in Profiles"
     },
@@ -459,16 +374,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "Compatibility-first continuation"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Confirm before deleting a profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Confirmation and editing"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -503,137 +408,12 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Discard changes"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Down"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Enable quick switching in the popup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Export legacy rule-list format when requested"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "General"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Import / Export"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Interface"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Keep current browser setting"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Loading profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Menus and status"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "New profile…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "No user profiles"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Operation failed"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Profile used when the extension starts"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Quick Switch"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Reading the saved ZeroOmega configuration."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Refresh active tabs after switching"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Remove"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Revert proxy changes when ZeroOmega releases control"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Settings"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Show advanced condition types"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Show inspect menu"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Show profiles controlled by other extensions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Show result profile on the toolbar badge"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Startup and quick-switch behavior."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Startup profile"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -653,11 +433,6 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Up"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "Use the browser or operating-system proxy."
     },
     {
@@ -669,11 +444,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "ZeroOmega Nex"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "ZeroOmega Nex Options"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",

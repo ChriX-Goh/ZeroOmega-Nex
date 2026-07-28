@@ -197,10 +197,6 @@
       .value;
   }
 
-  function messageFrom(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
-  }
-
   function acceptResponse(response: ProfileWorkflowCommandResponse): boolean {
     if (response.ok) {
       state = response.state;
@@ -211,7 +207,7 @@
       errorMessage = '';
       return true;
     }
-    errorMessage = response.message;
+    errorMessage = uiText('options.error.safeMessage', locale);
     if (response.state) state = response.state;
     if (response.view) view = response.view;
     return false;
@@ -221,8 +217,8 @@
     loading = true;
     try {
       acceptResponse(await sendProfileWorkflowCommand({ action: 'get' }));
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     } finally {
       loading = false;
     }
@@ -235,8 +231,8 @@
     saving = true;
     try {
       return acceptResponse(await sendProfileWorkflowCommand(command));
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return false;
     } finally {
       saving = false;
@@ -306,8 +302,8 @@
       });
       if (!acceptResponse(response) || !response.ok) return '';
       return response.secretValue ?? '';
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return '';
     } finally {
       saving = false;
@@ -326,8 +322,8 @@
       });
       acceptResponse(response);
       return response.ruleSourceUpdate;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     } finally {
       saving = false;
@@ -342,12 +338,12 @@
     let granted = false;
     try {
       granted = await requestRuleSourceOriginPermission(url);
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     }
     if (!granted) {
-      errorMessage = 'Host permission is required before downloading this Rule List URL.';
+      errorMessage = uiText('options.error.ruleListPermission', locale);
       return undefined;
     }
     saving = true;
@@ -359,8 +355,8 @@
       });
       acceptResponse(response);
       return response.ruleSourceUpdate;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     } finally {
       saving = false;
@@ -379,8 +375,8 @@
       });
       acceptResponse(response);
       return response.pacSourceUpdate;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     } finally {
       saving = false;
@@ -395,12 +391,12 @@
     let granted = false;
     try {
       granted = await requestRuleSourceOriginPermission(url);
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     }
     if (!granted) {
-      errorMessage = 'Host permission is required before downloading this PAC URL.';
+      errorMessage = uiText('options.error.pacPermission', locale);
       return undefined;
     }
     saving = true;
@@ -412,8 +408,8 @@
       });
       acceptResponse(response);
       return response.pacSourceUpdate;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
     } finally {
       saving = false;
@@ -471,8 +467,8 @@
               ? createPacProfileDraft(state.draft, createWorkflowId, name)
               : createVirtualProfileDraft(state.draft, createWorkflowId, name);
       await replaceDraftAndSelect(mutation);
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     }
   }
 
@@ -487,8 +483,8 @@
       await replaceDraftAndSelect(
         duplicateProfileDraft(state.draft, selectedProfile.id, createWorkflowId),
       );
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     }
   }
 
@@ -498,8 +494,8 @@
       if (await replaceDraft(deleteProfileDraft(state.draft, profileId))) {
         pendingProfileDeletion = undefined;
       }
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     }
   }
 
@@ -541,8 +537,8 @@
         result.exported.warnings.length === 0
           ? `Exported ${result.exported.filename}.`
           : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     } finally {
       profileExporting = false;
     }
@@ -563,8 +559,8 @@
         result.exported.warnings.length === 0
           ? `Exported ${result.exported.filename}.`
           : `Exported ${result.exported.filename} with ${result.exported.warnings.length} warning(s).`;
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     } finally {
       profileExporting = false;
     }
@@ -584,8 +580,8 @@
         return;
       }
       await performProfileDeletion(request.profileId);
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     }
   }
 
@@ -601,9 +597,7 @@
   ): Promise<void> {
     if (!state || saving || view?.busy || !(await commitActiveProfileEditor())) return;
     if (view?.dirty) {
-      const confirmed = globalThis.confirm(
-        'Apply current changes before replacing profile references?',
-      );
+      const confirmed = globalThis.confirm(uiText('options.confirm.replace', locale));
       if (!confirmed) return;
       const applied = await runCommand({
         action: 'apply',
@@ -615,7 +609,7 @@
       !state.draft.profiles.some((profile) => profile.id === fromProfileId) ||
       !state.draft.profiles.some((profile) => profile.id === toProfileId)
     ) {
-      errorMessage = 'A replacement endpoint no longer exists.';
+      errorMessage = uiText('options.error.replacementMissing', locale);
       return;
     }
     pendingProfileReplacement = { fromProfileId, toProfileId };
@@ -632,8 +626,8 @@
       ) {
         pendingProfileReplacement = undefined;
       }
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
     }
   }
 
@@ -737,10 +731,10 @@
     try {
       diagnosticsPermissionGranted = await requestRequestDiagnosticsPermission();
       if (!diagnosticsPermissionGranted) {
-        errorMessage = 'Request monitoring permission was not granted.';
+        errorMessage = uiText('general.diagnostics.permissionDenied', locale);
       }
-    } catch (error) {
-      errorMessage = messageFrom(error);
+    } catch {
+      errorMessage = uiText('general.diagnostics.permissionFailed', locale);
     } finally {
       requestingDiagnosticsPermission = false;
     }
@@ -876,9 +870,7 @@
   async function prepareLegacyExport(): Promise<ProfileSpec | undefined> {
     if (!state || saving || view?.busy || !(await commitActiveProfileEditor())) return undefined;
     if (view?.dirty) {
-      const confirmed = globalThis.confirm(
-        'Apply current changes before exporting the Options backup?',
-      );
+      const confirmed = globalThis.confirm(uiText('options.confirm.export', locale));
       if (!confirmed) return undefined;
       const applied = await runCommand({
         action: 'apply',
@@ -891,11 +883,11 @@
 
   function applyStatus(): string {
     const record = state?.lastApply;
-    if (!record) return 'No Apply attempt recorded.';
-    if (record.status === 'succeeded') {
-      return `Active snapshot ${record.snapshotId} from revision ${record.revisionId}.`;
-    }
-    return `Failed at ${record.stage}: ${record.message}`;
+    if (!record) return uiText('options.apply.noAttempt', locale);
+    return uiText(
+      record.status === 'succeeded' ? 'options.apply.succeeded' : 'options.apply.failed',
+      locale,
+    );
   }
 
   onMount(() => {
@@ -916,8 +908,8 @@
         state = nextState;
         view = inspectProfileWorkflow(nextState);
         errorMessage = '';
-      } catch (error) {
-        errorMessage = messageFrom(error);
+      } catch {
+        errorMessage = uiText('options.error.safeMessage', locale);
       }
     });
     void Promise.all([loadWorkflow(), refreshDiagnosticsPermission()]).then(() => {
@@ -933,10 +925,10 @@
 </script>
 
 <svelte:head>
-  <title>ZeroOmega Nex Options</title>
+  <title>{uiText('options.documentTitle', locale)}</title>
 </svelte:head>
 
-<div class="app-shell">
+<div class="app-shell" data-options-shell-locale={locale}>
   <aside class="sidebar">
     <header class="side-brand">
       <button type="button" onclick={() => void navigate('about')}>
@@ -945,23 +937,23 @@
       </button>
     </header>
 
-    <nav class="side-navigation" aria-label="ZeroOmega options">
+    <nav class="side-navigation" aria-label={uiText('options.navAria', locale)}>
       <section class="nav-group">
-        <h2>Settings</h2>
+        <h2>{uiText('options.nav.settings', locale)}</h2>
         <button
           class:active={activeSection === 'interface'}
           data-interface-action
           type="button"
           onclick={() => void navigate('interface')}
         >
-          <span aria-hidden="true">⌘</span><span>Interface</span>
+          <span aria-hidden="true">⌘</span><span>{uiText('options.nav.interface', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'general'}
           type="button"
           onclick={() => void navigate('general')}
         >
-          <span aria-hidden="true">⚙</span><span>General</span>
+          <span aria-hidden="true">⚙</span><span>{uiText('options.nav.general', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'import'}
@@ -969,14 +961,14 @@
           disabled={!state || saving || view?.busy}
           onclick={() => void navigate('import')}
         >
-          <span aria-hidden="true">⇅</span><span>Import / Export</span>
+          <span aria-hidden="true">⇅</span><span>{uiText('legacy.pageTitle', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'theme'}
           type="button"
           onclick={() => void navigate('theme')}
         >
-          <span aria-hidden="true">◐</span><span>Theme</span>
+          <span aria-hidden="true">◐</span><span>{uiText('options.nav.theme', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'history'}
@@ -989,13 +981,15 @@
       </section>
 
       <section class="nav-group profiles-nav">
-        <h2>Profiles</h2>
+        <h2>{uiText('options.nav.profiles', locale)}</h2>
         <button
           class:active={activeSection === 'builtin'}
           type="button"
           onclick={() => void navigate('builtin')}
         >
-          <span class="builtin-marker" aria-hidden="true">◎</span><span>Built-in Profiles</span>
+          <span class="builtin-marker" aria-hidden="true">◎</span><span
+            >{uiText('options.nav.builtIn', locale)}</span
+          >
         </button>
         {#each profiles as profile (profile.id)}
           <button
@@ -1016,19 +1010,21 @@
           disabled={!state || view?.busy || saving}
           onclick={() => void navigate('new-profile')}
         >
-          <span aria-hidden="true">＋</span><span>New profile…</span>
+          <span aria-hidden="true">＋</span><span>{uiText('options.nav.newProfile', locale)}</span>
         </button>
       </section>
 
-      <section class="nav-group actions">
-        <h2>Actions</h2>
+      <section class="nav-group actions" data-options-actions data-typed-locale={locale}>
+        <h2>{uiText('options.nav.actions', locale)}</h2>
         <button
           type="button"
           class="primary"
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={applyDraft}
         >
-          <span aria-hidden="true">✓</span><span>{saving ? 'Working…' : 'Apply changes'}</span>
+          <span aria-hidden="true">✓</span><span
+            >{uiText(saving ? 'options.actions.working' : 'options.actions.apply', locale)}</span
+          >
         </button>
         <button
           type="button"
@@ -1036,16 +1032,19 @@
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={revertDraft}
         >
-          <span aria-hidden="true">×</span><span>Discard changes</span>
+          <span aria-hidden="true">×</span><span>{uiText('options.actions.discard', locale)}</span>
         </button>
         <p class="draft-status" role="status">
-          {view?.busy
-            ? `Apply is in progress: ${state?.pendingApply?.phase ?? 'preparing'}.`
-            : profileEditorDirty
-              ? 'Switch source contains unapplied changes.'
-              : view?.dirty
-                ? 'Draft contains unapplied changes.'
-                : 'Draft matches the currently applied revision.'}
+          {uiText(
+            view?.busy
+              ? 'options.draft.applying'
+              : profileEditorDirty
+                ? 'options.draft.sourceDirty'
+                : view?.dirty
+                  ? 'options.draft.dirty'
+                  : 'options.draft.clean',
+            locale,
+          )}
         </p>
       </section>
     </nav>
@@ -1054,34 +1053,34 @@
   <main class="editor">
     {#if errorMessage}
       <section class="settings-section global-error" aria-live="assertive">
-        <h2>Operation failed</h2>
+        <h2>{uiText('options.error.title', locale)}</h2>
         <p role="alert">{errorMessage}</p>
       </section>
     {/if}
 
     {#if loading}
       <section class="settings-section shell-status">
-        <h1>Loading profiles</h1>
-        <p>Reading the saved ZeroOmega configuration.</p>
+        <h1>{uiText('options.loading.title', locale)}</h1>
+        <p>{uiText('options.loading.help', locale)}</p>
       </section>
     {:else if activeSection === 'general' && state}
-      <header class="editor-heading">
+      <header class="editor-heading" data-general-settings data-typed-locale={locale}>
         <div>
-          <h1>General</h1>
-          <p>Startup and quick-switch behavior.</p>
+          <h1>{uiText('general.title', locale)}</h1>
+          <p>{uiText('general.help', locale)}</p>
         </div>
       </header>
       <section class="settings-section">
-        <h2>Startup profile</h2>
+        <h2>{uiText('general.startup.title', locale)}</h2>
         <label>
-          Profile used when the extension starts
+          {uiText('general.startup.label', locale)}
           <select
-            aria-label="Startup route"
+            aria-label={uiText('general.startup.aria', locale)}
             value={routeValue(state.draft.settings.startup.route)}
             disabled={saving || view?.busy}
             onchange={(event) => updateStartupRoute(valueFrom(event))}
           >
-            <option value="">Keep current browser setting</option>
+            <option value="">{uiText('general.startup.keepCurrent', locale)}</option>
             <option value="direct">{uiText('route.direct', locale)}</option>
             <option value="system">{uiText('route.system', locale)}</option>
             {#each profiles as profile (profile.id)}<option value={`profile:${profile.id}`}
@@ -1096,11 +1095,11 @@
             disabled={saving || view?.busy}
             onchange={(event) => updateStartupRevert(checkedFrom(event))}
           />
-          Revert proxy changes when ZeroOmega releases control
+          {uiText('general.startup.revert', locale)}
         </label>
       </section>
       <section class="settings-section">
-        <h2>Quick Switch</h2>
+        <h2>{uiText('general.quickSwitch.title', locale)}</h2>
         <label class="checkbox-row">
           <input
             type="checkbox"
@@ -1108,7 +1107,7 @@
             disabled={saving || view?.busy}
             onchange={(event) => updateQuickSwitchFlag('enabled', checkedFrom(event))}
           />
-          Enable quick switching in the popup
+          {uiText('general.quickSwitch.enable', locale)}
         </label>
         <label class="checkbox-row">
           <input
@@ -1117,9 +1116,9 @@
             disabled={saving || view?.busy}
             onchange={(event) => updateQuickSwitchFlag('refreshOnChange', checkedFrom(event))}
           />
-          Refresh active tabs after switching
+          {uiText('general.quickSwitch.refreshTabs', locale)}
         </label>
-        <ol class="route-order" aria-label="Quick-switch route order">
+        <ol class="route-order" aria-label={uiText('general.quickSwitch.orderAria', locale)}>
           {#each state.draft.settings.quickSwitch.routes as route, index (`${routeValue(route)}:${index}`)}
             <li>
               <span>{routeLabel(state.draft, route)}</span>
@@ -1127,14 +1126,16 @@
                 <button
                   type="button"
                   disabled={saving || view?.busy || index === 0}
-                  onclick={() => moveQuickSwitchRoute(index, -1)}>Up</button
+                  onclick={() => moveQuickSwitchRoute(index, -1)}
+                  >{uiText('general.quickSwitch.up', locale)}</button
                 >
                 <button
                   type="button"
                   disabled={saving ||
                     view?.busy ||
                     index === state.draft.settings.quickSwitch.routes.length - 1}
-                  onclick={() => moveQuickSwitchRoute(index, 1)}>Down</button
+                  onclick={() => moveQuickSwitchRoute(index, 1)}
+                  >{uiText('general.quickSwitch.down', locale)}</button
                 >
                 <button
                   type="button"
@@ -1142,18 +1143,19 @@
                     view?.busy ||
                     route.kind === 'direct' ||
                     route.kind === 'system'}
-                  onclick={() => removeQuickSwitchRoute(index)}>Remove</button
+                  onclick={() => removeQuickSwitchRoute(index)}
+                  >{uiText('general.quickSwitch.remove', locale)}</button
                 >
               </span>
             </li>
           {/each}
         </ol>
         <select
-          aria-label="Add quick-switch route"
+          aria-label={uiText('general.quickSwitch.addAria', locale)}
           disabled={saving || view?.busy}
           onchange={(event) => addQuickSwitchRoute(valueFrom(event), event)}
         >
-          <option value="">Add profile…</option>
+          <option value="">{uiText('general.quickSwitch.addProfile', locale)}</option>
           <option value="direct">{uiText('route.direct', locale)}</option>
           <option value="system">{uiText('route.system', locale)}</option>
           {#each profiles as profile (profile.id)}<option value={`profile:${profile.id}`}
@@ -1162,7 +1164,7 @@
         </select>
       </section>
       <section class="settings-section option-list" data-request-diagnostics-settings>
-        <h2>{translate('Request diagnostics')}</h2>
+        <h2>{uiText('general.diagnostics.title', locale)}</h2>
         <label class="checkbox-row">
           <input
             type="checkbox"
@@ -1170,16 +1172,12 @@
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('monitorWebRequests', checkedFrom(event))}
           />
-          {translate('Allow bounded request diagnostics')}
+          {uiText('general.diagnostics.allow', locale)}
         </label>
-        <p>
-          {translate(
-            'Monitoring starts only from the diagnostics page for this browser session. Headers, bodies, cookies, credentials, query strings, and response content are never collected.',
-          )}
-        </p>
+        <p>{uiText('general.diagnostics.help', locale)}</p>
         <div class="settings-actions">
           {#if diagnosticsPermissionGranted}
-            <span role="status">{translate('Browser permission granted.')}</span>
+            <span role="status">{uiText('general.diagnostics.permissionGranted', locale)}</span>
           {:else}
             <button
               type="button"
@@ -1187,32 +1185,35 @@
               disabled={requestingDiagnosticsPermission}
               onclick={() => void grantDiagnosticsPermission()}
             >
-              {requestingDiagnosticsPermission
-                ? translate('Requesting…')
-                : translate('Grant monitoring permission')}
+              {uiText(
+                requestingDiagnosticsPermission
+                  ? 'general.diagnostics.requesting'
+                  : 'general.diagnostics.grant',
+                locale,
+              )}
             </button>
           {/if}
           <button type="button" onclick={openRequestDiagnostics}>
-            {translate('Open request diagnostics')}
+            {uiText('general.diagnostics.open', locale)}
           </button>
         </div>
       </section>
     {:else if activeSection === 'interface' && state}
-      <header class="editor-heading">
+      <header class="editor-heading" data-interface-settings data-typed-locale={locale}>
         <div>
-          <h1>Interface</h1>
-          <p>Behavior matching the original ZeroOmega options page.</p>
+          <h1>{uiText('interface.title', locale)}</h1>
+          <p>{uiText('interface.help', locale)}</p>
         </div>
       </header>
       <section class="settings-section option-list">
-        <h2>Confirmation and editing</h2>
+        <h2>{uiText('interface.confirmation.title', locale)}</h2>
         <label class="checkbox-row"
           ><input
             type="checkbox"
             checked={state.draft.settings.interface.confirmDeletion}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('confirmDeletion', checkedFrom(event))}
-          />Confirm before deleting a profile</label
+          />{uiText('interface.confirmDeletion', locale)}</label
         >
         <label class="checkbox-row"
           ><input
@@ -1220,7 +1221,7 @@
             checked={state.draft.settings.interface.addConditionsToBottom}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('addConditionsToBottom', checkedFrom(event))}
-          />Add new switching conditions to the bottom</label
+          />{uiText('interface.addConditionsBottom', locale)}</label
         >
         <label class="checkbox-row"
           ><input
@@ -1229,18 +1230,18 @@
             checked={state.draft.settings.interface.showAdvancedConditions}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('showAdvancedConditions', checkedFrom(event))}
-          />Show advanced condition types</label
+          />{uiText('interface.showAdvanced', locale)}</label
         >
       </section>
       <section class="settings-section option-list">
-        <h2>Menus and status</h2>
+        <h2>{uiText('interface.menus.title', locale)}</h2>
         <label class="checkbox-row"
           ><input
             type="checkbox"
             checked={state.draft.settings.interface.showInspectMenu}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('showInspectMenu', checkedFrom(event))}
-          />Show inspect menu</label
+          />{uiText('interface.showInspect', locale)}</label
         >
         <label class="checkbox-row"
           ><input
@@ -1249,7 +1250,7 @@
             disabled={saving || view?.busy}
             onchange={(event) =>
               updateInterfaceFlag('showResultProfileOnActionBadgeText', checkedFrom(event))}
-          />Show result profile on the toolbar badge</label
+          />{uiText('interface.showResultBadge', locale)}</label
         >
         <label class="checkbox-row"
           ><input
@@ -1257,7 +1258,7 @@
             checked={state.draft.settings.interface.showExternalProfile}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('showExternalProfile', checkedFrom(event))}
-          />Show profiles controlled by other extensions</label
+          />{uiText('interface.showExternal', locale)}</label
         >
         <label class="checkbox-row"
           ><input
@@ -1266,7 +1267,7 @@
             checked={state.draft.settings.interface.exportLegacyRuleList}
             disabled={saving || view?.busy}
             onchange={(event) => updateInterfaceFlag('exportLegacyRuleList', checkedFrom(event))}
-          />Export legacy rule-list format when requested</label
+          />{uiText('interface.exportLegacyRuleList', locale)}</label
         >
       </section>
     {:else if activeSection === 'theme'}

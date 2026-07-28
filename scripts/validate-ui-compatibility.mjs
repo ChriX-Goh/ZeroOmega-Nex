@@ -509,7 +509,7 @@ const requirements = [
     virtualProfile.includes('onRequestReplacement') &&
       !virtualProfile.includes('globalThis.confirm') &&
       optionsApp.includes('requestProfileReplacement') &&
-      optionsApp.includes('Apply current changes before replacing profile references?') &&
+      optionsApp.includes("uiText('options.confirm.replace', locale)") &&
       optionsApp.includes('replaceProfileReferencesDraft') &&
       optionsApp.includes('<ProfileReplacementDialog') &&
       profileReplacementDialog.includes('data-profile-replacement-from') &&
@@ -579,10 +579,21 @@ const requirements = [
     'Options must open as a complete browser tab instead of an embedded extension dialog.',
   ],
   [
-    ['Settings', 'Profiles', 'Actions', 'Built-in Profiles', 'New profile…'].every((label) =>
-      optionsApp.includes(label),
-    ),
-    'Options must preserve the original ZeroOmega navigation groups and profile workflow.',
+    optionsApp.includes("uiText('options.nav.settings', locale)") &&
+      optionsApp.includes("uiText('options.nav.profiles', locale)") &&
+      optionsApp.includes("uiText('options.nav.actions', locale)") &&
+      optionsApp.includes("uiText('options.nav.builtIn', locale)") &&
+      optionsApp.includes("uiText('options.nav.newProfile', locale)") &&
+      optionsApp.includes('data-options-shell-locale={locale}') &&
+      optionsApp.includes('data-general-settings') &&
+      optionsApp.includes('data-interface-settings') &&
+      optionsApp.includes("'options.actions.apply'") &&
+      optionsApp.includes("uiText('options.actions.discard', locale)") &&
+      !optionsApp.includes('errorMessage = messageFrom(error)') &&
+      !optionsApp.includes('errorMessage = response.message') &&
+      chromiumE2e.includes('Options General typed locale coverage regressed') &&
+      chromiumE2e.includes('Options Interface typed locale coverage regressed'),
+    'Options must preserve the original navigation and Draft actions while rendering the shell, General, Interface, statuses, and safe errors through the typed three-locale catalog.',
   ],
   [
     optionsApp.includes("activeSection === 'general'") &&

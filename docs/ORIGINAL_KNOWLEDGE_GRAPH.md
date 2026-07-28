@@ -289,6 +289,14 @@ graph TD
 
 - Gist/WebDAV 同步属于原版功能，当前不得擅自标记“不搬”。在 UI 巡查表中保持 `UNCERTAIN`，等待安全模型、凭据存储和用户范围决定。
 
+## 12.1 Nex Options shell、General 与 Interface typed 边界
+
+- Options 左侧必须继续保持原版 Settings / Profiles / Actions 三组信息结构；Apply 与 Discard 固定在 Actions，不因本地化重排导航或改变 Draft/Applied 边界。
+- shell、General 与 Interface 的导航、标题、帮助、startup/Quick Switch、诊断权限、确认/编辑、菜单/状态、select option、按钮、动态 Draft 状态和 ARIA 直接通过 typed 英文/简体中文/正體中文 catalog 渲染，不再依赖渲染后的全局英文替换。
+- General 与 Interface 仍只修改 Draft；Apply 继续通过原有 verified transaction，Discard 继续恢复 Applied。typed 展示层不得直接写浏览器代理或绕过 `commitActiveProfileEditor`。
+- App 级失败不得直接把后台 `response.message` 或异常 `error.message` 渲染到页面；界面显示非秘密的 typed 安全摘要，具体稳定 code/path 由对应功能状态区域承担。
+- Chromium 必须真实进入 General 与 Interface，核验 resolved locale、关键标题/label/select/ARIA、Actions 状态并排除原英文模板。Firefox 继续验证正體中文 Apply 状态，防止 shell typed 化破坏跨浏览器工作流。
+
 ## 13. 本地化知识节点
 
 原版 locale 基线：`en_US`、`zh_CN`、`zh_TW`、`zh_Hant`。

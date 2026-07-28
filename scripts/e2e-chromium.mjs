@@ -108,6 +108,47 @@ try {
     throw error;
   }
   assert.equal(await profileName.inputValue(), 'Proxy');
+  assert.equal(
+    await options.locator('.app-shell').getAttribute('data-options-shell-locale'),
+    'zh-CN',
+  );
+  await options.getByRole('button', { name: '应用选项', exact: true }).waitFor();
+  await options.getByRole('button', { name: '撤销更改', exact: true }).waitFor();
+  await options.getByText('当前设置已全部应用。', { exact: true }).waitFor();
+
+  await options.getByRole('button', { name: '通用', exact: true }).click();
+  const generalSettings = options.locator('[data-general-settings]');
+  await generalSettings.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await generalSettings.getAttribute('data-typed-locale'), 'zh-CN');
+  await generalSettings.getByRole('heading', { name: '通用', exact: true, level: 1 }).waitFor();
+  await options.getByRole('heading', { name: '启动情景模式', exact: true }).waitFor();
+  await options.getByLabel('启动路由', { exact: true }).waitFor();
+  await options.getByRole('heading', { name: '快速切换', exact: true }).waitFor();
+  await options.getByLabel('快速切换路由顺序', { exact: true }).waitFor();
+  await options.getByRole('heading', { name: '请求诊断', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await options.locator('main').innerText(),
+    /Startup profile|Quick Switch|Request diagnostics|Grant monitoring permission/u,
+    'Options General typed locale coverage regressed',
+  );
+
+  await options.getByRole('button', { name: '界面', exact: true }).click();
+  const interfaceSettings = options.locator('[data-interface-settings]');
+  await interfaceSettings.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await interfaceSettings.getAttribute('data-typed-locale'), 'zh-CN');
+  await interfaceSettings.getByRole('heading', { name: '界面', exact: true, level: 1 }).waitFor();
+  await options.getByRole('heading', { name: '确认和编辑', exact: true }).waitFor();
+  await options.getByText('删除情景模式前要求确认', { exact: true }).waitFor();
+  await options.getByRole('heading', { name: '菜单和状态', exact: true }).waitFor();
+  await options.getByText('显示检查菜单', { exact: true }).waitFor();
+  assert.doesNotMatch(
+    await options.locator('main').innerText(),
+    /Confirmation and editing|Menus and status|Show inspect menu|Show result profile/u,
+    'Options Interface typed locale coverage regressed',
+  );
+
+  await options.getByRole('button', { name: 'Proxy', exact: true }).click();
+  await profileName.waitFor({ state: 'visible' });
 
   const fixedTable = options.locator('[data-fixed-proxy-table]');
   await fixedTable.waitFor({ state: 'visible' });
@@ -523,11 +564,11 @@ try {
   await options.evaluate(() => {
     window.location.hash = '#/general';
   });
-  const addPacQuickRoute = options.getByLabel('Add quick-switch route');
+  const addPacQuickRoute = options.getByLabel('添加快速切换路由');
   await addPacQuickRoute.waitFor({ state: 'visible', timeout: 20_000 });
   await addPacQuickRoute.selectOption({ label: 'pac' });
   await options
-    .locator('ol[aria-label="Quick-switch route order"]')
+    .locator('ol[aria-label="快速切换路由顺序"]')
     .getByText('pac', { exact: true })
     .waitFor({ state: 'visible', timeout: 20_000 });
 
@@ -1235,7 +1276,7 @@ try {
   }, 'Virtual target selection did not reach the Draft');
 
   virtualOptions.once('dialog', async (dialog) => {
-    assert.match(dialog.message(), /Apply current changes before replacing profile references/u);
+    assert.match(dialog.message(), /替换情景模式引用前，先应用当前更改吗/u);
     await dialog.accept();
   });
   await virtualOptions.locator('[data-virtual-replace]').click();

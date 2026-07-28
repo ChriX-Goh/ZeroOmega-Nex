@@ -201,6 +201,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Typed Options shell, General and Interface
+
+- The Options sidebar retains the original Settings / Profiles / Actions information structure. Apply and Discard remain fixed in Actions and continue to operate only through the existing Draft/Applied workflow.
+- Navigation, document title, Apply/Discard and dynamic Draft status, loading/failure state, General startup/Quick Switch/diagnostics settings, and Interface confirmation/menu controls now render directly in English, Simplified Chinese, and Traditional Chinese through the typed catalog.
+- App-level command and exception failures no longer render raw backend text. The shell shows a non-secret typed summary while feature-specific panels retain stable status/code/path evidence.
+- Chromium enters the real General and Interface pages, verifies zh-CN headings, labels, select/ARIA contracts and Actions state, and rejects legacy English template text. Existing Firefox zh-TW Apply and PAC paths remain mandatory.
+
 ### Delivery-plan reconciliation: Import review
 
 - The user-visible import review was confirmed as implemented rather than a placeholder: file-first input, optional pasted JSON/base64, compatibility summary, technical details, safe secret extraction, explicit activate/non-activate actions, and no traffic change during selection or analysis.
@@ -237,13 +244,13 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
 - stable Rule Source/PAC downloader failure codes for complete semantic error localization,
-- remaining General/Interface/Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
+- remaining Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Migrate General and Interface as the next typed vertical batch. Cover startup/quick-switch settings, Apply/Discard status, confirmation/editing controls, menu/status controls, request-diagnostics settings, buttons, titles, select options, dynamic status, and ARIA in all three locales while preserving Draft/Applied separation and the existing browser workflows.
+Migrate Theme and Popup as the next typed vertical batch. Cover appearance choices, popup route/result rows, current-site actions, temporary-rule entry points, ownership blockers, options action, request-diagnostics summary, buttons, titles, dynamic status, and ARIA in all three locales while preserving Applied-only switching and session-only temporary-rule boundaries.
 
 ### Typed locale inventory and first vertical batch
 

@@ -171,6 +171,29 @@ for (const [source, marker, message] of [
     'Proxy authentication permission was not granted.',
     'PAC auth error regressed to literal English.',
   ],
+  [entries.app, '<h1>General</h1>', 'General heading regressed to literal English.'],
+  [entries.app, '<h1>Interface</h1>', 'Interface heading regressed to literal English.'],
+  [
+    entries.app,
+    "saving ? 'Working…' : 'Apply changes'",
+    'Apply action regressed to literal English.',
+  ],
+  [entries.app, '<span>Discard changes</span>', 'Discard action regressed to literal English.'],
+  [
+    entries.app,
+    "translate('Request diagnostics')",
+    'General diagnostics regressed to the observer translation layer.',
+  ],
+  [
+    entries.app,
+    'errorMessage = messageFrom(error)',
+    'Options must not render raw exception messages.',
+  ],
+  [
+    entries.app,
+    'errorMessage = response.message',
+    'Options must not render raw backend response messages.',
+  ],
 ])
   forbidText(source, marker, message);
 requireText(
@@ -209,6 +232,21 @@ requireText(
   'Options must pass locale to Legacy Import.',
 );
 requireText(
+  entries.app,
+  'data-options-shell-locale={locale}',
+  'Options shell must expose its typed locale.',
+);
+requireText(
+  entries.app,
+  'data-general-settings',
+  'General settings must expose typed browser evidence.',
+);
+requireText(
+  entries.app,
+  'data-interface-settings',
+  'Interface settings must expose typed browser evidence.',
+);
+requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",
   'Typed Switch source error messages are missing.',
@@ -222,6 +260,16 @@ requireText(
   entries.catalog,
   "readonly 'pac.lastUpdated'",
   'Typed PAC update status messages are missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Options General typed locale coverage regressed',
+  'Chromium General typed-locale coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Options Interface typed locale coverage regressed',
+  'Chromium Interface typed-locale coverage is missing.',
 );
 requireText(
   entries.chromiumE2e,
