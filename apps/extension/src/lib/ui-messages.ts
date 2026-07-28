@@ -1,3 +1,5 @@
+import type { ProfileWorkflowSourceUpdateErrorCode } from '@zeroomega-nex/profile-workflow';
+
 import { currentAppLocale, type AppLocale } from './i18n';
 
 type LocalizedText = Readonly<Record<AppLocale, string>>;
@@ -1746,6 +1748,13 @@ const profileKindKeys: Readonly<Record<ProfileKind, UiTextKey>> = {
   virtual: 'profile.kind.virtual',
 };
 
+export interface SourceUpdateFailureMessageParameters {
+  readonly timestamp: string;
+  readonly code: ProfileWorkflowSourceUpdateErrorCode;
+  readonly httpStatus?: number;
+  readonly limitBytes?: number;
+}
+
 export interface UiMessageParameters {
   readonly 'popup.profileMissing': { readonly profileId: string };
   readonly 'popup.profileDisabled': { readonly name: string };
@@ -1773,7 +1782,7 @@ export interface UiMessageParameters {
     readonly index: number;
     readonly field: 'name' | 'type' | 'value';
   };
-  readonly 'pac.updateFailed': { readonly timestamp: string };
+  readonly 'pac.updateFailed': SourceUpdateFailureMessageParameters;
   readonly 'pac.lastUpdated': {
     readonly timestamp: string;
     readonly bytes?: number;
@@ -1827,7 +1836,7 @@ export interface UiMessageParameters {
     readonly index: number;
     readonly field: 'name' | 'type' | 'value';
   };
-  readonly 'ruleList.updateFailed': { readonly timestamp: string };
+  readonly 'ruleList.updateFailed': SourceUpdateFailureMessageParameters;
   readonly 'ruleList.lastUpdated': {
     readonly timestamp: string;
     readonly bytes?: number;
@@ -1843,6 +1852,106 @@ export function uiText(key: UiTextKey, locale: AppLocale = currentAppLocale()): 
 
 export function profileKindText(kind: ProfileKind, locale: AppLocale = currentAppLocale()): string {
   return uiText(profileKindKeys[kind], locale);
+}
+
+function sourceUpdateFailureDetail(
+  params: SourceUpdateFailureMessageParameters,
+  locale: AppLocale,
+): string {
+  const { code, httpStatus, limitBytes } = params;
+  const messages: Readonly<Record<ProfileWorkflowSourceUpdateErrorCode, LocalizedText>> = {
+    'url-invalid': {
+      en: 'The download URL is invalid.',
+      'zh-CN': '下载网址无效。',
+      'zh-TW': '下載網址無效。',
+    },
+    'url-scheme-unsupported': {
+      en: 'Only HTTP and HTTPS downloads are supported.',
+      'zh-CN': '仅支持 HTTP 和 HTTPS 下载。',
+      'zh-TW': '僅支援 HTTP 與 HTTPS 下載。',
+    },
+    'url-credentials-forbidden': {
+      en: 'The download URL cannot contain a username or password.',
+      'zh-CN': '下载网址不能包含用户名或密码。',
+      'zh-TW': '下載網址不可包含使用者名稱或密碼。',
+    },
+    'header-name-required': {
+      en: 'A request-header name is required.',
+      'zh-CN': '请求头名称不能为空。',
+      'zh-TW': '請求標頭名稱不可留空。',
+    },
+    'header-name-invalid': {
+      en: 'A request-header name is invalid.',
+      'zh-CN': '请求头名称无效。',
+      'zh-TW': '請求標頭名稱無效。',
+    },
+    'header-browser-controlled': {
+      en: 'A request header is controlled by the browser.',
+      'zh-CN': '该请求头由浏览器控制。',
+      'zh-TW': '該請求標頭由瀏覽器控制。',
+    },
+    'header-duplicate': {
+      en: 'A request-header name is duplicated.',
+      'zh-CN': '请求头名称重复。',
+      'zh-TW': '請求標頭名稱重複。',
+    },
+    'header-secret-unavailable': {
+      en: 'A required secret request-header value is unavailable.',
+      'zh-CN': '请求头所需的秘密值不可用。',
+      'zh-TW': '請求標頭所需的秘密值不可用。',
+    },
+    'request-timeout': {
+      en: 'The download request timed out.',
+      'zh-CN': '下载请求超时。',
+      'zh-TW': '下載請求逾時。',
+    },
+    'request-network-failed': {
+      en: 'The download request failed before a response was received.',
+      'zh-CN': '建立下载请求失败。',
+      'zh-TW': '建立下載請求失敗。',
+    },
+    'response-http-error': {
+      en: 'The server returned an HTTP error.',
+      'zh-CN': '服务器返回 HTTP 错误。',
+      'zh-TW': '伺服器傳回 HTTP 錯誤。',
+    },
+    'response-too-large': {
+      en: 'The downloaded content exceeded the size limit.',
+      'zh-CN': '下载内容超过大小上限。',
+      'zh-TW': '下載內容超過大小上限。',
+    },
+    'response-empty': {
+      en: 'The downloaded content was empty.',
+      'zh-CN': '下载内容为空。',
+      'zh-TW': '下載內容為空。',
+    },
+    'response-byte-count-invalid': {
+      en: 'The downloader returned an invalid content size.',
+      'zh-CN': '下载器返回了无效的内容大小。',
+      'zh-TW': '下載器傳回了無效的內容大小。',
+    },
+    'unknown-failure': {
+      en: 'The download failed for an unclassified reason.',
+      'zh-CN': '下载失败，原因未分类。',
+      'zh-TW': '下載失敗，原因未分類。',
+    },
+  };
+  const base = messages[code][locale];
+  if (code === 'response-http-error' && httpStatus !== undefined) {
+    return locale === 'en'
+      ? `${base.slice(0, -1)} (${httpStatus}).`
+      : locale === 'zh-CN'
+        ? `服务器返回 HTTP 错误（${httpStatus}）。`
+        : `伺服器傳回 HTTP 錯誤（${httpStatus}）。`;
+  }
+  if (code === 'response-too-large' && limitBytes !== undefined) {
+    return locale === 'en'
+      ? `${base.slice(0, -1)} (${limitBytes} bytes).`
+      : locale === 'zh-CN'
+        ? `下载内容超过大小上限（${limitBytes} 字节）。`
+        : `下載內容超過大小上限（${limitBytes} 位元組）。`;
+  }
+  return base;
 }
 
 export function uiMessage<K extends UiMessageKey>(
@@ -2173,10 +2282,15 @@ export function uiMessage<K extends UiMessageKey>(
       return `${prefix} ${index} ${suffix}`;
     }
     case 'ruleList.updateFailed': {
-      const { timestamp } = params as UiMessageParameters['ruleList.updateFailed'];
-      if (locale === 'zh-CN') return `上次更新于 ${timestamp} 失败；已保留现有缓存内容。`;
-      if (locale === 'zh-TW') return `上次更新於 ${timestamp} 失敗；已保留現有快取內容。`;
-      return `Last update failed ${timestamp}. Existing cached content was preserved.`;
+      const failure = params as UiMessageParameters['ruleList.updateFailed'];
+      const detail = sourceUpdateFailureDetail(failure, locale);
+      if (locale === 'zh-CN') {
+        return `上次更新于 ${failure.timestamp} 失败：${detail} 已保留现有缓存内容。`;
+      }
+      if (locale === 'zh-TW') {
+        return `上次更新於 ${failure.timestamp} 失敗：${detail} 已保留現有快取內容。`;
+      }
+      return `Last update failed ${failure.timestamp}: ${detail} Existing cached content was preserved.`;
     }
     case 'ruleList.lastUpdated': {
       const { timestamp, bytes, stale } = params as UiMessageParameters['ruleList.lastUpdated'];
@@ -2213,10 +2327,15 @@ export function uiMessage<K extends UiMessageKey>(
       return `${prefix} ${index} ${suffix}`;
     }
     case 'pac.updateFailed': {
-      const { timestamp } = params as UiMessageParameters['pac.updateFailed'];
-      if (locale === 'zh-CN') return `上次更新于 ${timestamp} 失败；已保留现有缓存脚本。`;
-      if (locale === 'zh-TW') return `上次更新於 ${timestamp} 失敗；已保留現有快取指令碼。`;
-      return `Last update failed ${timestamp}. Existing cached script was preserved.`;
+      const failure = params as UiMessageParameters['pac.updateFailed'];
+      const detail = sourceUpdateFailureDetail(failure, locale);
+      if (locale === 'zh-CN') {
+        return `上次更新于 ${failure.timestamp} 失败：${detail} 已保留现有缓存脚本。`;
+      }
+      if (locale === 'zh-TW') {
+        return `上次更新於 ${failure.timestamp} 失敗：${detail} 已保留現有快取指令碼。`;
+      }
+      return `Last update failed ${failure.timestamp}: ${detail} Existing cached script was preserved.`;
     }
     case 'pac.lastUpdated': {
       const { timestamp, bytes, stale } = params as UiMessageParameters['pac.lastUpdated'];

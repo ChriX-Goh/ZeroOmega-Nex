@@ -76,7 +76,16 @@
     if (view.lastError) {
       return uiMessage(
         'ruleList.updateFailed',
-        { timestamp: formatTimestamp(view.lastError.occurredAt) },
+        {
+          timestamp: formatTimestamp(view.lastError.occurredAt),
+          code: view.lastError.code,
+          ...(view.lastError.httpStatus === undefined
+            ? {}
+            : { httpStatus: view.lastError.httpStatus }),
+          ...(view.lastError.limitBytes === undefined
+            ? {}
+            : { limitBytes: view.lastError.limitBytes }),
+        },
         locale,
       );
     }

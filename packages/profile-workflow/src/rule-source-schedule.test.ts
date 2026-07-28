@@ -39,7 +39,11 @@ describe('Rule Source due scheduling', () => {
           sourceId: 'source-due',
           url: 'https://rules.example.invalid/due.txt',
           lastAttemptAt: '2026-07-27T05:30:00.000Z',
-          lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+          lastError: {
+            occurredAt: '2026-07-27T05:30:00.000Z',
+            code: 'unknown-failure' as const,
+            message: 'offline',
+          },
         },
       },
     };

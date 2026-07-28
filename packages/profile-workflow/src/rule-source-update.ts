@@ -11,6 +11,11 @@ import type {
   ProfileWorkflowState,
 } from './contracts.js';
 import type { ProfileWorkflowSecretStore } from './import-acceptance.js';
+import {
+  ProfileWorkflowSourceUpdateError,
+  normalizeProfileWorkflowSourceUpdateFailure,
+  type ProfileWorkflowSourceUpdateFailure,
+} from './source-update-error.js';
 import { replaceProfileWorkflowDraft } from './state.js';
 
 export const RULE_SOURCE_UPDATE_TIMEOUT_MS = 10_000;
@@ -147,19 +152,31 @@ function normalizedMessage(error: unknown): string {
 
 function validateUrl(source: RuleSource): string {
   if (source.location.kind !== 'url') {
-    throw new TypeError('Rule Source is inline and cannot be downloaded');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-invalid',
+      'The Rule Source is not configured with a downloadable URL.',
+    );
   }
   let parsed: URL;
   try {
     parsed = new URL(source.location.url);
   } catch {
-    throw new TypeError('Rule Source URL must be an absolute URL');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-invalid',
+      'The Rule Source URL is not a valid absolute URL.',
+    );
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new TypeError('Rule Source download supports only HTTP and HTTPS URLs');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-scheme-unsupported',
+      'Rule Source download supports only HTTP and HTTPS URLs.',
+    );
   }
   if (parsed.username || parsed.password) {
-    throw new TypeError('Rule Source URL must not contain embedded credentials');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-credentials-forbidden',
+      'The Rule Source URL must not contain embedded credentials.',
+    );
   }
   return parsed.href;
 }
@@ -171,7 +188,10 @@ async function resolveHeaderValue(
   if (header.value.kind === 'literal') return header.value.value;
   const secret = await secretStore.getSecret(header.value.secretRef);
   if (secret === undefined) {
-    throw new Error(`Rule Source header secret ${header.value.secretRef} is unavailable`);
+    throw new ProfileWorkflowSourceUpdateError(
+      'header-secret-unavailable',
+      'A Rule Source request-header secret is unavailable.',
+    );
   }
   return secret;
 }
@@ -185,15 +205,29 @@ async function resolveHeaders(
   for (const header of source.headers ?? []) {
     const name = header.name.trim();
     const normalized = name.toLowerCase();
-    if (!name) throw new TypeError('Rule Source request header name is required');
+    if (!name) {
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-name-required',
+        'A Rule Source request-header name is required.',
+      );
+    }
     if (!HEADER_NAME.test(name)) {
-      throw new TypeError(`Rule Source request header "${name}" is invalid`);
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-name-invalid',
+        'A Rule Source request-header name is invalid.',
+      );
     }
     if (normalized.startsWith('sec-') || FORBIDDEN_HEADERS.has(normalized)) {
-      throw new TypeError(`Rule Source request header "${name}" is controlled by the browser`);
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-browser-controlled',
+        'A Rule Source request header is controlled by the browser.',
+      );
     }
     if (names.has(normalized)) {
-      throw new TypeError(`Rule Source request header "${name}" is duplicated`);
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-duplicate',
+        'A Rule Source request-header name is duplicated.',
+      );
     }
     names.add(normalized);
     headers[name] = await resolveHeaderValue(header, secretStore);
@@ -206,7 +240,7 @@ function recordForFailure(
   sourceId: string,
   url: string,
   attemptedAt: string,
-  message: string,
+  failure: ProfileWorkflowSourceUpdateFailure,
 ): ProfileWorkflowRuleSourceUpdateRecord {
   const previous = state.ruleSourceUpdates?.[sourceId];
   const matching = previous?.url === url ? previous : undefined;
@@ -216,7 +250,7 @@ function recordForFailure(
     lastAttemptAt: attemptedAt,
     ...(matching?.lastSuccessAt === undefined ? {} : { lastSuccessAt: matching.lastSuccessAt }),
     ...(matching?.lastBytes === undefined ? {} : { lastBytes: matching.lastBytes }),
-    lastError: { occurredAt: attemptedAt, message },
+    lastError: { occurredAt: attemptedAt, ...failure },
   };
 }
 
@@ -241,7 +275,7 @@ async function persistFailure(
   sourceId: string,
   url: string,
   attemptedAt: string,
-  message: string,
+  failure: ProfileWorkflowSourceUpdateFailure,
   status: 'failed' | 'invalid',
 ): Promise<ProfileWorkflowRuleSourceUpdateResult> {
   let current: ProfileWorkflowState | undefined;
@@ -267,7 +301,7 @@ async function persistFailure(
   }
   const next = withUpdateRecord(
     current,
-    recordForFailure(current, sourceId, url, attemptedAt, message),
+    recordForFailure(current, sourceId, url, attemptedAt, failure),
   );
   try {
     if (!(await repository.compareAndSwap(current.generation, next))) {
@@ -284,7 +318,7 @@ async function persistFailure(
   const update = inspectProfileWorkflowRuleSourceUpdate(next, sourceId, attemptedAt);
   return {
     status,
-    message,
+    message: failure.message,
     state: next,
     ...(update === undefined ? {} : { update }),
   };
@@ -313,14 +347,13 @@ export async function updateProfileWorkflowRuleSource(
     url = validateUrl(source);
     headers = await resolveHeaders(source, service.secretStore);
   } catch (error) {
-    const message = normalizedMessage(error);
     return persistFailure(
       repository,
       initial,
       sourceId,
       configuredUrl,
       attemptedAt,
-      message,
+      normalizeProfileWorkflowSourceUpdateFailure(error, 'Rule List source validation failed.'),
       'invalid',
     );
   }
@@ -334,13 +367,23 @@ export async function updateProfileWorkflowRuleSource(
       maxBytes: service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES,
     });
     if (!downloaded.content.trim()) {
-      throw new Error('Rule Source download returned empty content');
+      throw new ProfileWorkflowSourceUpdateError(
+        'response-empty',
+        'The Rule Source response was empty.',
+      );
     }
     if (!Number.isInteger(downloaded.bytes) || downloaded.bytes < 0) {
-      throw new Error('Rule Source downloader returned an invalid byte count');
+      throw new ProfileWorkflowSourceUpdateError(
+        'response-byte-count-invalid',
+        'The Rule Source downloader returned an invalid byte count.',
+      );
     }
     if (downloaded.bytes > (service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES)) {
-      throw new Error('Rule Source download exceeded the configured size limit');
+      throw new ProfileWorkflowSourceUpdateError(
+        'response-too-large',
+        'The Rule Source response exceeded the configured size limit.',
+        { limitBytes: service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES },
+      );
     }
   } catch (error) {
     return persistFailure(
@@ -349,7 +392,7 @@ export async function updateProfileWorkflowRuleSource(
       sourceId,
       configuredUrl,
       attemptedAt,
-      normalizedMessage(error),
+      normalizeProfileWorkflowSourceUpdateFailure(error, 'Rule List download failed.'),
       'failed',
     );
   }

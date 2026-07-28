@@ -134,6 +134,15 @@ export {
   type ProfileWorkflowPacSourceUpdateResult,
   type ProfileWorkflowPacSourceUpdateService,
 } from './pac-source-update.js';
+export {
+  PROFILE_WORKFLOW_SOURCE_UPDATE_ERROR_CODES,
+  ProfileWorkflowSourceUpdateError,
+  isProfileWorkflowSourceUpdateErrorCode,
+  normalizeProfileWorkflowSourceUpdateFailure,
+  type ProfileWorkflowSourceUpdateErrorCode,
+  type ProfileWorkflowSourceUpdateErrorOptions,
+  type ProfileWorkflowSourceUpdateFailure,
+} from './source-update-error.js';
 export { listProfileWorkflowRevisionHistory } from './revision-history.js';
 export {
   rollbackProfileWorkflowSnapshot,

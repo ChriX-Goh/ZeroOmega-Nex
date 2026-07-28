@@ -42,6 +42,22 @@ const ruleServer = createServer((request, response) => {
     request.socket.destroy();
     return;
   }
+  if (request.url?.startsWith('/source-http-error')) {
+    response.writeHead(503, {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end('private response body must never be rendered');
+    return;
+  }
+  if (request.url?.startsWith('/source-empty')) {
+    response.writeHead(200, {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end('');
+    return;
+  }
   if (request.url?.startsWith('/proxy.pac')) {
     response.writeHead(200, {
       'content-type': 'application/x-ns-proxy-autoconfig; charset=utf-8',
@@ -67,6 +83,8 @@ if (!ruleAddress || typeof ruleAddress === 'string')
   throw new Error('Rule List test server failed');
 const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
 const remotePacUrl = `http://127.0.0.1:${ruleAddress.port}/proxy.pac`;
+const sourceHttpErrorUrl = `http://127.0.0.1:${ruleAddress.port}/source-http-error`;
+const sourceEmptyUrl = `http://127.0.0.1:${ruleAddress.port}/source-empty`;
 let context;
 let conflictContext;
 let virtualContext;
@@ -573,6 +591,26 @@ try {
   const pacScript = pacEditor.getByLabel('PAC 脚本', { exact: true });
   assert.equal(await pacScript.inputValue(), remotePacText);
   assert.equal(await pacScript.isEditable(), false);
+  await pacUrl.fill(sourceEmptyUrl);
+  await pacUrl.press('Tab');
+  await assertEventually(
+    async () => !(await pacDownload.isDisabled()),
+    'PAC stable-error download button remained disabled',
+  );
+  await pacDownload.click();
+  const pacFailureStatus = pacEditor.locator('[data-pac-source-update-status]');
+  await pacFailureStatus.filter({ hasText: '下载内容为空' }).waitFor({ timeout: 20_000 });
+  assert.match(await pacFailureStatus.innerText(), /已保留现有缓存脚本/u);
+  assert.doesNotMatch(await pacFailureStatus.innerText(), /private response body|source-empty/u);
+  assert.equal(await pacScript.inputValue(), remotePacText);
+  const pacFailureRecord = await worker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const state = (await chrome.storage.local.get(key))[key];
+    return Object.values(state?.ruleSourceUpdates ?? {}).find((record) =>
+      record?.sourceId?.startsWith('pac:'),
+    )?.lastError;
+  });
+  assert.equal(pacFailureRecord?.code, 'response-empty');
   await pacEditor.getByRole('button', { name: '清空 PAC 网址', exact: true }).click();
   await assertEventually(
     async () => (await pacScript.isEditable()) && (await pacScript.inputValue()) === remotePacText,
@@ -650,6 +688,33 @@ try {
   const independentText = independentRuleEditor.getByLabel('规则列表正文');
   assert.equal(await independentText.inputValue(), remoteRuleText);
   assert.equal(await independentText.isEditable(), false);
+  await independentUrl.fill(sourceHttpErrorUrl);
+  await independentUrl.press('Tab');
+  await assertEventually(
+    async () => !(await independentDownload.isDisabled()),
+    'Rule Source stable-error download button remained disabled',
+  );
+  await independentDownload.click();
+  await independentStatus
+    .filter({ hasText: '服务器返回 HTTP 错误（503）' })
+    .waitFor({ timeout: 20_000 });
+  assert.match(await independentStatus.innerText(), /已保留现有缓存内容/u);
+  assert.doesNotMatch(
+    await independentStatus.innerText(),
+    /private response body|source-http-error/u,
+  );
+  assert.equal(await independentText.inputValue(), remoteRuleText);
+  const ruleFailureRecord = await worker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const state = (await chrome.storage.local.get(key))[key];
+    return Object.values(state?.ruleSourceUpdates ?? {}).find((record) =>
+      record?.url?.endsWith('/source-http-error'),
+    )?.lastError;
+  });
+  assert.deepEqual(
+    { code: ruleFailureRecord?.code, httpStatus: ruleFailureRecord?.httpStatus },
+    { code: 'response-http-error', httpStatus: 503 },
+  );
   await independentRuleEditor.getByRole('button', { name: '清除规则列表网址' }).click();
   await assertEventually(
     async () =>

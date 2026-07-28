@@ -449,6 +449,42 @@ requireText(
   'Auto Detect typed locale coverage regressed',
   'Chromium imported Auto Detect typed-locale coverage is missing.',
 );
+
+requireText(
+  entries.catalog,
+  'export interface SourceUpdateFailureMessageParameters',
+  'Stable source-update UI parameters are missing.',
+);
+requireText(
+  entries.catalog,
+  "'response-http-error':",
+  'Code-specific source-update localization is missing.',
+);
+requireText(
+  entries.attachedRuleList,
+  'code: view.lastError.code',
+  'Attached Rule List must render failure status from the stable code.',
+);
+requireText(
+  entries.independentRuleList,
+  'code: view.lastError.code',
+  'Independent Rule List must render failure status from the stable code.',
+);
+requireText(
+  entries.pac,
+  'code: view.lastError.code',
+  'PAC must render failure status from the stable code.',
+);
+requireText(
+  entries.chromiumE2e,
+  'ruleFailureRecord?.code',
+  'Chromium stable Rule Source failure-code coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'pacFailureRecord?.code',
+  'Chromium stable PAC failure-code coverage is missing.',
+);
 requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",

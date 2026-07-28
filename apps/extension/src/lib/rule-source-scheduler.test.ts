@@ -157,7 +157,11 @@ describe('Rule Source scheduler', () => {
           sourceId: 'source-scheduled',
           url: 'https://rules.example.invalid/scheduled.txt',
           lastAttemptAt: '2026-07-27T05:30:00.000Z',
-          lastError: { occurredAt: '2026-07-27T05:30:00.000Z', message: 'offline' },
+          lastError: {
+            occurredAt: '2026-07-27T05:30:00.000Z',
+            code: 'unknown-failure' as const,
+            message: 'offline',
+          },
         },
       },
     };

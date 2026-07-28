@@ -1,15 +1,20 @@
-import type {
-  ProfileWorkflowRuleSourceDownloader,
-  ProfileWorkflowRuleSourceDownloadRequest,
-  ProfileWorkflowRuleSourceDownloadResult,
+import {
+  ProfileWorkflowSourceUpdateError,
+  type ProfileWorkflowRuleSourceDownloader,
+  type ProfileWorkflowRuleSourceDownloadRequest,
+  type ProfileWorkflowRuleSourceDownloadResult,
 } from '@zeroomega-nex/profile-workflow';
 
 function byteLength(content: string): number {
   return new TextEncoder().encode(content).byteLength;
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+function tooLarge(maxBytes: number): ProfileWorkflowSourceUpdateError {
+  return new ProfileWorkflowSourceUpdateError(
+    'response-too-large',
+    'The downloaded response exceeded the configured size limit.',
+    { limitBytes: maxBytes },
+  );
 }
 
 async function readBoundedBody(
@@ -17,13 +22,11 @@ async function readBoundedBody(
   maxBytes: number,
 ): Promise<ProfileWorkflowRuleSourceDownloadResult> {
   const declaredLength = Number(response.headers.get('content-length'));
-  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-    throw new Error(`Rule Source download exceeds ${maxBytes} bytes`);
-  }
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) throw tooLarge(maxBytes);
   if (!response.body) {
     const content = await response.text();
     const bytes = byteLength(content);
-    if (bytes > maxBytes) throw new Error(`Rule Source download exceeds ${maxBytes} bytes`);
+    if (bytes > maxBytes) throw tooLarge(maxBytes);
     return { content, bytes };
   }
 
@@ -37,8 +40,8 @@ async function readBoundedBody(
       if (chunk.done) break;
       bytes += chunk.value.byteLength;
       if (bytes > maxBytes) {
-        await reader.cancel('Rule Source response exceeded the configured limit');
-        throw new Error(`Rule Source download exceeds ${maxBytes} bytes`);
+        await reader.cancel('Source response exceeded the configured limit');
+        throw tooLarge(maxBytes);
       }
       content += decoder.decode(chunk.value, { stream: true });
     }
@@ -66,15 +69,27 @@ export class BrowserRuleSourceDownloader implements ProfileWorkflowRuleSourceDow
         signal: controller.signal,
       });
       if (!response.ok) {
-        const status = `${response.status} ${response.statusText}`.trim();
-        throw new Error(`Rule Source download failed with HTTP ${status}`);
+        throw new ProfileWorkflowSourceUpdateError(
+          'response-http-error',
+          'The source server returned an HTTP error.',
+          { httpStatus: response.status },
+        );
       }
       return await readBoundedBody(response, request.maxBytes);
     } catch (error) {
-      const message = controller.signal.aborted
-        ? `Rule Source download timed out after ${request.timeoutMs} ms`
-        : errorMessage(error);
-      throw new Error(message, { cause: error });
+      if (error instanceof ProfileWorkflowSourceUpdateError) throw error;
+      if (controller.signal.aborted) {
+        throw new ProfileWorkflowSourceUpdateError(
+          'request-timeout',
+          'The source request timed out.',
+          { cause: error },
+        );
+      }
+      throw new ProfileWorkflowSourceUpdateError(
+        'request-network-failed',
+        'The source request failed before a response was received.',
+        { cause: error },
+      );
     } finally {
       clearTimeout(timer);
     }

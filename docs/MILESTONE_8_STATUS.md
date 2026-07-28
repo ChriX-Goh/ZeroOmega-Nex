@@ -201,6 +201,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Stable Rule Source and PAC update failure codes
+
+- Rule Source and PAC updates share fifteen stable semantic failure codes covering URL, request-header, timeout/network, HTTP, size, empty response, byte-count, and unknown failures.
+- Persisted update records retain a bounded safe message plus optional HTTP status or byte limit. Raw exception text, response bodies, URLs, secret references, and secret values are not stored or rendered.
+- Existing records without a code remain readable and normalize to `unknown-failure`; invalid codes or numeric details are rejected at the storage boundary.
+- Attached/independent Rule List and PAC editors localize the same code in English, Simplified Chinese, and Traditional Chinese while explicitly stating that the previous cache remains in use.
+- Unit tests cover downloader typing, unknown-exception redaction, controlled headers, legacy storage compatibility, PAC empty responses, and code-specific messages. Chromium injects HTTP 503 and empty-response failures and verifies both the localized UI and persisted codes without losing cached content.
+
 ### Typed imported Auto Detect and closed visible locale inventory
 
 - `AdvancedProfileEditor` now has one actual responsibility: editing the optional fallback of an imported Auto Detect profile. Superseded Rule List and PAC branches were removed because those types use their dedicated editors.
@@ -276,13 +284,12 @@ The latest product slices passed architecture guards, permanent UI compatibility
 PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
-- stable Rule Source/PAC downloader failure codes for complete semantic error localization,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Proceed to non-localization closure: Firefox remote-origin PAC/Rule Source permission and download coverage, stable downloader failure codes, explicit `file:` PAC scope, schema-v1/online restore decisions, and consolidated owner visual/real-backup QC.
+Add Firefox remote-origin PAC and Rule Source permission/download coverage through the same bounded downloader and stable failure-code contract, then resolve the explicit `file:` PAC scope and remaining import/sync decisions.
 
 ### Typed locale inventory and first vertical batch
 
@@ -296,6 +303,6 @@ Proceed to non-localization closure: Firefox remote-origin PAC/Rule Source permi
 
 - Switch Profile condition groups/help, source mode, compact table, drag/keyboard ordering ARIA, rule actions/notes, attached Rule List row, default route, and online attachment section now render through typed three-locale keys.
 - Attached and independent Rule List editors localize Config/URL/Text structure, route selectors, formats, source mode, headers, update actions/status, downloaded cache, placeholders, and ARIA. English ARIA contracts remain stable while zh-CN/zh-TW use source-backed terminology.
-- Switch parser errors use stable `SwitchSourceError.code` plus line numbers. Rule Source update records do not yet expose stable failure codes, so the UI deliberately shows a localized failure summary instead of leaking an unstable English downloader message; complete downloader error localization remains open.
+- Switch parser errors and Rule Source/PAC download failures now use stable semantic codes. Download UIs localize code-specific details and never render unstable downloader exception text.
 - Component tests cover zh-CN Switch/attached flows and zh-TW independent Rule List. Chromium asserts direct zh-CN headings, table columns, field ARIA, update status, and URL/text controls. Inventory and locale regression guards include all three components.
 - Integration run `30368429932`; product commit `85ce92bd443591f94a11adce4191f8c648b4d0fc`; clean exact Head `6998ddf6d42e646403856e0372943c2778b6ad7a` passed CI `30368666864`, Browser E2E `30368666918`, and Parity Documentation `30368666640`.

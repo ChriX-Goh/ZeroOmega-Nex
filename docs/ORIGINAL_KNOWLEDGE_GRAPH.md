@@ -501,3 +501,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Rule List and PAC no longer share `AdvancedProfileEditor`; their dedicated editors own their complete source, download, authentication, and request-header workflows.
 - Literal-English inventory schema v2 distinguishes unresolved user-facing text from source tokens, format names, standard technical terms, keyboard keys, examples, stable error codes, and scanner code fragments. Exact-Head verification fails whenever `user-visible-untranslated` is non-zero.
 - Chromium proves the imported Auto Detect page, typed fallback selection, and absence of PAC export while retaining complete cross-profile reference migration.
+
+### Stable remote-source failure contract
+
+- Rule Source and PAC use one serializable fifteen-code failure taxonomy. Stored records include code, occurredAt, a bounded safe message, and only non-sensitive parameters such as HTTP status or byte limit.
+- Browser downloader exceptions are converted at the adapter boundary. Raw response bodies, URLs, credentials, request-header secret references, and lower-level exception text never cross into workflow state or UI.
+- Existing cached Rule List text or PAC script remains unchanged on every failed update. The failure record is committed atomically with compare-and-swap and remains separate from ProfileSpec.
+- Legacy stored failures without code normalize to `unknown-failure`; new invalid codes and malformed numeric parameters fail storage parsing.
+- Chromium verifies HTTP and empty-response failure paths, localized code-specific status, persisted codes, and unchanged cache content.

@@ -13,6 +13,7 @@ import {
   type ProfileWorkflowRuleSourceUpdateRecord,
   type ProfileWorkflowState,
 } from './contracts.js';
+import { isProfileWorkflowSourceUpdateErrorCode } from './source-update-error.js';
 
 export interface ProfileWorkflowStorageArea {
   get(keys: string | readonly string[]): Promise<Record<string, unknown>>;
@@ -160,13 +161,33 @@ function parseRuleSourceUpdates(
         ? undefined
         : (() => {
             const error = record(lastErrorRaw, `ruleSourceUpdates.${sourceId}.lastError`);
+            const label = `ruleSourceUpdates.${sourceId}.lastError`;
+            const code = error.code ?? 'unknown-failure';
+            if (!isProfileWorkflowSourceUpdateErrorCode(code)) {
+              throw new TypeError(`${label}.code is invalid`);
+            }
+            const httpStatus = error.httpStatus;
+            if (
+              httpStatus !== undefined &&
+              (!Number.isInteger(httpStatus) ||
+                Number(httpStatus) < 100 ||
+                Number(httpStatus) > 599)
+            ) {
+              throw new TypeError(`${label}.httpStatus must be an HTTP status integer`);
+            }
+            const limitBytes = error.limitBytes;
+            if (
+              limitBytes !== undefined &&
+              (!Number.isInteger(limitBytes) || Number(limitBytes) < 0)
+            ) {
+              throw new TypeError(`${label}.limitBytes must be a non-negative integer`);
+            }
             return {
-              occurredAt: requiredString(
-                error,
-                'occurredAt',
-                `ruleSourceUpdates.${sourceId}.lastError`,
-              ),
-              message: requiredString(error, 'message', `ruleSourceUpdates.${sourceId}.lastError`),
+              occurredAt: requiredString(error, 'occurredAt', label),
+              code,
+              message: requiredString(error, 'message', label),
+              ...(httpStatus === undefined ? {} : { httpStatus: Number(httpStatus) }),
+              ...(limitBytes === undefined ? {} : { limitBytes: Number(limitBytes) }),
             };
           })();
     parsed[sourceId] = {

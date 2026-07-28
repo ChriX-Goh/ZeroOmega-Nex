@@ -44,6 +44,7 @@ const workflowClientPath = 'apps/extension/src/lib/profile-workflow-client.ts';
 const ruleSourceDownloaderPath = 'apps/extension/src/lib/rule-source-downloader.ts';
 const ruleSourceSchedulerPath = 'apps/extension/src/lib/rule-source-scheduler.ts';
 const ruleSourceUpdatePath = 'packages/profile-workflow/src/rule-source-update.ts';
+const sourceUpdateErrorPath = 'packages/profile-workflow/src/source-update-error.ts';
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 const popupConditionPath = 'packages/profile-workflow/src/popup-condition.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
@@ -118,6 +119,7 @@ const [
   ruleSourceDownloader,
   ruleSourceScheduler,
   ruleSourceUpdate,
+  sourceUpdateError,
   switchOperations,
   popupCondition,
   switchSource,
@@ -173,6 +175,7 @@ const [
   readFile(ruleSourceDownloaderPath, 'utf8'),
   readFile(ruleSourceSchedulerPath, 'utf8'),
   readFile(ruleSourceUpdatePath, 'utf8'),
+  readFile(sourceUpdateErrorPath, 'utf8'),
   readFile(switchOperationsPath, 'utf8'),
   readFile(popupConditionPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
@@ -754,6 +757,26 @@ const requirements = [
       profileOperations.includes('duplicateSwitchProfileResources') &&
       profileOperations.includes('deleted.attachedRuleListProfileId'),
     'Switch attached Rule Lists must be hidden owned profiles with source-backed lifecycle, import reconstruction, cached URL content, duplication, and cascading deletion.',
+  ],
+  [
+    sourceUpdateError.includes('PROFILE_WORKFLOW_SOURCE_UPDATE_ERROR_CODES') &&
+      sourceUpdateError.includes("'response-http-error'") &&
+      sourceUpdateError.includes("'response-too-large'") &&
+      sourceUpdateError.includes("'header-secret-unavailable'") &&
+      sourceUpdateError.includes("'unknown-failure'") &&
+      ruleSourceDownloader.includes('ProfileWorkflowSourceUpdateError') &&
+      ruleSourceDownloader.includes("'request-timeout'") &&
+      ruleSourceDownloader.includes("'request-network-failed'") &&
+      ruleSourceUpdate.includes('normalizeProfileWorkflowSourceUpdateFailure') &&
+      pacSourceUpdate.includes('normalizeProfileWorkflowSourceUpdateFailure') &&
+      attachedRuleListConfig.includes('code: view.lastError.code') &&
+      independentRuleListEditor.includes('code: view.lastError.code') &&
+      pacProfileEditor.includes('code: view.lastError.code') &&
+      chromiumE2e.includes('ruleFailureRecord?.code') &&
+      chromiumE2e.includes('pacFailureRecord?.code') &&
+      chromiumE2e.includes('服务器返回 HTTP 错误（503）') &&
+      chromiumE2e.includes('下载内容为空'),
+    'Rule Source and PAC failures must use stable serializable codes, safe localized UI details, preserved caches, and real Chromium failure-path evidence.',
   ],
   [
     attachedRuleListConfig.includes('data-rule-source-update-now') &&

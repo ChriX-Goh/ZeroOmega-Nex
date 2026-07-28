@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { ProfileWorkflowSourceUpdateError } from './source-update-error.js';
 import type { ProfileWorkflowRuleSourceDownloader } from './rule-source-update.js';
 import {
   inspectProfileWorkflowRuleSourceUpdate,
@@ -110,7 +111,11 @@ describe('Rule Source background update service', () => {
       secretStore: secrets,
       now: () => '2026-07-27T04:00:00.000Z',
       downloader: downloader(async () => {
-        throw new Error(`network failed ${'x'.repeat(800)}`);
+        throw new ProfileWorkflowSourceUpdateError(
+          'response-http-error',
+          'The source server returned an HTTP error.',
+          { httpStatus: 503 },
+        );
       }),
     });
 
@@ -122,8 +127,32 @@ describe('Rule Source background update service', () => {
       url: 'https://rules.example.invalid/list.txt',
       content: 'old cached content',
     });
-    expect(result.message.length).toBeLessThanOrEqual(500);
-    expect(result.update?.lastError?.message).toBe(result.message);
+    expect(result.message).toBe('The source server returned an HTTP error.');
+    expect(result.update?.lastError).toMatchObject({
+      code: 'response-http-error',
+      httpStatus: 503,
+      message: 'The source server returned an HTTP error.',
+    });
+  });
+
+  it('maps an unknown downloader exception to a non-secret stable fallback', async () => {
+    const initial = sourceState();
+    const repository = new MemoryProfileWorkflowRepository(initial);
+    const secrets = new MemorySecretStore();
+    secrets.values.set('secret-rule-auth', 'Bearer secret-value');
+    const result = await updateProfileWorkflowRuleSource(repository, initial, 'source-rules', {
+      secretStore: secrets,
+      downloader: downloader(async () => {
+        throw new Error('socket failed for https://private.invalid/?token=secret');
+      }),
+    });
+    expect(result.status).toBe('failed');
+    expect(result.update?.lastError).toMatchObject({
+      code: 'unknown-failure',
+      message: 'Rule List download failed.',
+    });
+    expect(JSON.stringify(result)).not.toContain('private.invalid');
+    expect(JSON.stringify(result)).not.toContain('token=secret');
   });
 
   it('does not overwrite a concurrent edit made while downloading', async () => {
@@ -175,7 +204,9 @@ describe('Rule Source background update service', () => {
 
     expect(result.status).toBe('invalid');
     if (result.status !== 'invalid') throw new Error('expected invalid Rule Source update');
-    expect(result.message).toContain('controlled by the browser');
+    expect(result.message).toBe('A Rule Source request header is controlled by the browser.');
+    expect(result.update?.lastError?.code).toBe('header-browser-controlled');
+    expect(JSON.stringify(result.update)).not.toContain('private-cookie');
     expect(called).toBe(false);
   });
 

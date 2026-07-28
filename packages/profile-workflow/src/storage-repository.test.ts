@@ -150,6 +150,46 @@ describe('persistent profile workflow repository', () => {
     ).toThrow('draft must retain the applied revision');
   });
 
+  it('normalizes legacy update errors and round-trips stable typed details', () => {
+    const initial = createProfileWorkflowState(workflowFixture());
+    const legacy = parseProfileWorkflowState({
+      ...initial,
+      ruleSourceUpdates: {
+        source: {
+          sourceId: 'source',
+          url: 'https://rules.example.invalid/list',
+          lastAttemptAt: '2026-07-29T04:00:00.000Z',
+          lastError: {
+            occurredAt: '2026-07-29T04:00:00.000Z',
+            message: 'legacy failure',
+          },
+        },
+      },
+    });
+    expect(legacy.ruleSourceUpdates?.source?.lastError?.code).toBe('unknown-failure');
+
+    const typed = parseProfileWorkflowState({
+      ...initial,
+      ruleSourceUpdates: {
+        source: {
+          sourceId: 'source',
+          url: 'https://rules.example.invalid/list',
+          lastAttemptAt: '2026-07-29T04:00:00.000Z',
+          lastError: {
+            occurredAt: '2026-07-29T04:00:00.000Z',
+            code: 'response-http-error',
+            message: 'The source server returned an HTTP error.',
+            httpStatus: 503,
+          },
+        },
+      },
+    });
+    expect(typed.ruleSourceUpdates?.source?.lastError).toMatchObject({
+      code: 'response-http-error',
+      httpStatus: 503,
+    });
+  });
+
   it('isolates versioned namespaces', async () => {
     const area = new MemoryArea();
     const first = new BrowserStorageProfileWorkflowRepository(area, { namespace: 'first' });

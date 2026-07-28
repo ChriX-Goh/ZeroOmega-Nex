@@ -12,6 +12,11 @@ import type {
 } from './contracts.js';
 import type { ProfileWorkflowSecretStore } from './import-acceptance.js';
 import {
+  ProfileWorkflowSourceUpdateError,
+  normalizeProfileWorkflowSourceUpdateFailure,
+  type ProfileWorkflowSourceUpdateFailure,
+} from './source-update-error.js';
+import {
   RULE_SOURCE_UPDATE_MAX_BYTES,
   RULE_SOURCE_UPDATE_TIMEOUT_MS,
   type ProfileWorkflowRuleSourceDownloader,
@@ -142,19 +147,29 @@ function normalizedMessage(error: unknown): string {
 }
 
 function validateUrl(profile: PacProfile): string {
-  if (profile.source.kind !== 'url')
-    throw new TypeError('PAC source is inline and cannot be downloaded');
+  if (profile.source.kind !== 'url') {
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-invalid',
+      'The PAC profile is not configured with a downloadable URL.',
+    );
+  }
   let parsed: URL;
   try {
     parsed = new URL(profile.source.url);
   } catch {
-    throw new TypeError('PAC URL must be an absolute URL');
+    throw new ProfileWorkflowSourceUpdateError('url-invalid', 'The PAC URL is not valid.');
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new TypeError('PAC download supports only HTTP and HTTPS URLs');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-scheme-unsupported',
+      'PAC download supports only HTTP and HTTPS URLs.',
+    );
   }
   if (parsed.username || parsed.password) {
-    throw new TypeError('PAC URL must not contain embedded credentials');
+    throw new ProfileWorkflowSourceUpdateError(
+      'url-credentials-forbidden',
+      'The PAC URL must not contain embedded credentials.',
+    );
   }
   return parsed.href;
 }
@@ -165,8 +180,12 @@ async function resolveHeaderValue(
 ): Promise<string> {
   if (header.value.kind === 'literal') return header.value.value;
   const secret = await secretStore.getSecret(header.value.secretRef);
-  if (secret === undefined)
-    throw new Error(`PAC header secret ${header.value.secretRef} is unavailable`);
+  if (secret === undefined) {
+    throw new ProfileWorkflowSourceUpdateError(
+      'header-secret-unavailable',
+      'A PAC request-header secret is unavailable.',
+    );
+  }
   return secret;
 }
 
@@ -179,12 +198,30 @@ async function resolveHeaders(
   for (const header of profile.headers ?? []) {
     const name = header.name.trim();
     const normalized = name.toLowerCase();
-    if (!name) throw new TypeError('PAC request header name is required');
-    if (!HEADER_NAME.test(name)) throw new TypeError(`PAC request header "${name}" is invalid`);
-    if (normalized.startsWith('sec-') || FORBIDDEN_HEADERS.has(normalized)) {
-      throw new TypeError(`PAC request header "${name}" is controlled by the browser`);
+    if (!name) {
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-name-required',
+        'A PAC request-header name is required.',
+      );
     }
-    if (names.has(normalized)) throw new TypeError(`PAC request header "${name}" is duplicated`);
+    if (!HEADER_NAME.test(name)) {
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-name-invalid',
+        'A PAC request-header name is invalid.',
+      );
+    }
+    if (normalized.startsWith('sec-') || FORBIDDEN_HEADERS.has(normalized)) {
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-browser-controlled',
+        'A PAC request header is controlled by the browser.',
+      );
+    }
+    if (names.has(normalized)) {
+      throw new ProfileWorkflowSourceUpdateError(
+        'header-duplicate',
+        'A PAC request-header name is duplicated.',
+      );
+    }
     names.add(normalized);
     headers[name] = await resolveHeaderValue(header, secretStore);
   }
@@ -196,7 +233,7 @@ function recordForFailure(
   profileId: string,
   url: string,
   attemptedAt: string,
-  message: string,
+  failure: ProfileWorkflowSourceUpdateFailure,
 ): ProfileWorkflowRuleSourceUpdateRecord {
   const key = updateKey(profileId);
   const previous = state.ruleSourceUpdates?.[key];
@@ -207,7 +244,7 @@ function recordForFailure(
     lastAttemptAt: attemptedAt,
     ...(matching?.lastSuccessAt === undefined ? {} : { lastSuccessAt: matching.lastSuccessAt }),
     ...(matching?.lastBytes === undefined ? {} : { lastBytes: matching.lastBytes }),
-    lastError: { occurredAt: attemptedAt, message },
+    lastError: { occurredAt: attemptedAt, ...failure },
   };
 }
 
@@ -232,7 +269,7 @@ async function persistFailure(
   profileId: string,
   url: string,
   attemptedAt: string,
-  message: string,
+  failure: ProfileWorkflowSourceUpdateFailure,
   status: 'failed' | 'invalid',
 ): Promise<ProfileWorkflowPacSourceUpdateResult> {
   let current: ProfileWorkflowState | undefined;
@@ -258,7 +295,7 @@ async function persistFailure(
   }
   const next = withUpdateRecord(
     current,
-    recordForFailure(current, profileId, url, attemptedAt, message),
+    recordForFailure(current, profileId, url, attemptedAt, failure),
   );
   try {
     if (!(await repository.compareAndSwap(current.generation, next))) {
@@ -273,7 +310,12 @@ async function persistFailure(
     return { status: 'storage-failure', message: normalizedMessage(error), state: current };
   }
   const update = inspectProfileWorkflowPacSourceUpdate(next, profileId, attemptedAt);
-  return { status, message, state: next, ...(update === undefined ? {} : { update }) };
+  return {
+    status,
+    message: failure.message,
+    state: next,
+    ...(update === undefined ? {} : { update }),
+  };
 }
 
 export async function updateProfileWorkflowPacSource(
@@ -305,7 +347,7 @@ export async function updateProfileWorkflowPacSource(
       profileId,
       configuredUrl,
       attemptedAt,
-      normalizedMessage(error),
+      normalizeProfileWorkflowSourceUpdateFailure(error, 'PAC source validation failed.'),
       'invalid',
     );
   }
@@ -318,12 +360,21 @@ export async function updateProfileWorkflowPacSource(
       timeoutMs: service.timeoutMs ?? RULE_SOURCE_UPDATE_TIMEOUT_MS,
       maxBytes: service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES,
     });
-    if (!downloaded.content.trim()) throw new Error('PAC download returned empty content');
+    if (!downloaded.content.trim()) {
+      throw new ProfileWorkflowSourceUpdateError('response-empty', 'The PAC response was empty.');
+    }
     if (!Number.isInteger(downloaded.bytes) || downloaded.bytes < 0) {
-      throw new Error('PAC downloader returned an invalid byte count');
+      throw new ProfileWorkflowSourceUpdateError(
+        'response-byte-count-invalid',
+        'The PAC downloader returned an invalid byte count.',
+      );
     }
     if (downloaded.bytes > (service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES)) {
-      throw new Error('PAC download exceeded the configured size limit');
+      throw new ProfileWorkflowSourceUpdateError(
+        'response-too-large',
+        'The PAC response exceeded the configured size limit.',
+        { limitBytes: service.maxBytes ?? RULE_SOURCE_UPDATE_MAX_BYTES },
+      );
     }
   } catch (error) {
     return persistFailure(
@@ -332,7 +383,7 @@ export async function updateProfileWorkflowPacSource(
       profileId,
       configuredUrl,
       attemptedAt,
-      normalizedMessage(error),
+      normalizeProfileWorkflowSourceUpdateFailure(error, 'PAC download failed.'),
       'failed',
     );
   }

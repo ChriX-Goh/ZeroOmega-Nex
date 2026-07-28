@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { ProfileWorkflowSourceUpdateError } from '@zeroomega-nex/profile-workflow';
+
 import { BrowserRuleSourceDownloader } from './rule-source-downloader';
 
 afterEach(() => {
@@ -45,7 +47,7 @@ describe('BrowserRuleSourceDownloader', () => {
         timeoutMs: 1000,
         maxBytes: 5,
       }),
-    ).rejects.toThrow('exceeds 5 bytes');
+    ).rejects.toMatchObject({ code: 'response-too-large', limitBytes: 5 });
   });
 
   it('reports HTTP errors without reading the response body', async () => {
@@ -62,6 +64,35 @@ describe('BrowserRuleSourceDownloader', () => {
         timeoutMs: 1000,
         maxBytes: 100,
       }),
-    ).rejects.toThrow('HTTP 503 Offline');
+    ).rejects.toMatchObject({ code: 'response-http-error', httpStatus: 503 });
+  });
+
+  it('distinguishes timeout from a generic network failure without retaining raw error text', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new Error('secret transport text')),
+            );
+          }),
+      ),
+    );
+    const observed = new BrowserRuleSourceDownloader()
+      .download({
+        url: 'https://rules.example.invalid/list',
+        headers: {},
+        timeoutMs: 10,
+        maxBytes: 100,
+      })
+      .catch((candidate) => candidate);
+    await vi.advanceTimersByTimeAsync(10);
+    const error = await observed;
+    expect(error).toBeInstanceOf(ProfileWorkflowSourceUpdateError);
+    expect(error).toMatchObject({ code: 'request-timeout' });
+    expect(String(error.message)).not.toContain('secret transport text');
+    vi.useRealTimers();
   });
 });

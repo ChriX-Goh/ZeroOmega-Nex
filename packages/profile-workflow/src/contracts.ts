@@ -1,5 +1,7 @@
 import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 
+import type { ProfileWorkflowSourceUpdateErrorCode } from './source-update-error.js';
+
 export const PROFILE_WORKFLOW_SCHEMA_VERSION = 1 as const;
 
 export interface ProfileWorkflowPendingApply {
@@ -93,7 +95,10 @@ export interface ProfileWorkflowRevisionHistoryEntry {
 
 export interface ProfileWorkflowRuleSourceUpdateError {
   readonly occurredAt: string;
+  readonly code: ProfileWorkflowSourceUpdateErrorCode;
   readonly message: string;
+  readonly httpStatus?: number;
+  readonly limitBytes?: number;
 }
 
 export interface ProfileWorkflowRuleSourceUpdateRecord {

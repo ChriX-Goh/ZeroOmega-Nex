@@ -206,3 +206,4 @@
 | 2026-07-29 | 完成 Temporary Rules/Network typed 三语、safe error、Chromium 完整交互及 Firefox zh-TW 页面守卫                               |
 | 2026-07-29 | 完成正常 Options/Virtual typed 三语、导出状态与 Chromium 实际页面/迁移守卫                                                    |
 | 2026-07-29 | 完成 imported Auto Detect typed 三语与 locale schema v2 分类门禁，删除不可达 Rule List/PAC 重复分支                           |
+| 2026-07-29 | 完成 Rule Source/PAC 稳定失败码、三语语义状态、缓存保留与 Chromium HTTP/空响应失败闭环                                        |

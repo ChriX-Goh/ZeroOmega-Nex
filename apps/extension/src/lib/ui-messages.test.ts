@@ -38,6 +38,31 @@ describe('typed UI messages', () => {
     ).toContain('规则列表最后更新于 2026/7/28 14:00');
   });
 
+  it('localizes stable source-update failure codes without backend prose', () => {
+    expect(
+      uiMessage(
+        'ruleList.updateFailed',
+        {
+          timestamp: '2026/7/29 12:00',
+          code: 'response-http-error',
+          httpStatus: 503,
+        },
+        'zh-CN',
+      ),
+    ).toContain('服务器返回 HTTP 错误（503）');
+    expect(
+      uiMessage(
+        'pac.updateFailed',
+        {
+          timestamp: '2026/7/29 12:00',
+          code: 'response-too-large',
+          limitBytes: 4096,
+        },
+        'zh-TW',
+      ),
+    ).toContain('下載內容超過大小上限（4096 位元組）');
+  });
+
   it('formats source-backed PAC text and dynamic status in all three locales', () => {
     expect(uiText('pac.url', 'zh-CN')).toBe('PAC 网址');
     expect(uiText('pac.script', 'zh-TW')).toBe('PAC 指令碼');
