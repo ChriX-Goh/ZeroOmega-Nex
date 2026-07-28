@@ -41,13 +41,23 @@ replace_once(
 
 replace_once(
     'apps/extension/src/component-rendering.component.spec.ts',
-    '''        disabled: false,
+    '''    const { body } = render(VirtualProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
         onReplaceDraft: replaceDraft,
       },
+    });
 ''',
-    '''        disabled: false,
+    '''    const { body } = render(VirtualProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
         onReplaceDraft: replaceDraft,
         onRequestReplacement: async () => undefined,
       },
+    });
 ''',
 )
