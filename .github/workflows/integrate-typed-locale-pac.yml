@@ -1,4 +1,4 @@
-# integration revision 6
+# integration revision 7
 name: Integrate typed PAC locale
 
 on:
@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - .github/workflows/integrate-typed-locale-pac.yml
+      - .github/patches/*typed-locale-pac*.py
 
 permissions:
   contents: write
