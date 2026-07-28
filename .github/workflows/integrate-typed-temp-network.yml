@@ -43,6 +43,7 @@ jobs:
             python .github/patches/write-typed-temp-network-pages.py
             python .github/patches/patch-typed-temp-network-locale.py
             python .github/patches/patch-typed-temp-network-e2e-docs.py
+            python .github/patches/fix-typed-temp-network-guard.py
           } 2>&1 | tee typed-temp-network-apply.log
       - name: Format product slice
         run: |
@@ -82,6 +83,7 @@ jobs:
             .github/patches/write-typed-temp-network-pages.py \
             .github/patches/patch-typed-temp-network-locale.py \
             .github/patches/patch-typed-temp-network-e2e-docs.py \
+            .github/patches/fix-typed-temp-network-guard.py \
             typed-temp-network-apply.log \
             typed-temp-network-format.log \
             typed-temp-network-inventory.log \
