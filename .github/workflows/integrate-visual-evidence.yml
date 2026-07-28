@@ -75,6 +75,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-visual-evidence.yml
           rm -f \
             .github/patches/apply-visual-evidence.py \
+            .github/workflows/m8-visual-evidence.yml \
             visual-evidence-integration.log
           rm -rf artifacts/m8-visual-evidence
           git config user.name github-actions[bot]
