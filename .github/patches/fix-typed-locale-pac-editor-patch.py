@@ -50,3 +50,11 @@ new_style_patch = '''replace_once(
 if text.count(old_style_patch) != 1:
     raise SystemExit(f'expected one generic PAC style replacement, found {text.count(old_style_patch)}')
 path.write_text(text.replace(old_style_patch, new_style_patch, 1))
+
+integration_path = Path('.github/patches/apply-typed-locale-pac-integration.py')
+integration = integration_path.read_text()
+old_guard_marker = '''  entries.firefoxE2e,\n  "compilerVersion, 'raw-pac/1'",\n  'Firefox PAC raw-snapshot interaction coverage is missing.',\n'''
+new_guard_marker = '''  entries.firefoxE2e,\n  'Firefox did not install a raw PAC snapshot',\n  'Firefox PAC raw-snapshot interaction coverage is missing.',\n'''
+if integration.count(old_guard_marker) != 1:
+    raise SystemExit(f'expected one Firefox PAC guard marker, found {integration.count(old_guard_marker)}')
+integration_path.write_text(integration.replace(old_guard_marker, new_guard_marker, 1))
