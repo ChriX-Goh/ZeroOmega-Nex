@@ -72,14 +72,13 @@ Rebuild the familiar ZeroOmega v3.5.0 UI and profile workflow on top of the new 
 
 ### Current closure blockers
 
-- Explicit first-release scope decisions for Gist, WebDAV, and browser-native sync.
 - Real proxy-challenge manual QC.
 - Consolidated light/dark/zh-CN/zh-TW visual evidence.
 - Repository-owner real complex backup and final installable-candidate acceptance.
 
 ### Immediate direction
 
-The remaining automated scope decision is to classify Gist, WebDAV, and browser-native sync independently. Each requires an explicit ADR covering secret ownership, remote conflict semantics, browser quotas/capabilities, first-release scope, and any later milestone. After those decisions, Milestone 8 moves to consolidated visual evidence, real proxy-challenge QC, repository-owner complex-backup acceptance, and formal candidate preparation.
+ADR-016–018 close Gist, WebDAV, and browser-native sync for the first browser release. Milestone 8 now moves to consolidated light/dark/zh-CN/zh-TW visual evidence, real proxy-challenge QC, repository-owner complex-backup acceptance, and formal consolidated-candidate preparation.
 
 ## Partially pulled forward — Milestone 9
 

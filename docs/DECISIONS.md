@@ -158,6 +158,42 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Consequences:** Import/export may retain the non-secret URL for compatibility, but Apply and Popup activation fail before authentication preparation, runtime creation, permission requests, or browser proxy mutation. The Options page keeps the original standalone/referenced warnings and gives the user an explicit conversion path. This is an `INTENTIONAL_DIVERGENCE` from original local-file activation, not a missing implementation.
 
+## ADR-016 — Defer GitHub Gist synchronization beyond the first browser release
+
+**Status:** Accepted
+
+**Decision:** The first browser-only ZeroOmega Nex replacement does not implement continuous GitHub Gist synchronization. Gist sync is classified as `NOT_PORTING` for Milestone 8 and deferred to a dedicated remote-sync milestone. File import/export and bounded online URL restore remain supported, but neither implies Gist synchronization.
+
+**Reason:** Original v3.5.0 Gist sync is a persistent bidirectional state machine rather than a backup transport. It stores a personal access token, reads commit history, downloads and merges a remote `ZeroOmega.json`, debounces local changes, pushes through the GitHub API, watches for remote commits, and can rebuild local Options plus reapply the startup Profile after conflict resolution. Recreating this safely requires background-owned credentials, explicit remote identity, compare-and-swap commits, conflict UX, retry/rate-limit policy, remote deletion semantics, migration from original state, and dual-browser suspension recovery. Those obligations are materially larger than Milestone 8 import parity.
+
+**Alternatives considered:** Reusing online restore for Gist was rejected because one-shot review cannot provide bidirectional merge or conflict semantics. Persisting the token in ProfileSpec or ordinary settings was rejected because secrets must remain background-owned and absent from exports, command responses, logs, and rendered UI. Shipping a push-only shortcut was rejected because it could overwrite newer remote data while presenting itself as synchronization.
+
+**Consequences:** G-13 is a completed scope decision rather than a missing first-release feature. A later milestone must define a dedicated secret repository, least-privilege GitHub token requirements, remote document schema/version, optimistic concurrency, conflict recovery, bounded scheduling, revocation, deletion, migration, and Chromium/Firefox lifecycle tests before any Gist UI is added.
+
+## ADR-017 — Defer WebDAV synchronization beyond the first browser release
+
+**Status:** Accepted
+
+**Decision:** The first browser-only replacement does not implement continuous WebDAV synchronization. WebDAV sync is classified as `NOT_PORTING` for Milestone 8 and deferred to the same dedicated remote-sync milestone, but it remains a separate backend with separate acceptance criteria.
+
+**Reason:** Original v3.5.0 WebDAV sync creates a `zeroomega/` collection, authenticates with Basic or Bearer credentials, stores a mutable `zeroomega-commit.txt` pointer plus versioned `zeroomega-<commit>.json` files, periodically polls the pointer, replaces local sync storage, pushes a new version, updates the pointer, and deletes the previous file. The protocol is multi-request and not transactionally atomic; interruption can leave orphaned versions or a stale pointer. Original code also accepts HTTP URLs and explicitly lacks Digest authentication. A safe Nex implementation therefore requires HTTPS policy, background-owned credentials, bounded authentication negotiation, path canonicalization, server capability checks, optimistic concurrency, crash recovery, orphan cleanup, conflict UX, and hostile-response limits.
+
+**Alternatives considered:** Copying the original Basic/Bearer implementation directly was rejected because it would expose credentials to a broad UI/storage path and retain non-atomic remote mutation. Treating a WebDAV URL as ordinary online restore was rejected because restore performs local review only and intentionally has no write, watch, or conflict behavior. Supporting only one PUT file without commit identity was rejected because concurrent devices could silently overwrite each other.
+
+**Consequences:** G-14 is a completed first-release scope decision. Any later implementation must be HTTPS-only by default, keep username/password or bearer token in a background-owned secret store, use a documented concurrency protocol, survive partial writes and background suspension, bound every response, and prove interoperability and conflict behavior against controlled WebDAV fixtures on both browser targets. Digest support requires a separate decision.
+
+## ADR-018 — Do not port original credential-bearing browser sync enhancement
+
+**Status:** Accepted
+
+**Decision:** ZeroOmega Nex does not port the original built-in browser-sync mechanism that copies Gist/WebDAV connection configuration into `storage.sync`. This is an `INTENTIONAL_DIVERGENCE`, not a deferred implementation of the same behavior. A future feature may sync non-secret metadata or encrypted envelopes only after a separate cryptographic and recovery design.
+
+**Reason:** Original v3.5.0 writes `gistId`, `gistToken`, `syncUsername`, `syncBackendType`, and `lastGistCommit` into the browser vendor's synchronized storage under `zeroOmegaSync`, then uses cross-device changes to initialize or force remote synchronization. For WebDAV, the field named `gistToken` is the password or bearer token. Copying those plaintext credentials into browser cloud sync violates Nex's background-owned secret boundary and makes credential propagation depend on browser-account sync, vendor retention, quota, device access, and extension storage behavior. It also couples remote-conflict recovery to a second synchronization channel.
+
+**Alternatives considered:** Reproducing the original fields in `storage.sync` was rejected as plaintext credential replication. Syncing secret references without keys was rejected because another device could not resolve them safely. Automatically wrapping secrets with a device-local key was rejected because cross-device decryption, recovery, rotation, account loss, and compromise semantics are undefined.
+
+**Consequences:** G-15 is DONE as an intentional divergence. Production manifests continue to request only ordinary `storage`; no product path writes credentials to browser-synchronized storage. Future browser-native sync, if any, must default to non-secret metadata, define quotas and conflict semantics, and require an explicit encrypted-secret ADR before credentials or recovery material can cross devices.
+
 ## ADR template
 
 ```markdown

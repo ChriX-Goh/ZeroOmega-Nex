@@ -537,3 +537,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Backup text may contain proxy passwords, request-header values, or sync credentials. It therefore does not travel through extension runtime commands or background responses; only the existing importer extracts secrets during the later explicit import transaction.
 - The downloader accepts absolute HTTP(S) without embedded credentials, requests only the normalized selected origin, omits credentials/referrer/cache, rejects redirects, enforces ten seconds and the legacy decoder byte limit, and exposes stable secret-safe errors.
 - Gist, WebDAV, and built-in browser sync require independent credential, conflict, and storage ADRs; completing URL restore does not imply those synchronization systems.
+
+### Remote synchronization scope boundary (ADR-016–018)
+
+- Original Gist/WebDAV synchronization is not equivalent to import or online restore. It is a persistent bidirectional control plane: remote commit discovery, local merge/push, periodic pull, conflict state, local storage replacement, source refresh, and startup Profile reapplication.
+- Gist uses a GitHub token and commit history around `ZeroOmega.json`. WebDAV emulates commit identity with `zeroomega-commit.txt` and versioned `zeroomega-<commit>.json`; Basic/Bearer credentials are supported, Digest is not, and the multi-request pointer update is not atomic.
+- Nex defers both backends beyond the first browser replacement. A later remote-sync milestone must own credentials in the background, define remote schema and optimistic concurrency, bound scheduling/responses, recover interrupted writes, expose conflict UX, and test background suspension independently on Chromium and Firefox.
+- Original built-in browser sync is a second channel that copies `gistId`, `gistToken`, `syncUsername`, `syncBackendType`, and `lastGistCommit` into browser `storage.sync`. For WebDAV, `gistToken` carries the password/bearer token. Nex intentionally does not port plaintext credential replication to vendor cloud sync.
+- File backup, online URL restore, Gist sync, WebDAV sync, and browser-native sync are five distinct capabilities. Completion of one never implies another.

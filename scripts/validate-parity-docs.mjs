@@ -8,6 +8,7 @@ const activationTestPath = 'apps/extension/src/lib/profile-workflow-activation.t
 const legacyDecodePath = 'packages/legacy-zeroomega/src/decode.ts';
 const legacyImportTestPath = 'packages/legacy-zeroomega/src/import.test.ts';
 const schemaV1FixturePath = 'fixtures/zeroomega-v2/schema-v1-auto-detect.json';
+const manifestConfigPath = 'apps/extension/wxt.config.ts';
 
 const [
   graph,
@@ -18,6 +19,7 @@ const [
   legacyDecode,
   legacyImportTest,
   schemaV1Fixture,
+  manifestConfig,
 ] = await Promise.all([
   readFile(graphPath, 'utf8'),
   readFile(auditPath, 'utf8'),
@@ -27,6 +29,7 @@ const [
   readFile(legacyDecodePath, 'utf8'),
   readFile(legacyImportTestPath, 'utf8'),
   readFile(schemaV1FixturePath, 'utf8'),
+  readFile(manifestConfigPath, 'utf8'),
 ]);
 
 const failures = [];
@@ -75,6 +78,9 @@ requireAll('UI audit', audit, [
   'F-12',
   'G-01',
   'G-02',
+  'G-13',
+  'G-14',
+  'G-15',
   'H-09',
   'I-05',
   'J-10',
@@ -101,6 +107,44 @@ requireAll('schema-v1 source fixture', schemaV1Fixture, [
   '"profileName": "auto_detect"',
   '"syncOptions": "disabled"',
 ]);
+
+requireAll('remote sync scope decisions', decisions, [
+  'ADR-016',
+  'Defer GitHub Gist synchronization beyond the first browser release',
+  'ADR-017',
+  'Defer WebDAV synchronization beyond the first browser release',
+  'ADR-018',
+  'Do not port original credential-bearing browser sync enhancement',
+  'gistToken',
+  'zeroomega-commit.txt',
+  'INTENTIONAL_DIVERGENCE',
+]);
+
+for (const [rowId, classification, adr] of [
+  ['G-13', 'NOT_PORTING', 'ADR-016'],
+  ['G-14', 'NOT_PORTING', 'ADR-017'],
+  ['G-15', 'INTENTIONAL_DIVERGENCE', 'ADR-018'],
+]) {
+  const row = audit.split('\n').find((line) => line.startsWith(`| ${rowId} `));
+  if (
+    !row ||
+    !row.includes(`| ${classification}`) ||
+    !row.includes('| DONE') ||
+    !row.includes(adr)
+  ) {
+    failures.push(`${rowId} must be DONE with ${classification} and ${adr}`);
+  }
+}
+
+requireAll('production manifest storage boundary', manifestConfig, [
+  "'storage'",
+  "optional_host_permissions: ['http://*/*', 'https://*/*']",
+]);
+if (manifestConfig.includes('storage.sync') || manifestConfig.includes("'sync'")) {
+  failures.push(
+    'production manifest/config must not add browser sync storage for credential propagation',
+  );
+}
 
 requireAll('file PAC decision', decisions, [
   'ADR-015',

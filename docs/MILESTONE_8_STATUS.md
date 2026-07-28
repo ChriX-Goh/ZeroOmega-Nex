@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** `c96ceb4a3a871951a23a58989df02dfe2689d1b8` — Bounded online backup restore with local compatibility review  
 **Latest integration verification:** run `30402596911` validates secret-safe online download errors, local-review-only behavior, full repository verification, real Chromium download, and real Firefox optional-origin download  
-**Last completed exact-Head verification:** `fa24888c1410b94c2d018b7a86f6b79397058013`; CI `30402798827`, Browser E2E `30402798830`, Parity Documentation `30402798803` passed  
+**Last completed exact-Head verification:** `e71ef1d71baab380dc1e972eeb787108cef0f207`; CI `30403288077`, Browser E2E `30403287902`, Parity Documentation `30403287912` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -301,6 +301,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Download success populates the existing compatibility review only. Applied, Draft, generation, proxy state, and activation remain unchanged until the user separately chooses Import and use now or Import without activating.
 - Chromium and Firefox use real HTTP backups and assert one request, local review, retained permission, and byte-for-byte unchanged workflow state before import. G-03 and G-10 are now DONE; Gist/WebDAV/browser sync remain separate UNCERTAIN scope.
 
+### Gist, WebDAV, and browser-native sync scope decisions
+
+- ADR-016 closes Gist sync for the first browser release as `NOT_PORTING`, with a dedicated later remote-sync milestone required for PAT ownership, commit CAS, conflict UX, bounded scheduling, migration, revocation, and dual-browser suspension recovery.
+- ADR-017 independently closes WebDAV sync as `NOT_PORTING` for the first release. Future work must be HTTPS-oriented, background-secret-owned, crash-safe across version upload/pointer update/cleanup, response-bounded, and explicit about Basic/Bearer/Digest support.
+- ADR-018 marks original built-in browser sync as an `INTENTIONAL_DIVERGENCE`: Nex does not copy Gist tokens or WebDAV passwords into browser `storage.sync`. Future non-secret or encrypted cross-device synchronization requires a new cryptographic/recovery ADR.
+- G-13, G-14, and G-15 are now DONE scope decisions. File backup and bounded online restore remain separate completed capabilities and do not imply synchronization.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 126 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
@@ -312,12 +319,11 @@ The latest product slices passed architecture guards, permanent UI compatibility
 PR #11 is not a replacement release candidate. Current blockers include:
 
 - real proxy-challenge manual QC,
-- Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Form explicit ADRs for Gist, WebDAV, and browser sync, then prepare consolidated visual plus real-backup owner QC.
+Prepare consolidated light/dark/zh-CN/zh-TW visual evidence, then stage real proxy-challenge and repository-owner complex-backup QC for one consolidated candidate.
 
 ### Typed locale inventory and first vertical batch
 
