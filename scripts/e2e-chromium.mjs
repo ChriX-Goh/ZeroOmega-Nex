@@ -321,8 +321,101 @@ try {
     firstExportContent,
     'Export → clear → import → export did not preserve the original-compatible Options semantics',
   );
-  await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
+  const switchNavigation = options.getByRole('button', { name: 'switch', exact: true });
+  await switchNavigation.waitFor();
   await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
+
+  await switchNavigation.click();
+  const switchRulesSection = options.locator('[data-switch-source-mode]');
+  await switchRulesSection.waitFor({ state: 'visible', timeout: 20_000 });
+  const switchSourceToggle = switchRulesSection.locator('[data-switch-source-toggle]');
+  await switchSourceToggle.click();
+  await switchRulesSection.locator('[data-switch-source-editor]').waitFor();
+  const switchProfileId = await worker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    const profile = workflow?.draft?.profiles?.find((candidate) => candidate.name === 'switch');
+    if (!profile || profile.kind !== 'switch') throw new Error('Switch Profile fixture is missing');
+    return profile.id;
+  });
+  const switchEditorStateKey = `zeroomega-nex/options/switch-source-editor/${switchProfileId}`;
+  assert.equal(
+    await options.evaluate((key) => localStorage.getItem(key), switchEditorStateKey),
+    'source',
+  );
+
+  await options.reload();
+  await options.waitForLoadState('domcontentloaded');
+  const restoredSwitchRulesSection = options.locator('[data-switch-source-mode="source"]');
+  await restoredSwitchRulesSection.waitFor({ state: 'visible', timeout: 20_000 });
+  await restoredSwitchRulesSection.locator('[data-switch-source-editor]').waitFor();
+  await restoredSwitchRulesSection.locator('[data-switch-source-toggle]').click();
+  await options.locator('[data-switch-rules-table]').waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(
+    await options.evaluate((key) => localStorage.getItem(key), switchEditorStateKey),
+    null,
+  );
+
+  const switchRows = options.locator('[data-switch-rule-row]');
+  await options.locator('.add-condition-row button').click();
+  await assertEventually(
+    async () => (await switchRows.count()) === 2,
+    'Switch editor did not append the second rule',
+  );
+  const firstPattern = switchRows.nth(0).getByLabel('Rule 1 pattern');
+  const secondPattern = switchRows.nth(1).getByLabel('Rule 2 pattern');
+  await firstPattern.fill('first.drag.invalid');
+  await firstPattern.press('Tab');
+  await secondPattern.fill('second.drag.invalid');
+  await secondPattern.press('Tab');
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        const profile = workflow?.draft?.profiles?.find((candidate) => candidate.name === 'switch');
+        return (
+          profile?.kind === 'switch' &&
+          profile.rules?.[0]?.condition?.pattern === 'first.drag.invalid' &&
+          profile.rules?.[1]?.condition?.pattern === 'second.drag.invalid'
+        );
+      }),
+    'Switch rule patterns did not reach the Draft before dragging',
+  );
+  await switchRows.nth(0).locator('[data-switch-drag-handle]').dragTo(switchRows.nth(1));
+  await assertEventually(
+    async () =>
+      (await switchRows.nth(0).getByLabel('Rule 1 pattern').inputValue()) ===
+        'second.drag.invalid' &&
+      (await switchRows.nth(1).getByLabel('Rule 2 pattern').inputValue()) === 'first.drag.invalid',
+    'Switch drag handle did not reorder the visible rows',
+  );
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        const profile = workflow?.draft?.profiles?.find((candidate) => candidate.name === 'switch');
+        return (
+          profile?.kind === 'switch' &&
+          profile.rules?.[0]?.condition?.pattern === 'second.drag.invalid' &&
+          profile.rules?.[1]?.condition?.pattern === 'first.drag.invalid'
+        );
+      }),
+    'Switch drag order was not persisted in the Draft',
+  );
+  await options.reload();
+  await options.waitForLoadState('domcontentloaded');
+  await options.locator('[data-switch-rules-table]').waitFor({ state: 'visible', timeout: 20_000 });
+  const reloadedSwitchRows = options.locator('[data-switch-rule-row]');
+  assert.equal(
+    await reloadedSwitchRows.nth(0).getByLabel('Rule 1 pattern').inputValue(),
+    'second.drag.invalid',
+  );
+  assert.equal(
+    await reloadedSwitchRows.nth(1).getByLabel('Rule 2 pattern').inputValue(),
+    'first.drag.invalid',
+  );
 
   await options.getByRole('button', { name: 'pac', exact: true }).click();
   const pacEditor = options.locator('[data-pac-profile-editor]');

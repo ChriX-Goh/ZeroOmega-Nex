@@ -115,6 +115,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       },
     });
 
+    expect(body).toContain('data-switch-source-mode="table"');
     expect(body).toContain('data-switch-rules-table');
     expect(body).toContain('data-switch-rule-row');
     expect(body).toContain('data-switch-drag-handle');

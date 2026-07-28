@@ -32,6 +32,7 @@
   import { onMount } from 'svelte';
 
   import AttachedRuleListConfig from './AttachedRuleListConfig.svelte';
+  import { readSwitchSourceEditorMode, storeSwitchSourceEditorMode } from './switch-editor-state';
 
   export let spec: ProfileSpec;
   export let profileId: string;
@@ -438,22 +439,30 @@
     return true;
   }
 
+  function enterSourceMode(): boolean {
+    const composed = composeSwitchProfileSource(spec, profileId);
+    if (!composed.ok) {
+      sourceError = composed.error;
+      storeSwitchSourceEditorMode(profileId, false);
+      return false;
+    }
+    sourceText = composed.source;
+    sourceTouched = false;
+    onSourceDirtyChange(false);
+    sourceError = undefined;
+    editSource = true;
+    storeSwitchSourceEditorMode(profileId, true);
+    return true;
+  }
+
   async function toggleSource(): Promise<void> {
     if (!editSource) {
-      const composed = composeSwitchProfileSource(spec, profileId);
-      if (!composed.ok) {
-        sourceError = composed.error;
-        return;
-      }
-      sourceText = composed.source;
-      sourceTouched = false;
-      onSourceDirtyChange(false);
-      sourceError = undefined;
-      editSource = true;
+      enterSourceMode();
       return;
     }
     if (!(await commitSourceIfNeeded())) return;
     editSource = false;
+    storeSwitchSourceEditorMode(profileId, false);
     sourceError = undefined;
   }
 
@@ -465,6 +474,7 @@
 
   onMount(() => {
     onRegisterBeforeAction(commitSourceIfNeeded);
+    if (readSwitchSourceEditorMode(profileId)) enterSourceMode();
     return () => {
       onRegisterBeforeAction(undefined);
       onSourceDirtyChange(false);
@@ -513,7 +523,10 @@
     </section>
   {/if}
 
-  <section class="settings-section switch-rules-section">
+  <section
+    class="settings-section switch-rules-section"
+    data-switch-source-mode={editSource ? 'source' : 'table'}
+  >
     <div class="switch-rules-heading">
       <div>
         <h2>Switch rules</h2>

@@ -40,6 +40,7 @@ const ruleSourceUpdatePath = 'packages/profile-workflow/src/rule-source-update.t
 const switchOperationsPath = 'packages/profile-workflow/src/switch-operations.ts';
 const popupConditionPath = 'packages/profile-workflow/src/popup-condition.ts';
 const switchSourcePath = 'packages/profile-workflow/src/switch-source.ts';
+const switchEditorStatePath = 'apps/extension/src/entrypoints/options/switch-editor-state.ts';
 const attachedRuleListOperationsPath =
   'packages/profile-workflow/src/attached-rule-list-operations.ts';
 const profileSpecTypesPath = 'packages/profile-spec/src/types.ts';
@@ -107,6 +108,7 @@ const [
   switchOperations,
   popupCondition,
   switchSource,
+  switchEditorState,
   attachedRuleListOperations,
   profileSpecTypes,
   legacyImportImplementation,
@@ -156,6 +158,7 @@ const [
   readFile(switchOperationsPath, 'utf8'),
   readFile(popupConditionPath, 'utf8'),
   readFile(switchSourcePath, 'utf8'),
+  readFile(switchEditorStatePath, 'utf8'),
   readFile(attachedRuleListOperationsPath, 'utf8'),
   readFile(profileSpecTypesPath, 'utf8'),
   readFile(legacyImportImplementationPath, 'utf8'),
@@ -516,6 +519,14 @@ const requirements = [
       switchSource.includes("const HEADER = '[SwitchyOmega Conditions]'") &&
       switchSource.includes("const WITH_RESULT = '@with result'") &&
       switchSource.includes("lines.push('', `* +${defaultName}`, '')") &&
+      switchEditorState.includes('SWITCH_SOURCE_EDITOR_STATE_PREFIX') &&
+      switchEditorState.includes('switchSourceEditorStateKey(profileId)') &&
+      switchProfile.includes('readSwitchSourceEditorMode(profileId)') &&
+      switchProfile.includes('storeSwitchSourceEditorMode(profileId, true)') &&
+      switchProfile.includes('data-switch-source-mode') &&
+      chromiumE2e.includes('localStorage.getItem(key), switchEditorStateKey') &&
+      chromiumE2e.includes("locator('[data-switch-drag-handle]').dragTo") &&
+      chromiumE2e.includes('Switch drag order was not persisted in the Draft') &&
       !switchProfile.includes('Rule enabled') &&
       !switchProfile.includes('regular-expression flags'),
     'Switch Profile must provide the original result-enabled source editor, block invalid source on Apply/navigation, and avoid Nex-only enable/regex-flags controls.',

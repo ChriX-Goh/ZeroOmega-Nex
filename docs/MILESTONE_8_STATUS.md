@@ -5,7 +5,7 @@
 **PR state:** Draft; original-parity implementation continues  
 **Current product implementation head:** raw PAC activation/authentication product commit containing this document  
 **Latest integration verification:** run `30317075172` validates top-level raw PAC snapshots, browser activation, all-proxy authentication isolation, and Chromium runtime state with full `pnpm verify` and regression  
-**Last completed exact-Head verification:** `f5412dc66940849a58f1aa056d1b904cf984490f`; CI `30313437508`, Browser E2E `30313437519`, Parity Documentation `30313437487` passed  
+**Last completed exact-Head verification:** `5a2f545cf06f66fc494de8b23a8b330937dacd36`; CI `30317928641`, Browser E2E `30317928583`, Parity Documentation `30317928587` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -59,6 +59,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
   - `12275f8b42a296e8cf6823120cf65236e3389a06`: CI `30207977729`, Browser E2E `30207977745`, Parity Documentation `30207977744`.
   - `371acd582ad0372477560036778f9188cdba1104`: CI `30210603889`, Browser E2E `30210603887`, Parity Documentation `30210603935`.
   - `196f7d332894b4e1dfa36a888494189c9856ab2f`: CI `30215434190`, Browser E2E `30215434168`, Parity Documentation `30215434165`.
+
+### Switch source-mode persistence and drag ordering
+
+- Original v3.5.0 stores `editSource` separately under `web._profileEditor.<name>` and recomposes source from the current rules on restore. Nex now keeps the same separation using a stable Profile-ID localStorage key, so profile renames do not lose the editor mode and source text never enters UI-state storage.
+- Entering source mode stores the preference; successful exit clears it; parse failure keeps the user in source mode; compose failure safely returns to table mode.
+- Chromium E2E enters source mode, reloads and restores it, exits and verifies key cleanup, then performs a real drag-handle reorder and verifies visible order, typed Draft order, and reload persistence.
+- Integration run `30318613443`; product commit containing this document.
 
 ### Attached Rule List lifecycle and background updates
 
@@ -117,7 +124,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Original backup import preserves `pacScript` beside `pacUrl`, and export writes both back, restoring offline/round-trip semantics.
 - A dedicated PAC editor restores URL, remote-only headers, Download now/status, read-only downloaded script, Clear URL → retained editable inline script, file warning, and referenced-file error behavior.
 - PAC updates reuse the verified optional origin permission, background downloader, secret-header resolution, 10-second/4 MiB bounds, CAS conflict handling, failure-preserves-cache behavior, and coalesced alarm scheduler.
-- This slice does not yet declare PAC complete: top-level arbitrary PAC activation, `auth.all`, nested PAC capability boundaries, and file activation remain pending.
+- The remote-source data plane is now paired with the verified top-level raw activation/authentication slice above; only file activation, locale, Firefox coverage, and real 407 manual QC remain.
 - Integration run `30313263269`; product commit containing this document.
 
 ### Independent imported Rule List editor
@@ -158,8 +165,7 @@ Four pre-existing Svelte accessibility warnings remain tracked; no new Svelte er
 
 PR #11 is not a replacement release candidate. Current blockers include:
 
-- Switch source-editor localization, browser interaction coverage, and edit-mode persistence across reloads,
-- complete Switch localization and Chromium drag-order E2E,
+- complete Switch localization and source-editor error/confirmation locale coverage,
 - PAC localization, Firefox activation/download coverage, real proxy-challenge manual QC, and explicit file-URL target decision,
 - Virtual browser E2E creation and reference-migration coverage,
 - complete Simplified/Traditional Chinese coverage,
@@ -167,4 +173,4 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Continue Switch localization/source-editor browser persistence, Virtual browser E2E, and complete localization; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue Virtual browser creation/reference-migration E2E and typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

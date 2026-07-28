@@ -402,3 +402,6 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - 原版 PAC `auth.all` 映射为 PacProfile 的一个 `credential` secret ref；密码只存在后台 proxy-auth secret store。顶层 PAC 激活时注册一个 `all-proxies` binding，只响应代理 Basic/Digest challenge；精确 endpoint binding 优先，多个 wildcard binding 视为歧义并拒绝，普通网站认证永不响应。普通 `.bak` 明确省略该凭据并告警。
 
 - PAC `auth.all` 保存必须先由 Options 用户手势请求认证权限：Chromium=`webRequest + webRequestAuthProvider + http/https origins`，Firefox=`webRequest + webRequestBlocking + http/https origins`。拒绝或异常时不写 ProfileSpec credential、secret 或 active binding；授权后仍由激活事务决定何时注册 listener。
+
+- 原版 `SwitchProfileCtrl` 使用 `omegaTarget.state('web._profileEditor.' + profile.name)` 保存 `{editSource}`，页面初始化时恢复；规则正文仍从当前 Profile compose，不把未提交源码文本塞入 UI 状态。Nex 对齐该边界，但以稳定 Profile ID 作为 localStorage key，重命名不丢模式；进入/成功退出时写/清状态，compose 失败时回退表格。
+- 原版规则表使用 `ui-sortable` + `.sort-bar` 直接改变 `profile.rules` 顺序。Nex 的 drag handle 现在有 Chromium 真实拖放、Draft 顺序及重载后 DOM 顺序三重验证，键盘 Up/Down 仍作为无拖放环境后备。
