@@ -1,0 +1,89 @@
+name: Integrate typed Legacy Import
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-typed-legacy-import.yml
+      - .github/patches/apply-typed-legacy-import.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-typed-legacy-import-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply typed Legacy Import slice
+        run: |
+          set -o pipefail
+          python .github/patches/apply-typed-legacy-import.py 2>&1 | tee typed-legacy-import-apply.log
+      - name: Format product slice
+        run: |
+          set -o pipefail
+          pnpm format 2>&1 | tee typed-legacy-import-format.log
+      - name: Generate locale inventory
+        run: |
+          set -o pipefail
+          pnpm locale:inventory 2>&1 | tee typed-legacy-import-inventory.log
+          pnpm exec prettier --write docs/LOCALE_INVENTORY.json
+      - name: Verify repository
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee typed-legacy-import-verify.log
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium E2E candidate
+        env:
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium Legacy Import regression
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee typed-legacy-import-chromium.log
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typed-legacy-import-${{ github.run_id }}
+          path: typed-legacy-import-*.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Commit verified product slice
+        run: |
+          git checkout HEAD -- .github/workflows/integrate-typed-legacy-import.yml
+          rm -f \
+            .github/patches/apply-typed-legacy-import.py \
+            typed-legacy-import-apply.log \
+            typed-legacy-import-format.log \
+            typed-legacy-import-inventory.log \
+            typed-legacy-import-verify.log \
+            typed-legacy-import-chromium.log
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: add typed Legacy Import and startup activation"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
