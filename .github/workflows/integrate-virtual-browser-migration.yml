@@ -1,3 +1,4 @@
+# integration revision 2
 name: Integrate Virtual browser migration
 
 on:
@@ -41,6 +42,7 @@ jobs:
           set -o pipefail
           {
             set -x
+            python .github/patches/fix-virtual-patch-section-anchor.py
             python .github/patches/apply-virtual-browser-migration.py
           } 2>&1 | tee virtual-browser-apply.log
       - name: Format product slice
@@ -71,6 +73,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-virtual-browser-migration.yml
           rm -f \
+            .github/patches/fix-virtual-patch-section-anchor.py \
             .github/patches/apply-virtual-browser-migration.py \
             virtual-browser-apply.log \
             virtual-browser-verify.log \
