@@ -9,6 +9,10 @@
   import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
   import type { ProfileWorkflowSecretMaterial } from '@zeroomega-nex/profile-workflow';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText, type UiTextKey } from '../../lib/ui-messages';
+
+  export let locale: AppLocale = currentAppLocale();
   export let disabled = false;
   export let generation: number;
   export let deviceId: string;
@@ -36,14 +40,46 @@
   let acceptedMessage = '';
   let exportedMessage = '';
 
-  const statuses: readonly { status: LegacyImportStatus; label: string }[] = [
-    { status: 'exact', label: 'Exact' },
-    { status: 'target-dependent', label: 'Target-dependent' },
-    { status: 'downgraded', label: 'Downgraded' },
-    { status: 'preserved', label: 'Preserved' },
-    { status: 'ignored-generated', label: 'Regenerated automatically' },
-    { status: 'ignored-runtime', label: 'Runtime state ignored' },
-    { status: 'rejected', label: 'Unsupported' },
+  const statuses: readonly {
+    status: LegacyImportStatus;
+    labelKey: UiTextKey;
+    detailKey: UiTextKey;
+  }[] = [
+    {
+      status: 'exact',
+      labelKey: 'legacy.status.exact',
+      detailKey: 'legacy.detail.exact',
+    },
+    {
+      status: 'target-dependent',
+      labelKey: 'legacy.status.targetDependent',
+      detailKey: 'legacy.detail.targetDependent',
+    },
+    {
+      status: 'downgraded',
+      labelKey: 'legacy.status.downgraded',
+      detailKey: 'legacy.detail.downgraded',
+    },
+    {
+      status: 'preserved',
+      labelKey: 'legacy.status.preserved',
+      detailKey: 'legacy.detail.preserved',
+    },
+    {
+      status: 'ignored-generated',
+      labelKey: 'legacy.status.generated',
+      detailKey: 'legacy.detail.generated',
+    },
+    {
+      status: 'ignored-runtime',
+      labelKey: 'legacy.status.runtime',
+      detailKey: 'legacy.detail.runtime',
+    },
+    {
+      status: 'rejected',
+      labelKey: 'legacy.status.unsupported',
+      detailKey: 'legacy.detail.unsupported',
+    },
   ];
 
   function valueFrom(event: Event): string {
@@ -68,6 +104,16 @@
       case 'rejected':
         return summary.rejected;
     }
+  }
+
+  function statusEntry(status: LegacyImportStatus) {
+    return statuses.find((entry) => entry.status === status) ?? statuses[6]!;
+  }
+
+  function encodingText(encoding: LegacyImportResult['report']['encoding']): string {
+    if (encoding === 'base64-json') return uiText('legacy.encoding.base64', locale);
+    if (encoding === 'object') return uiText('legacy.encoding.object', locale);
+    return uiText('legacy.encoding.json', locale);
   }
 
   function downloadExport(exported: Extract<LegacyExportResult, { readonly ok: true }>): void {
@@ -95,15 +141,16 @@
       const exported = exportZeroOmegaBackup(spec, { createdAt: new Date() });
       exportResult = exported;
       if (!exported.ok) {
-        throw new Error(exported.issues.map((entry) => entry.message).join(' '));
+        errorMessage = uiText('legacy.exportFailed', locale);
+        return;
       }
       downloadExport(exported);
       exportedMessage =
         exported.issues.length === 0
-          ? 'Backup exported.'
-          : `Backup exported with ${exported.issues.length} compatibility warning(s).`;
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+          ? uiText('legacy.exported', locale)
+          : uiMessage('legacy.exportedWithWarnings', { count: exported.issues.length }, locale);
+    } catch {
+      errorMessage = uiText('legacy.exportFailed', locale);
     } finally {
       exporting = false;
     }
@@ -122,10 +169,10 @@
         deviceId,
       });
       analyzedGeneration = generation;
-    } catch (error) {
+    } catch {
       result = undefined;
       analyzedGeneration = undefined;
-      errorMessage = error instanceof Error ? error.message : String(error);
+      errorMessage = uiText('legacy.readFailed', locale);
     } finally {
       analyzing = false;
     }
@@ -135,11 +182,20 @@
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    selectedFileName = file.name;
-    backupText = await file.text();
-    result = undefined;
-    analyzedGeneration = undefined;
-    await analyze();
+    errorMessage = '';
+    try {
+      selectedFileName = file.name;
+      backupText = await file.text();
+      result = undefined;
+      analyzedGeneration = undefined;
+      await analyze();
+    } catch {
+      selectedFileName = '';
+      backupText = '';
+      result = undefined;
+      analyzedGeneration = undefined;
+      errorMessage = uiText('legacy.readFailed', locale);
+    }
   }
 
   async function importCandidate(activate: boolean): Promise<void> {
@@ -155,47 +211,54 @@
       const accepted = activate
         ? await onImportAndApply(analyzedGeneration, result.candidate, secretMaterials)
         : await onAcceptImport(analyzedGeneration, result.candidate, secretMaterials);
-      if (!accepted)
-        throw new Error(
-          activate
-            ? 'The imported configuration could not be activated.'
-            : 'The imported configuration could not be saved.',
-        );
-      acceptedMessage = activate
-        ? 'Import completed. The original configuration is now active.'
-        : 'Import completed without changing the active proxy. Use Apply changes when ready.';
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+      if (!accepted) {
+        errorMessage = uiText(activate ? 'legacy.activateFailed' : 'legacy.saveFailed', locale);
+        return;
+      }
+      acceptedMessage = uiText(activate ? 'legacy.importActivated' : 'legacy.importSaved', locale);
+    } catch {
+      errorMessage = uiText(activate ? 'legacy.activateFailed' : 'legacy.saveFailed', locale);
     } finally {
       accepting = false;
     }
   }
 </script>
 
-<section class="settings-section" data-legacy-export-section>
-  <h2>Export options</h2>
-  <p class="section-help">
-    Download an original-compatible schema-v2 .bak file. Current editor changes are applied first,
-    matching the original extension. Passwords and sensitive request headers are never included.
-  </p>
+<section
+  class="settings-section"
+  data-legacy-import-panel
+  data-legacy-export-section
+  data-typed-locale={locale}
+>
+  <h2>{uiText('legacy.exportTitle', locale)}</h2>
+  <p class="section-help">{uiText('legacy.exportHelp', locale)}</p>
   <button
     type="button"
     class="primary"
     data-legacy-export
-    aria-label="Export options backup"
+    aria-label={uiText('legacy.exportAria', locale)}
     disabled={disabled || exporting}
     onclick={() => void exportBackup()}
   >
-    {exporting ? 'Preparing backup…' : 'Export options'}
+    {uiText(exporting ? 'legacy.preparing' : 'legacy.exportAction', locale)}
   </button>
   {#if exportResult?.ok && exportResult.issues.length > 0}
     <details data-legacy-export-warnings>
-      <summary>Compatibility warnings ({exportResult.issues.length})</summary>
+      <summary
+        >{uiMessage(
+          'legacy.compatibilityWarnings',
+          { count: exportResult.issues.length },
+          locale,
+        )}</summary
+      >
       <ol>
         {#each exportResult.issues as item, index (`${item.code}:${item.path}:${index}`)}
           <li>
-            <strong>{item.code}</strong> — {item.message}
-            <div>{item.path}</div>
+            <strong><code>{item.code}</code></strong> — {uiText(
+              'legacy.exportWarningDetail',
+              locale,
+            )}
+            <div><code>{item.path}</code></div>
           </li>
         {/each}
       </ol>
@@ -204,16 +267,17 @@
   {#if exportedMessage}<p role="status">{exportedMessage}</p>{/if}
 </section>
 
-<section class="settings-section import-source">
-  <h2>Restore original ZeroOmega / SwitchyOmega backup</h2>
-  <p class="section-help">
-    Select the backup file exported by the original extension. JSON, base64 backup text, and common
-    .bak/.txt files are accepted.
-  </p>
+<section
+  class="settings-section import-source"
+  data-legacy-import-source
+  data-typed-locale={locale}
+>
+  <h2>{uiText('legacy.restoreTitle', locale)}</h2>
+  <p class="section-help">{uiText('legacy.restoreHelp', locale)}</p>
   <label class="file-picker">
-    <span>Backup file</span>
+    <span>{uiText('legacy.backupFile', locale)}</span>
     <input
-      aria-label="Legacy backup file"
+      aria-label={uiText('legacy.backupFileAria', locale)}
       type="file"
       accept=".bak,.json,.txt,application/json,text/plain"
       disabled={disabled || analyzing || accepting}
@@ -222,11 +286,11 @@
     {#if selectedFileName}<strong>{selectedFileName}</strong>{/if}
   </label>
   <details>
-    <summary>Paste backup text instead</summary>
+    <summary>{uiText('legacy.pasteInstead', locale)}</summary>
     <textarea
-      aria-label="Legacy backup"
+      aria-label={uiText('legacy.backupTextAria', locale)}
       rows="12"
-      placeholder="Paste the complete ZeroOmega / SwitchyOmega backup"
+      placeholder={uiText('legacy.backupPlaceholder', locale)}
       value={backupText}
       disabled={disabled || analyzing || accepting}
       oninput={(event) => {
@@ -235,52 +299,81 @@
         result = undefined;
         analyzedGeneration = undefined;
         acceptedMessage = '';
+        errorMessage = '';
       }}></textarea>
     <button
       type="button"
       disabled={disabled || analyzing || accepting || backupText.trim().length === 0}
-      onclick={analyze}>{analyzing ? 'Reading backup…' : 'Read backup'}</button
+      onclick={() => void analyze()}
+      >{uiText(analyzing ? 'legacy.reading' : 'legacy.read', locale)}</button
     >
   </details>
 </section>
 
 {#if result}
-  <section class="settings-section">
-    <h2>Compatibility check</h2>
+  <section class="settings-section" data-legacy-import-review data-typed-locale={locale}>
+    <h2>{uiText('legacy.compatibilityTitle', locale)}</h2>
     <dl class="compatibility-summary">
       <div>
-        <dt>Encoding</dt>
-        <dd>{result.report.encoding}</dd>
+        <dt>{uiText('legacy.encoding', locale)}</dt>
+        <dd>{encodingText(result.report.encoding)}</dd>
       </div>
       <div>
-        <dt>Profiles</dt>
+        <dt>{uiText('legacy.profiles', locale)}</dt>
         <dd>{result.report.profileCount}</dd>
       </div>
       <div>
-        <dt>Proxy endpoints</dt>
+        <dt>{uiText('legacy.endpoints', locale)}</dt>
         <dd>{result.report.endpointCount}</dd>
       </div>
       <div>
-        <dt>Rule sources</dt>
+        <dt>{uiText('legacy.ruleSources', locale)}</dt>
         <dd>{result.report.ruleSourceCount}</dd>
       </div>
       <div>
-        <dt>Credentials</dt>
-        <dd>{result.report.containsSecrets ? 'Will be migrated securely' : 'None'}</dd>
+        <dt>{uiText('legacy.credentials', locale)}</dt>
+        <dd>
+          {uiText(
+            result.report.containsSecrets ? 'legacy.credentialsSecure' : 'legacy.credentialsNone',
+            locale,
+          )}
+        </dd>
       </div>
     </dl>
-    <ul class="compatibility-counts" aria-label="Import status totals">
+    {#if result.report.containsSecrets}
+      <p class="section-help" data-legacy-secret-notice>{uiText('legacy.secretNotice', locale)}</p>
+    {/if}
+    <ul
+      class="compatibility-counts"
+      aria-label={uiText('legacy.statusTotalsAria', locale)}
+      data-legacy-status-counts
+    >
       {#each statuses as entry (entry.status)}
-        <li><span>{entry.label}</span><strong>{summaryCount(result, entry.status)}</strong></li>
+        <li data-legacy-status={entry.status}>
+          <span>{uiText(entry.labelKey, locale)}</span><strong
+            >{summaryCount(result, entry.status)}</strong
+          >
+        </li>
       {/each}
     </ul>
     <details open={!result.ok || result.report.summary.rejected > 0}>
-      <summary>Technical migration details ({result.report.items.length})</summary>
-      <ol>
+      <summary
+        >{uiMessage(
+          'legacy.technicalDetails',
+          { count: result.report.items.length },
+          locale,
+        )}</summary
+      >
+      <p class="section-help">{uiText('legacy.technicalHelp', locale)}</p>
+      <ol data-legacy-technical-details>
         {#each result.report.items as item, index (`${item.code}:${item.sourcePath}:${index}`)}
+          {@const entry = statusEntry(item.status)}
           <li>
-            <strong>{item.status}</strong> — {item.message}
-            <div>{item.sourcePath}{item.targetPath ? ` → ${item.targetPath}` : ''}</div>
+            <strong>{uiText(entry.labelKey, locale)}</strong> — <code>{item.code}</code>
+            <p>{uiText(entry.detailKey, locale)}</p>
+            <div>
+              <code>{item.sourcePath}{item.targetPath ? ` → ${item.targetPath}` : ''}</code>
+            </div>
           </li>
         {/each}
       </ol>
@@ -290,27 +383,28 @@
         <button
           type="button"
           class="primary"
+          data-legacy-import-and-use
           disabled={disabled || accepting}
-          onclick={() => importCandidate(true)}
-          >{accepting ? 'Importing…' : 'Import and use now'}</button
+          onclick={() => void importCandidate(true)}
+          >{uiText(accepting ? 'legacy.importing' : 'legacy.importAndUse', locale)}</button
         >
         <button
           type="button"
+          data-legacy-import-inactive
           disabled={disabled || accepting}
-          onclick={() => importCandidate(false)}>Import without activating</button
+          onclick={() => void importCandidate(false)}
+          >{uiText('legacy.importInactive', locale)}</button
         >
       </div>
     {:else}
-      <p role="alert">
-        This backup contains unsupported or invalid entries. Open the technical details above.
-      </p>
+      <p role="alert">{uiText('legacy.unsupportedAlert', locale)}</p>
     {/if}
   </section>
 {/if}
 
-{#if acceptedMessage}<section class="settings-section">
+{#if acceptedMessage}<section class="settings-section" data-typed-locale={locale}>
     <p role="status">{acceptedMessage}</p>
   </section>{/if}
-{#if errorMessage}<section class="settings-section">
+{#if errorMessage}<section class="settings-section" data-typed-locale={locale}>
     <p role="alert">{errorMessage}</p>
   </section>{/if}

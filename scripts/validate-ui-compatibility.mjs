@@ -590,9 +590,22 @@ const requirements = [
     'General settings and profile details must be independent routed pages.',
   ],
   [
-    legacyImport.includes('aria-label="Legacy backup file"') &&
-      legacyImport.includes('Import and use now'),
-    'Original ZeroOmega backups must support file-first one-step import and activation.',
+    legacyImport.includes('data-legacy-import-panel') &&
+      legacyImport.includes('data-typed-locale={locale}') &&
+      legacyImport.includes("uiText('legacy.backupFileAria', locale)") &&
+      legacyImport.includes('data-legacy-import-and-use') &&
+      legacyImport.includes('data-legacy-import-inactive') &&
+      legacyImport.includes('data-legacy-status-counts') &&
+      legacyImport.includes('data-legacy-technical-details') &&
+      !legacyImport.includes('item.message') &&
+      !legacyImport.includes('error.message') &&
+      optionsApp.includes('<LegacyImportPanel\n        {locale}') &&
+      chromiumE2e.includes(
+        'Imported non-default startup route did not become the browser-confirmed active start route',
+      ) &&
+      chromiumE2e.includes("effective?.value?.mode !== 'pac_script'") &&
+      chromiumE2e.includes("effective?.levelOfControl !== 'controlled_by_this_extension'"),
+    'Original ZeroOmega backups must retain file-first inactive review, typed three-locale activation controls, safe code/path diagnostics, and a browser-confirmed imported startup route.',
   ],
   [
     ['Automatic', 'Light', 'Dark'].every((label) => themePanel.includes(label)),

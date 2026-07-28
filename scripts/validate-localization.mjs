@@ -11,6 +11,7 @@ const files = {
   independentRuleList: 'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   pac: 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
   history: 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
+  legacyImport: 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
   chromiumE2e: 'scripts/e2e-chromium.mjs',
   firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
@@ -50,6 +51,7 @@ for (const [name, source] of [
   ['Independent Rule List', entries.independentRuleList],
   ['PAC Profile', entries.pac],
   ['Snapshot History', entries.history],
+  ['Legacy Import', entries.legacyImport],
 ]) {
   requireText(
     source,
@@ -140,6 +142,31 @@ for (const [source, marker, message] of [
     'History rollback action regressed to literal English.',
   ],
   [
+    entries.legacyImport,
+    '<h2>Export options</h2>',
+    'Legacy export heading regressed to literal English.',
+  ],
+  [
+    entries.legacyImport,
+    'aria-label="Legacy backup file"',
+    'Legacy backup ARIA regressed to literal English.',
+  ],
+  [
+    entries.legacyImport,
+    '>Import and use now</button>',
+    'Legacy import action regressed to literal English.',
+  ],
+  [
+    entries.legacyImport,
+    'item.message',
+    'Legacy Import must not render backend English report messages.',
+  ],
+  [
+    entries.legacyImport,
+    'error.message',
+    'Legacy Import must not render backend exception messages.',
+  ],
+  [
     entries.pac,
     'Proxy authentication permission was not granted.',
     'PAC auth error regressed to literal English.',
@@ -177,6 +204,11 @@ requireText(
   'Options must pass locale to PAC Profile.',
 );
 requireText(
+  entries.app,
+  '<LegacyImportPanel\n        {locale}',
+  'Options must pass locale to Legacy Import.',
+);
+requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",
   'Typed Switch source error messages are missing.',
@@ -190,6 +222,11 @@ requireText(
   entries.catalog,
   "readonly 'pac.lastUpdated'",
   'Typed PAC update status messages are missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Imported non-default startup route did not become the browser-confirmed active start route',
+  'Chromium imported startup-route coverage is missing.',
 );
 requireText(
   entries.chromiumE2e,

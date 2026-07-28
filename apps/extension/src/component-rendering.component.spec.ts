@@ -434,6 +434,38 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('secretMaterials');
   });
 
+  it('renders typed Legacy Import entry points in both Chinese locales', () => {
+    const common = {
+      disabled: false,
+      generation: 0,
+      deviceId: 'device-component-test',
+      onPrepareExport: async () => baseSpec(),
+      onAcceptImport: async () => true,
+      onImportAndApply: async () => true,
+    };
+    const simplified = render(LegacyImportPanel, {
+      props: { ...common, locale: 'zh-CN' },
+    }).body;
+    expect(simplified).toContain('data-typed-locale="zh-CN"');
+    expect(simplified).toContain('导出选项');
+    expect(simplified).toContain('恢复原版 ZeroOmega / SwitchyOmega 备份');
+    expect(simplified).toContain('aria-label="原版备份文件"');
+    expect(simplified).toContain('改为粘贴备份文本');
+    expect(simplified).not.toContain('Export options');
+    expect(simplified).not.toContain('Legacy backup file');
+
+    const traditional = render(LegacyImportPanel, {
+      props: { ...common, locale: 'zh-TW' },
+    }).body;
+    expect(traditional).toContain('data-typed-locale="zh-TW"');
+    expect(traditional).toContain('匯出選項');
+    expect(traditional).toContain('還原原版 ZeroOmega / SwitchyOmega 備份');
+    expect(traditional).toContain('aria-label="原版備份檔案"');
+    expect(traditional).toContain('改為貼上備份文字');
+    expect(traditional).not.toContain('Export options');
+    expect(traditional).not.toContain('Legacy backup file');
+  });
+
   it('renders Automatic, Light, and Dark theme choices', () => {
     const { body } = render(ThemePanel, {
       props: { mode: 'auto', onChange: () => undefined },

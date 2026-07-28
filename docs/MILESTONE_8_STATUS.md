@@ -205,8 +205,15 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 
 - The user-visible import review was confirmed as implemented rather than a placeholder: file-first input, optional pasted JSON/base64, compatibility summary, technical details, safe secret extraction, explicit activate/non-activate actions, and no traffic change during selection or analysis.
 - Object, JSON string, base64 JSON, and schema-v2 support have direct decoder/importer tests. Chromium verifies original backup upload, explicit activation, full storage clear, restore, and byte-identical re-export.
-- The stale G-04/G-05/G-06 `UNVERIFIED/BROKEN` statuses are corrected. Remaining import-review work is typed three-locale rendering, stable error presentation, a non-default imported startup-route browser assertion, and repository-owner real complex-backup acceptance.
+- The stale G-04/G-05/G-06 `UNVERIFIED/BROKEN` statuses are corrected. Legacy Import now renders directly through the typed three-locale catalog, presents stable status/code/path evidence instead of backend English messages, and has a real Chromium assertion for the non-default imported startup route. Repository-owner real complex-backup acceptance remains final QC.
 - Online URL restore, schema-v1 upgrade, and v1 AutoDetect migration remain separate missing/scope items.
+
+### Typed Legacy Import and imported startup activation
+
+- `LegacyImportPanel` directly renders English, Simplified Chinese, and Traditional Chinese for export, file/pasted input, compatibility counts, technical details, secret-material notices, inactive import, immediate apply, success/error states, buttons, placeholders, titles, and ARIA.
+- Report details show localized status plus stable code/source/target paths. Backend `item.message` and exception `error.message` are not rendered; local failures use non-secret typed summaries.
+- The original schema-v2 export → clear → import → export byte-equivalence remains intact. Chromium also requires the fixture's non-default `switch` startup route to converge across Applied settings, the active verified snapshot, Draft/Applied revision identity, `chrome.proxy.settings` PAC mode, and extension control ownership.
+- This closes local import translation and startup activation. Online URL restore, schema-v1 upgrade, v1 AutoDetect migration, and repository-owner real complex-backup QC remain separate open items.
 
 ### Typed Snapshot History and real rollback closure
 
@@ -235,7 +242,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Migrate the existing Legacy Import review panel as the next typed vertical batch. Cover export, file/pasted input, compatibility category counts, technical details, secret-material notices, inactive import, immediate apply, success/error states, buttons, titles, placeholders, and ARIA in all three locales while preserving the verified schema-v2 round trip and secret isolation.
+Migrate General and Interface as the next typed vertical batch. Cover startup/quick-switch settings, Apply/Discard status, confirmation/editing controls, menu/status controls, request-diagnostics settings, buttons, titles, select options, dynamic status, and ARIA in all three locales while preserving Draft/Applied separation and the existing browser workflows.
 
 ### Typed locale inventory and first vertical batch
 

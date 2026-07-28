@@ -1280,11 +1280,12 @@
     {:else if activeSection === 'import' && state}
       <header class="editor-heading">
         <div>
-          <h1>Import / Export</h1>
-          <p>Move from original ZeroOmega or SwitchyOmega without rebuilding profiles.</p>
+          <h1>{uiText('legacy.pageTitle', locale)}</h1>
+          <p>{uiText('legacy.pageHelp', locale)}</p>
         </div>
       </header>
       <LegacyImportPanel
+        {locale}
         disabled={saving || view?.busy === true}
         generation={state.generation}
         deviceId={state.applied.revision.deviceId ?? 'zeroomega-nex-extension'}

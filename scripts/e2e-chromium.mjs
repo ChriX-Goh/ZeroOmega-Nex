@@ -289,8 +289,49 @@ try {
   await options
     .getByText('导入完成，原版配置现已启用。')
     .waitFor({ state: 'visible', timeout: 20_000 });
-  await options.getByRole('button', { name: 'switch', exact: true }).waitFor();
-  await options.getByRole('button', { name: 'fixed', exact: true }).waitFor();
+  const importReview = options.locator('[data-legacy-import-review]');
+  assert.equal(await importReview.getAttribute('data-typed-locale'), 'zh-CN');
+  await importReview.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();
+  await importReview.getByLabel('导入状态统计').waitFor();
+  assert.doesNotMatch(
+    await importReview.innerText(),
+    /Compatibility check|Technical migration details|Import and use now/u,
+  );
+
+  const importedStartup = await assertEventuallyValue(async () => {
+    return worker.evaluate(async () => {
+      const storage = await chrome.storage.local.get(null);
+      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+      const switchProfile = workflow?.applied?.profiles?.find(
+        (profile) => profile.name === 'switch',
+      );
+      const snapshot = proxyState?.activeSnapshotId
+        ? storage[`zeroomega-nex/browser-proxy/v1/snapshot/${proxyState.activeSnapshotId}`]
+        : undefined;
+      const effective = await chrome.proxy.settings.get({ incognito: false });
+      if (
+        switchProfile?.kind !== 'switch' ||
+        workflow?.applied?.settings?.startup?.route?.kind !== 'profile' ||
+        workflow.applied.settings.startup.route.profileId !== switchProfile.id ||
+        workflow?.draft?.revision?.id !== workflow?.applied?.revision?.id ||
+        snapshot?.startRoute?.kind !== 'profile' ||
+        snapshot.startRoute.profileId !== switchProfile.id ||
+        effective?.value?.mode !== 'pac_script' ||
+        effective?.levelOfControl !== 'controlled_by_this_extension'
+      ) {
+        return undefined;
+      }
+      return {
+        profileId: switchProfile.id,
+        activeSnapshotId: proxyState.activeSnapshotId,
+        mode: effective.value.mode,
+        levelOfControl: effective.levelOfControl,
+      };
+    });
+  }, 'Imported non-default startup route did not become the browser-confirmed active start route');
+  assert.equal(importedStartup.mode, 'pac_script');
+  assert.equal(importedStartup.levelOfControl, 'controlled_by_this_extension');
 
   const firstExportPromise = options.waitForEvent('download');
   await options.locator('[data-legacy-export]').click();

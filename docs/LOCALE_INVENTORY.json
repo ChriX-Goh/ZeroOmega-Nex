@@ -10,9 +10,10 @@
     "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
     "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
-    "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte"
+    "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+    "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte"
   ],
-  "candidateCount": 229,
+  "candidateCount": 202,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -552,11 +553,6 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Move from original ZeroOmega or SwitchyOmega without rebuilding profiles."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "New profile…"
     },
     {
@@ -706,143 +702,13 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "aria-label",
-      "text": "Export options backup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "aria-label",
-      "text": "Import status totals"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "aria-label",
-      "text": "Legacy backup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "aria-label",
-      "text": "Legacy backup file"
+      "kind": "expression-literal",
+      "text": "; errorMessage ="
     },
     {
       "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
       "kind": "expression-literal",
       "text": "; result = undefined; analyzedGeneration = undefined; acceptedMessage ="
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Export options"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Import and use now"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Importing…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "None"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Preparing backup…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Read backup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Reading backup…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "expression-literal",
-      "text": "Will be migrated securely"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "placeholder",
-      "text": "Paste the complete ZeroOmega / SwitchyOmega backup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Backup file"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Compatibility check"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Credentials"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Download an original-compatible schema-v2 .bak file. Current editor changes are applied first, matching the original extension. Passwords and sensitive request headers are never included."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Encoding"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Export options"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Import without activating"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Paste backup text instead"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Proxy endpoints"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Restore original ZeroOmega / SwitchyOmega backup"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Rule sources"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "Select the backup file exported by the original extension. JSON, base64 backup text, and common .bak/.txt files are accepted."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
-      "kind": "text",
-      "text": "This backup contains unsupported or invalid entries. Open the technical details above."
     },
     {
       "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",

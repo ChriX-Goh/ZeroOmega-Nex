@@ -342,7 +342,9 @@ graph TD
 - `LegacyImportPanel` 已实现本地文件优先选择、可选粘贴 JSON/base64、非激活兼容性分析、统计分类、技术明细、秘密材料抽离提示，以及“导入并立即使用/仅导入”两个明确动作。
 - 选择或分析备份不会改变浏览器流量。“导入并立即使用”先接受候选 Draft，再走普通 verified Apply；“仅导入”保持 Applied 与浏览器状态不变。
 - decoder/importer 已直接覆盖对象、JSON 字符串、base64 JSON、schemaVersion 2、资源边界、循环对象、非法编码和 unsafe fixture。旧矩阵中 G-04/G-05/G-06 的 `UNVERIFIED/BROKEN` 是状态漂移，不是当前实现事实。
-- Chromium 已执行原版备份上传、显式启用、清空 local/session、恢复导出备份与字节级再次导出。剩余缺口是 typed 三语、稳定用户错误映射、非默认 imported startup route 专项断言和仓库所有者真实复杂备份 QC。
+- `LegacyImportPanel` 的导出、文件/粘贴输入、兼容性统计、技术明细、秘密材料提示、立即启用/仅导入、成功/错误、按钮、placeholder、title 与 ARIA 已直接通过 typed 英文/简体中文/正體中文 catalog 渲染；不再依赖渲染后的全局英文替换。
+- 技术明细只呈现 localized status、稳定 machine code 与 source/target path；后台 `item.message` 和异常 `error.message` 不进入页面，从而避免泄漏不稳定英文或秘密相关上下文。
+- Chromium 已执行原版备份上传、显式启用、清空 local/session、恢复导出备份与字节级再次导出；并对 fixture 的非默认 `switch` startup 要求 Applied startup route、活动快照 startRoute、Draft/Applied 修订和浏览器 `chrome.proxy.settings` 控制状态同时收敛。剩余本地导入缺口仅为仓库所有者真实复杂备份 QC。
 - 在线 URL 恢复、schema v1 升级和 v1 AutoDetect→WPAD PAC 仍是独立开放项，不能用它们否定本地导入审阅已实现，也不能把本地审阅完成误当作这些开放项完成。
 
 ## 15.5 Nex 已验证快照历史与回滚
