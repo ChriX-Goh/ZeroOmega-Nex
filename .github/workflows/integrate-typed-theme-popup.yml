@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/integrate-typed-theme-popup.yml
-      - .github/patches/apply-typed-theme-popup.py
+      - .github/patches/*typed-theme-popup*.py
 
 permissions:
   contents: write
@@ -38,7 +38,11 @@ jobs:
       - name: Apply typed Theme and Popup slice
         run: |
           set -o pipefail
-          python .github/patches/apply-typed-theme-popup.py 2>&1 | tee typed-theme-popup-apply.log
+          {
+            set -x
+            python .github/patches/apply-typed-theme-popup.py
+            python .github/patches/fix-typed-theme-popup-locale.py
+          } 2>&1 | tee typed-theme-popup-apply.log
       - name: Format product slice
         run: |
           set -o pipefail
@@ -74,6 +78,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-typed-theme-popup.yml
           rm -f \
+            .github/patches/fix-typed-theme-popup-locale.py \
             .github/patches/apply-typed-theme-popup.py \
             typed-theme-popup-apply.log \
             typed-theme-popup-format.log \
