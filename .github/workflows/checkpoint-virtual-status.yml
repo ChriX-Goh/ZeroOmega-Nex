@@ -1,0 +1,54 @@
+name: Checkpoint Virtual status
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/checkpoint-virtual-status.yml
+
+permissions:
+  contents: write
+
+jobs:
+  checkpoint:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - name: Update durable Milestone 8 status
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/MILESTONE_8_STATUS.md')
+          text = path.read_text()
+          replacements = {
+              '**Current product implementation head:** raw PAC activation/authentication product commit containing this document':
+                  '**Current product implementation head:** `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3` — Virtual creation/reference migration and Auto Detect fallback round-trip',
+              '**Latest integration verification:** run `30317075172` validates top-level raw PAC snapshots, browser activation, all-proxy authentication isolation, and Chromium runtime state with full `pnpm verify` and regression':
+                  '**Latest integration verification:** run `30320204375` validates source-backed Virtual creation, complete typed reference migration, normal Apply, and Auto Detect fallback extension round-trip with full `pnpm verify` and Chromium regression',
+              '**Last completed exact-Head verification:** `0c38408c3fa11fbac76eb55623057aac01e63461`; CI `30318764139`, Browser E2E `30318764071`, Parity Documentation `30318764078` passed':
+                  '**Last completed exact-Head verification:** `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35`; CI `30320359259`, Browser E2E `30320359263`, Parity Documentation `30320359269` passed',
+              '- Integration run `30320204375`; product commit containing this document.':
+                  '- Integration run `30320204375`; product commit `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3`; clean exact Head `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35` passed CI `30320359259`, Browser E2E `30320359263`, and Parity Documentation `30320359269`.',
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'expected one status anchor, found {text.count(old)}: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Commit checkpoint
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/MILESTONE_8_STATUS.md
+          git commit -m "docs: checkpoint Virtual migration verification"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
