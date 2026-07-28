@@ -176,6 +176,29 @@ try {
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
 
+  await driver.get(`moz-extension://${extensionUuid}/temp-rules.html`);
+  await driver.wait(
+    until.elementLocated(By.css('[data-temp-rules-manager][data-typed-locale="zh-TW"]')),
+    15_000,
+  );
+  await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='暫時規則']")), 15_000);
+  await driver.wait(
+    until.elementLocated(By.xpath("//*[normalize-space(.)='目前沒有作用中的暫時規則。']")),
+    15_000,
+  );
+
+  await driver.get(`moz-extension://${extensionUuid}/network.html`);
+  await driver.wait(
+    until.elementLocated(By.css('[data-network-diagnostics][data-typed-locale="zh-TW"]')),
+    15_000,
+  );
+  await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='請求診斷']")), 15_000);
+  await driver.wait(
+    until.elementLocated(By.xpath("//button[normalize-space(.)='開始監控']")),
+    15_000,
+  );
+  await driver.wait(until.elementLocated(By.css('[data-request-diagnostics-stopped]')), 15_000);
+
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
   const newProfileAction = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-action]')),

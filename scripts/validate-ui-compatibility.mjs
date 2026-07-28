@@ -64,6 +64,7 @@ const nativeInspectE2ePath = 'scripts/e2e-inspect-native-menu.mjs';
 const browserE2eWorkflowPath = '.github/workflows/browser-e2e.yml';
 const legacyExportPath = 'packages/legacy-zeroomega/src/export.ts';
 const chromiumE2ePath = 'scripts/e2e-chromium.mjs';
+const firefoxE2ePath = 'scripts/e2e-firefox.mjs';
 const originalBackupProvenancePath =
   'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json';
 const pacProfileEditorPath = 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte';
@@ -194,6 +195,7 @@ const [
   browserE2eWorkflow,
   legacyExport,
   chromiumE2e,
+  firefoxE2e,
   originalBackupProvenance,
   independentRuleListEditor,
   pacProfileEditor,
@@ -208,6 +210,7 @@ const [
   readFile(browserE2eWorkflowPath, 'utf8'),
   readFile(legacyExportPath, 'utf8'),
   readFile(chromiumE2ePath, 'utf8'),
+  readFile(firefoxE2ePath, 'utf8'),
   readFile(originalBackupProvenancePath, 'utf8'),
   readFile(independentRuleListEditorPath, 'utf8'),
   readFile(pacProfileEditorPath, 'utf8'),
@@ -285,7 +288,11 @@ const requirements = [
         'listSnapshots(): Promise<readonly PacRuntimeSnapshot[]>',
       ) &&
       temporaryRulesManager.includes('data-temp-rules-table') &&
-      temporaryRulesManager.includes('Delete all temporary rules'),
+      temporaryRulesManager.includes('data-typed-locale={locale}') &&
+      temporaryRulesManager.includes("uiText('tempRules.clearAll', locale)") &&
+      temporaryRulesManager.includes("uiMessage('tempRules.deleteAria'") &&
+      chromiumE2e.includes('Temporary Rules typed locale coverage regressed') &&
+      firefoxE2e.includes('[data-temp-rules-manager][data-typed-locale="zh-TW"]'),
     'Popup temporary rules must use a separate browser-session state and session-only PAC snapshot, wrap the current route, survive worker restarts, clear on browser restart, and provide a dedicated manager.',
   ],
   [
@@ -332,8 +339,14 @@ const requirements = [
       requestDiagnosticsRuntime.includes("message.action === 'stop'") &&
       requestDiagnosticsPage.includes('data-request-diagnostics-start') &&
       requestDiagnosticsPage.includes('data-request-diagnostics-stop') &&
+      requestDiagnosticsPage.includes('data-typed-locale={locale}') &&
+      requestDiagnosticsPage.includes("uiMessage(\n        'network.bounds'") &&
+      !requestDiagnosticsPage.includes("translate('Request diagnostics')") &&
+      !requestDiagnosticsPage.includes('error instanceof Error ? error.message') &&
       requestDiagnosticsPage.includes('<code>{record.url}</code>') &&
-      !requestDiagnosticsPage.includes('<a href={record.url}'),
+      !requestDiagnosticsPage.includes('<a href={record.url}') &&
+      chromiumE2e.includes('Network typed locale coverage regressed') &&
+      firefoxE2e.includes('[data-network-diagnostics][data-typed-locale="zh-TW"]'),
     'Request diagnostics must be explicit browser-session monitoring with bounded session storage, summary-only Popup data, sanitized URLs, and a non-navigating inspection page.',
   ],
   [

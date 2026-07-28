@@ -1,37 +1,53 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
-  import { translate } from '../../lib/i18n';
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
   import {
     requestRequestDiagnosticsPermission,
     sendRequestDiagnosticsCommand,
   } from '../../lib/request-diagnostics-client';
   import type { RequestDiagnosticsView } from '../../lib/request-diagnostics-model';
   import { applyThemeMode, readThemeMode } from '../../lib/ui-theme';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
 
-  const parsedTabId = Number.parseInt(new URLSearchParams(location.search).get('tabId') ?? '', 10);
-  const tabId = Number.isInteger(parsedTabId) && parsedTabId >= 0 ? parsedTabId : undefined;
+  export let locale: AppLocale = currentAppLocale();
+
+  function requestedTabId(): number | undefined {
+    if (typeof location === 'undefined') return undefined;
+    const parsed = Number.parseInt(new URLSearchParams(location.search).get('tabId') ?? '', 10);
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+  }
+
+  const tabId = requestedTabId();
   let view: RequestDiagnosticsView | undefined;
   let loading = true;
   let clearing = false;
   let changingSession = false;
   let errorMessage = '';
 
-  async function command(action: 'get' | 'clear' | 'start' | 'stop'): Promise<void> {
+  function setSafeError(): void {
+    errorMessage = uiText('network.error.safe', locale);
+  }
+
+  async function command(action: 'get' | 'clear' | 'start' | 'stop'): Promise<boolean> {
     const response = await sendRequestDiagnosticsCommand({
       action,
       ...(tabId === undefined ? {} : { tabId }),
     });
-    if (!response.ok) throw new Error(response.message);
+    if (!response.ok) {
+      setSafeError();
+      return false;
+    }
     view = response.view;
     errorMessage = '';
+    return true;
   }
 
   async function load(): Promise<void> {
     try {
       await command('get');
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      setSafeError();
     } finally {
       loading = false;
     }
@@ -42,8 +58,8 @@
     clearing = true;
     try {
       await command('clear');
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      setSafeError();
     } finally {
       clearing = false;
     }
@@ -55,11 +71,14 @@
     try {
       if (!view?.permissionGranted) {
         const granted = await requestRequestDiagnosticsPermission();
-        if (!granted) throw new Error(translate('Request monitoring permission was not granted.'));
+        if (!granted) {
+          errorMessage = uiText('network.permissionDenied', locale);
+          return;
+        }
       }
       await command('start');
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      setSafeError();
     } finally {
       changingSession = false;
     }
@@ -70,15 +89,15 @@
     changingSession = true;
     try {
       await command('stop');
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      setSafeError();
     } finally {
       changingSession = false;
     }
   }
 
   function formatTime(value: number): string {
-    return new Date(value).toLocaleTimeString();
+    return new Date(value).toLocaleTimeString(locale);
   }
 
   onMount(() => {
@@ -98,11 +117,17 @@
   });
 </script>
 
-<main class="network-shell" aria-busy={loading || clearing || changingSession}>
+<main
+  class="network-shell"
+  data-network-diagnostics
+  data-typed-locale={locale}
+  aria-label={uiText('network.pageAria', locale)}
+  aria-busy={loading || clearing || changingSession}
+>
   <header>
     <div>
-      <h1>{translate('Request diagnostics')}</h1>
-      <p>{translate('Failed and timed-out requests for this browser session.')}</p>
+      <h1>{uiText('network.title', locale)}</h1>
+      <p>{uiText('network.help', locale)}</p>
     </div>
     <div class="header-actions">
       {#if view?.active}
@@ -112,7 +137,7 @@
           disabled={changingSession}
           onclick={() => void stop()}
         >
-          {translate('Stop monitoring')}
+          {uiText('network.stop', locale)}
         </button>
       {:else}
         <button
@@ -121,11 +146,11 @@
           disabled={changingSession || view?.enabled === false}
           onclick={() => void start()}
         >
-          {translate('Start monitoring')}
+          {uiText('network.start', locale)}
         </button>
       {/if}
       <button type="button" disabled={loading} onclick={() => void load()}
-        >{translate('Refresh')}</button
+        >{uiText('network.refresh', locale)}</button
       >
       <button
         type="button"
@@ -133,45 +158,55 @@
         disabled={clearing || (view?.records.length ?? 0) === 0}
         onclick={() => void clear()}
       >
-        {translate('Clear diagnostics')}
+        {uiText('network.clear', locale)}
       </button>
     </div>
   </header>
 
   {#if errorMessage}<p class="message error" role="alert">{errorMessage}</p>{/if}
   {#if view && !view.enabled}
-    <p class="message">{translate('Monitoring is disabled in Options.')}</p>
+    <p class="message">{uiText('network.disabled', locale)}</p>
   {:else if view && !view.active}
     <section class="message permission" data-request-diagnostics-stopped>
-      <strong>{translate('Monitoring is stopped for this browser session.')}</strong>
-      {#if !view.permissionGranted}<span
-          >{translate('Permission will be requested when monitoring starts.')}</span
-        >{/if}
+      <strong>{uiText('network.stopped', locale)}</strong>
+      {#if !view.permissionGranted}<span>{uiText('network.permissionPending', locale)}</span>{/if}
     </section>
   {:else if loading}
-    <p class="message" role="status">{translate('Loading…')}</p>
+    <p class="message" role="status">{uiText('network.loading', locale)}</p>
   {:else if !view || view.records.length === 0}
-    <p class="message" role="status">{translate('No request errors recorded.')}</p>
+    <p class="message" role="status">{uiText('network.empty', locale)}</p>
   {:else}
     <p class="bounds" data-request-diagnostics-bounds>
-      {view.records.length} records · max {view.perTabLimit} per tab · max {view.globalLimit} total ·
-      retained {Math.round(view.retentionMs / 60_000)} minutes
+      {uiMessage(
+        'network.bounds',
+        {
+          records: view.records.length,
+          perTabLimit: view.perTabLimit,
+          globalLimit: view.globalLimit,
+          minutes: Math.round(view.retentionMs / 60_000),
+        },
+        locale,
+      )}
     </p>
-    <table data-request-diagnostics-table>
+    <table data-request-diagnostics-table aria-label={uiText('network.tableAria', locale)}>
       <thead>
         <tr>
-          <th>{translate('Time')}</th>
-          <th>{translate('Status')}</th>
-          <th>{translate('Type')}</th>
-          <th>{translate('URL')}</th>
-          <th>{translate('Error')}</th>
+          <th>{uiText('network.time', locale)}</th>
+          <th>{uiText('network.status', locale)}</th>
+          <th>{uiText('network.type', locale)}</th>
+          <th>{uiText('network.url', locale)}</th>
+          <th>{uiText('network.error', locale)}</th>
         </tr>
       </thead>
       <tbody>
         {#each view.records as record (`${record.tabId}:${record.requestId}`)}
           <tr data-request-diagnostic-status={record.status}>
             <td>{formatTime(record.failedAt)}</td>
-            <td>{record.status === 'timeout' ? translate('Timed out') : translate('Failed')}</td>
+            <td
+              >{record.status === 'timeout'
+                ? uiText('network.timedOut', locale)
+                : uiText('network.failed', locale)}</td
+            >
             <td>{record.resourceType}</td>
             <td><code>{record.url}</code></td>
             <td>{record.error ?? 'ERR_TIMEOUT'}</td>

@@ -13,104 +13,16 @@
     "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
     "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
     "apps/extension/src/entrypoints/options/ThemePanel.svelte",
-    "apps/extension/src/entrypoints/popup/App.svelte"
+    "apps/extension/src/entrypoints/popup/App.svelte",
+    "apps/extension/src/entrypoints/temp-rules/App.svelte",
+    "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 117,
+  "candidateCount": 90,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
       "kind": "expression-literal",
-      "text": "Clear diagnostics"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
       "text": "ERR_TIMEOUT"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Error"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Failed"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Failed and timed-out requests for this browser session."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Loading…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Monitoring is disabled in Options."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Monitoring is stopped for this browser session."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "No request errors recorded."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Permission will be requested when monitoring starts."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Refresh"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Request diagnostics"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Start monitoring"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Status"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Stop monitoring"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Time"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Timed out"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "Type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/network/App.svelte",
-      "kind": "expression-literal",
-      "text": "URL"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
@@ -556,51 +468,6 @@
       "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
       "kind": "text",
       "text": "Target profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Action"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Delete"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Delete all temporary rules"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Domain"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Loading temporary rules…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "No temporary rules are active."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Result profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "Temporary Rules"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",
-      "kind": "text",
-      "text": "These rules last for the current browser session and are not written to Options."
     }
   ]
 }

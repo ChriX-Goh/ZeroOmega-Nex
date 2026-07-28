@@ -6,12 +6,16 @@
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import {
     sendPopupTemporaryRuleCommand,
     type PopupTemporaryRuleCommandResponse,
   } from '../../lib/popup-temporary-rule-client';
   import { applyThemeMode, readThemeMode } from '../../lib/ui-theme';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
+
+  export let locale: AppLocale = currentAppLocale();
 
   let workflow: ProfileWorkflowState | undefined;
   let temporary: PopupTemporaryRuleView | undefined;
@@ -20,11 +24,16 @@
   let errorMessage = '';
 
   function routeName(spec: ProfileSpec, route: ProfileRouteTarget): string {
-    if (route.kind === 'direct') return 'Direct';
-    if (route.kind === 'system') return 'System Proxy';
+    if (route.kind === 'direct') return uiText('route.direct', locale);
+    if (route.kind === 'system') return uiText('route.system', locale);
     return (
-      spec.profiles.find((profile) => profile.id === route.profileId)?.name ?? 'Missing profile'
+      spec.profiles.find((profile) => profile.id === route.profileId)?.name ??
+      uiText('route.missing', locale)
     );
+  }
+
+  function setSafeError(): void {
+    errorMessage = uiText('tempRules.error.safe', locale);
   }
 
   function accept(response: PopupTemporaryRuleCommandResponse): boolean {
@@ -34,7 +43,7 @@
       return true;
     }
     if (response.view !== undefined) temporary = response.view;
-    errorMessage = response.message;
+    setSafeError();
     return false;
   }
 
@@ -45,11 +54,14 @@
         sendProfileWorkflowCommand({ action: 'get' }),
         sendPopupTemporaryRuleCommand({ action: 'get' }),
       ]);
-      if (!workflowResponse.ok) throw new Error(workflowResponse.message);
+      if (!workflowResponse.ok) {
+        setSafeError();
+        return;
+      }
       workflow = workflowResponse.state;
       accept(temporaryResponse);
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      setSafeError();
     } finally {
       loading = false;
     }
@@ -66,6 +78,8 @@
           domain,
         }),
       );
+    } catch {
+      setSafeError();
     } finally {
       changing = false;
     }
@@ -81,6 +95,8 @@
           expectedAppliedRevisionId: workflow.applied.revision.id,
         }),
       );
+    } catch {
+      setSafeError();
     } finally {
       changing = false;
     }
@@ -92,11 +108,17 @@
   });
 </script>
 
-<main class="manager-shell" aria-busy={loading || changing}>
+<main
+  class="manager-shell"
+  data-temp-rules-manager
+  data-typed-locale={locale}
+  aria-label={uiText('tempRules.pageAria', locale)}
+  aria-busy={loading || changing}
+>
   <header>
     <div>
-      <h1>Temporary Rules</h1>
-      <p>These rules last for the current browser session and are not written to Options.</p>
+      <h1>{uiText('tempRules.title', locale)}</h1>
+      <p>{uiText('tempRules.help', locale)}</p>
     </div>
     {#if (temporary?.rules.length ?? 0) > 0}
       <button
@@ -105,19 +127,25 @@
         disabled={changing}
         onclick={() => void clearAll()}
       >
-        Delete all temporary rules
+        {uiText('tempRules.clearAll', locale)}
       </button>
     {/if}
   </header>
 
   {#if errorMessage}<p class="message error" role="alert">{errorMessage}</p>{/if}
   {#if loading}
-    <p class="message" role="status">Loading temporary rules…</p>
+    <p class="message" role="status">{uiText('tempRules.loading', locale)}</p>
   {:else if !workflow || !temporary || temporary.rules.length === 0}
-    <p class="message" role="status">No temporary rules are active.</p>
+    <p class="message" role="status">{uiText('tempRules.empty', locale)}</p>
   {:else}
-    <table data-temp-rules-table>
-      <thead><tr><th>Domain</th><th>Result profile</th><th>Action</th></tr></thead>
+    <table data-temp-rules-table aria-label={uiText('tempRules.tableAria', locale)}>
+      <thead>
+        <tr>
+          <th>{uiText('tempRules.domain', locale)}</th>
+          <th>{uiText('tempRules.resultProfile', locale)}</th>
+          <th>{uiText('tempRules.action', locale)}</th>
+        </tr>
+      </thead>
       <tbody>
         {#each temporary.rules as rule (rule.domain)}
           <tr data-temp-rule-domain={rule.domain}>
@@ -126,9 +154,9 @@
             <td>
               <button
                 type="button"
-                aria-label={`Delete temporary rule for ${rule.domain}`}
+                aria-label={uiMessage('tempRules.deleteAria', { domain: rule.domain }, locale)}
                 disabled={changing}
-                onclick={() => void remove(rule.domain)}>Delete</button
+                onclick={() => void remove(rule.domain)}>{uiText('common.delete', locale)}</button
               >
             </td>
           </tr>

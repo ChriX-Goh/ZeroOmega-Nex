@@ -480,3 +480,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - PAC 更新 ledger 与 Rule Source 一样仍只有底层 `message`，没有稳定错误码；UI 只显示 typed 失败摘要并保留旧缓存，不直接暴露不稳定英文。认证读取/授权/保存/删除异常改为不含秘密的 typed 通用错误，避免把后台异常或凭据细节渲染到页面。
 - 原版 `auth.all` 三层警告已恢复：任意 PAC 返回代理可能收到凭据、URL/内联脚本必须可信、被其他 Profile 引用时可能把凭据发送到其他配置的代理。现代运行时仍只在顶层活动 PAC 下响应代理 Basic/Digest，不响应网站认证。
 - Firefox E2E 通过真实 New Profile 模态框创建内联 PAC、编辑脚本、正常 Apply、Popup 激活并读取后台存储验证 `raw-pac/1` structural snapshot 与 startRoute；这证明现代顶层 PAC 可跨浏览器激活，但不代表 Firefox 远程下载权限流程或 `file:` PAC 已完成。
+
+### Temporary Rules and Network typed presentation boundary
+
+- Temporary Rules remain a browser-session overlay: rule state and temporary PAC snapshots stay in `storage.session`, survive worker restarts, clear on browser restart, and never enter the Options Draft.
+- Network diagnostics remain explicit-session and bounded: monitoring starts only from the diagnostics page, stores sanitized failures in session storage, renders URLs as non-navigating code, and never collects headers, bodies, cookies, credentials, query strings, fragments, or response content.
+- Both pages resolve one typed locale at entry, render all user-facing labels/status/ARIA through `ui-messages.ts`, and replace unstable backend or exception prose with safe semantic summaries. Stable request error codes remain visible as technical evidence.
+- Chromium proves zh-CN temporary-rule deletion plus diagnostics start/capture/clear/stop. Firefox proves zh-TW empty/stopped shells without granting or starting request monitoring.

@@ -25,6 +25,8 @@ import SwitchProfileEditor from './entrypoints/options/SwitchProfileEditor.svelt
 import ThemePanel from './entrypoints/options/ThemePanel.svelte';
 import ProfileIcon from './components/ProfileIcon.svelte';
 import PopupApp from './entrypoints/popup/App.svelte';
+import NetworkApp from './entrypoints/network/App.svelte';
+import TemporaryRulesApp from './entrypoints/temp-rules/App.svelte';
 
 function baseSpec() {
   return createDefaultProfileSpec({
@@ -655,5 +657,28 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Target profile');
     expect(body).toContain('Migrate to Virtual Profile');
     expect(body).toContain('Replace target profile');
+  });
+
+  it('renders typed Temporary Rules and Network loading shells in both Chinese locales', () => {
+    const temporaryRules = render(TemporaryRulesApp, {
+      props: { locale: 'zh-CN' },
+    }).body;
+    expect(temporaryRules).toContain('data-temp-rules-manager');
+    expect(temporaryRules).toContain('data-typed-locale="zh-CN"');
+    expect(temporaryRules).toContain('临时规则');
+    expect(temporaryRules).toContain('正在加载临时规则…');
+    expect(temporaryRules).not.toContain('Temporary Rules');
+    expect(temporaryRules).not.toContain('Loading temporary rules');
+
+    const network = render(NetworkApp, {
+      props: { locale: 'zh-TW' },
+    }).body;
+    expect(network).toContain('data-network-diagnostics');
+    expect(network).toContain('data-typed-locale="zh-TW"');
+    expect(network).toContain('請求診斷');
+    expect(network).toContain('開始監控');
+    expect(network).toContain('正在載入請求診斷…');
+    expect(network).not.toContain('Request diagnostics');
+    expect(network).not.toContain('Start monitoring');
   });
 });

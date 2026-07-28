@@ -14,6 +14,8 @@ const files = {
   legacyImport: 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
   theme: 'apps/extension/src/entrypoints/options/ThemePanel.svelte',
   popup: 'apps/extension/src/entrypoints/popup/App.svelte',
+  temporaryRules: 'apps/extension/src/entrypoints/temp-rules/App.svelte',
+  network: 'apps/extension/src/entrypoints/network/App.svelte',
   chromiumE2e: 'scripts/e2e-chromium.mjs',
   firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
@@ -56,6 +58,8 @@ for (const [name, source] of [
   ['Legacy Import', entries.legacyImport],
   ['Theme', entries.theme],
   ['Popup', entries.popup],
+  ['Temporary Rules', entries.temporaryRules],
+  ['Network', entries.network],
 ]) {
   requireText(
     source,
@@ -199,6 +203,31 @@ for (const [source, marker, message] of [
     'error instanceof Error ? error.message',
     'Popup must not render raw exception messages.',
   ],
+  [
+    entries.temporaryRules,
+    '<h1>Temporary Rules</h1>',
+    'Temporary Rules title regressed to literal English.',
+  ],
+  [
+    entries.temporaryRules,
+    'Delete all temporary rules',
+    'Temporary Rules clear action regressed to literal English.',
+  ],
+  [
+    entries.temporaryRules,
+    'errorMessage = response.message',
+    'Temporary Rules must not render raw backend response messages.',
+  ],
+  [
+    entries.network,
+    "translate('Request diagnostics')",
+    'Network diagnostics regressed to the observer translation layer.',
+  ],
+  [
+    entries.network,
+    'error instanceof Error ? error.message',
+    'Network diagnostics must not render raw exception messages.',
+  ],
   [entries.app, '<h1>General</h1>', 'General heading regressed to literal English.'],
   [entries.app, '<h1>Interface</h1>', 'Interface heading regressed to literal English.'],
   [
@@ -277,6 +306,38 @@ requireText(
 requireText(entries.app, '<ThemePanel {locale}', 'Options must pass locale to Theme.');
 requireText(entries.theme, 'data-theme-panel', 'Theme must expose typed browser evidence.');
 requireText(entries.popup, 'data-popup-locale={locale}', 'Popup must expose its typed locale.');
+
+requireText(
+  entries.temporaryRules,
+  "uiMessage('tempRules.deleteAria'",
+  'Temporary Rules dynamic delete ARIA must be typed.',
+);
+requireText(
+  entries.network,
+  `uiMessage(
+        'network.bounds'`,
+  'Network diagnostics bounds must be a typed dynamic message.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Temporary Rules typed locale coverage regressed',
+  'Chromium Temporary Rules typed-locale coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Network typed locale coverage regressed',
+  'Chromium Network typed-locale coverage is missing.',
+);
+requireText(
+  entries.firefoxE2e,
+  '[data-temp-rules-manager][data-typed-locale="zh-TW"]',
+  'Firefox Temporary Rules typed-locale coverage is missing.',
+);
+requireText(
+  entries.firefoxE2e,
+  '[data-network-diagnostics][data-typed-locale="zh-TW"]',
+  'Firefox Network typed-locale coverage is missing.',
+);
 requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",

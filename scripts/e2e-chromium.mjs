@@ -770,12 +770,20 @@ try {
 
   const temporaryManager = await context.newPage();
   await temporaryManager.goto(`chrome-extension://${extensionId}/temp-rules.html`);
+  const temporaryRulesShell = temporaryManager.locator(
+    '[data-temp-rules-manager][data-typed-locale="zh-CN"]',
+  );
+  await temporaryRulesShell.waitFor({ state: 'visible', timeout: 20_000 });
+  await temporaryManager.getByRole('heading', { name: '临时规则', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await temporaryRulesShell.innerText(),
+    /Temporary Rules|Delete all temporary rules|Result profile/u,
+    'Temporary Rules typed locale coverage regressed',
+  );
   const temporaryRow = temporaryManager.locator('[data-temp-rule-domain="example.co.uk"]');
   await temporaryRow.waitFor({ state: 'visible', timeout: 20_000 });
   assert.match(await temporaryRow.innerText(), /fixed/u);
-  await temporaryRow
-    .getByRole('button', { name: 'Delete temporary rule for example.co.uk' })
-    .click();
+  await temporaryRow.getByRole('button', { name: '删除 example.co.uk 的临时规则' }).click();
   await assertEventually(async () => {
     const [local, session] = await worker.evaluate(async () =>
       Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
@@ -815,6 +823,17 @@ try {
   const diagnosticsPage = await context.newPage();
   await diagnosticsPage.goto(
     `chrome-extension://${extensionId}/network.html?tabId=${currentSiteTabId}`,
+  );
+  const diagnosticsShell = diagnosticsPage.locator(
+    '[data-network-diagnostics][data-typed-locale="zh-CN"]',
+  );
+  await diagnosticsShell.waitFor({ state: 'visible', timeout: 20_000 });
+  await diagnosticsPage.getByRole('heading', { name: '请求诊断', exact: true }).waitFor();
+  await diagnosticsPage.getByRole('button', { name: '开始监控', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await diagnosticsShell.innerText(),
+    /Request diagnostics|Start monitoring|Clear diagnostics|No request errors recorded/u,
+    'Network typed locale coverage regressed',
   );
   const diagnosticsStart = diagnosticsPage.locator('[data-request-diagnostics-start]');
   await diagnosticsStart.waitFor({ state: 'visible', timeout: 20_000 });

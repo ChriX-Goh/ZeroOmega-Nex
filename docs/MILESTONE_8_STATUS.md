@@ -201,6 +201,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Typed Temporary Rules and Network
+
+- Temporary Rules and Network now directly render English, Simplified Chinese, and Traditional Chinese for page shells, tables, actions, empty/loading/error states, permission/session status, dynamic bounds, titles, buttons, and ARIA.
+- Temporary Rules retains browser-session-only storage and session-only PAC snapshots. Network retains explicit start/stop, bounded session storage, sanitized non-navigating URLs, and production-disabled automatic monitoring.
+- Both pages replace raw backend/exception messages with safe typed summaries; stable technical request codes such as `ERR_TIMEOUT` remain visible as evidence.
+- Chromium verifies zh-CN manager/table/delete and diagnostics start/capture/clear/stop flows. Firefox verifies zh-TW empty/stopped shells without starting monitoring or broadening permissions.
+
 ### Typed Theme and Popup
 
 - Theme keeps the existing Automatic, Light, and Dark behavior while directly rendering all appearance choices, descriptions, help, and ARIA in English, Simplified Chinese, and Traditional Chinese.
@@ -253,13 +260,12 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
 - stable Rule Source/PAC downloader failure codes for complete semantic error localization,
-- remaining Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Migrate Temporary Rules and Network as the next typed vertical batch. Cover manager tables, delete/clear actions, diagnostics permission/start/stop/refresh/clear states, request columns/status, empty/error states, buttons, titles, dynamic counts, safe errors, and ARIA in all three locales while preserving session-only storage, bounded monitoring, sanitized URLs, and non-navigating request records.
+Audit and migrate the remaining literal-English Options surfaces from `docs/LOCALE_INVENTORY.json`, beginning with Built-in Profiles, About, new-profile shell text, profile headers/export actions, and any residual lifecycle status while preserving the original navigation and Draft/Applied boundaries.
 
 ### Typed locale inventory and first vertical batch
 
