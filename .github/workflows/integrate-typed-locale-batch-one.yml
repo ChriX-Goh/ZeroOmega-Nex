@@ -1,4 +1,4 @@
-# integration revision 3
+# integration revision 4
 name: Integrate typed locale batch one
 
 on:
@@ -43,6 +43,7 @@ jobs:
           {
             set -x
             python .github/patches/fix-typed-locale-fixed-marker.py
+            python .github/patches/fix-typed-locale-fixed-direct.py
             python .github/patches/apply-typed-locale-batch-one.py
             python .github/patches/fix-typed-locale-ui-guards.py
           } 2>&1 | tee typed-locale-apply.log
@@ -82,6 +83,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-locale-batch-one.yml
           rm -f \
             .github/patches/fix-typed-locale-fixed-marker.py \
+            .github/patches/fix-typed-locale-fixed-direct.py \
             .github/patches/apply-typed-locale-batch-one.py \
             .github/patches/fix-typed-locale-ui-guards.py \
             typed-locale-apply.log \
