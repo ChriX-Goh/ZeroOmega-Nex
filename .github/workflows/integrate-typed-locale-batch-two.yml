@@ -44,6 +44,7 @@ jobs:
             python .github/patches/prepare-locale-batch-two-patches.py
             python .github/patches/fix-locale-batch-two-test-signature.py
             python .github/patches/fix-locale-batch-two-clear-anchor.py
+            python .github/patches/fix-locale-batch-two-header-aria-anchor.py
             python .github/patches/apply-locale-batch-two-catalog.py
             python .github/patches/apply-locale-batch-two-switch.py
             python .github/patches/apply-locale-batch-two-rule-lists.py
@@ -87,6 +88,7 @@ jobs:
             .github/patches/prepare-locale-batch-two-patches.py \
             .github/patches/fix-locale-batch-two-test-signature.py \
             .github/patches/fix-locale-batch-two-clear-anchor.py \
+            .github/patches/fix-locale-batch-two-header-aria-anchor.py \
             .github/patches/apply-locale-batch-two-catalog.py \
             .github/patches/apply-locale-batch-two-switch.py \
             .github/patches/apply-locale-batch-two-rule-lists.py \
