@@ -1,3 +1,4 @@
+# integration revision 2
 name: Integrate typed locale batch one
 
 on:
@@ -42,6 +43,7 @@ jobs:
           {
             set -x
             python .github/patches/apply-typed-locale-batch-one.py
+            python .github/patches/fix-typed-locale-ui-guards.py
           } 2>&1 | tee typed-locale-apply.log
       - name: Format product slice
         run: |
@@ -79,6 +81,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-locale-batch-one.yml
           rm -f \
             .github/patches/apply-typed-locale-batch-one.py \
+            .github/patches/fix-typed-locale-ui-guards.py \
             typed-locale-apply.log \
             typed-locale-format.log \
             typed-locale-inventory.log \
