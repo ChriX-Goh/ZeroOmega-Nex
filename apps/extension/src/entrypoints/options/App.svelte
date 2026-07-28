@@ -1271,13 +1271,13 @@
         >
       </section>
     {:else if activeSection === 'theme'}
-      <header class="editor-heading">
+      <header class="editor-heading" data-theme-settings data-typed-locale={locale}>
         <div>
-          <h1>Theme</h1>
-          <p>Default: follow the operating-system appearance.</p>
+          <h1>{uiText('theme.pageTitle', locale)}</h1>
+          <p>{uiText('theme.pageHelp', locale)}</p>
         </div>
       </header>
-      <ThemePanel mode={themeMode} onChange={updateThemeMode} />
+      <ThemePanel {locale} mode={themeMode} onChange={updateThemeMode} />
     {:else if activeSection === 'import' && state}
       <header class="editor-heading">
         <div>

@@ -11,9 +11,11 @@
     "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
-    "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte"
+    "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+    "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+    "apps/extension/src/entrypoints/popup/App.svelte"
   ],
-  "candidateCount": 156,
+  "candidateCount": 117,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -393,11 +395,6 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Default: follow the operating-system appearance."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
       "text": "Direct"
     },
     {
@@ -419,11 +416,6 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "System Proxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/App.svelte",
-      "kind": "text",
-      "text": "Theme"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
@@ -526,21 +518,6 @@
       "text": "startHour"
     },
     {
-      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
-      "kind": "aria-label",
-      "text": "Options theme"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
-      "kind": "text",
-      "text": "Appearance"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",
-      "kind": "text",
-      "text": "Automatic is the default and changes immediately when the system appearance changes."
-    },
-    {
       "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
       "kind": "aria-label",
       "text": "Virtual Profile target"
@@ -579,176 +556,6 @@
       "path": "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
       "kind": "text",
       "text": "Target profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Current profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Current site actions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Current site condition pattern"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Current site condition type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Current site result profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "External profile name"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Open ZeroOmega Nex options"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Profiles"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "Temporary rules"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "aria-label",
-      "text": "ZeroOmega Nex profile switcher"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Add condition"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Adding…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Cancel"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "External Profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Inspect requests"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Manage extensions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Opening…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Options"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Profile name"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "request errors"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Save name"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Saving…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "Switching…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "expression-literal",
-      "text": "ZeroOmega cannot switch profiles until this problem is resolved."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Cancel"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Condition type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Inspecting context target"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Loading applied profiles…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "No quick-switch routes are configured."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "No temporary rule"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Pattern"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Quick switching is disabled in Options."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Result"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/popup/App.svelte",
-      "kind": "text",
-      "text": "Result profile"
     },
     {
       "path": "apps/extension/src/entrypoints/temp-rules/App.svelte",

@@ -477,6 +477,28 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('aria-checked="true"');
   });
 
+  it('renders typed Theme and Popup loading shells in both Chinese locales', () => {
+    const simplifiedTheme = render(ThemePanel, {
+      props: { locale: 'zh-CN', mode: 'dark', onChange: () => undefined },
+    }).body;
+    expect(simplifiedTheme).toContain('data-typed-locale="zh-CN"');
+    expect(simplifiedTheme).toContain('外观');
+    expect(simplifiedTheme).toContain('自动');
+    expect(simplifiedTheme).toContain('浅色');
+    expect(simplifiedTheme).toContain('深色');
+    expect(simplifiedTheme).not.toContain('Automatic');
+
+    const traditionalPopup = render(PopupApp, {
+      props: { locale: 'zh-TW' },
+    }).body;
+    expect(traditionalPopup).toContain('data-popup-locale="zh-TW"');
+    expect(traditionalPopup).toContain('正在載入已套用的情境模式…');
+    expect(traditionalPopup).toContain('aria-label="開啟 ZeroOmega Nex 選項"');
+    expect(traditionalPopup).toContain('選項');
+    expect(traditionalPopup).not.toContain('Loading applied profiles');
+    expect(traditionalPopup).not.toContain('Open ZeroOmega Nex options');
+  });
+
   it('renders history loading and dirty-Draft rollback protection', () => {
     const { body } = render(SnapshotHistoryPanel, {
       props: {

@@ -28,7 +28,8 @@
     type CurrentSiteInfo,
     type PopupConditionKind,
   } from '../../lib/current-site';
-  import { translate } from '../../lib/i18n';
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText, type UiTextKey } from '../../lib/ui-messages';
   import { sendInspectCommand } from '../../lib/inspect-client';
   import { sendProfileWorkflowCommand } from '../../lib/profile-workflow-client';
   import {
@@ -46,6 +47,8 @@
   } from '../../lib/request-diagnostics-client';
   import type { RequestDiagnosticsView } from '../../lib/request-diagnostics-model';
   import { applyThemeMode, readThemeMode } from '../../lib/ui-theme';
+
+  export let locale: AppLocale = currentAppLocale();
 
   interface QuickSwitchItem {
     readonly key: string;
@@ -66,12 +69,12 @@
     readonly name: string;
   }
 
-  const conditionKinds: readonly { value: PopupConditionKind; label: string }[] = [
-    { value: 'host-wildcard', label: 'Host wildcard' },
-    { value: 'host-regex', label: 'Host regular expression' },
-    { value: 'url-wildcard', label: 'URL wildcard' },
-    { value: 'url-regex', label: 'URL regular expression' },
-    { value: 'keyword', label: 'URL keyword' },
+  const conditionKinds: readonly { value: PopupConditionKind; labelKey: UiTextKey }[] = [
+    { value: 'host-wildcard', labelKey: 'popup.condition.hostWildcard' },
+    { value: 'host-regex', labelKey: 'popup.condition.hostRegex' },
+    { value: 'url-wildcard', labelKey: 'popup.condition.urlWildcard' },
+    { value: 'url-regex', labelKey: 'popup.condition.urlRegex' },
+    { value: 'keyword', labelKey: 'popup.condition.keyword' },
   ];
 
   let state: ProfileWorkflowState | undefined;
@@ -136,11 +139,11 @@
   }
 
   function routeName(spec: ProfileSpec, route: ProfileRouteTarget): string {
-    if (route.kind === 'direct') return translate('Direct');
-    if (route.kind === 'system') return translate('System Proxy');
+    if (route.kind === 'direct') return uiText('route.direct', locale);
+    if (route.kind === 'system') return uiText('route.system', locale);
     return (
       spec.profiles.find((profile) => profile.id === route.profileId)?.name ??
-      translate('Missing profile')
+      uiText('route.missing', locale)
     );
   }
 
@@ -199,7 +202,7 @@
         return {
           key: routeKey(route),
           route,
-          name: translate('Direct'),
+          name: uiText('route.direct', locale),
           color: spec.settings.interface.builtInProfiles?.direct?.color ?? '#bdbdbd',
           kind: 'direct',
           available: true,
@@ -209,7 +212,7 @@
         return {
           key: routeKey(route),
           route,
-          name: translate('System Proxy'),
+          name: uiText('route.system', locale),
           color: spec.settings.interface.builtInProfiles?.system?.color ?? '#616161',
           kind: 'system',
           available: true,
@@ -220,11 +223,11 @@
         return {
           key: routeKey(route),
           route,
-          name: translate('Missing profile'),
+          name: uiText('route.missing', locale),
           color: '#9e9e9e',
           kind: 'external',
           available: false,
-          reason: `Profile ${route.profileId} is missing from the applied configuration.`,
+          reason: uiMessage('popup.profileMissing', { profileId: route.profileId }, locale),
         };
       }
       const resultRoute = configuredResultRoute(profile);
@@ -241,7 +244,9 @@
         profileId: profile.id,
         ...(resultRoute === undefined ? {} : { resultRoute }),
         ...(profileResultItems === undefined ? {} : { resultItems: profileResultItems }),
-        ...(profile.enabled === false ? { reason: `${profile.name} is disabled.` } : {}),
+        ...(profile.enabled === false
+          ? { reason: uiMessage('popup.profileDisabled', { name: profile.name }, locale) }
+          : {}),
       };
     });
   }
@@ -254,7 +259,7 @@
       return true;
     }
     if (response.state !== undefined) state = response.state;
-    errorMessage = response.message;
+    errorMessage = uiText('popup.error.safe', locale);
     return false;
   }
 
@@ -269,7 +274,7 @@
       return true;
     }
     if (response.view !== undefined) temporaryRuleView = response.view;
-    errorMessage = response.message;
+    errorMessage = uiText('popup.error.safe', locale);
     return false;
   }
 
@@ -289,34 +294,22 @@
       blocked: true,
       reason: 'unknown',
     };
-    errorMessage = response.message;
+    errorMessage = uiText('popup.error.safe', locale);
   }
 
   function ownershipMessage(reason: ProxyOwnershipBlockReason | undefined): string {
-    if (reason === 'app') {
-      return translate(
-        'Another application is controlling proxy settings. Disable or remove the conflicting application.',
-      );
-    }
-    if (reason === 'policy') {
-      return translate(
-        'Proxy settings are enforced by local policy and cannot be changed. Contact your administrator.',
-      );
-    }
-    if (reason === 'disabled') {
-      return translate(
-        'ZeroOmega cannot control proxy settings because a required browser permission is disabled.',
-      );
-    }
-    return translate('ZeroOmega cannot inspect or change the browser proxy settings.');
+    if (reason === 'app') return uiText('popup.ownership.app', locale);
+    if (reason === 'policy') return uiText('popup.ownership.policy', locale);
+    if (reason === 'disabled') return uiText('popup.ownership.disabled', locale);
+    return uiText('popup.ownership.unknown', locale);
   }
 
   function validateExternalProfileName(): string {
     const name = externalProfileName.trim();
-    if (!name) return translate('Profile name is required.');
-    if (name.startsWith('_')) return translate('Profile name cannot start with an underscore.');
+    if (!name) return uiText('popup.name.required', locale);
+    if (name.startsWith('_')) return uiText('popup.name.underscore', locale);
     if (state?.applied.profiles.some((profile) => profile.name === name)) {
-      return translate('A profile with this name already exists.');
+      return uiText('popup.name.duplicate', locale);
     }
     return '';
   }
@@ -348,8 +341,8 @@
         }),
       );
       if (accepted) window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       importingExternalProfile = false;
     }
@@ -363,8 +356,8 @@
       const url = proxyOwnership.family === 'firefox' ? 'about:addons' : 'chrome://extensions/';
       await browser.tabs.create({ url });
       window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
       openingExtensionManager = false;
     }
   }
@@ -378,7 +371,7 @@
       requestDiagnostics = response.view;
       return true;
     }
-    errorMessage = response.message;
+    errorMessage = uiText('popup.error.safe', locale);
     return false;
   }
 
@@ -397,8 +390,8 @@
         url: new URL(`/network.html?tabId=${currentSite.tabId}`, location.href).href,
       });
       window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
       openingRequestDiagnostics = false;
     }
   }
@@ -428,8 +421,8 @@
         loadProxyOwnership(),
       ]);
       await loadRequestDiagnostics();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       loading = false;
     }
@@ -458,8 +451,8 @@
             }),
       );
       if (accepted) window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       settingTemporaryRule = false;
     }
@@ -471,8 +464,8 @@
     try {
       await browser.tabs.create({ url: browser.runtime.getURL('/temp-rules.html') });
       window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
       openingTemporaryRules = false;
     }
   }
@@ -494,8 +487,8 @@
         }),
       );
       if (accepted) window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       settingResult = false;
     }
@@ -514,8 +507,8 @@
           route: item.route,
         }),
       );
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       switching = false;
     }
@@ -576,8 +569,8 @@
         }),
       );
       if (accepted) window.close();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : String(error);
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
     } finally {
       addingCondition = false;
     }
@@ -590,9 +583,8 @@
     try {
       await browser.runtime.openOptionsPage();
       window.close();
-    } catch (error) {
-      console.error('Unable to open the ZeroOmega Nex options page.', error);
-      errorMessage = 'Unable to open Options.';
+    } catch {
+      errorMessage = uiText('popup.error.safe', locale);
       openingSettings = false;
     }
   }
@@ -605,7 +597,9 @@
 
 <main
   class="popup-shell"
-  aria-label="ZeroOmega Nex profile switcher"
+  data-popup-locale={locale}
+  data-typed-locale={locale}
+  aria-label={uiText('popup.switcherAria', locale)}
   aria-busy={loading ||
     switching ||
     addingCondition ||
@@ -613,9 +607,9 @@
     settingTemporaryRule ||
     importingExternalProfile}
 >
-  <section aria-label="Profiles" class="profile-list">
+  <section aria-label={uiText('popup.profilesAria', locale)} class="profile-list">
     {#if loading}
-      <p class="settings-error" role="status">Loading applied profiles…</p>
+      <p class="settings-error" role="status">{uiText('popup.loading', locale)}</p>
     {:else if proxyOwnership?.blocked}
       <section
         class="proxy-not-controllable"
@@ -625,10 +619,10 @@
       >
         <p class="proxy-control-message">{ownershipMessage(proxyOwnership.reason)}</p>
         <p class="proxy-control-details">
-          {translate('ZeroOmega cannot switch profiles until this problem is resolved.')}
+          {uiText('popup.ownership.details', locale)}
         </p>
         <div class="proxy-control-actions">
-          <button type="button" onclick={closePopup}>{translate('Cancel')}</button>
+          <button type="button" onclick={closePopup}>{uiText('popup.cancel', locale)}</button>
           <button
             type="button"
             class="primary"
@@ -636,14 +630,14 @@
             disabled={openingExtensionManager}
             onclick={() => void openExtensionManager()}
           >
-            {translate('Manage extensions')}
+            {uiText('popup.manageExtensions', locale)}
           </button>
         </div>
       </section>
     {:else if !state?.applied.settings.quickSwitch.enabled}
-      <p class="settings-error" role="status">Quick switching is disabled in Options.</p>
+      <p class="settings-error" role="status">{uiText('popup.quickDisabled', locale)}</p>
     {:else if items.length === 0}
-      <p class="settings-error" role="status">No quick-switch routes are configured.</p>
+      <p class="settings-error" role="status">{uiText('popup.noRoutes', locale)}</p>
     {:else}
       {#each items as item, index (item.key)}
         {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}
@@ -659,8 +653,8 @@
               sameRoute(runtime?.activeRoute, item.route)}
             title={item.reason ??
               (sameRoute(runtime?.activeRoute, item.route)
-                ? `${item.name} is active`
-                : `Activate ${item.name}`)}
+                ? uiMessage('popup.profileActive', { name: item.name }, locale)
+                : uiMessage('popup.activateProfile', { name: item.name }, locale))}
             onclick={() => activateRoute(item)}
           >
             <ProfileIcon kind={item.kind} color={item.color} size={21} />
@@ -673,17 +667,21 @@
               {/if}
             </span>
             {#if sameRoute(runtime?.activeRoute, item.route)}
-              <svg class="current-mark" viewBox="0 0 16 16" aria-label="Current profile">
+              <svg
+                class="current-mark"
+                viewBox="0 0 16 16"
+                aria-label={uiText('popup.currentProfile', locale)}
+              >
                 <path d="m3.2 8.3 2.8 2.8 6.8-7" />
               </svg>
             {/if}
           </button>
           {#if item.resultRoute && item.resultItems && item.resultItems.length > 0}
             <label class="profile-result-control">
-              <span>Result</span>
+              <span>{uiText('popup.result', locale)}</span>
               <select
                 data-popup-result-profile
-                aria-label={`Result profile for ${item.name}`}
+                aria-label={uiMessage('popup.resultFor', { name: item.name }, locale)}
                 value={routeKey(item.resultRoute)}
                 disabled={settingResult ||
                   switching ||
@@ -713,11 +711,11 @@
               }}
             >
               <label>
-                {translate('Profile name')}
+                {uiText('popup.profileName', locale)}
                 <input
-                  aria-label="External profile name"
+                  aria-label={uiText('popup.externalNameAria', locale)}
                   bind:value={externalProfileName}
-                  placeholder={translate('External Profile')}
+                  placeholder={uiText('popup.externalProfile', locale)}
                   oninput={() => (externalProfileNameError = '')}
                 />
               </label>
@@ -730,10 +728,10 @@
                   disabled={importingExternalProfile}
                   onclick={closeExternalProfileForm}
                 >
-                  {translate('Cancel')}
+                  {uiText('popup.cancel', locale)}
                 </button>
                 <button type="submit" class="primary" disabled={importingExternalProfile}>
-                  {importingExternalProfile ? translate('Saving…') : translate('Save name')}
+                  {uiText(importingExternalProfile ? 'popup.saving' : 'popup.saveName', locale)}
                 </button>
               </div>
             </form>
@@ -749,7 +747,7 @@
                 color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
                 size={21}
               />
-              <span>{translate('External Profile')}</span>
+              <span>{uiText('popup.externalProfile', locale)}</span>
             </button>
           {/if}
         </div>
@@ -759,7 +757,7 @@
 
   {#if !loading && !proxyOwnership?.blocked && inspectingContextTarget && currentSite}
     <section class="inspect-target" data-popup-inspect-target aria-live="polite">
-      <strong>Inspecting context target</strong>
+      <strong>{uiText('popup.inspectingContext', locale)}</strong>
       <span>{currentSite.hostname}</span>
     </section>
   {/if}
@@ -768,8 +766,11 @@
     <section class="request-diagnostics-summary" data-popup-request-diagnostics>
       <div>
         <strong>
-          {requestDiagnostics.errorCount + requestDiagnostics.timeoutCount}
-          {translate('request errors')}
+          {uiMessage(
+            'popup.requestErrors',
+            { count: requestDiagnostics.errorCount + requestDiagnostics.timeoutCount },
+            locale,
+          )}
         </strong>
         <span>
           {requestDiagnostics.domains
@@ -784,22 +785,26 @@
         disabled={openingRequestDiagnostics}
         onclick={() => void openRequestDiagnostics()}
       >
-        {translate('Inspect requests')}
+        {uiText('popup.inspectRequests', locale)}
       </button>
     </section>
   {/if}
 
   {#if !loading && !proxyOwnership?.blocked && currentSite && temporaryResultItems.length > 0}
-    <section class="temporary-rule-action" data-popup-temporary-rule aria-label="Temporary rules">
+    <section
+      class="temporary-rule-action"
+      data-popup-temporary-rule
+      aria-label={uiText('popup.temporaryRulesAria', locale)}
+    >
       <label>
-        Temporary profile for {currentSite.domain}
+        {uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
         <select
-          aria-label={`Temporary profile for ${currentSite.domain}`}
+          aria-label={uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
           value={currentTemporaryRoute ? routeKey(currentTemporaryRoute) : ''}
           disabled={settingTemporaryRule || switching || settingResult || addingCondition}
           onchange={(event) => void setTemporaryRule(event)}
         >
-          <option value="">No temporary rule</option>
+          <option value="">{uiText('popup.noTemporaryRule', locale)}</option>
           {#each temporaryResultItems as item}
             <option value={item.key}>{item.name}</option>
           {/each}
@@ -812,7 +817,11 @@
           disabled={openingTemporaryRules || settingTemporaryRule}
           onclick={() => void openTemporaryRules()}
         >
-          Manage temporary rules ({temporaryRuleView?.rules.length ?? 0})
+          {uiMessage(
+            'popup.manageTemporary',
+            { count: temporaryRuleView?.rules.length ?? 0 },
+            locale,
+          )}
         </button>
       {/if}
     </section>
@@ -828,32 +837,41 @@
           void addCurrentSiteCondition();
         }}
       >
-        <h2>Add condition to {activeSwitch.name}</h2>
-        <p class="condition-domain">Current site: {currentSite.hostname}</p>
+        <h2>{uiMessage('popup.addConditionTitle', { name: activeSwitch.name }, locale)}</h2>
+        <p class="condition-domain">
+          {uiMessage('popup.currentSite', { hostname: currentSite.hostname }, locale)}
+        </p>
         {#if currentSite.subdomain}
           <button class="scope-button" type="button" onclick={cycleSubdomainScope}>
-            Scope: {currentSiteDomainForLevel(currentSite, subdomainLevel)}
+            {uiMessage(
+              'popup.scope',
+              { domain: currentSiteDomainForLevel(currentSite, subdomainLevel) },
+              locale,
+            )}
           </button>
         {/if}
         <label>
-          Condition type
+          {uiText('popup.conditionType', locale)}
           <select
-            aria-label="Current site condition type"
+            aria-label={uiText('popup.conditionTypeAria', locale)}
             value={conditionKind}
             onchange={changeConditionKind}
           >
             {#each conditionKinds as kind}
-              <option value={kind.value}>{kind.label}</option>
+              <option value={kind.value}>{uiText(kind.labelKey, locale)}</option>
             {/each}
           </select>
         </label>
         <label>
-          Pattern
-          <input aria-label="Current site condition pattern" bind:value={conditionPattern} />
+          {uiText('popup.pattern', locale)}
+          <input aria-label={uiText('popup.patternAria', locale)} bind:value={conditionPattern} />
         </label>
         <label>
-          Result profile
-          <select aria-label="Current site result profile" bind:value={conditionRouteKey}>
+          {uiText('popup.resultProfile', locale)}
+          <select
+            aria-label={uiText('popup.resultProfileAria', locale)}
+            bind:value={conditionRouteKey}
+          >
             {#each resultItems as item}
               <option value={item.key}>{item.name}</option>
             {/each}
@@ -863,20 +881,23 @@
           <button
             type="button"
             onclick={() => (conditionFormOpen = false)}
-            disabled={addingCondition}>Cancel</button
+            disabled={addingCondition}>{uiText('popup.cancel', locale)}</button
           >
           <button
             type="submit"
             disabled={addingCondition || !conditionPattern || !conditionRouteKey}
           >
-            {addingCondition ? 'Adding…' : 'Add condition'}
+            {uiText(addingCondition ? 'popup.adding' : 'popup.addCondition', locale)}
           </button>
         </div>
       </form>
     {:else}
-      <section class="current-site-action" aria-label="Current site actions">
+      <section
+        class="current-site-action"
+        aria-label={uiText('popup.currentSiteActionsAria', locale)}
+      >
         <button type="button" data-popup-add-current-site onclick={openConditionForm}>
-          Add condition for {currentSite.domain}
+          {uiMessage('popup.addFor', { domain: currentSite.domain }, locale)}
         </button>
       </section>
     {/if}
@@ -888,7 +909,7 @@
       type="button"
       onclick={openOptions}
       disabled={openingSettings}
-      aria-label="Open ZeroOmega Nex options"
+      aria-label={uiText('popup.optionsAria', locale)}
     >
       <svg viewBox="0 0 20 20" aria-hidden="true">
         <path
@@ -896,11 +917,11 @@
         />
         <circle cx="10" cy="8.5" r="2.2" />
       </svg>
-      <span>{openingSettings ? 'Opening…' : 'Options'}</span>
+      <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
     </button>
     <span class="product-name"
       >{switching || settingTemporaryRule || importingExternalProfile
-        ? 'Switching…'
+        ? uiText('popup.switching', locale)
         : productIdentity.name}</span
     >
   </footer>

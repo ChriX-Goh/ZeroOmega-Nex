@@ -12,6 +12,8 @@ const files = {
   pac: 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
   history: 'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
   legacyImport: 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
+  theme: 'apps/extension/src/entrypoints/options/ThemePanel.svelte',
+  popup: 'apps/extension/src/entrypoints/popup/App.svelte',
   chromiumE2e: 'scripts/e2e-chromium.mjs',
   firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
@@ -52,6 +54,8 @@ for (const [name, source] of [
   ['PAC Profile', entries.pac],
   ['Snapshot History', entries.history],
   ['Legacy Import', entries.legacyImport],
+  ['Theme', entries.theme],
+  ['Popup', entries.popup],
 ]) {
   requireText(
     source,
@@ -171,6 +175,30 @@ for (const [source, marker, message] of [
     'Proxy authentication permission was not granted.',
     'PAC auth error regressed to literal English.',
   ],
+  [entries.theme, '<strong>Automatic</strong>', 'Theme choice regressed to literal English.'],
+  [entries.theme, 'aria-label="Theme"', 'Theme ARIA regressed to literal English.'],
+  [entries.popup, 'Loading applied profiles…', 'Popup loading state regressed to literal English.'],
+  [
+    entries.popup,
+    'Temporary profile for {currentSite.domain}',
+    'Popup temporary rule regressed to literal English.',
+  ],
+  [
+    entries.popup,
+    'Add condition for {currentSite.domain}',
+    'Popup current-site action regressed to literal English.',
+  ],
+  [entries.popup, 'translate(', 'Popup regressed to the observer translation layer.'],
+  [
+    entries.popup,
+    'errorMessage = response.message',
+    'Popup must not render raw backend response messages.',
+  ],
+  [
+    entries.popup,
+    'error instanceof Error ? error.message',
+    'Popup must not render raw exception messages.',
+  ],
   [entries.app, '<h1>General</h1>', 'General heading regressed to literal English.'],
   [entries.app, '<h1>Interface</h1>', 'Interface heading regressed to literal English.'],
   [
@@ -246,6 +274,9 @@ requireText(
   'data-interface-settings',
   'Interface settings must expose typed browser evidence.',
 );
+requireText(entries.app, '<ThemePanel {locale}', 'Options must pass locale to Theme.');
+requireText(entries.theme, 'data-theme-panel', 'Theme must expose typed browser evidence.');
+requireText(entries.popup, 'data-popup-locale={locale}', 'Popup must expose its typed locale.');
 requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",
@@ -260,6 +291,16 @@ requireText(
   entries.catalog,
   "readonly 'pac.lastUpdated'",
   'Typed PAC update status messages are missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Popup typed locale coverage regressed',
+  'Chromium Popup typed-locale coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  "locator('[data-theme-panel]')",
+  'Chromium Theme typed-locale coverage is missing.',
 );
 requireText(
   entries.chromiumE2e,

@@ -15,6 +15,8 @@ const typedBatchFiles = [
   'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
   'apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte',
   'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte',
+  'apps/extension/src/entrypoints/options/ThemePanel.svelte',
+  'apps/extension/src/entrypoints/popup/App.svelte',
 ];
 
 async function collect(directory) {

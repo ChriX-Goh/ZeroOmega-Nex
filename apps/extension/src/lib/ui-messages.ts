@@ -937,6 +937,198 @@ export const typedUiTextCatalog = {
     'zh-CN': '按需导出旧版规则列表格式',
     'zh-TW': '依需求匯出舊版規則清單格式',
   },
+  'theme.pageTitle': { en: 'Theme', 'zh-CN': '主题', 'zh-TW': '佈景主題' },
+  'theme.pageHelp': {
+    en: 'Default: follow the operating-system appearance.',
+    'zh-CN': '默认跟随操作系统外观。',
+    'zh-TW': '預設跟隨作業系統外觀。',
+  },
+  'theme.appearance': { en: 'Appearance', 'zh-CN': '外观', 'zh-TW': '外觀' },
+  'theme.groupAria': { en: 'Theme', 'zh-CN': '主题', 'zh-TW': '佈景主題' },
+  'theme.auto.title': { en: 'Automatic', 'zh-CN': '自动', 'zh-TW': '自動' },
+  'theme.auto.description': {
+    en: 'Follow the operating-system appearance.',
+    'zh-CN': '跟随操作系统外观。',
+    'zh-TW': '跟隨作業系統外觀。',
+  },
+  'theme.light.title': { en: 'Light', 'zh-CN': '浅色', 'zh-TW': '淺色' },
+  'theme.light.description': {
+    en: 'Use the light appearance everywhere.',
+    'zh-CN': '始终使用浅色外观。',
+    'zh-TW': '一律使用淺色外觀。',
+  },
+  'theme.dark.title': { en: 'Dark', 'zh-CN': '深色', 'zh-TW': '深色' },
+  'theme.dark.description': {
+    en: 'Use the dark appearance everywhere.',
+    'zh-CN': '始终使用深色外观。',
+    'zh-TW': '一律使用深色外觀。',
+  },
+  'theme.defaultHelp': {
+    en: 'Automatic is the default and follows the current browser and operating-system preference.',
+    'zh-CN': '“自动”为默认设置，会跟随当前浏览器和操作系统偏好。',
+    'zh-TW': '「自動」為預設設定，會跟隨目前瀏覽器與作業系統偏好。',
+  },
+  'popup.switcherAria': {
+    en: 'ZeroOmega Nex profile switcher',
+    'zh-CN': 'ZeroOmega Nex 情景模式切换器',
+    'zh-TW': 'ZeroOmega Nex 情境模式切換器',
+  },
+  'popup.profilesAria': { en: 'Profiles', 'zh-CN': '情景模式', 'zh-TW': '情境模式' },
+  'popup.loading': {
+    en: 'Loading applied profiles…',
+    'zh-CN': '正在加载已应用的情景模式…',
+    'zh-TW': '正在載入已套用的情境模式…',
+  },
+  'popup.error.safe': {
+    en: 'The popup operation could not be completed. Reopen the popup and retry.',
+    'zh-CN': '无法完成弹出菜单操作。请重新打开弹出菜单后重试。',
+    'zh-TW': '無法完成彈出式選單操作。請重新開啟彈出式選單後重試。',
+  },
+  'popup.ownership.app': {
+    en: 'Another application is controlling proxy settings. Disable or remove the conflicting application.',
+    'zh-CN': '其他应用正在控制代理设置。请禁用或者卸载发生冲突的应用。',
+    'zh-TW': '其他應用程式正在控制 Proxy 設定。請停用或移除發生衝突的應用程式。',
+  },
+  'popup.ownership.policy': {
+    en: 'Proxy settings are enforced by local policy and cannot be changed. Contact your administrator.',
+    'zh-CN': '代理设置被本地策略强制指定，无法修改。请联系系统管理员。',
+    'zh-TW': 'Proxy 設定由本機原則強制指定，無法修改。請聯絡系統管理員。',
+  },
+  'popup.ownership.disabled': {
+    en: 'ZeroOmega cannot control proxy settings because a required browser permission is disabled.',
+    'zh-CN': '浏览器所需权限已关闭，ZeroOmega 无法控制代理设置。',
+    'zh-TW': '瀏覽器所需權限已關閉，ZeroOmega 無法控制 Proxy 設定。',
+  },
+  'popup.ownership.unknown': {
+    en: 'ZeroOmega cannot inspect or change the browser proxy settings.',
+    'zh-CN': 'ZeroOmega 无法检查或修改浏览器代理设置。',
+    'zh-TW': 'ZeroOmega 無法檢查或修改瀏覽器 Proxy 設定。',
+  },
+  'popup.ownership.details': {
+    en: 'ZeroOmega cannot switch profiles until this problem is resolved.',
+    'zh-CN': '如果不解决以上问题，则无法使用 ZeroOmega 切换代理。',
+    'zh-TW': '若不解決以上問題，則無法使用 ZeroOmega 切換 Proxy。',
+  },
+  'popup.cancel': { en: 'Cancel', 'zh-CN': '取消', 'zh-TW': '取消' },
+  'popup.manageExtensions': {
+    en: 'Manage extensions',
+    'zh-CN': '管理扩展',
+    'zh-TW': '管理擴充功能',
+  },
+  'popup.quickDisabled': {
+    en: 'Quick switching is disabled in Options.',
+    'zh-CN': '快速切换已在选项中关闭。',
+    'zh-TW': '快速切換已在選項中關閉。',
+  },
+  'popup.noRoutes': {
+    en: 'No quick-switch routes are configured.',
+    'zh-CN': '尚未配置快速切换路由。',
+    'zh-TW': '尚未設定快速切換路由。',
+  },
+  'popup.currentProfile': {
+    en: 'Current profile',
+    'zh-CN': '当前情景模式',
+    'zh-TW': '目前情境模式',
+  },
+  'popup.result': { en: 'Result', 'zh-CN': '结果', 'zh-TW': '結果' },
+  'popup.externalProfile': {
+    en: 'External Profile',
+    'zh-CN': '外部情景模式',
+    'zh-TW': '外部情境模式',
+  },
+  'popup.profileName': { en: 'Profile name', 'zh-CN': '情景模式名称', 'zh-TW': '情境模式名稱' },
+  'popup.externalNameAria': {
+    en: 'External profile name',
+    'zh-CN': '外部情景模式名称',
+    'zh-TW': '外部情境模式名稱',
+  },
+  'popup.saving': { en: 'Saving…', 'zh-CN': '正在保存…', 'zh-TW': '正在儲存…' },
+  'popup.saveName': { en: 'Save name', 'zh-CN': '保存名称', 'zh-TW': '儲存名稱' },
+  'popup.name.required': {
+    en: 'Profile name is required.',
+    'zh-CN': '必须输入情景模式名称。',
+    'zh-TW': '必須輸入情境模式名稱。',
+  },
+  'popup.name.underscore': {
+    en: 'Profile name cannot start with an underscore.',
+    'zh-CN': '情景模式名称不能以下划线开头。',
+    'zh-TW': '情境模式名稱不能以下劃線開頭。',
+  },
+  'popup.name.duplicate': {
+    en: 'A profile with this name already exists.',
+    'zh-CN': '已存在同名情景模式。',
+    'zh-TW': '已存在同名情境模式。',
+  },
+  'popup.inspectingContext': {
+    en: 'Inspecting context target',
+    'zh-CN': '正在检查右键目标',
+    'zh-TW': '正在檢查右鍵目標',
+  },
+  'popup.inspectRequests': { en: 'Inspect requests', 'zh-CN': '检查请求', 'zh-TW': '檢查請求' },
+  'popup.temporaryRulesAria': {
+    en: 'Temporary rules',
+    'zh-CN': '临时规则',
+    'zh-TW': '暫時規則',
+  },
+  'popup.noTemporaryRule': {
+    en: 'No temporary rule',
+    'zh-CN': '不使用临时规则',
+    'zh-TW': '不使用暫時規則',
+  },
+  'popup.condition.hostWildcard': {
+    en: 'Host wildcard',
+    'zh-CN': '主机通配符',
+    'zh-TW': '主機萬用字元',
+  },
+  'popup.condition.hostRegex': {
+    en: 'Host regular expression',
+    'zh-CN': '主机正则表达式',
+    'zh-TW': '主機規則運算式',
+  },
+  'popup.condition.urlWildcard': {
+    en: 'URL wildcard',
+    'zh-CN': '网址通配符',
+    'zh-TW': '網址萬用字元',
+  },
+  'popup.condition.urlRegex': {
+    en: 'URL regular expression',
+    'zh-CN': '网址正则表达式',
+    'zh-TW': '網址規則運算式',
+  },
+  'popup.condition.keyword': { en: 'URL keyword', 'zh-CN': '网址关键词', 'zh-TW': '網址關鍵字' },
+  'popup.conditionType': { en: 'Condition type', 'zh-CN': '条件类型', 'zh-TW': '條件類型' },
+  'popup.conditionTypeAria': {
+    en: 'Current site condition type',
+    'zh-CN': '当前网站条件类型',
+    'zh-TW': '目前網站條件類型',
+  },
+  'popup.pattern': { en: 'Pattern', 'zh-CN': '匹配内容', 'zh-TW': '比對內容' },
+  'popup.patternAria': {
+    en: 'Current site condition pattern',
+    'zh-CN': '当前网站条件匹配内容',
+    'zh-TW': '目前網站條件比對內容',
+  },
+  'popup.resultProfile': { en: 'Result profile', 'zh-CN': '结果情景模式', 'zh-TW': '結果情境模式' },
+  'popup.resultProfileAria': {
+    en: 'Current site result profile',
+    'zh-CN': '当前网站结果情景模式',
+    'zh-TW': '目前網站結果情境模式',
+  },
+  'popup.adding': { en: 'Adding…', 'zh-CN': '正在添加…', 'zh-TW': '正在加入…' },
+  'popup.addCondition': { en: 'Add condition', 'zh-CN': '添加条件', 'zh-TW': '加入條件' },
+  'popup.currentSiteActionsAria': {
+    en: 'Current site actions',
+    'zh-CN': '当前网站操作',
+    'zh-TW': '目前網站操作',
+  },
+  'popup.optionsAria': {
+    en: 'Open ZeroOmega Nex options',
+    'zh-CN': '打开 ZeroOmega Nex 选项',
+    'zh-TW': '開啟 ZeroOmega Nex 選項',
+  },
+  'popup.opening': { en: 'Opening…', 'zh-CN': '正在打开…', 'zh-TW': '正在開啟…' },
+  'popup.options': { en: 'Options', 'zh-CN': '选项', 'zh-TW': '選項' },
+  'popup.switching': { en: 'Switching…', 'zh-CN': '正在切换…', 'zh-TW': '正在切換…' },
   'history.nav': { en: 'Snapshot History', 'zh-CN': '配置历史', 'zh-TW': '設定歷史' },
   'history.pageTitle': { en: 'Configuration History', 'zh-CN': '配置历史', 'zh-TW': '設定歷史' },
   'history.pageHelp': {
@@ -1330,6 +1522,18 @@ const profileKindKeys: Readonly<Record<ProfileKind, UiTextKey>> = {
 };
 
 export interface UiMessageParameters {
+  readonly 'popup.profileMissing': { readonly profileId: string };
+  readonly 'popup.profileDisabled': { readonly name: string };
+  readonly 'popup.profileActive': { readonly name: string };
+  readonly 'popup.activateProfile': { readonly name: string };
+  readonly 'popup.resultFor': { readonly name: string };
+  readonly 'popup.requestErrors': { readonly count: number };
+  readonly 'popup.temporaryFor': { readonly domain: string };
+  readonly 'popup.manageTemporary': { readonly count: number };
+  readonly 'popup.addConditionTitle': { readonly name: string };
+  readonly 'popup.currentSite': { readonly hostname: string };
+  readonly 'popup.scope': { readonly domain: string };
+  readonly 'popup.addFor': { readonly domain: string };
   readonly 'profile.delete.blockedDescription': { readonly profileName: string };
   readonly 'profile.delete.confirmDescription': { readonly profileName: string };
   readonly 'pac.headerAria': {
@@ -1414,6 +1618,78 @@ export function uiMessage<K extends UiMessageKey>(
   locale: AppLocale = currentAppLocale(),
 ): string {
   switch (key) {
+    case 'popup.profileMissing': {
+      const { profileId } = params as UiMessageParameters['popup.profileMissing'];
+      if (locale === 'zh-CN') return `已应用配置中缺少情景模式 ${profileId}。`;
+      if (locale === 'zh-TW') return `已套用設定中缺少情境模式 ${profileId}。`;
+      return `Profile ${profileId} is missing from the applied configuration.`;
+    }
+    case 'popup.profileDisabled': {
+      const { name } = params as UiMessageParameters['popup.profileDisabled'];
+      if (locale === 'zh-CN') return `${name} 已禁用。`;
+      if (locale === 'zh-TW') return `${name} 已停用。`;
+      return `${name} is disabled.`;
+    }
+    case 'popup.profileActive': {
+      const { name } = params as UiMessageParameters['popup.profileActive'];
+      if (locale === 'zh-CN') return `${name} 当前已启用`;
+      if (locale === 'zh-TW') return `${name} 目前已啟用`;
+      return `${name} is active`;
+    }
+    case 'popup.activateProfile': {
+      const { name } = params as UiMessageParameters['popup.activateProfile'];
+      if (locale === 'zh-CN') return `启用 ${name}`;
+      if (locale === 'zh-TW') return `啟用 ${name}`;
+      return `Activate ${name}`;
+    }
+    case 'popup.resultFor': {
+      const { name } = params as UiMessageParameters['popup.resultFor'];
+      if (locale === 'zh-CN') return `${name} 的结果情景模式`;
+      if (locale === 'zh-TW') return `${name} 的結果情境模式`;
+      return `Result profile for ${name}`;
+    }
+    case 'popup.requestErrors': {
+      const { count } = params as UiMessageParameters['popup.requestErrors'];
+      if (locale === 'zh-CN') return `${count} 个请求错误`;
+      if (locale === 'zh-TW') return `${count} 個請求錯誤`;
+      return `${count} request error${count === 1 ? '' : 's'}`;
+    }
+    case 'popup.temporaryFor': {
+      const { domain } = params as UiMessageParameters['popup.temporaryFor'];
+      if (locale === 'zh-CN') return `${domain} 的临时情景模式`;
+      if (locale === 'zh-TW') return `${domain} 的暫時情境模式`;
+      return `Temporary profile for ${domain}`;
+    }
+    case 'popup.manageTemporary': {
+      const { count } = params as UiMessageParameters['popup.manageTemporary'];
+      if (locale === 'zh-CN') return `管理临时规则（${count}）`;
+      if (locale === 'zh-TW') return `管理暫時規則（${count}）`;
+      return `Manage temporary rules (${count})`;
+    }
+    case 'popup.addConditionTitle': {
+      const { name } = params as UiMessageParameters['popup.addConditionTitle'];
+      if (locale === 'zh-CN') return `向 ${name} 添加条件`;
+      if (locale === 'zh-TW') return `向 ${name} 加入條件`;
+      return `Add condition to ${name}`;
+    }
+    case 'popup.currentSite': {
+      const { hostname } = params as UiMessageParameters['popup.currentSite'];
+      if (locale === 'zh-CN') return `当前网站：${hostname}`;
+      if (locale === 'zh-TW') return `目前網站：${hostname}`;
+      return `Current site: ${hostname}`;
+    }
+    case 'popup.scope': {
+      const { domain } = params as UiMessageParameters['popup.scope'];
+      if (locale === 'zh-CN') return `范围：${domain}`;
+      if (locale === 'zh-TW') return `範圍：${domain}`;
+      return `Scope: ${domain}`;
+    }
+    case 'popup.addFor': {
+      const { domain } = params as UiMessageParameters['popup.addFor'];
+      if (locale === 'zh-CN') return `为 ${domain} 添加条件`;
+      if (locale === 'zh-TW') return `為 ${domain} 加入條件`;
+      return `Add condition for ${domain}`;
+    }
     case 'profile.delete.blockedDescription': {
       const { profileName } = params as UiMessageParameters['profile.delete.blockedDescription'];
       if (locale === 'zh-CN') return `“${profileName}”仍被以下情景模式引用，因此无法删除。`;

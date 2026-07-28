@@ -1,43 +1,50 @@
 <script lang="ts">
-  type ThemeMode = 'auto' | 'light' | 'dark';
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiText, type UiTextKey } from '../../lib/ui-messages';
+  import type { ThemeMode } from '../../lib/ui-theme';
+
+  export let locale: AppLocale = currentAppLocale();
   export let mode: ThemeMode;
   export let onChange: (mode: ThemeMode) => void;
 
-  const choices: readonly { mode: ThemeMode; title: string; description: string }[] = [
+  const choices: readonly {
+    value: ThemeMode;
+    titleKey: UiTextKey;
+    descriptionKey: UiTextKey;
+  }[] = [
     {
-      mode: 'auto',
-      title: 'Automatic',
-      description: 'Follow the operating-system light or dark appearance.',
+      value: 'auto',
+      titleKey: 'theme.auto.title',
+      descriptionKey: 'theme.auto.description',
     },
     {
-      mode: 'light',
-      title: 'Light',
-      description: 'Always use the original light options appearance.',
+      value: 'light',
+      titleKey: 'theme.light.title',
+      descriptionKey: 'theme.light.description',
     },
-    { mode: 'dark', title: 'Dark', description: 'Always use the dark options appearance.' },
+    {
+      value: 'dark',
+      titleKey: 'theme.dark.title',
+      descriptionKey: 'theme.dark.description',
+    },
   ];
 </script>
 
-<section class="settings-section theme-options">
-  <h2>Appearance</h2>
-  <div class="theme-grid" role="radiogroup" aria-label="Options theme">
-    {#each choices as choice (choice.mode)}
+<section class="settings-section" data-theme-panel data-typed-locale={locale}>
+  <h2>{uiText('theme.appearance', locale)}</h2>
+  <div class="theme-choices" role="radiogroup" aria-label={uiText('theme.groupAria', locale)}>
+    {#each choices as choice}
       <button
         type="button"
+        class:active={mode === choice.value}
         role="radio"
-        aria-checked={mode === choice.mode}
-        class:active={mode === choice.mode}
-        on:click={() => onChange(choice.mode)}
+        aria-checked={mode === choice.value}
+        onclick={() => onChange(choice.value)}
       >
-        <span class={`theme-preview theme-preview-${choice.mode}`} aria-hidden="true"
-          ><i></i><b></b></span
-        >
-        <strong>{choice.title}</strong>
-        <span>{choice.description}</span>
+        <strong>{uiText(choice.titleKey, locale)}</strong>
+        <span>{uiText(choice.descriptionKey, locale)}</span>
       </button>
     {/each}
   </div>
-  <p class="section-help">
-    Automatic is the default and changes immediately when the system appearance changes.
-  </p>
+  <p class="section-help">{uiText('theme.defaultHelp', locale)}</p>
 </section>

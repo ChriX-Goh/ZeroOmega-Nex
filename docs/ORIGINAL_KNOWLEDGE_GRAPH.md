@@ -297,6 +297,15 @@ graph TD
 - App 级失败不得直接把后台 `response.message` 或异常 `error.message` 渲染到页面；界面显示非秘密的 typed 安全摘要，具体稳定 code/path 由对应功能状态区域承担。
 - Chromium 必须真实进入 General 与 Interface，核验 resolved locale、关键标题/label/select/ARIA、Actions 状态并排除原英文模板。Firefox 继续验证正體中文 Apply 状态，防止 shell typed 化破坏跨浏览器工作流。
 
+## 12.2 Nex Theme 与 Popup typed 边界
+
+- Theme 继续只有 `auto` / `light` / `dark` 三种状态，Options 与 Popup 读取同一持久化选择；typed 文案不得增加第四种主题或改变自动模式的系统跟随语义。
+- Popup 路由列表和结果选择只读取并修改 Applied；typed 展示层不得把 Draft 直接暴露为可切换状态，也不得绕过 `expectedAppliedRevisionId`。
+- 临时规则继续只进入 `storage.session` 和 session snapshot，Popup 本地化不得把临时规则写入普通 ProfileSpec、持久快照或导出。
+- ownership blocker 继续 fail closed；在 app/policy/disabled/unknown 任一不可控制状态下，情景模式、临时规则和当前网站操作都不得显示。
+- Popup 的 route/result、外部配置、诊断摘要、临时规则、当前网站条件、底部 Options/状态及动态 ARIA 直接通过 typed 英文/简体中文/正體中文 catalog 渲染；不再依赖全局 observer 翻译。
+- Popup 不直接渲染后台 `response.message` 或异常文字，只显示非秘密 typed 安全摘要；稳定技术证据仍由对应 Options/Network 页面承担。
+
 ## 13. 本地化知识节点
 
 原版 locale 基线：`en_US`、`zh_CN`、`zh_TW`、`zh_Hant`。

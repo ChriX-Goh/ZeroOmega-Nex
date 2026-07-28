@@ -201,6 +201,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
 - This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
 
+### Typed Theme and Popup
+
+- Theme keeps the existing Automatic, Light, and Dark behavior while directly rendering all appearance choices, descriptions, help, and ARIA in English, Simplified Chinese, and Traditional Chinese.
+- Popup route/result rows, ownership blockers, external-profile naming, request-diagnostics summary, temporary-rule controls, current-site condition workflow, footer actions, dynamic status/title, safe errors, and ARIA now render directly through the typed catalog.
+- Popup switching remains Applied-only; temporary rules remain session-only; ownership blockers remain fail closed. This slice changes the presentation contract, not those state machines.
+- Chromium verifies resolved zh-CN Theme and Popup locale, shared dark/automatic theme behavior, result selection, temporary-rule session storage, current-site Apply, external import, and ownership blocking through the complete interaction chain.
+
 ### Typed Options shell, General and Interface
 
 - The Options sidebar retains the original Settings / Profiles / Actions information structure. Apply and Discard remain fixed in Actions and continue to operate only through the existing Draft/Applied workflow.
@@ -245,13 +252,13 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 - Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
 - stable Rule Source/PAC downloader failure codes for complete semantic error localization,
-- remaining Theme/Popup/Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
+- remaining Temporary Rules/Network Simplified and Traditional Chinese coverage tracked by `docs/LOCALE_INVENTORY.json`,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Migrate Theme and Popup as the next typed vertical batch. Cover appearance choices, popup route/result rows, current-site actions, temporary-rule entry points, ownership blockers, options action, request-diagnostics summary, buttons, titles, dynamic status, and ARIA in all three locales while preserving Applied-only switching and session-only temporary-rule boundaries.
+Migrate Temporary Rules and Network as the next typed vertical batch. Cover manager tables, delete/clear actions, diagnostics permission/start/stop/refresh/clear states, request columns/status, empty/error states, buttons, titles, dynamic counts, safe errors, and ARIA in all three locales while preserving session-only storage, bounded monitoring, sanitized URLs, and non-navigating request records.
 
 ### Typed locale inventory and first vertical batch
 

@@ -198,6 +198,10 @@ try {
 
   await options.getByRole('button', { name: '主题', exact: true }).click();
   await options.getByRole('heading', { name: '主题', exact: true, level: 1 }).waitFor();
+  const themePanel = options.locator('[data-theme-panel]');
+  assert.equal(await themePanel.getAttribute('data-typed-locale'), 'zh-CN');
+  await themePanel.getByRole('heading', { name: '外观', exact: true }).waitFor();
+  assert.doesNotMatch(await themePanel.innerText(), /Appearance|Automatic|Light|Dark/u);
   const automaticTheme = options.getByRole('radio', { name: /^自动/u });
   const darkTheme = options.getByRole('radio', { name: /^深色/u });
   assert.equal(await automaticTheme.getAttribute('aria-checked'), 'true');
@@ -209,6 +213,13 @@ try {
   );
   const initialPopup = await context.newPage();
   await initialPopup.goto(`chrome-extension://${extensionId}/popup.html`);
+  assert.equal(
+    await initialPopup.locator('.popup-shell').getAttribute('data-popup-locale'),
+    'zh-CN',
+  );
+  await initialPopup
+    .getByRole('button', { name: '打开 ZeroOmega Nex 选项', exact: true })
+    .waitFor();
   await initialPopup.getByRole('button', { name: /直接连接/u }).waitFor();
   const initialButtons = initialPopup.locator('.profile-list button');
   assert.match(await initialButtons.nth(0).innerText(), /直接连接/u);
@@ -280,10 +291,10 @@ try {
   assert.match(await externalRow.innerText(), /外部情景模式/u);
   await externalRow.locator('.external-profile-button').click();
   const externalForm = externalPopup.locator('[data-popup-external-profile-form]');
-  await externalForm.getByLabel('External profile name').fill('_reserved');
+  await externalForm.getByLabel('外部情景模式名称').fill('_reserved');
   await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
   await externalForm.getByText('情景模式名称不能以下划线开头。').waitFor();
-  await externalForm.getByLabel('External profile name').fill('Imported External Proxy');
+  await externalForm.getByLabel('外部情景模式名称').fill('Imported External Proxy');
   await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
   await assertEventually(async () => {
     const storage = await worker.evaluate(async () => chrome.storage.local.get(null));
@@ -652,7 +663,16 @@ try {
 
   const resultPopup = await context.newPage();
   await resultPopup.goto(`chrome-extension://${extensionId}/popup.html`);
-  const switchResult = resultPopup.getByLabel('Result profile for switch');
+  assert.equal(
+    await resultPopup.locator('.popup-shell').getAttribute('data-popup-locale'),
+    'zh-CN',
+  );
+  assert.doesNotMatch(
+    await resultPopup.locator('main').innerText(),
+    /Loading applied profiles|Quick switching is disabled|No quick-switch routes|Result profile/u,
+    'Popup typed locale coverage regressed',
+  );
+  const switchResult = resultPopup.getByLabel('switch 的结果情景模式');
   await switchResult.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(await switchResult.inputValue(), 'direct');
   await switchResult.selectOption({ label: 'fixed' });
@@ -688,7 +708,7 @@ try {
   await temporaryPopup.goto(
     `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
   );
-  const temporarySelect = temporaryPopup.getByLabel('Temporary profile for example.co.uk');
+  const temporarySelect = temporaryPopup.getByLabel('example.co.uk 的临时情景模式');
   await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(await temporarySelect.inputValue(), '');
   await temporarySelect.selectOption({ label: 'fixed' });
@@ -724,11 +744,11 @@ try {
   const conditionForm = conditionPopup.locator('[data-popup-condition-form]');
   await conditionForm.waitFor();
   assert.equal(
-    await conditionForm.getByLabel('Current site condition pattern').inputValue(),
+    await conditionForm.getByLabel('当前网站条件匹配内容').inputValue(),
     '*.example.co.uk',
   );
-  await conditionForm.getByLabel('Current site result profile').selectOption({ label: 'fixed' });
-  await conditionForm.getByRole('button', { name: 'Add condition', exact: true }).click();
+  await conditionForm.getByLabel('当前网站结果情景模式').selectOption({ label: 'fixed' });
+  await conditionForm.getByRole('button', { name: '添加条件', exact: true }).click();
   await assertEventually(async () => {
     const popupStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
     const workflow = popupStorage['zeroomega-nex/profile-workflow/v1/state'];
@@ -1497,7 +1517,12 @@ try {
     '[data-popup-proxy-not-controllable][data-reason="app"]',
   );
   await ownershipBlocker.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(
+    await blockedPopup.locator('.popup-shell').getAttribute('data-popup-locale'),
+    'zh-CN',
+  );
   assert.match(await ownershipBlocker.innerText(), /其他应用正在控制代理设置/u);
+  assert.doesNotMatch(await ownershipBlocker.innerText(), /Another application|Manage extensions/u);
   await ownershipBlocker.locator('[data-popup-manage-extensions]').waitFor();
   assert.equal(await blockedPopup.locator('.profile-row').count(), 0);
   assert.equal(await blockedPopup.locator('[data-popup-temporary-rule]').count(), 0);
