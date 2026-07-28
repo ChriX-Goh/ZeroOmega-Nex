@@ -9,6 +9,7 @@
     ProfileWorkflowIdFactory,
     ProfileWorkflowSecretMaterial,
   } from '@zeroomega-nex/profile-workflow';
+  import { tick } from 'svelte';
 
   type SchemeKey = keyof FixedProfile['proxyByScheme'];
   type ProxyProtocol = ProxyEndpoint['protocol'];
@@ -65,6 +66,7 @@
   let authSaving = false;
   let authError = '';
   let showPassword = false;
+  let authUsernameInput: HTMLInputElement | undefined;
 
   $: profile = spec.profiles.find(
     (candidate): candidate is FixedProfile =>
@@ -300,6 +302,7 @@
     authSecretRef = endpoint.credential?.passwordSecretRef ?? '';
     authError = '';
     showPassword = false;
+    void tick().then(() => authUsernameInput?.focus());
     if (!authSecretRef) return;
     authLoading = true;
     try {
@@ -453,7 +456,7 @@
               </tr>
               {#if rowErrors[row.key]}
                 <tr class="row-error">
-                  <td colspan="5" role="alert">{rowErrors[row.key]}</td>
+                  <td colspan="5"><span role="alert">{rowErrors[row.key]}</span></td>
                 </tr>
               {/if}
             {/if}
@@ -500,10 +503,11 @@
 
 {#if authEndpointId}
   <div class="modal-backdrop" role="presentation">
-    <section
+    <div
       class="auth-dialog"
       data-fixed-auth-dialog
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="auth-title"
     >
@@ -522,6 +526,7 @@
         <label>
           <span class="sr-only">Username</span>
           <input
+            bind:this={authUsernameInput}
             aria-label="Username"
             placeholder="Username"
             value={authUsername}
@@ -564,7 +569,7 @@
           on:click={saveAuthentication}>{authSaving ? 'Saving…' : 'Save changes'}</button
         >
       </footer>
-    </section>
+    </div>
   </div>
 {/if}
 

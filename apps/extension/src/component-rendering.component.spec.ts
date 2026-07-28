@@ -83,7 +83,9 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         onConfirm: async () => undefined,
       },
     }).body;
+    expect(blocked).toContain('<div class="deletion-dialog');
     expect(blocked).toContain('role="alertdialog"');
+    expect(blocked).toContain('tabindex="-1"');
     expect(blocked).toContain('data-profile-deletion-mode="blocked"');
     expect(blocked).toContain('Referrer');
     expect(blocked).not.toContain('data-profile-deletion-confirm');
@@ -96,7 +98,9 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         onConfirm: async () => undefined,
       },
     }).body;
+    expect(confirm).toContain('<div class="deletion-dialog');
     expect(confirm).toContain('role="dialog"');
+    expect(confirm).toContain('tabindex="-1"');
     expect(confirm).toContain('data-profile-deletion-mode="confirm"');
     expect(confirm).toContain('data-profile-deletion-confirm');
   });
@@ -367,7 +371,11 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       },
     });
 
+    expect(body).toContain('<div class="new-profile-dialog');
     expect(body).toContain('role="dialog"');
+    expect(body).toContain('tabindex="-1"');
+    expect(body).toContain('data-new-profile-name-input');
+    expect(body).not.toContain('autofocus');
     expect(body).toContain('Profile name');
     expect(body).toContain('Proxy Profile');
     expect(body).toContain('Switch Profile');

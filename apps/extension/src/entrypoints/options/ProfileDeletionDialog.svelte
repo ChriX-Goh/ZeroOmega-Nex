@@ -1,18 +1,26 @@
 <script lang="ts">
   import type { ProfileReferenceBlocker } from '@zeroomega-nex/profile-workflow';
+  import { onMount, tick } from 'svelte';
 
   export let profileName: string;
   export let blockers: readonly ProfileReferenceBlocker[] = [];
   export let disabled = false;
   export let onCancel: () => void;
   export let onConfirm: () => Promise<void>;
+
+  let initialButton: HTMLButtonElement | undefined;
+
+  onMount(() => {
+    void tick().then(() => initialButton?.focus());
+  });
 </script>
 
 <div class="deletion-backdrop" data-profile-deletion-backdrop>
   {#if blockers.length > 0}
-    <section
+    <div
       class="deletion-dialog"
       role="alertdialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="profile-deletion-blocked-title"
       aria-describedby="profile-deletion-blocked-description"
@@ -33,13 +41,19 @@
         {/each}
       </ul>
       <div class="dialog-actions">
-        <button type="button" data-profile-deletion-close onclick={onCancel}>Close</button>
+        <button
+          bind:this={initialButton}
+          type="button"
+          data-profile-deletion-close
+          onclick={onCancel}>Close</button
+        >
       </div>
-    </section>
+    </div>
   {:else}
-    <section
+    <div
       class="deletion-dialog"
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="profile-deletion-confirm-title"
       aria-describedby="profile-deletion-confirm-description"
@@ -51,8 +65,12 @@
         Delete “{profileName}”? This changes only the Draft until Apply.
       </p>
       <div class="dialog-actions">
-        <button type="button" data-profile-deletion-cancel {disabled} onclick={onCancel}
-          >Cancel</button
+        <button
+          bind:this={initialButton}
+          type="button"
+          data-profile-deletion-cancel
+          {disabled}
+          onclick={onCancel}>Cancel</button
         >
         <button
           type="button"
@@ -62,7 +80,7 @@
           onclick={() => void onConfirm()}>Delete</button
         >
       </div>
-    </section>
+    </div>
   {/if}
 </div>
 

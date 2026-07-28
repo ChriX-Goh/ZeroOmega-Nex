@@ -424,3 +424,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Typed Fixed/Switch/Rule List/Virtual 通过 cross-browser PAC compiler 导出；PAC Profile 通过与激活相同的顶层 raw-PAC 结构验证导出 inline/已下载缓存；Auto Detect 不显示 PAC 导出，未下载的远程 PAC 明确失败。导出文件不访问 secret store，凭据不会进入 PAC。
 - Switch modern 导出为 `OmegaRules_*.sorl`，保留 result-enabled SwitchyOmega Conditions，并插入 Require/Date/Usage 元数据。legacy 选项仅在基础条件且高级条件界面关闭时导出 `SwitchyRules_*.ssrl`；否则按钮显示警告并回退 `.sorl`，避免静默丢失高级语义。
 - legacy `.ssrl` 只表示 default 与 non-default 两类：与有效 default route 相同的规则加 `!`；Host wildcard、URL wildcard、URL regex 分别按原版写入 wildcard/regexp 区，False 忽略。附属 Rule List 启用时使用其 default route。
+
+- Options 模态框的原版信息结构保持不变，但现代 Svelte 可访问性边界收紧：New Profile、Fixed/PAC authentication、删除阻断/确认均使用中性 `div` + `role=dialog/alertdialog`，不再把交互角色强加给 `section`；表格错误在 `td` 内部用 `span role=alert`，避免破坏表格语义。
+- New Profile 不再使用 HTML `autofocus`，而是在组件挂载后聚焦名称输入；Fixed/PAC 认证在打开后聚焦用户名；删除对话框聚焦 Close/Cancel。Chromium 对这些真实焦点转移做回归验证。
+- `@zeroomega-nex/extension check` 固定使用 `svelte-check --fail-on-warnings`。从此任何 Svelte 编译/可访问性警告都视为 CI 失败，不允许重新积累警告债务。

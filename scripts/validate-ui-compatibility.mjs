@@ -18,6 +18,8 @@ const snapshotHistoryPath = 'apps/extension/src/entrypoints/options/SnapshotHist
 const legacyImportPath = 'apps/extension/src/entrypoints/options/LegacyImportPanel.svelte';
 const themePanelPath = 'apps/extension/src/entrypoints/options/ThemePanel.svelte';
 const fixedProfilePath = 'apps/extension/src/entrypoints/options/FixedProfileEditor.svelte';
+const newProfileDialogPath = 'apps/extension/src/entrypoints/options/NewProfileDialog.svelte';
+const extensionPackagePath = 'apps/extension/package.json';
 const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte';
 const attachedRuleListConfigPath =
   'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte';
@@ -94,6 +96,8 @@ const [
   legacyImport,
   themePanel,
   fixedProfile,
+  newProfileDialog,
+  extensionPackage,
   switchProfile,
   attachedRuleListConfig,
   virtualProfile,
@@ -147,6 +151,8 @@ const [
   readFile(legacyImportPath, 'utf8'),
   readFile(themePanelPath, 'utf8'),
   readFile(fixedProfilePath, 'utf8'),
+  readFile(newProfileDialogPath, 'utf8'),
+  readFile(extensionPackagePath, 'utf8'),
   readFile(switchProfilePath, 'utf8'),
   readFile(attachedRuleListConfigPath, 'utf8'),
   readFile(virtualProfilePath, 'utf8'),
@@ -523,6 +529,31 @@ const requirements = [
       chromiumE2e.includes('OmegaProfile_Target_Proxy.pac') &&
       chromiumE2e.includes('OmegaProfile_PAC_Matrix.pac'),
     'Profile headers must export current-Draft PAC and Switch rule-list files with original filenames, UTF-8 MIME, legacy fallback warning, raw PAC validation, and real Chromium downloads.',
+  ],
+  [
+    !newProfileDialog.includes('<section') &&
+      newProfileDialog.includes('class="new-profile-dialog"') &&
+      newProfileDialog.includes('role="dialog"') &&
+      newProfileDialog.includes('data-new-profile-name-input') &&
+      newProfileDialog.includes('nameInput?.focus()') &&
+      !newProfileDialog.includes('autofocus') &&
+      !fixedProfile.includes(
+        ['<section', '      class="auth-dialog"', '      data-fixed-auth-dialog'].join('\n'),
+      ) &&
+      fixedProfile.includes('authUsernameInput?.focus()') &&
+      fixedProfile.includes('<span role="alert">{rowErrors[row.key]}</span>') &&
+      !pacProfileEditor.includes(
+        ['<section', '      class="auth-dialog"', '      data-pac-auth-dialog'].join('\n'),
+      ) &&
+      pacProfileEditor.includes('authUsernameInput?.focus()') &&
+      !profileDeletionDialog.includes('<section') &&
+      profileDeletionDialog.includes('initialButton?.focus()') &&
+      extensionPackage.includes('--fail-on-warnings') &&
+      chromiumE2e.includes('Fixed authentication dialog did not focus the username field') &&
+      chromiumE2e.includes('PAC authentication dialog did not focus the username field') &&
+      chromiumE2e.includes('New Profile dialog did not focus the profile-name field') &&
+      chromiumE2e.includes('Blocked deletion dialog did not focus its Close action'),
+    'All Options dialogs must use neutral role containers, deterministic initial focus, valid alert placement, and a permanent fail-on-warnings Svelte check.',
   ],
   [
     optionsApp.includes('class="nav-group actions"'),

@@ -12,6 +12,7 @@
     type ProfileWorkflowPacSourceUpdateView,
     type ProfileWorkflowSecretMaterial,
   } from '@zeroomega-nex/profile-workflow';
+  import { tick } from 'svelte';
 
   export let spec: ProfileSpec;
   export let profileId: string;
@@ -46,6 +47,7 @@
   let authSaving = false;
   let authError = '';
   let showAuthPassword = false;
+  let authUsernameInput: HTMLInputElement | undefined;
 
   $: profile = spec.profiles.find(
     (candidate): candidate is PacProfile => candidate.id === profileId && candidate.kind === 'pac',
@@ -234,6 +236,7 @@
     authSecretRef = profile.credential?.passwordSecretRef ?? '';
     authError = '';
     showAuthPassword = false;
+    void tick().then(() => authUsernameInput?.focus());
     if (!authSecretRef) return;
     authLoading = true;
     try {
@@ -493,10 +496,11 @@
 
 {#if authOpen && profile}
   <div class="modal-backdrop" role="presentation">
-    <section
+    <div
       class="auth-dialog"
       data-pac-auth-dialog
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="pac-auth-title"
     >
@@ -517,6 +521,7 @@
         <label>
           Username
           <input
+            bind:this={authUsernameInput}
             aria-label="PAC authentication username"
             autocomplete="username"
             value={authUsername}
@@ -569,7 +574,7 @@
           {authSaving ? 'Saving…' : 'Save authentication'}
         </button>
       </footer>
-    </section>
+    </div>
   </div>
 {/if}
 

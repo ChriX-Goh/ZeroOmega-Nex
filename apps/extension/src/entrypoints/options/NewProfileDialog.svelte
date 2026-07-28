@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount, tick } from 'svelte';
+
   import ProfileIcon from '../../components/ProfileIcon.svelte';
 
   type NewProfileKind = 'fixed' | 'switch' | 'pac' | 'virtual';
@@ -44,6 +46,13 @@
   let name = '';
   let kind: NewProfileKind = 'fixed';
   let submitting = false;
+  let nameInput: HTMLInputElement | undefined;
+
+  onMount(() => {
+    void tick().then(() => {
+      if (!disabled) nameInput?.focus();
+    });
+  });
 
   $: normalizedName = name.trim();
   $: duplicate = existingNames.some(
@@ -74,9 +83,10 @@
 </script>
 
 <div class="modal-backdrop" role="presentation">
-  <section
+  <div
     class="new-profile-dialog"
     role="dialog"
+    tabindex="-1"
     aria-modal="true"
     aria-labelledby="new-profile-title"
   >
@@ -88,7 +98,8 @@
       <label class="profile-name-field">
         <span>Profile name</span>
         <input
-          autofocus
+          bind:this={nameInput}
+          data-new-profile-name-input
           aria-describedby="new-profile-name-message"
           aria-invalid={error !== ''}
           value={name}
@@ -145,5 +156,5 @@
         {submitting ? 'Creating…' : 'Create'}
       </button>
     </footer>
-  </section>
+  </div>
 </div>

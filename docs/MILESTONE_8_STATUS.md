@@ -74,6 +74,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Chromium uses a separate user data directory, restores a source-backed schema-v2 cross-reference fixture, creates `Stable Alias` through the real four-type New Profile dialog, selects `Target Proxy`, confirms migration, verifies every typed route surface and both endpoint profiles, then commits through Apply.
 - Integration run `30320204375`; product commit `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3`; clean exact Head `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35` passed CI `30320359259`, Browser E2E `30320359263`, and Parity Documentation `30320359269`.
 
+### Zero-warning accessible Options dialogs
+
+- The seven remaining Svelte warnings were fully enumerated: New Profile dialog/autofocus, Fixed table alert/auth dialog, PAC auth dialog, and blocked/confirm deletion dialogs.
+- Neutral dialog containers preserve the existing original interaction layout while removing invalid section roles. New Profile, Fixed/PAC authentication, and deletion dialogs now move focus deterministically to their first meaningful control.
+- Table validation keeps native table semantics by placing `role=alert` inside the error cell. Chromium verifies each focus transition through the real Options workflows.
+- The extension check now uses `svelte-check --fail-on-warnings`, permanently making any future warning a CI failure.
+- Integration run `30330515929`; product commit containing this document.
+
 ### Profile-level PAC and Rule List exports
 
 - Original profile-header exports operate on the current in-memory Options state rather than forcing Apply. Nex commits only an active Switch source editor into Draft, then exports without changing Applied state or browser traffic.
@@ -198,8 +206,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 - complete Switch localization and source-editor error/confirmation locale coverage,
 - PAC localization, Firefox activation/download coverage, real proxy-challenge manual QC, and explicit file-URL target decision,
 - complete Simplified/Traditional Chinese coverage,
-- remaining accessibility warnings in New Profile and Fixed authentication dialogs.
 
 ## Current next action
 
-Continue typed locale coverage and remaining accessibility warnings; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.
+Continue typed locale coverage; keep file PAC activation under an explicit target capability decision. Do not request repository-owner installation until a consolidated candidate is explicitly declared with a fresh artifact digest and QC checklist.

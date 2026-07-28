@@ -145,7 +145,12 @@ try {
   await fallbackRow.locator('[data-proxy-action="authentication"]').click();
   const authDialog = options.locator('[data-fixed-auth-dialog]');
   await authDialog.getByRole('heading', { name: '代理登录', exact: true }).waitFor();
-  await authDialog.getByLabel('用户名', { exact: true }).fill('chromium-e2e');
+  const fixedAuthUsername = authDialog.getByLabel('用户名', { exact: true });
+  await assertEventually(
+    async () => fixedAuthUsername.evaluate((element) => element === document.activeElement),
+    'Fixed authentication dialog did not focus the username field',
+  );
+  await fixedAuthUsername.fill('chromium-e2e');
   await authDialog.getByRole('textbox', { name: '密码', exact: true }).fill('not-a-real-secret');
   await authDialog.locator('[data-auth-action="save"]').click();
   await authDialog.waitFor({ state: 'detached' });
@@ -453,7 +458,12 @@ try {
   await pacEditor.locator('[data-pac-auth-action="edit"]').click();
   const pacAuthDialog = options.locator('[data-pac-auth-dialog]');
   await pacAuthDialog.waitFor({ state: 'visible', timeout: 20_000 });
-  await pacAuthDialog.getByLabel('PAC authentication username').fill('pac-e2e-user');
+  const pacAuthUsername = pacAuthDialog.getByLabel('PAC authentication username');
+  await assertEventually(
+    async () => pacAuthUsername.evaluate((element) => element === document.activeElement),
+    'PAC authentication dialog did not focus the username field',
+  );
+  await pacAuthUsername.fill('pac-e2e-user');
   await pacAuthDialog.getByLabel('PAC authentication password').fill('pac-e2e-secret');
   await pacAuthDialog.locator('[data-pac-auth-action="save"]').click();
   await pacAuthDialog.waitFor({ state: 'detached', timeout: 20_000 });
@@ -997,6 +1007,13 @@ try {
     '[data-profile-deletion-dialog][data-profile-deletion-mode="blocked"]',
   );
   await blockedDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  await assertEventually(
+    async () =>
+      blockedDeletion
+        .locator('[data-profile-deletion-close]')
+        .evaluate((element) => element === document.activeElement),
+    'Blocked deletion dialog did not focus its Close action',
+  );
   const blockerNames = await blockedDeletion
     .locator('[data-profile-deletion-blocker] strong')
     .allTextContents();
@@ -1017,7 +1034,12 @@ try {
   await virtualOptions.locator('[data-new-profile-action]').click();
   const newVirtualDialog = virtualOptions.locator('.new-profile-dialog');
   await newVirtualDialog.waitFor({ state: 'visible', timeout: 20_000 });
-  await newVirtualDialog.locator('.profile-name-field input').fill('Stable Alias');
+  const newVirtualName = newVirtualDialog.locator('[data-new-profile-name-input]');
+  await assertEventually(
+    async () => newVirtualName.evaluate((element) => element === document.activeElement),
+    'New Profile dialog did not focus the profile-name field',
+  );
+  await newVirtualName.fill('Stable Alias');
   await newVirtualDialog.locator('[data-new-profile-kind="virtual"]').check();
   await newVirtualDialog.locator('[data-new-profile-create]').click();
   const virtualEditor = virtualOptions.locator('[data-virtual-profile-editor]');
@@ -1169,6 +1191,13 @@ try {
     '[data-profile-deletion-dialog][data-profile-deletion-mode="confirm"]',
   );
   await confirmDeletion.waitFor({ state: 'visible', timeout: 20_000 });
+  await assertEventually(
+    async () =>
+      confirmDeletion
+        .locator('[data-profile-deletion-cancel]')
+        .evaluate((element) => element === document.activeElement),
+    'Deletion confirmation dialog did not focus its Cancel action',
+  );
   await confirmDeletion.locator('[data-profile-deletion-confirm]').click();
   await assertEventually(
     async () =>
