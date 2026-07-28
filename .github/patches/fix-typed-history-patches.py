@@ -2,12 +2,15 @@ from pathlib import Path
 
 path = Path('.github/patches/apply-typed-history-integration.py')
 text = path.read_text()
-old = '''    "    entries.pac,\n  ],\n) {",
-    "    entries.pac,\n    ['Snapshot History', entries.history],\n  ],\n) {",
-'''
-new = '''    "    ['PAC Profile', entries.pac],\n]) {",
-    "    ['PAC Profile', entries.pac],\n    ['Snapshot History', entries.history],\n]) {",
-'''
-if text.count(old) != 1:
-    raise SystemExit(f'expected one typed History localization-loop patch, found {text.count(old)}')
-path.write_text(text.replace(old, new, 1))
+source_old = r'''"    entries.pac,\n  ],\n) {"'''
+source_new = r'''"    ['PAC Profile', entries.pac],\n]) {"'''
+target_old = r'''"    entries.pac,\n    ['Snapshot History', entries.history],\n  ],\n) {"'''
+target_new = r'''"    ['PAC Profile', entries.pac],\n    ['Snapshot History', entries.history],\n]) {"'''
+for label, old, new in [
+    ('source', source_old, source_new),
+    ('target', target_old, target_new),
+]:
+    if text.count(old) != 1:
+        raise SystemExit(f'expected one typed History localization-loop {label}, found {text.count(old)}')
+    text = text.replace(old, new, 1)
+path.write_text(text)
