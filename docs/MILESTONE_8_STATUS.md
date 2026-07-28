@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `4bb42febeb4bd51f434a4e381f91a9df6b2daf12` — Typed Options shell, General and Interface  
-**Latest integration verification:** run `30381058967` validates typed Options navigation, Actions status, General/Interface settings, safe App-level errors, fresh locale inventory, full repository verification, and the complete Chromium interaction chain  
-**Last completed exact-Head verification:** `14ced5045ae8b8338ad9d12c06c72061d869f892`; CI `30381284751`, Browser E2E `30381284926`, Parity Documentation `30381285016` passed  
+**Current product implementation head:** `0f8c95eb9e92495a0551be2bb357428a10af7fc3` — Typed Theme and Popup  
+**Latest integration verification:** run `30382975947` validates typed Theme and Popup in three locales, safe Popup errors, fresh locale inventory, full repository verification, and the complete Chromium popup interaction chain  
+**Last completed exact-Head verification:** `4fb93193d089809dc107cf6d77ba41b9ee42b58b`; CI `30383219144`, Browser E2E `30383224211`, Parity Documentation `30383219516` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -207,6 +207,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Popup route/result rows, ownership blockers, external-profile naming, request-diagnostics summary, temporary-rule controls, current-site condition workflow, footer actions, dynamic status/title, safe errors, and ARIA now render directly through the typed catalog.
 - Popup switching remains Applied-only; temporary rules remain session-only; ownership blockers remain fail closed. This slice changes the presentation contract, not those state machines.
 - Chromium verifies resolved zh-CN Theme and Popup locale, shared dark/automatic theme behavior, result selection, temporary-rule session storage, current-site Apply, external import, and ownership blocking through the complete interaction chain.
+- Integration run `30382975947`; product commit `0f8c95eb9e92495a0551be2bb357428a10af7fc3`; clean exact Head `4fb93193d089809dc107cf6d77ba41b9ee42b58b` passed CI `30383219144`, Browser E2E `30383224211`, and Parity Documentation `30383219516`. The typed inventory now covers twelve components and reports 117 remaining candidates.
 
 ### Typed Options shell, General and Interface
 
