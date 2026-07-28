@@ -10,8 +10,8 @@ old = '''replace_once(
 '''
 new = '''replace_once(
     path,
-    "    try {\\n      authPassword = await onReadSecret(profile.credential.passwordSecretRef);\\n    } catch (error) {\\n      authError = error instanceof Error ? error.message : String(error);\\n    } finally {\\n      authLoading = false;\\n    }\\n",
-    "    try {\\n      authPassword = await onReadSecret(profile.credential.passwordSecretRef);\\n    } catch {\\n      authError = uiText('pac.authReadFailed', locale);\\n    } finally {\\n      authLoading = false;\\n    }\\n",
+    "    try {\\n      authPassword = await onReadSecret(authSecretRef);\\n      authOriginalPassword = authPassword;\\n    } catch (error) {\\n      authError = error instanceof Error ? error.message : String(error);\\n    } finally {\\n      authLoading = false;\\n    }\\n",
+    "    try {\\n      authPassword = await onReadSecret(authSecretRef);\\n      authOriginalPassword = authPassword;\\n    } catch {\\n      authError = uiText('pac.authReadFailed', locale);\\n    } finally {\\n      authLoading = false;\\n    }\\n",
 )
 '''
 if text.count(old) != 1:
