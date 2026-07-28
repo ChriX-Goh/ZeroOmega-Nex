@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `af81c0a8842b3a2a4d4d8183096755a14010ace5` — Typed Temporary Rules and Network  
-**Latest integration verification:** run `30389904319` validates typed Temporary Rules and Network in three locales, safe errors, session/privacy boundaries, fresh locale inventory, full repository verification, and the complete Chromium interaction chain  
-**Last completed exact-Head verification:** `15cb75a31cbc67aae6e6553b0e4904e06274e7ec`; CI `30390127680`, Browser E2E `30390127707`, Parity Documentation `30390127706` passed  
+**Current product implementation head:** `3f427b27a28bef113811599c578d989042403eb7` — Typed normal Options surfaces and Virtual Profile  
+**Latest integration verification:** run `30391735431` validates Built-in/About/shell/export/Virtual typed presentation, fresh locale inventory, full repository verification, and the complete Chromium interaction chain  
+**Last completed exact-Head verification:** `a8bf7529b40e900495c39fd76797dda61157f11d`; CI `30391968353`, Browser E2E `30391971791`, Parity Documentation `30391968361` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -207,6 +207,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Profile export keeps the existing Draft commit, warning calculation, filenames, MIME types, and download semantics; only the visible action/title/status contract moved to typed messages.
 - Virtual keeps the same target Draft mutation and complete reference-replacement workflow. Direct/System route labels and target/migration ARIA now use the shared semantic catalog.
 - Chromium visits the real Built-in and About pages, verifies localized color controls, observes localized profile export status, and completes the existing Virtual creation/reference migration chain through the typed zh-CN editor.
+- Integration run `30391735431`; product commit `3f427b27a28bef113811599c578d989042403eb7`; clean exact Head `a8bf7529b40e900495c39fd76797dda61157f11d` passed CI `30391968353`, Browser E2E `30391971791`, and Parity Documentation `30391968361`. The typed inventory now covers fifteen components and reports 62 remaining candidates.
 
 ### Typed Temporary Rules and Network
 
