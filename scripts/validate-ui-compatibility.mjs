@@ -784,7 +784,9 @@ const requirements = [
       attachedRuleListConfig.includes('uiMessage(') &&
       attachedRuleListConfig.includes("'ruleList.updateFailed'") &&
       optionsApp.includes("action: 'update-rule-source'") &&
-      optionsApp.includes('requestRuleSourceOriginPermission') &&
+      workflowClient.includes('runWithRuleSourceOriginPermission') &&
+      optionsApp.includes('runWithRuleSourceOriginPermission(url, async () =>') &&
+      !optionsApp.includes('requestRuleSourceOriginPermission') &&
       runtime.includes('BrowserRuleSourceDownloader') &&
       ruleSourceDownloader.includes("credentials: 'omit'") &&
       ruleSourceDownloader.includes("cache: 'no-store'") &&
@@ -795,6 +797,22 @@ const requirements = [
       ruleSourceUpdate.includes('Rule Source request header') &&
       ruleSourceUpdate.includes('old cached content') === false,
     'Remote Rule Sources must use background-only bounded downloads, user-granted host permission, safe secret headers, atomic CAS replacement, and preserved old cache on failure.',
+  ],
+  [
+    workflowClient.includes('runWithRuleSourceOriginPermission') &&
+      workflowClient.includes('if (!granted) return { granted: false }') &&
+      optionsApp.includes('runWithRuleSourceOriginPermission(url, async () =>') &&
+      !optionsApp.includes('requestRuleSourceOriginPermission') &&
+      firefoxE2e.includes("extensions.webextOptionalPermissionPrompts', false") &&
+      firefoxE2e.includes('remoteRuleUrl') &&
+      firefoxE2e.includes('remotePacUrl') &&
+      firefoxE2e.includes('Firefox Rule Source E2E') &&
+      firefoxE2e.includes('Firefox PAC E2E') &&
+      firefoxE2e.includes('browser.permissions.contains({ origins: [origin] })') &&
+      firefoxE2e.includes('Firefox remote source origin must remain optional') &&
+      browserE2eWorkflow.includes('run: pnpm build:firefox') &&
+      !browserE2eWorkflow.includes('ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:firefox'),
+    'Rule Source and PAC updates must stop before mutation on permission denial and use a real optional-host request plus remote cache replacement in Firefox.',
   ],
   [
     ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus'].every((permission) =>
@@ -811,6 +829,23 @@ const requirements = [
       ruleSourceScheduler.includes('if (running) return running') &&
       ruleSourceUpdate.includes('export function listDueProfileWorkflowRuleSourceUpdates'),
     'Remote Rule Sources must use one coalesced alarm scheduler, scan on startup, refresh only due sources with existing host permission, and wait each interval after success or failure.',
+  ],
+  [
+    optionsApp.includes("action: 'get-rule-source-update-status'") &&
+      optionsApp.includes("action: 'get-pac-source-update-status'") &&
+      optionsApp.includes(
+        'async function getRuleSourceUpdateStatus(\n    sourceId: string,\n  ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {\n    if (!state) return undefined;',
+      ) &&
+      optionsApp.includes(
+        'async function getPacSourceUpdateStatus(\n    profileId: string,\n  ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {\n    if (!state) return undefined;',
+      ) &&
+      !optionsApp.includes(
+        'async function getRuleSourceUpdateStatus(\n    sourceId: string,\n  ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {\n    if (!state || saving)',
+      ) &&
+      !optionsApp.includes(
+        'async function getPacSourceUpdateStatus(\n    profileId: string,\n  ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {\n    if (!state || saving)',
+      ),
+    'Read-only Rule Source and PAC status queries must not take the global mutation lock or block profile selection.',
   ],
   [
     workflowClient.includes('PROFILE_WORKFLOW_STATE_STORAGE_KEY') &&

@@ -82,6 +82,20 @@ export async function requestRuleSourceOriginPermission(
   return api.permissions.request({ origins: [origin] });
 }
 
+export type RuleSourceOriginPermissionRunResult<T> =
+  | { readonly granted: false }
+  | { readonly granted: true; readonly value: T };
+
+export async function runWithRuleSourceOriginPermission<T>(
+  url: string,
+  operation: () => Promise<T>,
+  api: ProfileWorkflowClientApi = browser as unknown as ProfileWorkflowClientApi,
+): Promise<RuleSourceOriginPermissionRunResult<T>> {
+  const granted = await requestRuleSourceOriginPermission(url, api);
+  if (!granted) return { granted: false };
+  return { granted: true, value: await operation() };
+}
+
 export async function sendProfileWorkflowCommand(
   command: ProfileWorkflowCommandInput,
   api: ProfileWorkflowClientApi = browser as unknown as ProfileWorkflowClientApi,

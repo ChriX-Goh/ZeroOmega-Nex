@@ -509,3 +509,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Existing cached Rule List text or PAC script remains unchanged on every failed update. The failure record is committed atomically with compare-and-swap and remains separate from ProfileSpec.
 - Legacy stored failures without code normalize to `unknown-failure`; new invalid codes and malformed numeric parameters fail storage parsing.
 - Chromium verifies HTTP and empty-response failure paths, localized code-specific status, persisted codes, and unchanged cache content.
+
+### Firefox optional host permission and remote-source boundary
+
+- Production Firefox declares HTTP(S) origins only in `optional_host_permissions`; ordinary builds do not pregrant global hosts. Manual Rule Source and PAC downloads request the normalized origin from the bundled Options button click before any background command is sent.
+- `runWithRuleSourceOriginPermission` makes denial fail closed: the update callback is never invoked when permission is refused or the URL is not HTTP(S). This is an explicit non-mutation boundary for Draft, update ledgers, caches, and browser traffic.
+- Firefox automation disables only the permission prompt UI through `extensions.webextOptionalPermissionPrompts=false`. It first proves the loopback origin is absent, then requires the real `permissions.request` call to grant it from the user-triggered Download Now action.
+- The Firefox regression creates a real Switch plus attached Rule List and a real PAC Profile, downloads both from a loopback HTTP server through `BrowserRuleSourceDownloader`, verifies one request per source, persisted success metadata, exact cache replacement, normal Apply, Popup activation, and a `raw-pac/1` snapshot.
+- This closes Firefox remote HTTP(S) permission/download coverage. It does not decide `file:` PAC activation and does not replace repository-owner proxy 407 or complex-backup manual QC.

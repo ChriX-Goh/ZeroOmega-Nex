@@ -45,7 +45,7 @@
     type ProfileTextExport,
   } from '../../lib/profile-export';
   import {
-    requestRuleSourceOriginPermission,
+    runWithRuleSourceOriginPermission,
     sendProfileWorkflowCommand,
     subscribeProfileWorkflowStateChanges,
   } from '../../lib/profile-workflow-client';
@@ -313,20 +313,20 @@
   async function getRuleSourceUpdateStatus(
     sourceId: string,
   ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {
-    if (!state || saving) return undefined;
-    saving = true;
+    if (!state) return undefined;
     try {
       const response = await sendProfileWorkflowCommand({
         action: 'get-rule-source-update-status',
         sourceId,
       });
-      acceptResponse(response);
+      if (!response.ok) {
+        errorMessage = uiText('options.error.safeMessage', locale);
+        return undefined;
+      }
       return response.ruleSourceUpdate;
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
-    } finally {
-      saving = false;
     }
   }
 
@@ -335,51 +335,50 @@
     url: string,
   ): Promise<ProfileWorkflowRuleSourceUpdateView | undefined> {
     if (!state || saving) return undefined;
-    let granted = false;
     try {
-      granted = await requestRuleSourceOriginPermission(url);
-    } catch {
-      errorMessage = uiText('options.error.safeMessage', locale);
-      return undefined;
-    }
-    if (!granted) {
-      errorMessage = uiText('options.error.ruleListPermission', locale);
-      return undefined;
-    }
-    saving = true;
-    try {
-      const response = await sendProfileWorkflowCommand({
-        action: 'update-rule-source',
-        expectedGeneration: state.generation,
-        sourceId,
+      const permission = await runWithRuleSourceOriginPermission(url, async () => {
+        if (!state) return undefined;
+        saving = true;
+        try {
+          const response = await sendProfileWorkflowCommand({
+            action: 'update-rule-source',
+            expectedGeneration: state.generation,
+            sourceId,
+          });
+          acceptResponse(response);
+          return response.ruleSourceUpdate;
+        } finally {
+          saving = false;
+        }
       });
-      acceptResponse(response);
-      return response.ruleSourceUpdate;
+      if (!permission.granted) {
+        errorMessage = uiText('options.error.ruleListPermission', locale);
+        return undefined;
+      }
+      return permission.value;
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
-    } finally {
-      saving = false;
     }
   }
 
   async function getPacSourceUpdateStatus(
     profileId: string,
   ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {
-    if (!state || saving) return undefined;
-    saving = true;
+    if (!state) return undefined;
     try {
       const response = await sendProfileWorkflowCommand({
         action: 'get-pac-source-update-status',
         profileId,
       });
-      acceptResponse(response);
+      if (!response.ok) {
+        errorMessage = uiText('options.error.safeMessage', locale);
+        return undefined;
+      }
       return response.pacSourceUpdate;
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
-    } finally {
-      saving = false;
     }
   }
 
@@ -388,31 +387,30 @@
     url: string,
   ): Promise<ProfileWorkflowPacSourceUpdateView | undefined> {
     if (!state || saving) return undefined;
-    let granted = false;
     try {
-      granted = await requestRuleSourceOriginPermission(url);
-    } catch {
-      errorMessage = uiText('options.error.safeMessage', locale);
-      return undefined;
-    }
-    if (!granted) {
-      errorMessage = uiText('options.error.pacPermission', locale);
-      return undefined;
-    }
-    saving = true;
-    try {
-      const response = await sendProfileWorkflowCommand({
-        action: 'update-pac-source',
-        expectedGeneration: state.generation,
-        profileId,
+      const permission = await runWithRuleSourceOriginPermission(url, async () => {
+        if (!state) return undefined;
+        saving = true;
+        try {
+          const response = await sendProfileWorkflowCommand({
+            action: 'update-pac-source',
+            expectedGeneration: state.generation,
+            profileId,
+          });
+          acceptResponse(response);
+          return response.pacSourceUpdate;
+        } finally {
+          saving = false;
+        }
       });
-      acceptResponse(response);
-      return response.pacSourceUpdate;
+      if (!permission.granted) {
+        errorMessage = uiText('options.error.pacPermission', locale);
+        return undefined;
+      }
+      return permission.value;
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
       return undefined;
-    } finally {
-      saving = false;
     }
   }
 

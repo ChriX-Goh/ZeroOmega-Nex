@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `d0d1e39bb2ba74cd7471438f21eb7fb301c0774f` — Typed imported Auto Detect and closed visible locale inventory  
-**Latest integration verification:** run `30393341874` validates fallback-only Auto Detect, locale inventory schema v2, zero untranslated user-visible candidates, full repository verification, and the complete Chromium migration chain  
-**Last completed exact-Head verification:** `eec8b0301e730550ccb27a9ed4b3742b3dc7754e`; CI `30393572363`, Browser E2E `30393572347`, Parity Documentation `30393572430` passed  
+**Current product implementation head:** `7aa8ff15790223131a39b1a5b9813fe66429ba21` — Stable serializable Rule Source/PAC update failures  
+**Latest integration verification:** run `30395683167` validates the shared fifteen-code contract, secret-safe persistence, cache preservation, full repository verification, and real Chromium HTTP/empty-response failure paths  
+**Last completed exact-Head verification:** `2c31c92a89d665391c87418ba05b0ee41633644d`; CI `30396002670`, Browser E2E `30396002293`, Parity Documentation `30396005041` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -273,6 +273,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - The import-review audit is now closed for local files: compatibility summary, stable code/path technical details, secret-material warning, inactive import, immediate apply, byte-identical backup round trip, and direct typed locale coverage are all verified. Online URL restore remains a separate scope item.
 - Integration run `30375459826`; product commit `19ed3d66b52be16366842912f0461cd203e1a825`; clean exact Head `b3d54fc266f7472cecca336022f75f56652b84e5` passed CI `30375737690`, Browser E2E `30375737649`, and Parity Documentation `30375737656`. The typed inventory now covers nine components and reports 229 remaining candidates.
 
+### Firefox optional-origin Rule Source and PAC downloads
+
+- Options now routes both manual update actions through one testable permission boundary. The origin request runs first inside the user click handler; a denied or unsupported origin returns before any background update command can run.
+- Firefox E2E starts with the loopback origin absent from granted permissions, creates a Switch Profile and attached Rule List, requests the optional host permission through the real Download Now click, downloads and persists Rule List cache, then repeats the same bounded background path for a remote PAC.
+- The test-only Firefox preference suppresses the browser prompt UI but does not pregrant host access. The regression requires `permissions.contains` to change from false to true only after the click, verifies one real HTTP request per source, checks persisted success ledgers and cache content, and finally applies/activates the downloaded PAC as `raw-pac/1`.
+- Permission denial/non-mutation has direct unit coverage through `runWithRuleSourceOriginPermission`; production continues to show the existing typed permission error without mutating Draft or update ledgers.
+- Integration run `30399701709`; product commit containing this document. Exact-Head verification is required after the temporary integration workflow is removed.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
@@ -283,13 +291,13 @@ The latest product slices passed architecture guards, permanent UI compatibility
 
 PR #11 is not a replacement release candidate. Current blockers include:
 
-- Firefox remote-origin permission/download coverage, real proxy-challenge manual QC, and an explicit `file:` PAC target decision,
+- real proxy-challenge manual QC and an explicit `file:` PAC target decision,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Add Firefox remote-origin PAC and Rule Source permission/download coverage through the same bounded downloader and stable failure-code contract, then resolve the explicit `file:` PAC scope and remaining import/sync decisions.
+Resolve the explicit `file:` PAC target scope, then decide schema-v1/online restore boundaries and prepare consolidated visual plus real-backup owner QC.
 
 ### Typed locale inventory and first vertical batch
 

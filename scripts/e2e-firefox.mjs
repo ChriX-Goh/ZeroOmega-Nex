@@ -1,8 +1,47 @@
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
+
+const remoteRuleText = '[SwitchyOmega Conditions]\n@with result\n\n* +direct\n';
+const remotePacText = "function FindProxyForURL(url, host) { return 'DIRECT'; }\n";
+let ruleRequestCount = 0;
+let pacRequestCount = 0;
+const sourceServer = createServer((request, response) => {
+  if (request.url?.startsWith('/rules.txt')) {
+    ruleRequestCount += 1;
+    response.writeHead(200, {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(remoteRuleText);
+    return;
+  }
+  if (request.url?.startsWith('/proxy.pac')) {
+    pacRequestCount += 1;
+    response.writeHead(200, {
+      'content-type': 'application/x-ns-proxy-autoconfig; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(remotePacText);
+    return;
+  }
+  response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+  response.end('not found');
+});
+await new Promise((resolveListen, rejectListen) => {
+  sourceServer.once('error', rejectListen);
+  sourceServer.listen(0, '127.0.0.1', resolveListen);
+});
+const sourceAddress = sourceServer.address();
+if (!sourceAddress || typeof sourceAddress === 'string') {
+  throw new Error('Firefox source-update test server failed');
+}
+const remoteRuleUrl = `http://127.0.0.1:${sourceAddress.port}/rules.txt`;
+const remotePacUrl = `http://127.0.0.1:${sourceAddress.port}/proxy.pac`;
+const remotePermissionOrigin = 'http://127.0.0.1/*';
 
 const extensionPath = resolve('dist/firefox-mv3');
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -11,6 +50,7 @@ const options = new firefox.Options()
   .addArguments('-headless')
   .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
+  .setPreference('extensions.webextOptionalPermissionPrompts', false)
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
 
@@ -87,6 +127,37 @@ async function runtimeDiagnostics() {
   `);
 }
 
+async function setControlValue(element, value) {
+  await driver.executeScript(
+    `
+      const element = arguments[0];
+      const value = arguments[1];
+      const prototype = element instanceof HTMLSelectElement
+        ? HTMLSelectElement.prototype
+        : element instanceof HTMLTextAreaElement
+          ? HTMLTextAreaElement.prototype
+          : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(prototype, 'value').set;
+      setter.call(element, value);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    `,
+    element,
+    value,
+  );
+}
+
+async function hasOriginPermission(origin) {
+  return driver.executeAsyncScript(
+    `
+      const origin = arguments[0];
+      const done = arguments[1];
+      browser.permissions.contains({ origins: [origin] }).then(done, (error) => done(String(error)));
+    `,
+    origin,
+  );
+}
+
 async function logDiagnostics(stage) {
   console.error(`[Firefox ${stage} URL] ${await driver.getCurrentUrl()}`);
   console.error(`[Firefox ${stage} title] ${await driver.getTitle()}`);
@@ -125,6 +196,11 @@ try {
     `),
     true,
     'Firefox BiDi installation did not grant private browsing access',
+  );
+  assert.equal(
+    await hasOriginPermission(remotePermissionOrigin),
+    false,
+    'Firefox remote source origin must remain optional before a user action',
   );
 
   await driver.executeScript(
@@ -200,53 +276,161 @@ try {
   await driver.wait(until.elementLocated(By.css('[data-request-diagnostics-stopped]')), 15_000);
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
-  const newProfileAction = await driver.wait(
+  const newRuleProfileAction = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-action]')),
     15_000,
   );
-  await newProfileAction.click();
+  await newRuleProfileAction.click();
+  const newRuleName = await driver.wait(
+    until.elementLocated(By.css('[data-new-profile-name-input]')),
+    15_000,
+  );
+  await setControlValue(newRuleName, 'Firefox Rule Source E2E');
+  const switchChoice = await driver.findElement(By.css('[data-new-profile-kind="switch"]'));
+  await switchChoice.click();
+  const createSwitch = await driver.findElement(By.css('[data-new-profile-create]'));
+  await driver.wait(until.elementIsEnabled(createSwitch), 10_000);
+  await createSwitch.click();
+  const attachRuleListSection = await driver.wait(
+    until.elementLocated(By.css('[data-attach-rule-list-section]')),
+    20_000,
+  );
+  await attachRuleListSection.findElement(By.css('button')).click();
+  const attachedRuleList = await driver.wait(
+    until.elementLocated(By.css('[data-attached-rule-list-config][data-typed-locale="zh-TW"]')),
+    20_000,
+  );
+  const attachedSourceType = await attachedRuleList.findElement(By.css('select'));
+  await setControlValue(attachedSourceType, 'url');
+  const attachedUrl = await driver.wait(
+    until.elementLocated(By.css('[data-attached-rule-list-config] input[type="url"]')),
+    15_000,
+  );
+  await setControlValue(attachedUrl, remoteRuleUrl);
+  const ruleDownload = await driver.wait(
+    until.elementLocated(By.css('[data-rule-source-update-now]')),
+    15_000,
+  );
+  await driver.wait(until.elementIsEnabled(ruleDownload), 15_000);
+  await ruleDownload.click();
+  await driver.wait(async () => {
+    const statuses = await driver.findElements(By.css('[data-rule-source-update-status]'));
+    return statuses.length > 0 && (await statuses[0].getText()).includes('規則清單最後更新於');
+  }, 20_000);
+  const downloadedRuleText = await driver.wait(
+    until.elementLocated(By.css('[data-attached-rule-list-config] textarea[readonly]')),
+    15_000,
+  );
+  assert.equal(await downloadedRuleText.getProperty('value'), remoteRuleText);
+  assert.equal(
+    await hasOriginPermission(remotePermissionOrigin),
+    true,
+    'Firefox did not retain the optional source origin after the user-triggered Rule Source download',
+  );
+  const ruleRuntime = await driver.executeAsyncScript(
+    `
+      const url = arguments[0];
+      const done = arguments[1];
+      browser.storage.local.get(null).then((storage) => {
+        const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+        const source = workflow?.draft?.ruleSources?.find((candidate) => candidate.location?.url === url);
+        done({
+          content: source?.location?.content,
+          lastSuccessAt: source ? workflow?.ruleSourceUpdates?.[source.id]?.lastSuccessAt : undefined,
+          lastError: source ? workflow?.ruleSourceUpdates?.[source.id]?.lastError : undefined,
+        });
+      }, (error) => done({ error: String(error) }));
+    `,
+    remoteRuleUrl,
+  );
+  assert.equal(ruleRuntime.content, remoteRuleText, 'Firefox Rule Source cache was not persisted');
+  assert.equal(typeof ruleRuntime.lastSuccessAt, 'string');
+  assert.equal(
+    ruleRuntime.lastError == null,
+    true,
+    'Firefox Rule Source update recorded an unexpected error',
+  );
+
+  const newPacProfileAction = await driver.wait(
+    until.elementLocated(By.css('[data-new-profile-action]')),
+    15_000,
+  );
+  await newPacProfileAction.click();
   const newPacName = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-name-input]')),
     15_000,
   );
-  await driver.executeScript(
-    `
-      const input = arguments[0];
-      const value = arguments[1];
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-      setter.call(input, value);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    `,
-    newPacName,
-    'Firefox PAC E2E',
-  );
+  await setControlValue(newPacName, 'Firefox PAC E2E');
   const pacChoice = await driver.findElement(By.css('[data-new-profile-kind="pac"]'));
   await pacChoice.click();
+  await driver.wait(async () => pacChoice.isSelected(), 5_000);
   const createPac = await driver.findElement(By.css('[data-new-profile-create]'));
   await driver.wait(until.elementIsEnabled(createPac), 10_000);
   await createPac.click();
-  const pacEditor = await driver.wait(
-    until.elementLocated(By.css('[data-pac-profile-editor][data-typed-locale="zh-TW"]')),
-    20_000,
-  );
+  let pacEditor;
+  try {
+    await driver.wait(
+      async () => (await driver.findElements(By.css('.new-profile-dialog'))).length === 0,
+      20_000,
+    );
+    pacEditor = await driver.wait(
+      until.elementLocated(By.css('[data-pac-profile-editor][data-typed-locale="zh-TW"]')),
+      20_000,
+    );
+  } catch (error) {
+    await logDiagnostics('remote PAC creation');
+    throw error;
+  }
   await driver.wait(until.elementIsVisible(pacEditor), 20_000);
   await driver.wait(until.elementLocated(By.xpath("//h2[normalize-space(.)='PAC 網址']")), 15_000);
+  const pacUrl = await driver.wait(
+    until.elementLocated(By.css('[data-pac-url-section] input[aria-label="PAC 網址"]')),
+    15_000,
+  );
+  await setControlValue(pacUrl, remotePacUrl);
+  const pacDownload = await driver.wait(
+    until.elementLocated(By.css('[data-pac-source-update-now]')),
+    15_000,
+  );
+  await driver.wait(until.elementIsEnabled(pacDownload), 15_000);
+  await pacDownload.click();
+  await driver.wait(async () => {
+    const statuses = await driver.findElements(By.css('[data-pac-source-update-status]'));
+    return statuses.length > 0 && (await statuses[0].getText()).includes('PAC 指令碼最後更新時間');
+  }, 20_000);
   const pacScript = await driver.wait(
     until.elementLocated(By.css('[data-pac-script-section] textarea[aria-label="PAC 指令碼"]')),
     15_000,
   );
-  await driver.executeScript(
+  assert.equal(await pacScript.getProperty('value'), remotePacText);
+  assert.equal(await pacScript.getProperty('readOnly'), true);
+  const pacDraftRuntime = await driver.executeAsyncScript(
     `
-      const textarea = arguments[0];
-      const value = arguments[1];
-      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-      setter.call(textarea, value);
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+      const url = arguments[0];
+      const done = arguments[1];
+      browser.storage.local.get(null).then((storage) => {
+        const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+        const profile = workflow?.draft?.profiles?.find((candidate) => candidate.source?.url === url);
+        const update = profile ? workflow?.ruleSourceUpdates?.['pac:' + profile.id] : undefined;
+        done({ script: profile?.source?.script, lastSuccessAt: update?.lastSuccessAt, lastError: update?.lastError });
+      }, (error) => done({ error: String(error) }));
     `,
-    pacScript,
-    "function FindProxyForURL(url, host) { return 'DIRECT'; }\n",
+    remotePacUrl,
   );
+  assert.equal(pacDraftRuntime.script, remotePacText, 'Firefox PAC cache was not persisted');
+  assert.equal(typeof pacDraftRuntime.lastSuccessAt, 'string');
+  assert.equal(
+    pacDraftRuntime.lastError == null,
+    true,
+    'Firefox PAC update recorded an unexpected error',
+  );
+  assert.equal(
+    ruleRequestCount,
+    1,
+    'Firefox Rule Source server received an unexpected request count',
+  );
+  assert.equal(pacRequestCount, 1, 'Firefox PAC server received an unexpected request count');
+
   const pacApply = await driver.wait(
     until.elementLocated(By.css('.actions button.primary')),
     15_000,
@@ -301,5 +485,11 @@ try {
 
   console.log(`Firefox extension E2E passed for ${installedId}.`);
 } finally {
-  await driver.quit();
+  try {
+    await driver.quit();
+  } finally {
+    await new Promise((resolveClose, rejectClose) => {
+      sourceServer.close((error) => (error ? rejectClose(error) : resolveClose()));
+    });
+  }
 }
