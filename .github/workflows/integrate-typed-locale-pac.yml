@@ -1,4 +1,4 @@
-# integration revision 4
+# integration revision 5
 name: Integrate typed PAC locale
 
 on:
@@ -41,6 +41,7 @@ jobs:
           {
             set -x
             python .github/patches/fix-typed-locale-pac-editor-patch.py
+            python .github/patches/fix-typed-locale-pac-firefox-guard.py
             python .github/patches/apply-typed-locale-pac-catalog.py
             python .github/patches/apply-typed-locale-pac-editor.py
             python .github/patches/apply-typed-locale-pac-integration.py
@@ -86,6 +87,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-locale-pac.yml
           rm -f \
             .github/patches/fix-typed-locale-pac-editor-patch.py \
+            .github/patches/fix-typed-locale-pac-firefox-guard.py \
             .github/patches/apply-typed-locale-pac-catalog.py \
             .github/patches/apply-typed-locale-pac-editor.py \
             .github/patches/apply-typed-locale-pac-integration.py \
