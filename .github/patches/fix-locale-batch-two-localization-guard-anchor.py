@@ -44,3 +44,19 @@ new_guard = '''    "      attachedRuleListConfig.includes('uiMessage(') &&\\n"
 if text.count(old_guard) != 1:
     raise SystemExit(f'expected one localized Rule Source UI guard, found {text.count(old_guard)}')
 path.write_text(text.replace(old_guard, new_guard, 1))
+
+rule_patch = Path('.github/patches/apply-locale-batch-two-rule-lists.py')
+rule_text = rule_patch.read_text()
+old_bytes = "        bytes: view.lastBytes,\n        stale: view.stale,\n"
+new_bytes = "        ...(view.lastBytes === undefined ? {} : { bytes: view.lastBytes }),\n        stale: view.stale,\n"
+if rule_text.count(old_bytes) != 2:
+    raise SystemExit(f'expected two Rule List optional-byte message payloads, found {rule_text.count(old_bytes)}')
+rule_patch.write_text(rule_text.replace(old_bytes, new_bytes))
+
+switch_patch = Path('.github/patches/apply-locale-batch-two-switch.py')
+switch_text = switch_patch.read_text()
+old_line = "    return uiMessage('switch.sourceError', { code: value.code, line: value.line }, locale);\n"
+new_line = "    return uiMessage(\n      'switch.sourceError',\n      { code: value.code, ...(value.line === undefined ? {} : { line: value.line }) },\n      locale,\n    );\n"
+if switch_text.count(old_line) != 1:
+    raise SystemExit(f'expected one Switch optional-line message payload, found {switch_text.count(old_line)}')
+switch_patch.write_text(switch_text.replace(old_line, new_line, 1))
