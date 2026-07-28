@@ -176,6 +176,106 @@ try {
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
 
+  await driver.get(`moz-extension://${extensionUuid}/options.html`);
+  const newProfileAction = await driver.wait(
+    until.elementLocated(By.css('[data-new-profile-action]')),
+    15_000,
+  );
+  await newProfileAction.click();
+  const newPacName = await driver.wait(
+    until.elementLocated(By.css('[data-new-profile-name-input]')),
+    15_000,
+  );
+  await driver.executeScript(
+    `
+      const input = arguments[0];
+      const value = arguments[1];
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      setter.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    `,
+    newPacName,
+    'Firefox PAC E2E',
+  );
+  const pacChoice = await driver.findElement(By.css('[data-new-profile-kind="pac"]'));
+  await pacChoice.click();
+  const createPac = await driver.findElement(By.css('[data-new-profile-create]'));
+  await driver.wait(until.elementIsEnabled(createPac), 10_000);
+  await createPac.click();
+  const pacEditor = await driver.wait(
+    until.elementLocated(By.css('[data-pac-profile-editor][data-typed-locale="zh-TW"]')),
+    20_000,
+  );
+  await driver.wait(until.elementIsVisible(pacEditor), 20_000);
+  await driver.wait(until.elementLocated(By.xpath("//h2[normalize-space(.)='PAC 網址']")), 15_000);
+  const pacScript = await driver.wait(
+    until.elementLocated(By.css('[data-pac-script-section] textarea[aria-label="PAC 指令碼"]')),
+    15_000,
+  );
+  await driver.executeScript(
+    `
+      const textarea = arguments[0];
+      const value = arguments[1];
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      setter.call(textarea, value);
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    `,
+    pacScript,
+    "function FindProxyForURL(url, host) { return 'DIRECT'; }\n",
+  );
+  const pacApply = await driver.wait(
+    until.elementLocated(By.css('.actions button.primary')),
+    15_000,
+  );
+  await driver.wait(until.elementIsEnabled(pacApply), 15_000);
+  await pacApply.click();
+  await driver.wait(
+    until.elementLocated(By.xpath("//*[contains(normalize-space(.), '目前設定已全部套用。') ]")),
+    20_000,
+  );
+  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  const pacRoute = await driver.wait(
+    until.elementLocated(By.xpath("//button[contains(., 'Firefox PAC E2E')]")),
+    15_000,
+  );
+  await pacRoute.click();
+  await driver.wait(until.elementIsDisabled(pacRoute), 20_000);
+  const pacRuntime = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    browser.storage.local.get(null).then((storage) => {
+      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+      const profile = workflow?.applied?.profiles?.find((candidate) => candidate.name === 'Firefox PAC E2E');
+      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+      const snapshot = proxyState?.activeSnapshotId
+        ? storage['zeroomega-nex/browser-proxy/v1/snapshot/' + proxyState.activeSnapshotId]
+        : undefined;
+      done({
+        profileId: profile?.id,
+        kind: profile?.kind,
+        compilerVersion: snapshot?.compilerVersion,
+        startRoute: snapshot?.startRoute,
+        script: snapshot?.script,
+      });
+    }, (error) => done({ error: String(error) }));
+  `);
+  assert.equal(pacRuntime.kind, 'pac', 'Firefox PAC profile was not applied');
+  assert.equal(
+    pacRuntime.compilerVersion,
+    'raw-pac/1',
+    'Firefox did not install a raw PAC snapshot',
+  );
+  assert.equal(pacRuntime.startRoute?.kind, 'profile');
+  assert.equal(pacRuntime.startRoute?.profileId, pacRuntime.profileId);
+  assert.match(pacRuntime.script ?? '', /FindProxyForURL/u);
+  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  const finalDirect = await driver.wait(
+    until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),
+    15_000,
+  );
+  await finalDirect.click();
+  await driver.wait(until.elementIsDisabled(finalDirect), 15_000);
+
   console.log(`Firefox extension E2E passed for ${installedId}.`);
 } finally {
   await driver.quit();

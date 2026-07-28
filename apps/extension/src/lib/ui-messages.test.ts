@@ -38,6 +38,21 @@ describe('typed UI messages', () => {
     ).toContain('规则列表最后更新于 2026/7/28 14:00');
   });
 
+  it('formats source-backed PAC text and dynamic status in all three locales', () => {
+    expect(uiText('pac.url', 'zh-CN')).toBe('PAC 网址');
+    expect(uiText('pac.script', 'zh-TW')).toBe('PAC 指令碼');
+    expect(
+      uiMessage(
+        'pac.lastUpdated',
+        { timestamp: '2026/7/28 14:00', bytes: 256, stale: true },
+        'zh-CN',
+      ),
+    ).toContain('PAC 脚本下载时间 2026/7/28 14:00');
+    expect(uiMessage('pac.authConfiguredFor', { username: '使用者' }, 'zh-TW')).toBe(
+      '已為 使用者 設定。',
+    );
+  });
+
   it('formats dynamic deletion and accessibility messages without English fallback', () => {
     expect(uiMessage('profile.delete.confirmDescription', { profileName: '工作' }, 'zh-CN')).toBe(
       '删除情景模式“工作”？此操作只会修改尚未应用的设置。',

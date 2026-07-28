@@ -1493,6 +1493,7 @@
         />
       {:else if selectedProfile.kind === 'pac'}
         <PacProfileEditor
+          {locale}
           spec={state.draft}
           profileId={selectedProfile.id}
           disabled={saving || view?.busy === true}

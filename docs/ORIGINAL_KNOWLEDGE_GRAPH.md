@@ -436,3 +436,8 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - typed locale 第二批覆盖 `SwitchProfileEditor`、`AttachedRuleListConfig` 与独立 `RuleListProfileEditor`：原版条件组/表格/默认情景模式/在线规则列表三段结构使用固定 v3.5.0 PO 术语，Nex 新增拖放、缓存、秘密引用与更新状态沿用同一术语体系。
 - Switch source parser 已有稳定 `SwitchSourceError.code`，UI 通过 code 与可选行号生成三语消息，不再把底层英文 parser message 直接展示。Rule Source 下载 ledger 尚无稳定错误码，本批只本地化失败状态并隐藏不稳定底层 message；将下载错误码化列为后续边界，不能据此宣称所有底层错误已完整翻译。
 - 第二批组件直接接收 `AppLocale`，所有条件帮助、列名、动作、placeholder、更新摘要和 ARIA 均走 `uiText/uiMessage`；English 保留既有无障碍名称顺序，zh-CN/zh-TW 使用源证据术语。机器 inventory 排除三份已完成组件，永久 locale guard 阻止字面英文回流。
+
+- typed locale PAC 批次直接覆盖 `PacProfileEditor` 的 URL/Clear、远程请求头、下载/缓存状态、脚本文本、`auth.all`、file 警告、fallback、按钮、placeholder 与 ARIA。zh-CN/zh-TW 文案来自固定 v3.5.0 `profile_pac.jade` 与 PO；现代背景秘密引用、结构验证和能力 fallback 使用同一术语体系。
+- PAC 更新 ledger 与 Rule Source 一样仍只有底层 `message`，没有稳定错误码；UI 只显示 typed 失败摘要并保留旧缓存，不直接暴露不稳定英文。认证读取/授权/保存/删除异常改为不含秘密的 typed 通用错误，避免把后台异常或凭据细节渲染到页面。
+- 原版 `auth.all` 三层警告已恢复：任意 PAC 返回代理可能收到凭据、URL/内联脚本必须可信、被其他 Profile 引用时可能把凭据发送到其他配置的代理。现代运行时仍只在顶层活动 PAC 下响应代理 Basic/Digest，不响应网站认证。
+- Firefox E2E 通过真实 New Profile 模态框创建内联 PAC、编辑脚本、正常 Apply、Popup 激活并读取后台存储验证 `raw-pac/1` structural snapshot 与 startRoute；这证明现代顶层 PAC 可跨浏览器激活，但不代表 Firefox 远程下载权限流程或 `file:` PAC 已完成。

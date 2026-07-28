@@ -439,7 +439,10 @@ try {
   await options.getByRole('button', { name: 'pac', exact: true }).click();
   const pacEditor = options.locator('[data-pac-profile-editor]');
   await pacEditor.waitFor({ state: 'visible', timeout: 20_000 });
-  const pacUrl = pacEditor.getByRole('textbox', { name: 'PAC URL', exact: true });
+  assert.equal(await pacEditor.getAttribute('data-typed-locale'), 'zh-CN');
+  await pacEditor.getByRole('heading', { name: 'PAC 网址', exact: true }).waitFor();
+  assert.doesNotMatch(await pacEditor.innerText(), /PAC URL|PAC Script|Proxy Authentication/u);
+  const pacUrl = pacEditor.getByRole('textbox', { name: 'PAC 网址', exact: true });
   await pacUrl.fill(remotePacUrl);
   await pacUrl.press('Tab');
   const pacDownload = pacEditor.locator('[data-pac-source-update-now]');
@@ -450,12 +453,12 @@ try {
   await pacDownload.click();
   await pacEditor
     .locator('[data-pac-source-update-status]')
-    .filter({ hasText: 'Last updated' })
+    .filter({ hasText: 'PAC 脚本下载时间' })
     .waitFor({ timeout: 20_000 });
-  const pacScript = pacEditor.getByLabel('PAC Script', { exact: true });
+  const pacScript = pacEditor.getByLabel('PAC 脚本', { exact: true });
   assert.equal(await pacScript.inputValue(), remotePacText);
   assert.equal(await pacScript.isEditable(), false);
-  await pacEditor.getByRole('button', { name: 'Clear PAC URL', exact: true }).click();
+  await pacEditor.getByRole('button', { name: '清空 PAC 网址', exact: true }).click();
   await assertEventually(
     async () => (await pacScript.isEditable()) && (await pacScript.inputValue()) === remotePacText,
     'Clearing PAC URL did not preserve the downloaded script as editable inline text',
@@ -467,13 +470,13 @@ try {
   await pacEditor.locator('[data-pac-auth-action="edit"]').click();
   const pacAuthDialog = options.locator('[data-pac-auth-dialog]');
   await pacAuthDialog.waitFor({ state: 'visible', timeout: 20_000 });
-  const pacAuthUsername = pacAuthDialog.getByLabel('PAC authentication username');
+  const pacAuthUsername = pacAuthDialog.getByLabel('PAC 代理登录用户名');
   await assertEventually(
     async () => pacAuthUsername.evaluate((element) => element === document.activeElement),
     'PAC authentication dialog did not focus the username field',
   );
   await pacAuthUsername.fill('pac-e2e-user');
-  await pacAuthDialog.getByLabel('PAC authentication password').fill('pac-e2e-secret');
+  await pacAuthDialog.getByLabel('PAC 代理登录密码').fill('pac-e2e-secret');
   await pacAuthDialog.locator('[data-pac-auth-action="save"]').click();
   await pacAuthDialog.waitFor({ state: 'detached', timeout: 20_000 });
   await options.evaluate(() => {

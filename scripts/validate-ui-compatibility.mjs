@@ -403,6 +403,9 @@ const requirements = [
       optionsApp.includes("action: 'get-pac-source-update-status'") &&
       optionsApp.includes("action: 'update-pac-source'") &&
       pacProfileEditor.includes('data-pac-profile-editor') &&
+      pacProfileEditor.includes('data-typed-locale={locale}') &&
+      pacProfileEditor.includes("uiText('pac.url', locale)") &&
+      pacProfileEditor.includes("'pac.lastUpdated'") &&
       pacProfileEditor.includes('data-pac-url-section') &&
       pacProfileEditor.includes('data-pac-request-headers') &&
       pacProfileEditor.includes('data-pac-source-update-now') &&
@@ -412,7 +415,7 @@ const requirements = [
       pacSourceUpdate.includes('PAC_UPDATE_KEY_PREFIX') &&
       pacSourceUpdate.includes('target.source.script = downloaded.content') &&
       chromiumE2e.includes('data-pac-source-update-now') &&
-      chromiumE2e.includes("name: 'Clear PAC URL'") &&
+      chromiumE2e.includes("name: '清空 PAC 网址'") &&
       legacyImportImplementation.includes('pac.downloaded-cache-preserved') &&
       legacyImportImplementation.includes('secret.unknown-pac-auth-slot') &&
       legacyExport.includes('profile.source.script !== undefined') &&
@@ -421,7 +424,7 @@ const requirements = [
       pacProfileEditor.includes('data-pac-auth-dialog') &&
       pacProfileEditor.includes('onReplaceDraftWithSecrets') &&
       pacProfileEditor.includes('onRequestAuthenticationPermission') &&
-      pacProfileEditor.includes('Proxy authentication permission was not granted.') &&
+      pacProfileEditor.includes("uiText('pac.authPermissionDenied', locale)") &&
       proxyAuthenticationPermissionClient.includes("'webRequestAuthProvider'") &&
       proxyAuthenticationPermissionClient.includes("'webRequestBlocking'") &&
       proxyAuthenticationPermissionClient.includes("'http://*/*'") &&

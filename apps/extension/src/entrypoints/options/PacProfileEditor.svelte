@@ -14,6 +14,10 @@
   } from '@zeroomega-nex/profile-workflow';
   import { tick } from 'svelte';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
+
+  export let locale: AppLocale = currentAppLocale();
   export let spec: ProfileSpec;
   export let profileId: string;
   export let disabled = false;
@@ -242,8 +246,8 @@
     try {
       authPassword = await onReadSecret(authSecretRef);
       authOriginalPassword = authPassword;
-    } catch (error) {
-      authError = error instanceof Error ? error.message : String(error);
+    } catch {
+      authError = uiText('pac.authReadFailed', locale);
     } finally {
       authLoading = false;
     }
@@ -264,13 +268,13 @@
     let granted = false;
     try {
       granted = await onRequestAuthenticationPermission();
-    } catch (error) {
-      authError = error instanceof Error ? error.message : String(error);
+    } catch {
+      authError = uiText('pac.authPermissionFailed', locale);
       authSaving = false;
       return;
     }
     if (!granted) {
-      authError = 'Proxy authentication permission was not granted.';
+      authError = uiText('pac.authPermissionDenied', locale);
       authSaving = false;
       return;
     }
@@ -280,7 +284,8 @@
         candidate.id === profileId && candidate.kind === 'pac',
     );
     if (!target) {
-      authError = 'PAC Profile no longer exists.';
+      authError = uiText('pac.missingProfile', locale);
+      authSaving = false;
       return;
     }
     const previousRef = target.credential?.passwordSecretRef;
@@ -299,8 +304,8 @@
       authOpen = false;
       authPassword = '';
       authOriginalPassword = '';
-    } catch (error) {
-      authError = error instanceof Error ? error.message : String(error);
+    } catch {
+      authError = uiText('pac.authSaveFailed', locale);
     } finally {
       authSaving = false;
     }
@@ -322,37 +327,47 @@
       authOpen = false;
       authPassword = '';
       authOriginalPassword = '';
-    } catch (error) {
-      authError = error instanceof Error ? error.message : String(error);
+    } catch {
+      authError = uiText('pac.authRemoveFailed', locale);
     } finally {
       authSaving = false;
     }
   }
 
   function formatTimestamp(value: string | undefined): string {
-    if (!value) return 'never';
+    if (!value) return '';
     const parsed = new Date(value);
-    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
+    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString(locale);
   }
 
   function updateSummary(view: ProfileWorkflowPacSourceUpdateView | undefined): string {
-    if (!view?.lastAttemptAt) return 'PAC script is obsolete until downloaded.';
+    if (!view?.lastAttemptAt) return uiText('pac.obsolete', locale);
     if (view.lastError) {
-      return `Last update failed ${formatTimestamp(view.lastError.occurredAt)}. Existing cached script was preserved.`;
+      return uiMessage(
+        'pac.updateFailed',
+        { timestamp: formatTimestamp(view.lastError.occurredAt) },
+        locale,
+      );
     }
-    const stale = view.stale ? ' Cached script is stale.' : '';
-    const bytes = view.lastBytes === undefined ? '' : ` ${view.lastBytes} bytes.`;
-    return `Last updated ${formatTimestamp(view.lastSuccessAt)}.${bytes}${stale}`;
+    return uiMessage(
+      'pac.lastUpdated',
+      {
+        timestamp: formatTimestamp(view.lastSuccessAt),
+        ...(view.lastBytes === undefined ? {} : { bytes: view.lastBytes }),
+        stale: view.stale,
+      },
+      locale,
+    );
   }
 </script>
 
 {#if profile}
-  <div data-pac-profile-editor>
+  <div data-pac-profile-editor data-typed-locale={locale}>
     <section class="settings-section" data-pac-url-section>
-      <h2>PAC URL</h2>
+      <h2>{uiText('pac.url', locale)}</h2>
       <div class="url-row">
         <input
-          aria-label="PAC URL"
+          aria-label={uiText('pac.url', locale)}
           value={profile.source.kind === 'url' ? profile.source.url : ''}
           placeholder="https://example.com/proxy.pac"
           {disabled}
@@ -360,56 +375,72 @@
         />
         <button
           type="button"
-          aria-label="Clear PAC URL"
+          aria-label={uiText('pac.clearUrl', locale)}
           disabled={disabled || profile.source.kind !== 'url'}
-          onclick={clearUrl}>Clear</button
+          onclick={clearUrl}>{uiText('pac.clear', locale)}</button
         >
       </div>
-      <p class="section-help">Leave the URL empty to edit PAC Script directly.</p>
+      <p class="section-help">{uiText('pac.urlHelp', locale)}</p>
       {#if profile.source.kind === 'url' && isFileUrl(profile.source.url)}
         <p class="file-warning" role="alert" data-pac-file-warning>
-          Local file PAC URLs depend on browser file-access capability.
+          {uiText('pac.fileWarning', locale)}
         </p>
         {#if referenced}
           <p class="source-update-error" role="alert">
-            A file PAC cannot be referenced by another profile. Use it only as a top-level route.
+            {uiText('pac.fileReferenced', locale)}
           </p>
         {/if}
       {/if}
       {#if profile.source.kind === 'url' && !isFileUrl(profile.source.url)}
         <details open={(profile.headers?.length ?? 0) > 0} data-pac-request-headers>
-          <summary>Request headers</summary>
-          <p class="section-help">Sensitive values use background-owned secret references.</p>
+          <summary>{uiText('pac.requestHeaders', locale)}</summary>
+          <p class="section-help">{uiText('pac.headersHelp', locale)}</p>
           {#each profile.headers ?? [] as header, index (`${header.name}:${index}`)}
             <div class="header-row">
               <input
-                aria-label={`PAC header ${index + 1} name`}
+                aria-label={uiMessage(
+                  'pac.headerAria',
+                  { index: index + 1, field: 'name' },
+                  locale,
+                )}
                 value={header.name}
                 {disabled}
                 onchange={(event) => updateHeaderName(index, valueFrom(event))}
               />
               <select
-                aria-label={`PAC header ${index + 1} value type`}
+                aria-label={uiMessage(
+                  'pac.headerAria',
+                  { index: index + 1, field: 'type' },
+                  locale,
+                )}
                 value={header.value.kind}
                 {disabled}
                 onchange={(event) =>
                   updateHeaderKind(index, valueFrom(event) as 'literal' | 'secret')}
               >
-                <option value="literal">Literal</option>
-                <option value="secret">Secret reference</option>
+                <option value="literal">{uiText('pac.literal', locale)}</option>
+                <option value="secret">{uiText('pac.secretReference', locale)}</option>
               </select>
               <input
-                aria-label={`PAC header ${index + 1} value`}
+                aria-label={uiMessage(
+                  'pac.headerAria',
+                  { index: index + 1, field: 'value' },
+                  locale,
+                )}
                 value={header.value.kind === 'literal'
                   ? header.value.value
                   : header.value.secretRef}
                 {disabled}
                 onchange={(event) => updateHeaderValue(index, valueFrom(event))}
               />
-              <button type="button" {disabled} onclick={() => removeHeader(index)}>Remove</button>
+              <button type="button" {disabled} onclick={() => removeHeader(index)}
+                >{uiText('pac.removeHeader', locale)}</button
+              >
             </div>
           {/each}
-          <button type="button" {disabled} onclick={addHeader}>Add header</button>
+          <button type="button" {disabled} onclick={addHeader}
+            >{uiText('pac.addHeader', locale)}</button
+          >
         </details>
         <div class="download-row">
           <button
@@ -418,28 +449,28 @@
             disabled={disabled || updateLoading || !isRemoteUrl(profile.source.url)}
             onclick={downloadNow}
           >
-            {updateLoading ? 'Downloading…' : 'Download now'}
+            {updateLoading ? uiText('pac.downloading', locale) : uiText('pac.downloadNow', locale)}
           </button>
           <p class:stale={updateView?.stale} role="status" data-pac-source-update-status>
             {updateSummary(updateView)}
           </p>
         </div>
         {#if updateView?.lastError}
-          <p class="source-update-error" role="alert">{updateView.lastError.message}</p>
+          <p class="source-update-error" role="alert">{uiText('pac.updateError', locale)}</p>
         {/if}
       {/if}
     </section>
 
     <section class="settings-section" data-pac-script-section>
-      <h2>PAC Script</h2>
+      <h2>{uiText('pac.script', locale)}</h2>
       {#if profile.source.kind === 'url' && isFileUrl(profile.source.url)}
         <p class="section-help">
-          The browser reads this local file directly; cached script text is hidden.
+          {uiText('pac.fileScriptHidden', locale)}
         </p>
       {:else}
         <textarea
           class="monospace"
-          aria-label="PAC Script"
+          aria-label={uiText('pac.script', locale)}
           rows="20"
           readonly={profile.source.kind === 'url'}
           value={profile.source.script ?? ''}
@@ -449,11 +480,20 @@
     </section>
 
     <section class="settings-section" data-pac-authentication>
-      <h2>Proxy Authentication</h2>
-      <p class="section-help">
-        These credentials answer Basic or Digest authentication challenges from any proxy returned
-        by this top-level PAC Script. Ordinary website authentication is never answered.
-      </p>
+      <h2>{uiText('pac.authTitle', locale)}</h2>
+      <p class="section-help">{uiText('pac.authHelp', locale)}</p>
+      {#if profile.credential}
+        <div class="auth-warning" role="alert" data-pac-auth-warning>
+          <p>{uiText('pac.authAllWarning', locale)}</p>
+          <p>
+            {uiText(
+              profile.source.kind === 'url' ? 'pac.authTrustUrl' : 'pac.authTrustScript',
+              locale,
+            )}
+          </p>
+          {#if referenced}<p>{uiText('pac.authReferencedWarning', locale)}</p>{/if}
+        </div>
+      {/if}
       <div class="authentication-row">
         <button
           type="button"
@@ -461,31 +501,34 @@
           disabled={disabled || authLoading || authSaving}
           onclick={() => void openAuthentication()}
         >
-          {profile.credential ? 'Edit all-proxy authentication' : 'Set all-proxy authentication'}
+          {uiText(profile.credential ? 'pac.authEdit' : 'pac.authSet', locale)}
         </button>
         <span role="status">
           {profile.credential
-            ? `Configured${profile.credential.username ? ` for ${profile.credential.username}` : ''}.`
-            : 'Not configured.'}
+            ? profile.credential.username
+              ? uiMessage(
+                  'pac.authConfiguredFor',
+                  { username: profile.credential.username },
+                  locale,
+                )
+              : uiText('pac.authConfigured', locale)
+            : uiText('pac.authNotConfigured', locale)}
         </span>
       </div>
     </section>
 
     <section class="settings-section" data-pac-fallback-section>
-      <h2>Target capability fallback</h2>
-      <p class="section-help">
-        Used only when the selected browser cannot activate this PAC source. It does not compose the
-        arbitrary PAC script into another profile.
-      </p>
+      <h2>{uiText('pac.fallbackTitle', locale)}</h2>
+      <p class="section-help">{uiText('pac.fallbackHelp', locale)}</p>
       <select
-        aria-label="PAC fallback profile"
+        aria-label={uiText('pac.fallbackAria', locale)}
         value={routeValue(profile.fallbackRoute)}
         {disabled}
         onchange={(event) => updateFallback(valueFrom(event))}
       >
-        <option value="">No fallback</option>
-        <option value="direct">Direct</option>
-        <option value="system">System Proxy</option>
+        <option value="">{uiText('pac.noFallback', locale)}</option>
+        <option value="direct">{uiText('route.direct', locale)}</option>
+        <option value="system">{uiText('route.system', locale)}</option>
         {#each routeProfiles as target (target.id)}
           <option value={`profile:${target.id}`}>{target.name}</option>
         {/each}
@@ -505,24 +548,23 @@
       aria-labelledby="pac-auth-title"
     >
       <header>
-        <h2 id="pac-auth-title">PAC Proxy Authentication</h2>
+        <h2 id="pac-auth-title">{uiText('pac.authDialogTitle', locale)}</h2>
         <button
           type="button"
           class="close-button"
-          aria-label="Close PAC authentication"
+          aria-label={uiText('pac.authClose', locale)}
           onclick={closeAuthentication}>×</button
         >
       </header>
       <div class="dialog-body">
         <p>
-          One credential is used only for proxy authentication challenges while this PAC Profile is
-          the active top-level route.
+          {uiText('pac.authDialogHelp', locale)}
         </p>
         <label>
-          Username
+          {uiText('pac.username', locale)}
           <input
             bind:this={authUsernameInput}
-            aria-label="PAC authentication username"
+            aria-label={uiText('pac.authUsernameAria', locale)}
             autocomplete="username"
             value={authUsername}
             disabled={authLoading || authSaving}
@@ -530,9 +572,9 @@
           />
         </label>
         <label>
-          Password
+          {uiText('pac.password', locale)}
           <input
-            aria-label="PAC authentication password"
+            aria-label={uiText('pac.authPasswordAria', locale)}
             type={showAuthPassword ? 'text' : 'password'}
             autocomplete="current-password"
             value={authPassword}
@@ -548,7 +590,7 @@
             onchange={(event) =>
               (showAuthPassword = (event.currentTarget as HTMLInputElement).checked)}
           />
-          Show password
+          {uiText(showAuthPassword ? 'pac.hidePassword' : 'pac.showPassword', locale)}
         </label>
         {#if authError}<p class="source-update-error" role="alert">{authError}</p>{/if}
       </div>
@@ -559,11 +601,14 @@
             class="danger"
             data-pac-auth-action="remove"
             disabled={authLoading || authSaving}
-            onclick={() => void removeAuthentication()}>Remove authentication</button
+            onclick={() => void removeAuthentication()}
+            >{uiText('pac.removeAuthentication', locale)}</button
           >
         {/if}
         <span class="dialog-spacer"></span>
-        <button type="button" disabled={authSaving} onclick={closeAuthentication}>Cancel</button>
+        <button type="button" disabled={authSaving} onclick={closeAuthentication}
+          >{uiText('common.cancel', locale)}</button
+        >
         <button
           type="button"
           class="primary"
@@ -571,7 +616,7 @@
           disabled={authLoading || authSaving}
           onclick={() => void saveAuthentication()}
         >
-          {authSaving ? 'Saving…' : 'Save authentication'}
+          {authSaving ? uiText('common.saving', locale) : uiText('pac.saveAuthentication', locale)}
         </button>
       </footer>
     </div>
@@ -606,8 +651,21 @@
 
   .stale,
   .source-update-error,
-  .file-warning {
+  .file-warning,
+  .auth-warning {
     color: var(--danger-text, #b3261e);
+  }
+
+  .auth-warning {
+    width: min(100%, 920px);
+    margin: 0.75rem 0;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  }
+
+  .auth-warning p {
+    margin: 0.25rem 0;
   }
 
   .header-row {

@@ -193,6 +193,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Unit tests and Chromium E2E cover the privacy bounds, explicit session lifecycle, real failed request capture, Popup summary, sanitized detail display, and clearing.
 - Integration run `30293423052`; product commit `e751e21fdb22efc652b3de23860276089319dd29`.
 
+### Typed PAC locale and Firefox interaction
+
+- `PacProfileEditor` now directly renders English, Simplified Chinese, and Traditional Chinese for URL/Clear, remote headers, download/cache state, script, `auth.all`, file warnings, fallback, actions, placeholders and ARIA using the semantic typed catalog.
+- Fixed v3.5.0 `profile_pac.jade` and PO files are the source for PAC URL/script terminology, file warnings, obsolete state, download action, username/password, and the three original all-proxy credential warnings.
+- Unstable lower-level PAC downloader messages are not rendered directly; the UI emits localized status while preserving cached script. Authentication read/permission/save/remove failures use non-secret typed errors.
+- Chromium keeps remote HTTP download, Clear-to-inline and all-proxy authentication coverage with zh-CN selectors. Firefox creates an inline PAC through the real New Profile flow, applies it, activates it from Popup, and verifies a `raw-pac/1` snapshot and PAC start route.
+- This slice does not claim Firefox remote-origin permission/download coverage, real 407 acceptance, or `file:` PAC activation.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.

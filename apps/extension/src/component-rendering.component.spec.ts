@@ -376,6 +376,43 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('secret-pac-component');
   });
 
+  it('renders the typed PAC editor in Simplified Chinese without literal English fallback', () => {
+    const mutation = createPacProfileDraft(baseSpec(), idFactory(), 'PAC typed');
+    const profile = mutation.draft.profiles.find(
+      (candidate) => candidate.id === mutation.profileId,
+    );
+    if (!profile || profile.kind !== 'pac') throw new Error('typed PAC profile was not created');
+    profile.source = {
+      kind: 'url',
+      url: 'https://pac.example.invalid/typed.pac',
+      script: "function FindProxyForURL() { return 'DIRECT'; }",
+    };
+    profile.headers = [{ name: 'X-Typed', value: { kind: 'literal', value: 'typed' } }];
+    profile.credential = { username: '测试用户', passwordSecretRef: 'secret-pac-typed' };
+    const body = render(PacProfileEditor, {
+      props: {
+        locale: 'zh-CN',
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
+        onReadSecret: async () => '',
+        onRequestAuthenticationPermission: async () => true,
+      },
+    }).body;
+
+    expect(body).toContain('data-typed-locale="zh-CN"');
+    expect(body).toContain('PAC 网址');
+    expect(body).toContain('PAC 脚本');
+    expect(body).toContain('PAC 请求头 1 名称');
+    expect(body).toContain('已为 测试用户 配置。');
+    expect(body).toContain('警告: 用户名密码将会提供给PAC脚本返回的任何服务器');
+    expect(body).not.toContain('Clear PAC URL');
+    expect(body).not.toContain('Proxy Authentication permission was not granted');
+    expect(body).not.toContain('secret-pac-typed');
+  });
+
   it('renders the inactive legacy import review entry point without secret values', () => {
     const { body } = render(LegacyImportPanel, {
       props: {

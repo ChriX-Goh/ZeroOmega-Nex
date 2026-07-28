@@ -9,6 +9,8 @@ const files = {
   switchProfile: 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte',
   attachedRuleList: 'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
   independentRuleList: 'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
+  pac: 'apps/extension/src/entrypoints/options/PacProfileEditor.svelte',
+  firefoxE2e: 'scripts/e2e-firefox.mjs',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
   package: 'package.json',
 };
@@ -44,6 +46,7 @@ for (const [name, source] of [
   ['Switch Profile', entries.switchProfile],
   ['Attached Rule List', entries.attachedRuleList],
   ['Independent Rule List', entries.independentRuleList],
+  ['PAC Profile', entries.pac],
 ]) {
   requireText(
     source,
@@ -120,6 +123,14 @@ for (const [source, marker, message] of [
     'aria-label="Rule List text"',
     'Independent Rule List ARIA regressed to literal English.',
   ],
+  [entries.pac, '<h2>PAC URL</h2>', 'PAC URL heading regressed to literal English.'],
+  [entries.pac, 'aria-label="PAC Script"', 'PAC Script ARIA regressed to literal English.'],
+  [entries.pac, '>Download now</button>', 'PAC download action regressed to literal English.'],
+  [
+    entries.pac,
+    'Proxy authentication permission was not granted.',
+    'PAC auth error regressed to literal English.',
+  ],
 ])
   forbidText(source, marker, message);
 requireText(
@@ -148,6 +159,11 @@ requireText(
   'Options must pass locale to independent Rule List.',
 );
 requireText(
+  entries.app,
+  '<PacProfileEditor\n          {locale}',
+  'Options must pass locale to PAC Profile.',
+);
+requireText(
   entries.catalog,
   "readonly 'switch.sourceError'",
   'Typed Switch source error messages are missing.',
@@ -156,6 +172,16 @@ requireText(
   entries.catalog,
   "readonly 'ruleList.lastUpdated'",
   'Typed Rule List update status messages are missing.',
+);
+requireText(
+  entries.catalog,
+  "readonly 'pac.lastUpdated'",
+  'Typed PAC update status messages are missing.',
+);
+requireText(
+  entries.firefoxE2e,
+  "'raw-pac/1'",
+  'Firefox PAC raw-snapshot interaction coverage is missing.',
 );
 requireText(
   entries.app,
