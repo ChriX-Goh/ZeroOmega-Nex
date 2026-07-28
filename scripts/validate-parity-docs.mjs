@@ -170,7 +170,7 @@ requireAll('visual evidence script', visualEvidenceScript, [
 requireAll('visual evidence workflow', visualEvidenceWorkflow, [
   'Milestone 8 Visual Evidence',
   'pnpm evidence:visual',
-  'm8-visual-evidence-${{ github.sha }}',
+  'm8-visual-evidence-${{ github.event.pull_request.head.sha || github.sha }}',
   'retention-days: 30',
 ]);
 
