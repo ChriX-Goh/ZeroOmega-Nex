@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/integrate-typed-legacy-import.yml
-      - .github/patches/apply-typed-legacy-import.py
+      - .github/patches/*typed-legacy-import*.py
 
 permissions:
   contents: write
@@ -38,7 +38,11 @@ jobs:
       - name: Apply typed Legacy Import slice
         run: |
           set -o pipefail
-          python .github/patches/apply-typed-legacy-import.py 2>&1 | tee typed-legacy-import-apply.log
+          {
+            set -x
+            python .github/patches/fix-typed-legacy-import-patch.py
+            python .github/patches/apply-typed-legacy-import.py
+          } 2>&1 | tee typed-legacy-import-apply.log
       - name: Format product slice
         run: |
           set -o pipefail
@@ -74,6 +78,7 @@ jobs:
         run: |
           git checkout HEAD -- .github/workflows/integrate-typed-legacy-import.yml
           rm -f \
+            .github/patches/fix-typed-legacy-import-patch.py \
             .github/patches/apply-typed-legacy-import.py \
             typed-legacy-import-apply.log \
             typed-legacy-import-format.log \
