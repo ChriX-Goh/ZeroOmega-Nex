@@ -1,0 +1,89 @@
+name: Integrate typed Theme and Popup
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-typed-theme-popup.yml
+      - .github/patches/apply-typed-theme-popup.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-typed-theme-popup-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply typed Theme and Popup slice
+        run: |
+          set -o pipefail
+          python .github/patches/apply-typed-theme-popup.py 2>&1 | tee typed-theme-popup-apply.log
+      - name: Format product slice
+        run: |
+          set -o pipefail
+          pnpm format 2>&1 | tee typed-theme-popup-format.log
+      - name: Generate locale inventory
+        run: |
+          set -o pipefail
+          pnpm locale:inventory 2>&1 | tee typed-theme-popup-inventory.log
+          pnpm exec prettier --write docs/LOCALE_INVENTORY.json
+      - name: Verify repository
+        run: |
+          set -o pipefail
+          pnpm verify 2>&1 | tee typed-theme-popup-verify.log
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium E2E candidate
+        env:
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium Theme and Popup regression
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee typed-theme-popup-chromium.log
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typed-theme-popup-${{ github.run_id }}
+          path: typed-theme-popup-*.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Commit verified product slice
+        run: |
+          git checkout HEAD -- .github/workflows/integrate-typed-theme-popup.yml
+          rm -f \
+            .github/patches/apply-typed-theme-popup.py \
+            typed-theme-popup-apply.log \
+            typed-theme-popup-format.log \
+            typed-theme-popup-inventory.log \
+            typed-theme-popup-verify.log \
+            typed-theme-popup-chromium.log
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: add typed Theme and Popup"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
