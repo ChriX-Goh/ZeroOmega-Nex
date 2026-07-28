@@ -1,4 +1,4 @@
-# integration revision 7
+# integration revision 8
 name: Integrate typed PAC locale
 
 on:
@@ -42,7 +42,7 @@ jobs:
           {
             set -x
             python .github/patches/fix-typed-locale-pac-editor-patch.py
-            python .github/patches/fix-typed-locale-pac-firefox-guard.py
+            python .github/patches/fix-typed-locale-pac-firefox-guard-v2.py
             python .github/patches/apply-typed-locale-pac-catalog.py
             python .github/patches/apply-typed-locale-pac-editor.py
             python .github/patches/apply-typed-locale-pac-integration.py
@@ -89,6 +89,7 @@ jobs:
           rm -f \
             .github/patches/fix-typed-locale-pac-editor-patch.py \
             .github/patches/fix-typed-locale-pac-firefox-guard.py \
+            .github/patches/fix-typed-locale-pac-firefox-guard-v2.py \
             .github/patches/apply-typed-locale-pac-catalog.py \
             .github/patches/apply-typed-locale-pac-editor.py \
             .github/patches/apply-typed-locale-pac-integration.py \
