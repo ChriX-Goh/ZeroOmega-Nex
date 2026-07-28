@@ -1,0 +1,62 @@
+name: Integrate History E2E refresh hardening
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-history-e2e-refresh.yml
+      - .github/patches/harden-history-e2e-refresh.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-history-e2e-refresh-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply History E2E hardening
+        run: python .github/patches/harden-history-e2e-refresh.py
+      - name: Format and verify repository
+        run: |
+          pnpm exec prettier --write scripts/e2e-chromium.mjs
+          pnpm verify
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium E2E candidate
+        env:
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium regression
+        run: pnpm test:e2e:chromium
+      - name: Commit verified hardening
+        run: |
+          git checkout HEAD -- .github/workflows/integrate-history-e2e-refresh.yml
+          rm -f .github/patches/harden-history-e2e-refresh.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "test: retry transient History load in Chromium E2E"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
