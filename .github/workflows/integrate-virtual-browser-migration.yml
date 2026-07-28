@@ -1,4 +1,4 @@
-# integration revision 6
+# integration revision 7
 name: Integrate Virtual browser migration
 
 on:
@@ -47,6 +47,7 @@ jobs:
             python .github/patches/apply-virtual-browser-migration.py
             python .github/patches/fix-virtual-fixture-and-auto-fallback.py
             python .github/patches/add-virtual-fixture-import-test.py
+            python .github/patches/fix-virtual-e2e-replace-locator.py
           } 2>&1 | tee virtual-browser-apply.log
       - name: Format product slice
         run: pnpm format
@@ -81,6 +82,7 @@ jobs:
             .github/patches/apply-virtual-browser-migration.py \
             .github/patches/fix-virtual-fixture-and-auto-fallback.py \
             .github/patches/add-virtual-fixture-import-test.py \
+            .github/patches/fix-virtual-e2e-replace-locator.py \
             virtual-browser-apply.log \
             virtual-browser-verify.log \
             virtual-browser-e2e.log
