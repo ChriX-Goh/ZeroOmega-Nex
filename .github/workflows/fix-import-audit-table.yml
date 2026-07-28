@@ -1,0 +1,49 @@
+name: Fix import audit table
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/fix-import-audit-table.yml
+      - .github/patches/fix-import-audit-table.py
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Fix and validate audit table
+        run: |
+          python .github/patches/fix-import-audit-table.py
+          pnpm exec prettier --write docs/UI_AUDIT_MATRIX.md
+          node scripts/validate-parity-docs.mjs
+      - name: Commit correction
+        run: |
+          git checkout HEAD -- .github/workflows/fix-import-audit-table.yml
+          rm -f .github/patches/fix-import-audit-table.py
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "docs: repair import audit table"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
