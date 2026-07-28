@@ -14,8 +14,12 @@
     type ProfileWorkflowRuleSourceUpdateView,
   } from '@zeroomega-nex/profile-workflow';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
+
   export let spec: ProfileSpec;
   export let profileId: string;
+  export let locale: AppLocale = currentAppLocale();
   export let disabled = false;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
   export let onGetRuleSourceUpdateStatus: (
@@ -144,19 +148,29 @@
   }
 
   function formatTimestamp(value: string | undefined): string {
-    if (!value) return 'never';
+    if (!value) return '';
     const parsed = new Date(value);
-    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
+    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString(locale);
   }
 
   function updateSummary(view: ProfileWorkflowRuleSourceUpdateView | undefined): string {
-    if (!view?.lastAttemptAt) return 'Never downloaded.';
+    if (!view?.lastAttemptAt) return uiText('ruleList.neverDownloaded', locale);
     if (view.lastError) {
-      return `Last update failed ${formatTimestamp(view.lastError.occurredAt)}. Existing cached content was preserved.`;
+      return uiMessage(
+        'ruleList.updateFailed',
+        { timestamp: formatTimestamp(view.lastError.occurredAt) },
+        locale,
+      );
     }
-    const stale = view.stale ? ' Cached content is stale.' : '';
-    const bytes = view.lastBytes === undefined ? '' : ` ${view.lastBytes} bytes.`;
-    return `Last updated ${formatTimestamp(view.lastSuccessAt)}.${bytes}${stale}`;
+    return uiMessage(
+      'ruleList.lastUpdated',
+      {
+        timestamp: formatTimestamp(view.lastSuccessAt),
+        ...(view.lastBytes === undefined ? {} : { bytes: view.lastBytes }),
+        stale: view.stale,
+      },
+      locale,
+    );
   }
 
   async function mutateHeaders(update: (headers: RuleSourceHeader[]) => void): Promise<void> {
@@ -209,35 +223,35 @@
 </script>
 
 {#if profile && source}
-  <div data-rule-list-profile-editor>
+  <div data-rule-list-profile-editor data-typed-locale={locale}>
     <section class="settings-section" data-rule-list-config>
-      <h2>Rule List Config</h2>
+      <h2>{uiText('ruleList.config', locale)}</h2>
       <div class="inline-fields">
         <label>
-          Match profile
+          {uiText('ruleList.matchProfile', locale)}
           <select
-            aria-label="Rule List match profile"
+            aria-label={uiText('ruleList.matchProfileAria', locale)}
             value={routeValue(profile.matchRoute)}
             {disabled}
             onchange={(event) => updateRoute('matchRoute', valueFrom(event))}
           >
-            <option value="direct">Direct</option>
-            <option value="system">System Proxy</option>
+            <option value="direct">{uiText('route.direct', locale)}</option>
+            <option value="system">{uiText('route.system', locale)}</option>
             {#each routeProfiles as target (target.id)}
               <option value={`profile:${target.id}`}>{target.name}</option>
             {/each}
           </select>
         </label>
         <label>
-          Default profile
+          {uiText('ruleList.defaultProfile', locale)}
           <select
-            aria-label="Rule List default profile"
+            aria-label={uiText('ruleList.defaultProfileAria', locale)}
             value={routeValue(profile.defaultRoute)}
             {disabled}
             onchange={(event) => updateRoute('defaultRoute', valueFrom(event))}
           >
-            <option value="direct">Direct</option>
-            <option value="system">System Proxy</option>
+            <option value="direct">{uiText('route.direct', locale)}</option>
+            <option value="system">{uiText('route.system', locale)}</option>
             {#each routeProfiles as target (target.id)}
               <option value={`profile:${target.id}`}>{target.name}</option>
             {/each}
@@ -245,7 +259,7 @@
         </label>
       </div>
       <fieldset {disabled}>
-        <legend>Rule List format</legend>
+        <legend>{uiText('ruleList.format', locale)}</legend>
         <label class="radio-row">
           <input
             type="radio"
@@ -270,11 +284,11 @@
     </section>
 
     <section class="settings-section" data-rule-list-url-section>
-      <h2>Rule List URL</h2>
+      <h2>{uiText('ruleList.url', locale)}</h2>
       <div class="url-row">
         <input
           type="url"
-          aria-label="Rule List URL"
+          aria-label={uiText('ruleList.url', locale)}
           value={source.location.kind === 'url' ? source.location.url : ''}
           placeholder="https://example.com/rules.txt"
           {disabled}
@@ -282,57 +296,72 @@
         />
         <button
           type="button"
-          aria-label="Clear Rule List URL"
+          aria-label={uiText('ruleList.clearUrl', locale)}
           disabled={disabled || source.location.kind !== 'url'}
-          onclick={clearUrl}>Clear</button
+          onclick={clearUrl}>{uiText('ruleList.clear', locale)}</button
         >
       </div>
       <p class="section-help">
-        Leave the URL empty to edit the Rule List text directly. Remote downloads replace the cache
-        atomically; failures preserve the previous text.
+        {uiText('ruleList.urlHelp', locale)}
       </p>
       {#if source.location.kind === 'url'}
         <details open={(source.headers?.length ?? 0) > 0} data-rule-list-request-headers>
-          <summary>Request headers</summary>
+          <summary>{uiText('ruleList.requestHeaders', locale)}</summary>
           <p class="section-help">
-            Sensitive values use secret references and remain background-owned.
+            {uiText('ruleList.headersHelp', locale)}
           </p>
           {#each source.headers ?? [] as header, index (`${header.name}:${index}`)}
             <div class="header-row">
               <input
-                aria-label={`Rule List header ${index + 1} name`}
+                aria-label={uiMessage(
+                  'ruleList.headerAria',
+                  { scope: 'independent', index: index + 1, field: 'name' },
+                  locale,
+                )}
                 value={header.name}
                 {disabled}
                 onchange={(event) => updateHeaderName(index, valueFrom(event))}
               />
               <select
-                aria-label={`Rule List header ${index + 1} value type`}
+                aria-label={uiMessage(
+                  'ruleList.headerAria',
+                  { scope: 'independent', index: index + 1, field: 'type' },
+                  locale,
+                )}
                 value={header.value.kind}
                 {disabled}
                 onchange={(event) =>
                   updateHeaderKind(index, valueFrom(event) as 'literal' | 'secret')}
               >
-                <option value="literal">Literal</option>
-                <option value="secret">Secret reference</option>
+                <option value="literal">{uiText('ruleList.literal', locale)}</option>
+                <option value="secret">{uiText('ruleList.secretReference', locale)}</option>
               </select>
               <input
-                aria-label={`Rule List header ${index + 1} value`}
+                aria-label={uiMessage(
+                  'ruleList.headerAria',
+                  { scope: 'independent', index: index + 1, field: 'value' },
+                  locale,
+                )}
                 value={header.value.kind === 'literal'
                   ? header.value.value
                   : header.value.secretRef}
                 {disabled}
                 onchange={(event) => updateHeaderValue(index, valueFrom(event))}
               />
-              <button type="button" {disabled} onclick={() => removeHeader(index)}>Remove</button>
+              <button type="button" {disabled} onclick={() => removeHeader(index)}
+                >{uiText('ruleList.removeHeader', locale)}</button
+              >
             </div>
           {/each}
-          <button type="button" {disabled} onclick={addHeader}>Add header</button>
+          <button type="button" {disabled} onclick={addHeader}
+            >{uiText('ruleList.addHeader', locale)}</button
+          >
         </details>
       {/if}
     </section>
 
     <section class="settings-section" data-rule-list-text-section>
-      <h2>Rule List Text</h2>
+      <h2>{uiText('ruleList.text', locale)}</h2>
       <div class="download-row">
         <button
           type="button"
@@ -343,7 +372,9 @@
             !source.location.url}
           onclick={downloadNow}
         >
-          {updateLoading ? 'Downloading…' : 'Download now'}
+          {updateLoading
+            ? uiText('ruleList.downloading', locale)
+            : uiText('ruleList.downloadNow', locale)}
         </button>
         {#if source.location.kind === 'url'}
           <p
@@ -356,11 +387,11 @@
         {/if}
       </div>
       {#if updateView?.lastError}
-        <p class="source-update-error" role="alert">{updateView.lastError.message}</p>
+        <p class="source-update-error" role="alert">{uiText('ruleList.updateError', locale)}</p>
       {/if}
       <textarea
         class="monospace"
-        aria-label="Rule List text"
+        aria-label={uiText('ruleList.textAria', locale)}
         rows="20"
         readonly={source.location.kind === 'url'}
         value={source.location.content ?? ''}

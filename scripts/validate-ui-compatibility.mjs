@@ -395,7 +395,7 @@ const requirements = [
       !independentRuleListEditor.includes('Update interval (minutes)') &&
       chromiumE2e.includes("getByRole('button', { name: 'rule-switchy', exact: true })") &&
       chromiumE2e.includes('data-independent-rule-source-update-now') &&
-      chromiumE2e.includes("getByRole('button', { name: 'Clear Rule List URL' })"),
+      chromiumE2e.includes("getByRole('button', { name: '清除规则列表网址' })"),
     'Independent Rule List profiles must use the original Config/URL/Text page, presence-of-URL mode switching, existing bounded downloader/status path, read-only downloaded text, and real Chromium interaction coverage.',
   ],
   [
@@ -597,9 +597,9 @@ const requirements = [
     switchProfile.includes('data-switch-rules-table') &&
       switchProfile.includes('data-switch-rule-row') &&
       switchProfile.includes('data-switch-drag-handle') &&
-      switchProfile.includes('Condition help') &&
-      switchProfile.includes('<optgroup label={group.label}>') &&
-      switchProfile.includes('Default profile') &&
+      switchProfile.includes("uiText('switch.conditionHelp', locale)") &&
+      switchProfile.includes('<optgroup label={uiText(group.labelKey, locale)}>') &&
+      switchProfile.includes("uiText('switch.defaultProfile', locale)") &&
       !switchProfile.includes('Ordered Switch Profile rules'),
     'Switch Profile must use the original compact rule table, grouped condition help, drag handle, and table-bottom default row.',
   ],
@@ -667,7 +667,8 @@ const requirements = [
   [
     attachedRuleListConfig.includes('data-rule-source-update-now') &&
       attachedRuleListConfig.includes('data-rule-source-update-status') &&
-      attachedRuleListConfig.includes('Existing cached content was preserved') &&
+      attachedRuleListConfig.includes('uiMessage(') &&
+      attachedRuleListConfig.includes("'ruleList.updateFailed'") &&
       optionsApp.includes("action: 'update-rule-source'") &&
       optionsApp.includes('requestRuleSourceOriginPermission') &&
       runtime.includes('BrowserRuleSourceDownloader') &&

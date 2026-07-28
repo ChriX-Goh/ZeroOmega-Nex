@@ -432,3 +432,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - 原版 locale 证据来自固定 v3.5.0 Artifact 的 `locale-zh_CN/omega-web.po`、`locale-zh_TW/omega-web.po` 及 New/Delete/Cannot Delete/Replace/Fixed Auth Jade。第一批不再依赖 DOM MutationObserver 猜测英文原文，而使用 `ui-messages.ts` 的 semantic typed keys 与参数化消息。
 - `NewProfileDialog`、`ProfileDeletionDialog`、`ProfileReplacementDialog`、`FixedProfileEditor` 直接接收 `AppLocale` 并同步渲染正文、按钮、错误、placeholder、title 与 ARIA；Options 只解析一次 locale 并传入。旧 observer 暂留给尚未迁移页面，形成可逐批收缩的兼容层。
 - `LOCALE_INVENTORY.json` 由源码扫描器稳定生成，记录剩余 Svelte 模板中的字面英文候选；typed `uiText/uiMessage/profileKindText` 调用被排除。`validate:locale` 同时检查 inventory 新鲜度和第一批英文回流，纳入全仓 `verify`。
+
+- typed locale 第二批覆盖 `SwitchProfileEditor`、`AttachedRuleListConfig` 与独立 `RuleListProfileEditor`：原版条件组/表格/默认情景模式/在线规则列表三段结构使用固定 v3.5.0 PO 术语，Nex 新增拖放、缓存、秘密引用与更新状态沿用同一术语体系。
+- Switch source parser 已有稳定 `SwitchSourceError.code`，UI 通过 code 与可选行号生成三语消息，不再把底层英文 parser message 直接展示。Rule Source 下载 ledger 尚无稳定错误码，本批只本地化失败状态并隐藏不稳定底层 message；将下载错误码化列为后续边界，不能据此宣称所有底层错误已完整翻译。
+- 第二批组件直接接收 `AppLocale`，所有条件帮助、列名、动作、placeholder、更新摘要和 ARIA 均走 `uiText/uiMessage`；English 保留既有无障碍名称顺序，zh-CN/zh-TW 使用源证据术语。机器 inventory 排除三份已完成组件，永久 locale guard 阻止字面英文回流。

@@ -11,8 +11,12 @@
     type ProfileWorkflowRuleSourceUpdateView,
   } from '@zeroomega-nex/profile-workflow';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText } from '../../lib/ui-messages';
+
   export let spec: ProfileSpec;
   export let switchProfileId: string;
+  export let locale: AppLocale = currentAppLocale();
   export let disabled = false;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
   export let onGetRuleSourceUpdateStatus: (
@@ -62,19 +66,29 @@
   }
 
   function formatTimestamp(value: string | undefined): string {
-    if (!value) return 'never';
+    if (!value) return '';
     const parsed = new Date(value);
-    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString();
+    return Number.isNaN(parsed.valueOf()) ? value : parsed.toLocaleString(locale);
   }
 
   function updateSummary(view: ProfileWorkflowRuleSourceUpdateView | undefined): string {
-    if (!view?.lastAttemptAt) return 'Never downloaded.';
+    if (!view?.lastAttemptAt) return uiText('ruleList.neverDownloaded', locale);
     if (view.lastError) {
-      return `Last update failed ${formatTimestamp(view.lastError.occurredAt)}. Existing cached content was preserved.`;
+      return uiMessage(
+        'ruleList.updateFailed',
+        { timestamp: formatTimestamp(view.lastError.occurredAt) },
+        locale,
+      );
     }
-    const stale = view.stale ? ' Cached content is stale.' : '';
-    const bytes = view.lastBytes === undefined ? '' : ` ${view.lastBytes} bytes.`;
-    return `Last updated ${formatTimestamp(view.lastSuccessAt)}.${bytes}${stale}`;
+    return uiMessage(
+      'ruleList.lastUpdated',
+      {
+        timestamp: formatTimestamp(view.lastSuccessAt),
+        ...(view.lastBytes === undefined ? {} : { bytes: view.lastBytes }),
+        stale: view.stale,
+      },
+      locale,
+    );
   }
 
   async function mutateSource(update: (source: RuleSource) => void): Promise<void> {
@@ -179,15 +193,18 @@
 </script>
 
 {#if state}
-  <section class="settings-section attached-rule-list-config" data-attached-rule-list-config>
-    <h2>Attached Rule List configuration</h2>
+  <section
+    class="settings-section attached-rule-list-config"
+    data-attached-rule-list-config
+    data-typed-locale={locale}
+  >
+    <h2>{uiText('ruleList.attachedConfig', locale)}</h2>
     <p class="section-help">
-      The attached profile remains hidden from normal navigation and participates only through this
-      Switch Profile.
+      {uiText('ruleList.attachedHiddenHelp', locale)}
     </p>
 
     <fieldset {disabled}>
-      <legend>Format</legend>
+      <legend>{uiText('ruleList.format', locale)}</legend>
       <label class="radio-row">
         <input
           type="radio"
@@ -211,24 +228,24 @@
     </fieldset>
 
     <label>
-      Source type
+      {uiText('ruleList.sourceType', locale)}
       <select
-        aria-label="Attached Rule List source type"
+        aria-label={uiText('ruleList.attachedSourceType', locale)}
         value={state.source.location.kind}
         {disabled}
         on:change={(event) => updateLocationKind(valueFrom(event) as 'inline' | 'url')}
       >
-        <option value="inline">Inline text</option>
+        <option value="inline">{uiText('ruleList.inlineText', locale)}</option>
         <option value="url">URL</option>
       </select>
     </label>
 
     {#if state.source.location.kind === 'url'}
       <label>
-        Rule List URL
+        {uiText('ruleList.url', locale)}
         <input
           type="url"
-          aria-label="Attached Rule List URL"
+          aria-label={uiText('ruleList.attachedUrl', locale)}
           value={state.source.location.url}
           placeholder="https://example.com/rules.txt"
           {disabled}
@@ -242,29 +259,30 @@
           disabled={disabled || updateLoading || !state.source.location.url}
           on:click={downloadNow}
         >
-          {updateLoading ? 'Downloading…' : 'Download now'}
+          {updateLoading
+            ? uiText('ruleList.downloading', locale)
+            : uiText('ruleList.downloadNow', locale)}
         </button>
         <p class:stale={updateView?.stale} role="status" data-rule-source-update-status>
           {updateSummary(updateView)}
         </p>
       </div>
       {#if updateView?.lastError}
-        <p class="source-update-error" role="alert">{updateView.lastError.message}</p>
+        <p class="source-update-error" role="alert">{uiText('ruleList.updateError', locale)}</p>
       {/if}
       <p class="section-help">
-        Remote content is downloaded by the background service with isolated credentials, bounded
-        size, and atomic cache replacement. Failed downloads keep the previous cache.
+        {uiText('ruleList.downloadSafety', locale)}
       </p>
       <textarea
-        aria-label="Attached Rule List downloaded text"
+        aria-label={uiText('ruleList.attachedDownloadedText', locale)}
         rows="16"
         readonly
         value={state.source.location.content ?? ''}></textarea>
     {:else}
       <label>
-        Rule List text
+        {uiText('ruleList.text', locale)}
         <textarea
-          aria-label="Attached Rule List text"
+          aria-label={uiText('ruleList.attachedText', locale)}
           rows="16"
           value={state.source.location.content}
           {disabled}
@@ -273,7 +291,7 @@
     {/if}
 
     <label>
-      Update interval (minutes)
+      {uiText('ruleList.updateInterval', locale)}
       <input
         type="number"
         min="1"
@@ -286,37 +304,53 @@
 
   <section class="settings-section" data-attached-rule-list-headers>
     <details open={headerItems.length > 0}>
-      <summary>Request headers</summary>
+      <summary>{uiText('ruleList.requestHeaders', locale)}</summary>
       <p class="section-help">
-        Sensitive values must use secret references; raw secret values never enter ProfileSpec.
+        {uiText('ruleList.headersHelp', locale)}
       </p>
       {#each headerItems as header, index (`${header.name}:${index}`)}
         <div class="header-row">
           <input
-            aria-label={`Attached header ${index + 1} name`}
+            aria-label={uiMessage(
+              'ruleList.headerAria',
+              { scope: 'attached', index: index + 1, field: 'name' },
+              locale,
+            )}
             value={header.name}
             {disabled}
             on:change={(event) => updateHeaderName(index, valueFrom(event))}
           />
           <select
-            aria-label={`Attached header ${index + 1} value type`}
+            aria-label={uiMessage(
+              'ruleList.headerAria',
+              { scope: 'attached', index: index + 1, field: 'type' },
+              locale,
+            )}
             value={header.value.kind}
             {disabled}
             on:change={(event) => updateHeaderKind(index, valueFrom(event) as 'literal' | 'secret')}
           >
-            <option value="literal">Literal</option>
-            <option value="secret">Secret reference</option>
+            <option value="literal">{uiText('ruleList.literal', locale)}</option>
+            <option value="secret">{uiText('ruleList.secretReference', locale)}</option>
           </select>
           <input
-            aria-label={`Attached header ${index + 1} value`}
+            aria-label={uiMessage(
+              'ruleList.headerAria',
+              { scope: 'attached', index: index + 1, field: 'value' },
+              locale,
+            )}
             value={header.value.kind === 'literal' ? header.value.value : header.value.secretRef}
             {disabled}
             on:change={(event) => updateHeaderValue(index, valueFrom(event))}
           />
-          <button type="button" {disabled} on:click={() => removeHeader(index)}>Remove</button>
+          <button type="button" {disabled} on:click={() => removeHeader(index)}
+            >{uiText('ruleList.removeHeader', locale)}</button
+          >
         </div>
       {/each}
-      <button type="button" {disabled} on:click={addHeader}>Add header</button>
+      <button type="button" {disabled} on:click={addHeader}
+        >{uiText('ruleList.addHeader', locale)}</button
+      >
     </details>
   </section>
 {/if}

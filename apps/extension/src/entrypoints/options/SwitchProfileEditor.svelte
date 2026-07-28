@@ -31,11 +31,14 @@
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
 
+  import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import { uiMessage, uiText, type UiTextKey } from '../../lib/ui-messages';
   import AttachedRuleListConfig from './AttachedRuleListConfig.svelte';
   import { readSwitchSourceEditorMode, storeSwitchSourceEditorMode } from './switch-editor-state';
 
   export let spec: ProfileSpec;
   export let profileId: string;
+  export let locale: AppLocale = currentAppLocale();
   export let disabled = false;
   export let idFactory: ProfileWorkflowIdFactory;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
@@ -51,38 +54,38 @@
 
   interface ConditionKindOption {
     readonly value: Condition['kind'];
-    readonly label: string;
-    readonly help: string;
+    readonly labelKey: UiTextKey;
+    readonly helpKey: UiTextKey;
   }
 
   interface ConditionGroup {
-    readonly label: string;
+    readonly labelKey: UiTextKey;
     readonly options: readonly ConditionKindOption[];
   }
 
   const basicConditionGroups: readonly ConditionGroup[] = [
     {
-      label: 'Basic conditions',
+      labelKey: 'switch.group.basic',
       options: [
         {
           value: 'host-wildcard',
-          label: 'Host wildcard',
-          help: 'Match a hostname pattern such as *.example.com.',
+          labelKey: 'switch.condition.hostWildcard',
+          helpKey: 'switch.condition.hostWildcardHelp',
         },
         {
           value: 'url-wildcard',
-          label: 'URL wildcard',
-          help: 'Match a complete URL wildcard pattern.',
+          labelKey: 'switch.condition.urlWildcard',
+          helpKey: 'switch.condition.urlWildcardHelp',
         },
         {
           value: 'url-regex',
-          label: 'URL regular expression',
-          help: 'Match a complete URL using a regular expression.',
+          labelKey: 'switch.condition.urlRegex',
+          helpKey: 'switch.condition.urlRegexHelp',
         },
         {
           value: 'false',
-          label: 'Never',
-          help: 'Keep a disabled placeholder rule without deleting it.',
+          labelKey: 'switch.condition.never',
+          helpKey: 'switch.condition.neverHelp',
         },
       ],
     },
@@ -90,77 +93,69 @@
 
   const advancedConditionGroups: readonly ConditionGroup[] = [
     {
-      label: 'Host',
+      labelKey: 'switch.group.host',
       options: [
         {
           value: 'host-wildcard',
-          label: 'Host wildcard',
-          help: 'Match a hostname wildcard without path or port details.',
+          labelKey: 'switch.condition.hostWildcard',
+          helpKey: 'switch.condition.hostWildcardHelp',
         },
         {
           value: 'host-regex',
-          label: 'Host regular expression',
-          help: 'Match the hostname using a regular expression.',
+          labelKey: 'switch.condition.hostRegex',
+          helpKey: 'switch.condition.hostRegexHelp',
         },
         {
           value: 'host-levels',
-          label: 'Host levels',
-          help: 'Match hostnames whose label count falls inside a range.',
+          labelKey: 'switch.condition.hostLevels',
+          helpKey: 'switch.condition.hostLevelsHelp',
         },
-        {
-          value: 'ip',
-          label: 'IP network',
-          help: 'Match an IPv4 or IPv6 network and prefix length.',
-        },
+        { value: 'ip', labelKey: 'switch.condition.ip', helpKey: 'switch.condition.ipHelp' },
         {
           value: 'bypass',
-          label: 'Bypass pattern',
-          help: 'Match a browser bypass-list pattern.',
+          labelKey: 'switch.condition.bypass',
+          helpKey: 'switch.condition.bypassHelp',
         },
       ],
     },
     {
-      label: 'URL',
+      labelKey: 'switch.group.url',
       options: [
         {
           value: 'url-wildcard',
-          label: 'URL wildcard',
-          help: 'Match a complete URL wildcard pattern.',
+          labelKey: 'switch.condition.urlWildcard',
+          helpKey: 'switch.condition.urlWildcardHelp',
         },
         {
           value: 'url-regex',
-          label: 'URL regular expression',
-          help: 'Match a complete URL using a regular expression.',
+          labelKey: 'switch.condition.urlRegex',
+          helpKey: 'switch.condition.urlRegexHelp',
         },
         {
           value: 'keyword',
-          label: 'URL keyword',
-          help: 'Match an HTTP URL containing a keyword.',
+          labelKey: 'switch.condition.keyword',
+          helpKey: 'switch.condition.keywordHelp',
         },
       ],
     },
     {
-      label: 'Special',
+      labelKey: 'switch.group.special',
       options: [
         {
           value: 'weekday',
-          label: 'Weekday',
-          help: 'Match selected local weekdays.',
+          labelKey: 'switch.condition.weekday',
+          helpKey: 'switch.condition.weekdayHelp',
         },
-        {
-          value: 'time',
-          label: 'Local time',
-          help: 'Match a local-time hour range.',
-        },
+        { value: 'time', labelKey: 'switch.condition.time', helpKey: 'switch.condition.timeHelp' },
         {
           value: 'true',
-          label: 'Always',
-          help: 'Always match. Imported profiles may retain this explicit form.',
+          labelKey: 'switch.condition.always',
+          helpKey: 'switch.condition.alwaysHelp',
         },
         {
           value: 'false',
-          label: 'Never',
-          help: 'Never match; useful as a retained placeholder.',
+          labelKey: 'switch.condition.never',
+          helpKey: 'switch.condition.neverHelp',
         },
       ],
     },
@@ -170,14 +165,14 @@
     basicConditionGroups.flatMap((group) => group.options.map((option) => option.value)),
   );
 
-  const weekdays: readonly { value: Weekday; label: string }[] = [
-    { value: 'sun', label: 'Sun' },
-    { value: 'mon', label: 'Mon' },
-    { value: 'tue', label: 'Tue' },
-    { value: 'wed', label: 'Wed' },
-    { value: 'thu', label: 'Thu' },
-    { value: 'fri', label: 'Fri' },
-    { value: 'sat', label: 'Sat' },
+  const weekdays: readonly { value: Weekday; labelKey: UiTextKey }[] = [
+    { value: 'sun', labelKey: 'switch.weekday.sun' },
+    { value: 'mon', labelKey: 'switch.weekday.mon' },
+    { value: 'tue', labelKey: 'switch.weekday.tue' },
+    { value: 'wed', labelKey: 'switch.weekday.wed' },
+    { value: 'thu', labelKey: 'switch.weekday.thu' },
+    { value: 'fri', labelKey: 'switch.weekday.fri' },
+    { value: 'sat', labelKey: 'switch.weekday.sat' },
   ];
 
   let profile: SwitchProfile | undefined;
@@ -292,11 +287,7 @@
   }
 
   async function detachRuleList(): Promise<void> {
-    if (
-      !globalThis.confirm(
-        'Delete the attached Rule List? The Switch default route will be restored before removal.',
-      )
-    ) {
+    if (!globalThis.confirm(uiText('switch.detachConfirm', locale))) {
       return;
     }
     await onReplaceDraft(detachAttachedRuleListDraft(spec, profileId));
@@ -421,8 +412,11 @@
   }
 
   function sourceErrorText(value: SwitchSourceError): string {
-    const location = value.line === undefined ? '' : `Line ${value.line}: `;
-    return `${location}${value.message}`;
+    return uiMessage(
+      'switch.sourceError',
+      { code: value.code, ...(value.line === undefined ? {} : { line: value.line }) },
+      locale,
+    );
   }
 
   async function commitSourceIfNeeded(): Promise<boolean> {
@@ -497,24 +491,28 @@
 
 {#if profile}
   {#if showConditionHelp}
-    <section class="settings-section condition-help-section" data-switch-condition-help>
+    <section
+      class="settings-section condition-help-section"
+      data-switch-condition-help
+      data-typed-locale={locale}
+    >
       <div class="condition-help-header">
-        <h2>Condition help</h2>
+        <h2>{uiText('switch.conditionHelp', locale)}</h2>
         <button
           type="button"
           class="close-help"
-          aria-label="Close condition help"
+          aria-label={uiText('switch.closeConditionHelp', locale)}
           on:click={() => (showConditionHelp = false)}>×</button
         >
       </div>
       <div class="condition-help-groups">
-        {#each conditionGroups as group, groupIndex (group.label)}
+        {#each conditionGroups as group, groupIndex (group.labelKey)}
           <details open={groupIndex === 0}>
-            <summary>{group.label}</summary>
+            <summary>{uiText(group.labelKey, locale)}</summary>
             <dl>
               {#each group.options as option (option.value)}
-                <dt>{option.label}</dt>
-                <dd>{option.help}</dd>
+                <dt>{uiText(option.labelKey, locale)}</dt>
+                <dd>{uiText(option.helpKey, locale)}</dd>
               {/each}
             </dl>
           </details>
@@ -526,13 +524,13 @@
   <section
     class="settings-section switch-rules-section"
     data-switch-source-mode={editSource ? 'source' : 'table'}
+    data-typed-locale={locale}
   >
     <div class="switch-rules-heading">
       <div>
-        <h2>Switch rules</h2>
+        <h2>{uiText('switch.rules', locale)}</h2>
         <p class="section-help">
-          Rules are evaluated from top to bottom. The first matching rule selects its result
-          profile.
+          {uiText('switch.rulesHelp', locale)}
         </p>
       </div>
       <div class="switch-heading-actions">
@@ -545,7 +543,7 @@
           {disabled}
           on:click={toggleSource}
         >
-          ✎ Edit Source
+          ✎ {uiText('switch.editSource', locale)}
         </button>
         {#if !editSource}
           <button
@@ -555,7 +553,7 @@
             aria-controls="switch-condition-help"
             on:click={() => (showConditionHelp = !showConditionHelp)}
           >
-            ? Condition help
+            ? {uiText('switch.conditionHelp', locale)}
           </button>
         {/if}
       </div>
@@ -569,26 +567,24 @@
 
     {#if hasUrlConditions}
       <p class="url-condition-warning" role="alert">
-        Full-URL conditions depend on browser request information and may be limited for some
-        requests.
+        {uiText('switch.urlWarning', locale)}
       </p>
     {/if}
 
     {#if editSource}
       <div class="switch-source-editor" data-switch-source-editor>
         <textarea
-          aria-label="Switch Profile source"
+          aria-label={uiText('switch.source', locale)}
           rows="20"
           bind:value={sourceText}
           {disabled}
           on:input={markSourceTouched}></textarea>
         <p class="section-help">
-          Uses the original result-enabled SwitchyOmega conditions format. Invalid source remains in
-          this editor until corrected.
+          {uiText('switch.sourceHelp', locale)}
           <a
             href="https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-format"
             target="_blank"
-            rel="noreferrer">Format help</a
+            rel="noreferrer">{uiText('switch.formatHelp', locale)}</a
           >
         </p>
       </div>
@@ -597,12 +593,12 @@
         <table class="switch-rules-table" data-switch-rules-table>
           <thead>
             <tr>
-              <th scope="col">Sort</th>
-              <th scope="col">Condition type</th>
-              <th scope="col">Condition details</th>
-              <th scope="col">Result profile</th>
-              <th scope="col">Actions</th>
-              {#if showNotes}<th scope="col">Note</th>{/if}
+              <th scope="col">{uiText('switch.sort', locale)}</th>
+              <th scope="col">{uiText('switch.conditionType', locale)}</th>
+              <th scope="col">{uiText('switch.conditionDetails', locale)}</th>
+              <th scope="col">{uiText('switch.resultProfile', locale)}</th>
+              <th scope="col">{uiText('switch.actions', locale)}</th>
+              {#if showNotes}<th scope="col">{uiText('switch.note', locale)}</th>{/if}
             </tr>
           </thead>
           <tbody>
@@ -618,8 +614,12 @@
                     type="button"
                     class="drag-handle"
                     data-switch-drag-handle
-                    title="Drag to reorder"
-                    aria-label={`Drag rule ${index + 1} to reorder`}
+                    title={uiText('switch.dragToReorder', locale)}
+                    aria-label={uiMessage(
+                      'switch.ruleFieldAria',
+                      { index: index + 1, field: 'drag' },
+                      locale,
+                    )}
                     aria-grabbed={draggedRuleId === rule.id}
                     draggable={!disabled}
                     disabled={disabled || profile.rules.length < 2}
@@ -631,13 +631,21 @@
                   <div class="keyboard-order-actions">
                     <button
                       type="button"
-                      aria-label={`Move rule ${index + 1} up`}
+                      aria-label={uiMessage(
+                        'switch.ruleFieldAria',
+                        { index: index + 1, field: 'moveUp' },
+                        locale,
+                      )}
                       disabled={disabled || index === 0}
                       on:click={() => moveRule(rule.id, -1)}>↑</button
                     >
                     <button
                       type="button"
-                      aria-label={`Move rule ${index + 1} down`}
+                      aria-label={uiMessage(
+                        'switch.ruleFieldAria',
+                        { index: index + 1, field: 'moveDown' },
+                        locale,
+                      )}
                       disabled={disabled || index === profile.rules.length - 1}
                       on:click={() => moveRule(rule.id, 1)}>↓</button
                     >
@@ -645,16 +653,20 @@
                 </td>
                 <td>
                   <select
-                    aria-label={`Rule ${index + 1} condition type`}
+                    aria-label={uiMessage(
+                      'switch.ruleFieldAria',
+                      { index: index + 1, field: 'conditionType' },
+                      locale,
+                    )}
                     value={rule.condition.kind}
                     {disabled}
                     on:change={(event) =>
                       updateConditionKind(rule.id, valueFrom(event) as Condition['kind'])}
                   >
-                    {#each conditionGroups as group (group.label)}
-                      <optgroup label={group.label}>
+                    {#each conditionGroups as group (group.labelKey)}
+                      <optgroup label={uiText(group.labelKey, locale)}>
                         {#each group.options as option (option.value)}
-                          <option value={option.value}>{option.label}</option>
+                          <option value={option.value}>{uiText(option.labelKey, locale)}</option>
                         {/each}
                       </optgroup>
                     {/each}
@@ -662,13 +674,17 @@
                 </td>
                 <td class="condition-details-cell">
                   {#if rule.condition.kind === 'true'}
-                    <span>Always matches</span>
+                    <span>{uiText('switch.alwaysMatches', locale)}</span>
                   {:else if rule.condition.kind === 'false'}
-                    <span>Never matches</span>
+                    <span>{uiText('switch.neverMatches', locale)}</span>
                   {:else if 'pattern' in rule.condition}
                     <div class="inline-details">
                       <input
-                        aria-label={`Rule ${index + 1} pattern`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'pattern' },
+                          locale,
+                        )}
                         value={conditionPattern(rule.condition)}
                         {disabled}
                         on:change={(event) => updateConditionPattern(rule.id, valueFrom(event))}
@@ -677,7 +693,11 @@
                   {:else if rule.condition.kind === 'ip'}
                     <div class="inline-details ip-details">
                       <input
-                        aria-label={`Rule ${index + 1} IP address`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'ipAddress' },
+                          locale,
+                        )}
                         value={conditionAddress(rule.condition)}
                         placeholder="127.0.0.1"
                         {disabled}
@@ -686,7 +706,11 @@
                       <span>/</span>
                       <input
                         class="small-number"
-                        aria-label={`Rule ${index + 1} prefix length`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'prefixLength' },
+                          locale,
+                        )}
                         type="number"
                         min="0"
                         max="128"
@@ -700,7 +724,11 @@
                     <div class="inline-details range-details">
                       <input
                         class="small-number"
-                        aria-label={`Rule ${index + 1} minimum host levels`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'minimumHostLevels' },
+                          locale,
+                        )}
                         type="number"
                         min="1"
                         max="99"
@@ -709,10 +737,14 @@
                         on:change={(event) =>
                           updateConditionNumber(rule.id, 'min', valueFrom(event))}
                       />
-                      <span>to</span>
+                      <span>{uiText('switch.rangeTo', locale)}</span>
                       <input
                         class="small-number"
-                        aria-label={`Rule ${index + 1} maximum host levels`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'maximumHostLevels' },
+                          locale,
+                        )}
                         type="number"
                         min="1"
                         max="99"
@@ -723,7 +755,14 @@
                       />
                     </div>
                   {:else if rule.condition.kind === 'weekday'}
-                    <div class="weekday-options" aria-label={`Rule ${index + 1} weekdays`}>
+                    <div
+                      class="weekday-options"
+                      aria-label={uiMessage(
+                        'switch.ruleFieldAria',
+                        { index: index + 1, field: 'weekdays' },
+                        locale,
+                      )}
+                    >
                       {#each weekdays as day (day.value)}
                         <label class="weekday-option">
                           <input
@@ -733,7 +772,7 @@
                             on:change={(event) =>
                               toggleWeekday(rule.id, day.value, checkedFrom(event))}
                           />
-                          {day.label}
+                          {uiText(day.labelKey, locale)}
                         </label>
                       {/each}
                     </div>
@@ -741,7 +780,11 @@
                     <div class="inline-details range-details">
                       <input
                         class="small-number"
-                        aria-label={`Rule ${index + 1} start hour`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'startHour' },
+                          locale,
+                        )}
                         type="number"
                         min="0"
                         max="23"
@@ -750,10 +793,14 @@
                         on:change={(event) =>
                           updateConditionNumber(rule.id, 'startHour', valueFrom(event))}
                       />
-                      <span>to</span>
+                      <span>{uiText('switch.rangeTo', locale)}</span>
                       <input
                         class="small-number"
-                        aria-label={`Rule ${index + 1} end hour`}
+                        aria-label={uiMessage(
+                          'switch.ruleFieldAria',
+                          { index: index + 1, field: 'endHour' },
+                          locale,
+                        )}
                         type="number"
                         min="0"
                         max="23"
@@ -766,19 +813,23 @@
                   {/if}
                   {#if hasLegacySourceState(rule)}
                     <p class="legacy-source-warning">
-                      Legacy Nex-only rule state cannot be represented in original source format.
+                      {uiText('switch.legacyWarning', locale)}
                     </p>
                   {/if}
                 </td>
                 <td>
                   <select
-                    aria-label={`Rule ${index + 1} result profile`}
+                    aria-label={uiMessage(
+                      'switch.ruleFieldAria',
+                      { index: index + 1, field: 'resultProfile' },
+                      locale,
+                    )}
                     value={routeValue(rule.route)}
                     {disabled}
                     on:change={(event) => updateRuleRoute(rule.id, valueFrom(event))}
                   >
-                    <option value="direct">Direct</option>
-                    <option value="system">System Proxy</option>
+                    <option value="direct">{uiText('route.direct', locale)}</option>
+                    <option value="system">{uiText('route.system', locale)}</option>
                     {#each routeProfiles as target (target.id)}
                       <option value={`profile:${target.id}`}>{target.name}</option>
                     {/each}
@@ -788,32 +839,49 @@
                   <div class="row-actions">
                     <button
                       type="button"
-                      title="Delete rule"
-                      aria-label={`Delete rule ${index + 1}`}
+                      title={uiText('switch.deleteRule', locale)}
+                      aria-label={uiMessage(
+                        'switch.ruleActionAria',
+                        { index: index + 1, action: 'delete' },
+                        locale,
+                      )}
                       {disabled}
                       on:click={() => deleteRule(rule.id)}>🗑</button
                     >
                     <button
                       type="button"
-                      title="Clone rule"
-                      aria-label={`Clone rule ${index + 1}`}
+                      title={uiText('switch.cloneRule', locale)}
+                      aria-label={uiMessage(
+                        'switch.ruleActionAria',
+                        { index: index + 1, action: 'clone' },
+                        locale,
+                      )}
                       {disabled}
                       on:click={() => duplicateRule(rule.id)}>⧉</button
                     >
                     {#if hasLegacySourceState(rule)}
                       <button
                         type="button"
-                        title="Remove legacy Nex-only rule state"
-                        aria-label={`Normalize rule ${index + 1} for source editing`}
+                        title={uiText('switch.normalizeRuleTitle', locale)}
+                        aria-label={uiMessage(
+                          'switch.ruleActionAria',
+                          { index: index + 1, action: 'normalize' },
+                          locale,
+                        )}
                         {disabled}
-                        on:click={() => normalizeLegacySourceState(rule.id)}>Normalize</button
+                        on:click={() => normalizeLegacySourceState(rule.id)}
+                        >{uiText('switch.normalizeRule', locale)}</button
                       >
                     {/if}
                     <button
                       type="button"
                       class:active-note={Boolean(rule.note)}
-                      title="Add note"
-                      aria-label={`Show note for rule ${index + 1}`}
+                      title={uiText('switch.addNote', locale)}
+                      aria-label={uiMessage(
+                        'switch.ruleActionAria',
+                        { index: index + 1, action: 'showNote' },
+                        locale,
+                      )}
                       {disabled}
                       on:click={() => (notesExpanded = true)}>✎</button
                     >
@@ -822,9 +890,13 @@
                 {#if showNotes}
                   <td>
                     <input
-                      aria-label={`Rule ${index + 1} note`}
+                      aria-label={uiMessage(
+                        'switch.ruleFieldAria',
+                        { index: index + 1, field: 'note' },
+                        locale,
+                      )}
                       value={rule.note ?? ''}
-                      placeholder="Optional note"
+                      placeholder={uiText('switch.optionalNote', locale)}
                       {disabled}
                       on:change={(event) => updateRuleNote(rule.id, valueFrom(event))}
                     />
@@ -836,14 +908,16 @@
               <tr class="empty-rules-row">
                 <td></td>
                 <td colspan={showNotes ? 5 : 4}>
-                  No conditions. Requests use the default profile below.
+                  {uiText('switch.empty', locale)}
                 </td>
               </tr>
             {/if}
             <tr class="add-condition-row">
               <td></td>
               <td colspan={showNotes ? 5 : 4}>
-                <button type="button" {disabled} on:click={addRule}>＋ Add condition</button>
+                <button type="button" {disabled} on:click={addRule}
+                  >＋ {uiText('switch.addCondition', locale)}</button
+                >
               </td>
             </tr>
             {#if attachedState}
@@ -857,23 +931,23 @@
                       {disabled}
                       on:change={(event) => toggleAttachedRuleList(checkedFrom(event))}
                     />
-                    Use attached Rule List
+                    {uiText('switch.attachedUse', locale)}
                   </label>
                 </td>
                 <td>
                   {attachedState.enabled
-                    ? 'Matching attached rules use the selected result profile.'
-                    : 'Attached rules are retained but bypassed.'}
+                    ? uiText('switch.attachedEnabled', locale)
+                    : uiText('switch.attachedDisabled', locale)}
                 </td>
                 <td>
                   <select
-                    aria-label="Attached Rule List matching route"
+                    aria-label={uiText('switch.attachedMatchRoute', locale)}
                     value={routeValue(attachedState.profile.matchRoute)}
                     disabled={disabled || !attachedState.enabled}
                     on:change={(event) => updateAttachedMatchRoute(valueFrom(event))}
                   >
-                    <option value="direct">Direct</option>
-                    <option value="system">System Proxy</option>
+                    <option value="direct">{uiText('route.direct', locale)}</option>
+                    <option value="system">{uiText('route.system', locale)}</option>
                     {#each routeProfiles as target (target.id)}
                       <option value={`profile:${target.id}`}>{target.name}</option>
                     {/each}
@@ -883,7 +957,7 @@
                   <button
                     type="button"
                     class="detach-attached"
-                    aria-label="Delete attached Rule List"
+                    aria-label={uiText('switch.deleteAttached', locale)}
                     {disabled}
                     on:click={detachRuleList}>🗑</button
                   >
@@ -893,16 +967,16 @@
             {/if}
             <tr class="default-route-row">
               <td></td>
-              <th scope="row" colspan="2">Default profile</th>
+              <th scope="row" colspan="2">{uiText('switch.defaultProfile', locale)}</th>
               <td>
                 <select
-                  aria-label="Switch Profile default route"
+                  aria-label={uiText('switch.defaultRouteAria', locale)}
                   value={routeValue(attachedState?.defaultRoute ?? profile.defaultRoute)}
                   {disabled}
                   on:change={(event) => updateDefaultRoute(valueFrom(event))}
                 >
-                  <option value="direct">Direct</option>
-                  <option value="system">System Proxy</option>
+                  <option value="direct">{uiText('route.direct', locale)}</option>
+                  <option value="system">{uiText('route.system', locale)}</option>
                   {#each routeProfiles as target (target.id)}
                     <option value={`profile:${target.id}`}>{target.name}</option>
                   {/each}
@@ -919,6 +993,7 @@
 
   {#if attachedState}
     <AttachedRuleListConfig
+      {locale}
       {spec}
       switchProfileId={profileId}
       {disabled}
@@ -928,12 +1003,13 @@
     />
   {:else}
     <section class="settings-section attach-rule-list-section" data-attach-rule-list-section>
-      <h2>Attach Profile</h2>
+      <h2>{uiText('switch.attachTitle', locale)}</h2>
       <p class="section-help">
-        Attach a hidden Rule List Profile to extend this Switch Profile without adding another
-        normal navigation entry.
+        {uiText('switch.attachHelp', locale)}
       </p>
-      <button type="button" {disabled} on:click={attachRuleList}>＋ Attach Rule List</button>
+      <button type="button" {disabled} on:click={attachRuleList}
+        >＋ {uiText('switch.attachButton', locale)}</button
+      >
     </section>
   {/if}
 {/if}

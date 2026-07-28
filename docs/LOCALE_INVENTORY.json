@@ -5,9 +5,12 @@
     "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
     "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
     "apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte",
-    "apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte"
+    "apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte",
+    "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+    "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte"
   ],
-  "candidateCount": 394,
+  "candidateCount": 310,
   "candidates": [
     {
       "path": "apps/extension/src/entrypoints/network/App.svelte",
@@ -696,118 +699,13 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "aria-label",
-      "text": "Attached Rule List downloaded text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "aria-label",
-      "text": "Attached Rule List source type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "aria-label",
-      "text": "Attached Rule List text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "aria-label",
-      "text": "Attached Rule List URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "expression-literal",
-      "text": "Download now"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "expression-literal",
-      "text": "Downloading…"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Add header"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Attached Rule List configuration"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
       "kind": "text",
       "text": "AutoProxy"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
       "kind": "text",
-      "text": "Format"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Inline text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Literal"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Remote content is downloaded by the background service with isolated credentials, bounded size, and atomic cache replacement. Failed downloads keep the previous cache."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Remove"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Request headers"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Rule List text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Rule List URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Secret reference"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Sensitive values must use secret references; raw secret values never enter ProfileSpec."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Source type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
       "text": "Switchy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "The attached profile remains hidden from normal navigation and participates only through this Switch Profile."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
-      "kind": "text",
-      "text": "Update interval (minutes)"
     },
     {
       "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
@@ -1171,43 +1069,8 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Clear Rule List URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Rule List default profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Rule List match profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Rule List text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Rule List URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "expression-literal",
       "text": "defaultRoute"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "Download now"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "Downloading…"
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
@@ -1217,92 +1080,12 @@
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "text",
-      "text": "Add header"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
       "text": "AutoProxy"
     },
     {
       "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
       "kind": "text",
-      "text": "Clear"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Default profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Direct"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Leave the URL empty to edit the Rule List text directly. Remote downloads replace the cache atomically; failures preserve the previous text."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Literal"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Match profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Remove"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Request headers"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rule List Config"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rule List format"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rule List Text"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rule List URL"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Secret reference"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "Sensitive values use secret references and remain background-owned."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
       "text": "Switchy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
-      "kind": "text",
-      "text": "System Proxy"
     },
     {
       "path": "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
@@ -1496,43 +1279,8 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Attached Rule List matching route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Close condition help"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Delete attached Rule List"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Switch Profile default route"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "aria-label",
-      "text": "Switch Profile source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "Attached rules are retained but bypassed."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
       "text": "endHour"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "expression-literal",
-      "text": "Matching attached rules use the selected result profile."
     },
     {
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
@@ -1543,171 +1291,6 @@
       "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
       "kind": "expression-literal",
       "text": "startHour"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "placeholder",
-      "text": "Optional note"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "? Condition help"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "＋ Add condition"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "＋ Attach Rule List"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "✎ Edit Source"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Actions"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Always matches"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Attach a hidden Rule List Profile to extend this Switch Profile without adding another normal navigation entry."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Attach Profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Condition details"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Condition help"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Condition type"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Default profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Direct"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Format help"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Full-URL conditions depend on browser request information and may be limited for some requests."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Legacy Nex-only rule state cannot be represented in original source format."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Never matches"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "No conditions. Requests use the default profile below."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Normalize"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Note"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Result profile"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Rules are evaluated from top to bottom. The first matching rule selects its result profile."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Sort"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Switch rules"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "System Proxy"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Use attached Rule List"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "text",
-      "text": "Uses the original result-enabled SwitchyOmega conditions format. Invalid source remains in this editor until corrected."
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "title",
-      "text": "Add note"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "title",
-      "text": "Clone rule"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "title",
-      "text": "Delete rule"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "title",
-      "text": "Drag to reorder"
-    },
-    {
-      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
-      "kind": "title",
-      "text": "Remove legacy Nex-only rule state"
     },
     {
       "path": "apps/extension/src/entrypoints/options/ThemePanel.svelte",

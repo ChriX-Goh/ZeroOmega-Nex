@@ -19,6 +19,25 @@ describe('typed UI messages', () => {
     expect(profileKindText('virtual', 'zh-TW')).toBe('虛擬情境模式');
   });
 
+  it('formats Switch and Rule List dynamic messages in all three locales', () => {
+    expect(uiMessage('switch.ruleFieldAria', { index: 2, field: 'resultProfile' }, 'zh-CN')).toBe(
+      '规则 2 的结果情景模式',
+    );
+    expect(
+      uiMessage('switch.sourceError', { code: 'switch-source.no-default-rule', line: 4 }, 'zh-TW'),
+    ).toBe('第 4 行：必須以「* +profile」預設規則結尾。');
+    expect(
+      uiMessage('ruleList.headerAria', { scope: 'attached', index: 1, field: 'name' }, 'en'),
+    ).toBe('Attached header 1 name');
+    expect(
+      uiMessage(
+        'ruleList.lastUpdated',
+        { timestamp: '2026/7/28 14:00', bytes: 128, stale: true },
+        'zh-CN',
+      ),
+    ).toContain('规则列表最后更新于 2026/7/28 14:00');
+  });
+
   it('formats dynamic deletion and accessibility messages without English fallback', () => {
     expect(uiMessage('profile.delete.confirmDescription', { profileName: '工作' }, 'zh-CN')).toBe(
       '删除情景模式“工作”？此操作只会修改尚未应用的设置。',

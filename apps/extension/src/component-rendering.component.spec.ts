@@ -266,6 +266,69 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('Update interval (minutes)');
   });
 
+  it('renders the second typed locale batch for Switch and Rule List editors', () => {
+    const ids = idFactory();
+    const created = createSwitchProfileDraft(baseSpec(), ids, '切换');
+    const withRule = addSwitchRuleDraft(created.draft, created.profileId, ids, 'host-wildcard');
+    const attached = createAttachedRuleListDraft(withRule.draft, created.profileId, ids);
+    const attachedSource = attached.ruleSources.at(-1);
+    if (!attachedSource) throw new Error('attached source missing');
+    attachedSource.location = {
+      kind: 'url',
+      url: 'https://rules.example.invalid/typed.txt',
+      content: 'typed attached cache',
+    };
+    attachedSource.headers = [
+      { name: 'X-Typed', value: { kind: 'literal', value: 'typed-value' } },
+    ];
+    const switchBody = render(SwitchProfileEditor, {
+      props: {
+        locale: 'zh-CN',
+        spec: attached,
+        profileId: created.profileId,
+        disabled: false,
+        idFactory: ids,
+        onReplaceDraft: replaceDraft,
+        onRegisterBeforeAction: () => undefined,
+        onSourceDirtyChange: () => undefined,
+      },
+    }).body;
+    expect(switchBody).toContain('data-typed-locale="zh-CN"');
+    expect(switchBody).toContain('切换规则');
+    expect(switchBody).toContain('条件类型');
+    expect(switchBody).toContain('条件设置');
+    expect(switchBody).toContain('添加条件');
+    expect(switchBody).toContain('规则列表规则');
+    expect(switchBody).toContain('附属规则列表设置');
+    expect(switchBody).toContain('附属请求头 1 名称');
+    expect(switchBody).not.toContain('Switch rules');
+    expect(switchBody).not.toContain('Attached Rule List configuration');
+
+    const independent = createRuleListProfileDraft(baseSpec(), ids);
+    const independentSource = independent.draft.ruleSources.at(-1);
+    if (!independentSource) throw new Error('independent source missing');
+    independentSource.location = {
+      kind: 'url',
+      url: 'https://rules.example.invalid/independent.txt',
+      content: 'typed independent cache',
+    };
+    const independentBody = render(RuleListProfileEditor, {
+      props: {
+        locale: 'zh-TW',
+        spec: independent.draft,
+        profileId: independent.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+      },
+    }).body;
+    expect(independentBody).toContain('data-typed-locale="zh-TW"');
+    expect(independentBody).toContain('規則清單設定');
+    expect(independentBody).toContain('規則清單網址');
+    expect(independentBody).toContain('規則清單正文');
+    expect(independentBody).toContain('規則清單符合時使用的情境模式');
+    expect(independentBody).not.toContain('Rule List Config');
+  });
+
   it('renders the original PAC URL, headers, download status, and read-only cache sections', () => {
     const mutation = createPacProfileDraft(baseSpec(), idFactory(), 'PAC component');
     const profile = mutation.draft.profiles.find(

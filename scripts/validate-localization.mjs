@@ -6,6 +6,9 @@ const files = {
   newProfile: 'apps/extension/src/entrypoints/options/NewProfileDialog.svelte',
   deletion: 'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte',
   replacement: 'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
+  switchProfile: 'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte',
+  attachedRuleList: 'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
+  independentRuleList: 'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
   app: 'apps/extension/src/entrypoints/options/App.svelte',
   package: 'package.json',
 };
@@ -38,6 +41,9 @@ for (const [name, source] of [
   ['Profile deletion', entries.deletion],
   ['Profile replacement', entries.replacement],
   ['Fixed Profile', entries.fixed],
+  ['Switch Profile', entries.switchProfile],
+  ['Attached Rule List', entries.attachedRuleList],
+  ['Independent Rule List', entries.independentRuleList],
 ]) {
   requireText(
     source,
@@ -83,6 +89,37 @@ for (const [source, marker, message] of [
     "authError = 'Proxy server no longer exists.'",
     'Fixed error regressed to literal English.',
   ],
+  [entries.switchProfile, '<h2>Switch rules</h2>', 'Switch heading regressed to literal English.'],
+  [
+    entries.switchProfile,
+    '>Condition type</th>',
+    'Switch condition header regressed to literal English.',
+  ],
+  [
+    entries.switchProfile,
+    'aria-label="Switch Profile source"',
+    'Switch source ARIA regressed to literal English.',
+  ],
+  [
+    entries.attachedRuleList,
+    '<h2>Attached Rule List configuration</h2>',
+    'Attached Rule List heading regressed to literal English.',
+  ],
+  [
+    entries.attachedRuleList,
+    '>Download now</button>',
+    'Attached Rule List action regressed to literal English.',
+  ],
+  [
+    entries.independentRuleList,
+    '<h2>Rule List Config</h2>',
+    'Independent Rule List heading regressed to literal English.',
+  ],
+  [
+    entries.independentRuleList,
+    'aria-label="Rule List text"',
+    'Independent Rule List ARIA regressed to literal English.',
+  ],
 ])
   forbidText(source, marker, message);
 requireText(
@@ -99,6 +136,26 @@ requireText(
   entries.app,
   '<ProfileDeletionDialog\n    {locale}',
   'Options must pass locale to deletion dialog.',
+);
+requireText(
+  entries.app,
+  '<SwitchProfileEditor\n            {locale}',
+  'Options must pass locale to Switch Profile.',
+);
+requireText(
+  entries.app,
+  '<RuleListProfileEditor\n          {locale}',
+  'Options must pass locale to independent Rule List.',
+);
+requireText(
+  entries.catalog,
+  "readonly 'switch.sourceError'",
+  'Typed Switch source error messages are missing.',
+);
+requireText(
+  entries.catalog,
+  "readonly 'ruleList.lastUpdated'",
+  'Typed Rule List update status messages are missing.',
 );
 requireText(
   entries.app,

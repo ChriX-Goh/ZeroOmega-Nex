@@ -218,3 +218,10 @@ Use `docs/LOCALE_INVENTORY.json` to migrate Switch plus Attached/Independent Rul
 - Unit tests validate every catalog entry has all three locales and dynamic messages never fall back to English. Component tests cover zh-CN and zh-TW; Chromium verifies zh-CN headings, ARIA selectors, blocker kind labels, and locale identity through real workflows.
 - `scripts/generate-locale-inventory.mjs` produces `docs/LOCALE_INVENTORY.json`; `validate:locale` blocks a stale inventory or literal-English regression in the completed batch and is part of `pnpm verify`.
 - Integration run `30332516697`; product commit `e0dec06345cf496ceb4a4ac18725223a8b3b0937`. The first clean Head exposed one stale Firefox zh-TW selector (`情景模式名稱`); the source-backed `情境模式名稱` selector was corrected in test commit `999ec55f13529176c7032e2d7f40acd8383e03e5`, which passed CI `30332908321`, Browser E2E `30332908331`, and Parity Documentation `30332908361`.
+
+### Typed locale second vertical batch
+
+- Switch Profile condition groups/help, source mode, compact table, drag/keyboard ordering ARIA, rule actions/notes, attached Rule List row, default route, and online attachment section now render through typed three-locale keys.
+- Attached and independent Rule List editors localize Config/URL/Text structure, route selectors, formats, source mode, headers, update actions/status, downloaded cache, placeholders, and ARIA. English ARIA contracts remain stable while zh-CN/zh-TW use source-backed terminology.
+- Switch parser errors use stable `SwitchSourceError.code` plus line numbers. Rule Source update records do not yet expose stable failure codes, so the UI deliberately shows a localized failure summary instead of leaking an unstable English downloader message; complete downloader error localization remains open.
+- Component tests cover zh-CN Switch/attached flows and zh-TW independent Rule List. Chromium asserts direct zh-CN headings, table columns, field ARIA, update status, and URL/text controls. Inventory and locale regression guards include all three components.

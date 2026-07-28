@@ -338,6 +338,14 @@ try {
   await switchNavigation.click();
   const switchRulesSection = options.locator('[data-switch-source-mode]');
   await switchRulesSection.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await switchRulesSection.getAttribute('data-typed-locale'), 'zh-CN');
+  await switchRulesSection.getByRole('heading', { name: '切换规则', exact: true }).waitFor();
+  await switchRulesSection.getByRole('columnheader', { name: '条件类型', exact: true }).waitFor();
+  await switchRulesSection.getByRole('columnheader', { name: '条件设置', exact: true }).waitFor();
+  assert.doesNotMatch(
+    await switchRulesSection.innerText(),
+    /Switch rules|Condition type|Condition details/u,
+  );
   const switchSourceToggle = switchRulesSection.locator('[data-switch-source-toggle]');
   await switchSourceToggle.click();
   await switchRulesSection.locator('[data-switch-source-editor]').waitFor();
@@ -372,8 +380,8 @@ try {
     async () => (await switchRows.count()) === 2,
     'Switch editor did not append the second rule',
   );
-  const firstPattern = switchRows.nth(0).getByLabel('Rule 1 pattern');
-  const secondPattern = switchRows.nth(1).getByLabel('Rule 2 pattern');
+  const firstPattern = switchRows.nth(0).getByLabel('规则 1 的匹配内容');
+  const secondPattern = switchRows.nth(1).getByLabel('规则 2 的匹配内容');
   await firstPattern.fill('first.drag.invalid');
   await firstPattern.press('Tab');
   await secondPattern.fill('second.drag.invalid');
@@ -395,9 +403,10 @@ try {
   await switchRows.nth(0).locator('[data-switch-drag-handle]').dragTo(switchRows.nth(1));
   await assertEventually(
     async () =>
-      (await switchRows.nth(0).getByLabel('Rule 1 pattern').inputValue()) ===
+      (await switchRows.nth(0).getByLabel('规则 1 的匹配内容').inputValue()) ===
         'second.drag.invalid' &&
-      (await switchRows.nth(1).getByLabel('Rule 2 pattern').inputValue()) === 'first.drag.invalid',
+      (await switchRows.nth(1).getByLabel('规则 2 的匹配内容').inputValue()) ===
+        'first.drag.invalid',
     'Switch drag handle did not reorder the visible rows',
   );
   await assertEventually(
@@ -419,11 +428,11 @@ try {
   await options.locator('[data-switch-rules-table]').waitFor({ state: 'visible', timeout: 20_000 });
   const reloadedSwitchRows = options.locator('[data-switch-rule-row]');
   assert.equal(
-    await reloadedSwitchRows.nth(0).getByLabel('Rule 1 pattern').inputValue(),
+    await reloadedSwitchRows.nth(0).getByLabel('规则 1 的匹配内容').inputValue(),
     'second.drag.invalid',
   );
   assert.equal(
-    await reloadedSwitchRows.nth(1).getByLabel('Rule 2 pattern').inputValue(),
+    await reloadedSwitchRows.nth(1).getByLabel('规则 2 的匹配内容').inputValue(),
     'first.drag.invalid',
   );
 
@@ -481,16 +490,21 @@ try {
   await options.getByRole('button', { name: 'rule-switchy', exact: true }).click();
   const independentRuleEditor = options.locator('[data-rule-list-profile-editor]');
   await independentRuleEditor.waitFor({ state: 'visible', timeout: 20_000 });
-  await independentRuleEditor.getByRole('heading', { name: 'Rule List Config' }).waitFor();
+  await independentRuleEditor.getByRole('heading', { name: '规则列表设置', exact: true }).waitFor();
+  assert.equal(await independentRuleEditor.getAttribute('data-typed-locale'), 'zh-CN');
+  assert.doesNotMatch(
+    await independentRuleEditor.innerText(),
+    /Rule List Config|Rule List URL|Rule List Text/u,
+  );
   assert.equal(
-    await independentRuleEditor.getByLabel('Rule List match profile').inputValue(),
+    await independentRuleEditor.getByLabel('规则列表匹配时使用的情景模式').inputValue(),
     await independentRuleEditor
-      .getByLabel('Rule List match profile')
+      .getByLabel('规则列表匹配时使用的情景模式')
       .locator('option', { hasText: 'fixed' })
       .getAttribute('value'),
   );
   assert.equal(
-    await independentRuleEditor.getByLabel('Rule List default profile').inputValue(),
+    await independentRuleEditor.getByLabel('规则列表不匹配时使用的情景模式').inputValue(),
     'direct',
   );
   assert.equal(
@@ -498,7 +512,7 @@ try {
     true,
   );
   const independentUrl = independentRuleEditor.getByRole('textbox', {
-    name: 'Rule List URL',
+    name: '规则列表网址',
     exact: true,
   });
   await independentUrl.fill(remoteRuleUrl);
@@ -514,15 +528,15 @@ try {
   const independentStatus = independentRuleEditor.locator(
     '[data-independent-rule-source-update-status]',
   );
-  await independentStatus.filter({ hasText: 'Last updated' }).waitFor({ timeout: 20_000 });
-  const independentText = independentRuleEditor.getByLabel('Rule List text');
+  await independentStatus.filter({ hasText: '规则列表最后更新于' }).waitFor({ timeout: 20_000 });
+  const independentText = independentRuleEditor.getByLabel('规则列表正文');
   assert.equal(await independentText.inputValue(), remoteRuleText);
   assert.equal(await independentText.isEditable(), false);
-  await independentRuleEditor.getByRole('button', { name: 'Clear Rule List URL' }).click();
+  await independentRuleEditor.getByRole('button', { name: '清除规则列表网址' }).click();
   await assertEventually(
     async () =>
       (await independentRuleEditor
-        .getByRole('textbox', { name: 'Rule List URL', exact: true })
+        .getByRole('textbox', { name: '规则列表网址', exact: true })
         .inputValue()) === '',
     'Clearing the independent Rule List URL did not return to inline mode',
   );
@@ -709,7 +723,7 @@ try {
   await options.bringToFront();
 
   await options.getByRole('button', { name: 'switch', exact: true }).click();
-  const attachRuleList = options.getByRole('button', { name: /Attach Rule List/u });
+  const attachRuleList = options.getByRole('button', { name: /添加规则列表/u });
   try {
     await attachRuleList.waitFor({ state: 'visible', timeout: 15_000 });
   } catch (error) {
@@ -729,19 +743,19 @@ try {
     await options.getByRole('button', { name: '__ruleListOf_switch', exact: true }).count(),
     0,
   );
-  const attachedEnabled = attachedRow.getByRole('checkbox', { name: 'Use attached Rule List' });
+  const attachedEnabled = attachedRow.getByRole('checkbox', { name: '规则列表规则' });
   assert.equal(await attachedEnabled.isChecked(), true);
   await attachedEnabled.uncheck();
   assert.equal(await attachedEnabled.isChecked(), false);
   await attachedEnabled.check();
-  await attachedRow.getByLabel('Attached Rule List matching route').selectOption('system');
+  await attachedRow.getByLabel('规则列表匹配时使用的情景模式').selectOption('system');
   const attachedConfig = options.locator('[data-attached-rule-list-config]');
   await attachedConfig.waitFor();
-  const attachedText = attachedConfig.getByLabel('Attached Rule List text');
+  const attachedText = attachedConfig.getByLabel('附属规则列表正文');
   await attachedText.fill('[AutoProxy 0.2.9]\n||attached.example.invalid');
   await attachedText.press('Tab');
   const attachedHeaders = options.locator('[data-attached-rule-list-headers]');
-  const addHeader = attachedHeaders.locator('button').filter({ hasText: 'Add header' });
+  const addHeader = attachedHeaders.locator('button').filter({ hasText: '添加请求头' });
   await assertEventually(
     async () => !(await addHeader.isDisabled()),
     'Attached Rule List header button remained disabled after saving text',
@@ -758,22 +772,20 @@ try {
   if (!(await headerDetails.evaluate((element) => element.open))) {
     await headerDetails.locator('summary').click();
   }
-  const attachedHeaderName = attachedHeaders.locator('input[aria-label="Attached header 1 name"]');
-  const attachedHeaderValue = attachedHeaders.locator(
-    'input[aria-label="Attached header 1 value"]',
-  );
+  const attachedHeaderName = attachedHeaders.locator('input[aria-label="附属请求头 1 名称"]');
+  const attachedHeaderValue = attachedHeaders.locator('input[aria-label="附属请求头 1 值"]');
   await attachedHeaderName.fill('X-E2E');
   await attachedHeaderName.press('Tab');
   await attachedHeaderValue.fill('attached');
   await attachedHeaderValue.press('Tab');
 
-  const sourceType = attachedConfig.getByLabel('Attached Rule List source type');
+  const sourceType = attachedConfig.getByLabel('附属规则列表来源类型');
   await assertEventually(
     async () => !(await sourceType.isDisabled()),
     'Attached Rule List source type remained disabled after saving headers',
   );
   await sourceType.selectOption('url');
-  const sourceUrl = attachedConfig.getByLabel('Attached Rule List URL');
+  const sourceUrl = attachedConfig.getByLabel('附属规则列表网址');
   await sourceUrl.waitFor();
   await sourceUrl.fill(remoteRuleUrl);
   await sourceUrl.press('Tab');
@@ -785,7 +797,7 @@ try {
   await downloadNow.click();
   const ruleUpdateStatus = options.locator('[data-rule-source-update-status]');
   try {
-    await ruleUpdateStatus.filter({ hasText: 'Last updated' }).waitFor({ timeout: 20_000 });
+    await ruleUpdateStatus.filter({ hasText: '规则列表最后更新于' }).waitFor({ timeout: 20_000 });
   } catch (error) {
     console.error(`[Rule Source update status] ${await ruleUpdateStatus.innerText()}`);
     console.error(
@@ -797,7 +809,7 @@ try {
     throw error;
   }
   assert.equal(
-    await attachedConfig.getByLabel('Attached Rule List downloaded text').inputValue(),
+    await attachedConfig.getByLabel('附属规则列表已下载正文').inputValue(),
     remoteRuleText,
   );
   assert.equal(receivedRuleHeader, 'attached');
@@ -847,7 +859,7 @@ try {
   assert.equal(receivedRuleHeader, 'attached');
 
   options.once('dialog', (dialog) => dialog.accept());
-  await attachedRow.getByRole('button', { name: 'Delete attached Rule List' }).click();
+  await attachedRow.getByRole('button', { name: '移除规则列表' }).click();
   await attachRuleList.waitFor();
   assert.equal(await options.locator('[data-attached-rule-list-row]').count(), 0);
 

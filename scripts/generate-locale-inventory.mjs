@@ -9,6 +9,9 @@ const typedBatchFiles = [
   'apps/extension/src/entrypoints/options/NewProfileDialog.svelte',
   'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte',
   'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
+  'apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte',
+  'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte',
+  'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte',
 ];
 
 async function collect(directory) {

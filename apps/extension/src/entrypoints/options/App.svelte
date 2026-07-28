@@ -1461,6 +1461,7 @@
       {:else if switchProfile}
         {#key `${switchProfile.id}:${profileEditorEpoch}`}
           <SwitchProfileEditor
+            {locale}
             spec={state.draft}
             profileId={switchProfile.id}
             disabled={saving || view?.busy === true}
@@ -1482,6 +1483,7 @@
         />
       {:else if selectedProfile.kind === 'rule-list'}
         <RuleListProfileEditor
+          {locale}
           spec={state.draft}
           profileId={selectedProfile.id}
           disabled={saving || view?.busy === true}
