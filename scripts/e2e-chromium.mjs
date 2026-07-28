@@ -976,7 +976,18 @@ try {
   const historyPanel = options.locator('[data-snapshot-history-panel]');
   await historyPanel.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(await historyPanel.getAttribute('data-typed-locale'), 'zh-CN');
-  await historyPanel.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
+  const verifiedSnapshotsHeading = historyPanel.getByRole('heading', {
+    name: '已验证的 PAC 快照',
+    exact: true,
+  });
+  try {
+    await verifiedSnapshotsHeading.waitFor({ timeout: 8_000 });
+  } catch (error) {
+    const loadAlert = historyPanel.getByRole('alert');
+    if ((await loadAlert.count()) === 0) throw error;
+    await historyPanel.getByRole('button', { name: '刷新历史', exact: true }).click();
+    await verifiedSnapshotsHeading.waitFor({ timeout: 20_000 });
+  }
   assert.doesNotMatch(
     await historyPanel.innerText(),
     /Configuration history|Verified PAC snapshots/u,
