@@ -11,6 +11,7 @@ on:
       - .github/patches/fix-firefox-remote-source-null.py
       - .github/patches/fix-firefox-pac-create-wait.py
       - .github/patches/fix-readonly-source-status-lock.py
+      - .github/patches/fix-readonly-source-status-guard.py
 
 permissions:
   contents: write
@@ -52,6 +53,7 @@ jobs:
             python .github/patches/fix-firefox-remote-source-null.py
             python .github/patches/fix-firefox-pac-create-wait.py
             python .github/patches/fix-readonly-source-status-lock.py
+            python .github/patches/fix-readonly-source-status-guard.py
           } 2>&1 | tee firefox-remote-source-apply.log
 
       - name: Format product slice
@@ -99,6 +101,7 @@ jobs:
             .github/patches/fix-firefox-remote-source-null.py \
             .github/patches/fix-firefox-pac-create-wait.py \
             .github/patches/fix-readonly-source-status-lock.py \
+            .github/patches/fix-readonly-source-status-guard.py \
             firefox-remote-source-apply.log \
             firefox-remote-source-format.log \
             firefox-remote-source-inventory.log \
