@@ -1,4 +1,4 @@
-# integration revision 2
+# integration revision 3
 name: Integrate zero Svelte warnings
 
 on:
@@ -44,6 +44,7 @@ jobs:
             set -x
             python .github/patches/fix-zero-warning-validator-wiring.py
             python .github/patches/fix-zero-warning-guard-strings.py
+            python .github/patches/fix-zero-warning-component-assertions.py
             python .github/patches/apply-zero-svelte-warnings.py
           } 2>&1 | tee zero-warning-apply.log
       - name: Format product slice
@@ -78,6 +79,7 @@ jobs:
           rm -f \
             .github/patches/fix-zero-warning-validator-wiring.py \
             .github/patches/fix-zero-warning-guard-strings.py \
+            .github/patches/fix-zero-warning-component-assertions.py \
             .github/patches/apply-zero-svelte-warnings.py \
             zero-warning-apply.log \
             zero-warning-format.log \
