@@ -203,17 +203,31 @@ replace_once(
 ''',
 )
 
-# SSR component contract supplies an explicit permission decision.
+# SSR component contract supplies an explicit permission decision on PAC only.
 replace_once(
     'apps/extension/src/component-rendering.component.spec.ts',
-    '''        onReplaceDraftWithSecrets: async () => true,
+    '''    const { body } = render(PacProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
         onReadSecret: async () => '',
       },
+    });
 ''',
-    '''        onReplaceDraftWithSecrets: async () => true,
+    '''    const { body } = render(PacProfileEditor, {
+      props: {
+        spec: mutation.draft,
+        profileId: mutation.profileId,
+        disabled: false,
+        onReplaceDraft: replaceDraft,
+        onReplaceDraftWithSecrets: async () => true,
         onReadSecret: async () => '',
         onRequestAuthenticationPermission: async () => true,
       },
+    });
 ''',
 )
 
