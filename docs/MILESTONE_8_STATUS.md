@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `fa06a34099bc6a3298068f0cd288f7b46c9108e3` — Original general Replace Profile dialog  
-**Latest integration verification:** run `30326757503` validates Apply-before-open, general from/to selectors, endpoint preview, complete typed reference replacement, and normal Apply with full `pnpm verify` and Chromium regression  
-**Last completed exact-Head verification:** `f20fa8b44d9ab82ad02d95aa290c44b79f50f4e8`; CI `30326903002`, Browser E2E `30326903039`, Parity Documentation `30326902994` passed  
+**Current product implementation head:** `29db0982ea57a230861c095968794d9363bf0261` — Original-compatible profile-level PAC and Rule List exports  
+**Latest integration verification:** run `30328853989` validates current-Draft generated/raw PAC, modern/legacy Rule List formats, advanced-condition fallback, original filename/MIME, and real Chromium downloads with full `pnpm verify`  
+**Last completed exact-Head verification:** `e0870bad4d90d11ad606dc7a5592203536653e49`; CI `30329080792`, Browser E2E `30329080770`, Parity Documentation `30329080845` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -80,7 +80,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Fixed, Switch, Rule List, and Virtual profiles compile to cross-browser PAC; PAC Profiles export structurally validated top-level inline/downloaded scripts; Auto Detect is excluded and uncached remote PAC fails explicitly.
 - Switch exports modern result-enabled `OmegaRules_*.sorl` with Require/Date/Usage metadata. When legacy export is requested and all conditions remain basic, `SwitchyRules_*.ssrl` is produced; advanced conditions show a warning and safely fall back to `.sorl`.
 - All files use original `/\W+/g` filename sanitization and `text/plain;charset=utf-8`. Chromium verifies modern, legacy, warning fallback, generated PAC, raw PAC, and Auto Detect exclusion through real downloads.
-- Integration run `30328853989`; product commit containing this document.
+- Integration run `30328853989`; product commit `29db0982ea57a230861c095968794d9363bf0261`; clean exact Head `e0870bad4d90d11ad606dc7a5592203536653e49` passed CI `30329080792`, Browser E2E `30329080770`, and Parity Documentation `30329080845`.
 
 ### General Replace Profile dialog
 
