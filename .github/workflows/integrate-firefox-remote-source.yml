@@ -8,6 +8,7 @@ on:
       - .github/workflows/integrate-firefox-remote-source.yml
       - .github/patches/apply-firefox-remote-source.py
       - .github/patches/fix-firefox-remote-source-guard.py
+      - .github/patches/fix-firefox-remote-source-null.py
 
 permissions:
   contents: write
@@ -46,6 +47,7 @@ jobs:
           {
             python .github/patches/apply-firefox-remote-source.py
             python .github/patches/fix-firefox-remote-source-guard.py
+            python .github/patches/fix-firefox-remote-source-null.py
           } 2>&1 | tee firefox-remote-source-apply.log
 
       - name: Format product slice
@@ -90,6 +92,7 @@ jobs:
           rm -f \
             .github/patches/apply-firefox-remote-source.py \
             .github/patches/fix-firefox-remote-source-guard.py \
+            .github/patches/fix-firefox-remote-source-null.py \
             firefox-remote-source-apply.log \
             firefox-remote-source-format.log \
             firefox-remote-source-inventory.log \
