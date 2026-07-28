@@ -43,6 +43,7 @@ jobs:
             python .github/patches/write-typed-auto-detect.py
             python .github/patches/fix-typed-auto-detect-component-import.py
             python .github/patches/patch-typed-auto-detect.py
+            python .github/patches/fix-typed-auto-detect-heading.py
             python .github/patches/patch-typed-auto-detect-tests-docs.py
           } 2>&1 | tee typed-auto-detect-apply.log
       - name: Format product slice
@@ -82,6 +83,7 @@ jobs:
           rm -f \
             .github/patches/write-typed-auto-detect.py \
             .github/patches/fix-typed-auto-detect-component-import.py \
+            .github/patches/fix-typed-auto-detect-heading.py \
             .github/patches/patch-typed-auto-detect.py \
             .github/patches/patch-typed-auto-detect-tests-docs.py \
             typed-auto-detect-apply.log \
