@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `b6dc3d0937296b91f83a917a74cfae6711318e08` — Typed Legacy Import and browser-confirmed imported startup activation  
-**Latest integration verification:** run `30378560992` validates typed Legacy Import in three locales, safe code/path diagnostics, fresh locale inventory, full repository verification, schema-v2 byte-equivalent restoration, and browser-confirmed non-default startup activation  
-**Last completed exact-Head verification:** `713079a86fe81aa8ae2c615ea52e2b98e5813e43`; CI `30378787419`, Browser E2E `30378787402`, Parity Documentation `30378787342` passed  
+**Current product implementation head:** `4bb42febeb4bd51f434a4e381f91a9df6b2daf12` — Typed Options shell, General and Interface  
+**Latest integration verification:** run `30381058967` validates typed Options navigation, Actions status, General/Interface settings, safe App-level errors, fresh locale inventory, full repository verification, and the complete Chromium interaction chain  
+**Last completed exact-Head verification:** `14ced5045ae8b8338ad9d12c06c72061d869f892`; CI `30381284751`, Browser E2E `30381284926`, Parity Documentation `30381285016` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -207,6 +207,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Navigation, document title, Apply/Discard and dynamic Draft status, loading/failure state, General startup/Quick Switch/diagnostics settings, and Interface confirmation/menu controls now render directly in English, Simplified Chinese, and Traditional Chinese through the typed catalog.
 - App-level command and exception failures no longer render raw backend text. The shell shows a non-secret typed summary while feature-specific panels retain stable status/code/path evidence.
 - Chromium enters the real General and Interface pages, verifies zh-CN headings, labels, select/ARIA contracts and Actions state, and rejects legacy English template text. Existing Firefox zh-TW Apply and PAC paths remain mandatory.
+- Integration run `30381058967`; product commit `4bb42febeb4bd51f434a4e381f91a9df6b2daf12`; clean exact Head `14ced5045ae8b8338ad9d12c06c72061d869f892` passed CI `30381284751`, Browser E2E `30381284926`, and Parity Documentation `30381285016`. The remaining literal-English inventory fell from 202 to 156 candidates.
 
 ### Delivery-plan reconciliation: Import review
 
