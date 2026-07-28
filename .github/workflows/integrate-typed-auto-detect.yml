@@ -41,6 +41,7 @@ jobs:
           {
             set -x
             python .github/patches/write-typed-auto-detect.py
+            python .github/patches/fix-typed-auto-detect-component-import.py
             python .github/patches/patch-typed-auto-detect.py
             python .github/patches/patch-typed-auto-detect-tests-docs.py
           } 2>&1 | tee typed-auto-detect-apply.log
@@ -80,6 +81,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-auto-detect.yml
           rm -f \
             .github/patches/write-typed-auto-detect.py \
+            .github/patches/fix-typed-auto-detect-component-import.py \
             .github/patches/patch-typed-auto-detect.py \
             .github/patches/patch-typed-auto-detect-tests-docs.py \
             typed-auto-detect-apply.log \
