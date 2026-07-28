@@ -25,8 +25,8 @@ replace_once(
       await fixture('virtual-reference-migration.json'),
       context,
     );
-    expect(result.ok).toBe(true);
     if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    expect(result.ok).toBe(true);
     expect(result.report.summary.rejected).toBe(0);
     expect(result.candidate.profiles.map((profile) => profile.name)).toEqual([
       'Target Proxy',
