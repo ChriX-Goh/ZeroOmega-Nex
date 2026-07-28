@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `a997f72054e26071a614d1db5ae8af1129098560` — Firefox optional-origin Rule Source/PAC downloads and read-only status race fix  
-**Latest integration verification:** run `30399701709` validates permission denial/non-mutation, real Firefox optional-origin grants, Rule Source/PAC downloads, PAC activation, and the read-only status/mutation-lock race fix  
-**Last completed exact-Head verification:** `b63ddf960ea939b814cfee1ca40ef2361579888f`; CI `30399942785`, Browser E2E `30399942779`, Parity Documentation `30399942787` passed  
+**Current product implementation head:** `c96ceb4a3a871951a23a58989df02dfe2689d1b8` — Bounded online backup restore with local compatibility review  
+**Latest integration verification:** run `30402596911` validates secret-safe online download errors, local-review-only behavior, full repository verification, real Chromium download, and real Firefox optional-origin download  
+**Last completed exact-Head verification:** `fa24888c1410b94c2d018b7a86f6b79397058013`; CI `30402798827`, Browser E2E `30402798830`, Parity Documentation `30402798803` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -254,14 +254,14 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - The user-visible import review was confirmed as implemented rather than a placeholder: file-first input, optional pasted JSON/base64, compatibility summary, technical details, safe secret extraction, explicit activate/non-activate actions, and no traffic change during selection or analysis.
 - Object, JSON string, base64 JSON, and schema-v2 support have direct decoder/importer tests. Chromium verifies original backup upload, explicit activation, full storage clear, restore, and byte-identical re-export.
 - The stale G-04/G-05/G-06 `UNVERIFIED/BROKEN` statuses are corrected. Legacy Import now renders directly through the typed three-locale catalog, presents stable status/code/path evidence instead of backend English messages, and has a real Chromium assertion for the non-default imported startup route. Repository-owner real complex-backup acceptance remains final QC.
-- Online URL restore, schema-v1 upgrade, and v1 AutoDetect migration remain separate missing/scope items.
+- Online URL restore, schema-v1 upgrade, and v1 AutoDetect migration were later closed by the source-backed slices recorded below.
 
 ### Typed Legacy Import and imported startup activation
 
 - `LegacyImportPanel` directly renders English, Simplified Chinese, and Traditional Chinese for export, file/pasted input, compatibility counts, technical details, secret-material notices, inactive import, immediate apply, success/error states, buttons, placeholders, titles, and ARIA.
 - Report details show localized status plus stable code/source/target paths. Backend `item.message` and exception `error.message` are not rendered; local failures use non-secret typed summaries.
 - The original schema-v2 export → clear → import → export byte-equivalence remains intact. Chromium also requires the fixture's non-default `switch` startup route to converge across Applied settings, the active verified snapshot, Draft/Applied revision identity, `chrome.proxy.settings` PAC mode, and extension control ownership.
-- This closes local import translation and startup activation. Online URL restore, schema-v1 upgrade, v1 AutoDetect migration, and repository-owner real complex-backup QC remain separate open items.
+- This closed local import translation and startup activation. Online URL restore and schema-v1/v1 AutoDetect migration were subsequently closed; repository-owner real complex-backup QC remains open.
 - Integration run `30378560992`; product commit `b6dc3d0937296b91f83a917a74cfae6711318e08`; clean exact Head `713079a86fe81aa8ae2c615ea52e2b98e5813e43` passed CI `30378787419`, Browser E2E `30378787402`, and Parity Documentation `30378787342`. The typed inventory now covers ten components and reports 202 remaining candidates.
 
 ### Typed Snapshot History and real rollback closure
@@ -270,7 +270,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Snapshot History now renders English, Simplified Chinese, and Traditional Chinese directly for page/navigation text, revision and snapshot metadata, verification modes, status, warnings, empty/error states, confirmation, actions, and ARIA.
 - The page continues to receive metadata only. ProfileSpec content, PAC source, request headers, and secret material remain background-owned and are never returned by the history command.
 - Chromium captures a verified persistent snapshot, activates a distinct raw PAC snapshot, then uses the real History confirmation flow to restore the first snapshot. The regression requires browser `activeSnapshotId`, Applied revision, Draft revision, and the History Active marker to converge.
-- The import-review audit is now closed for local files: compatibility summary, stable code/path technical details, secret-material warning, inactive import, immediate apply, byte-identical backup round trip, and direct typed locale coverage are all verified. Online URL restore remains a separate scope item.
+- The import-review audit is closed for local files: compatibility summary, stable code/path technical details, secret-material warning, inactive import, immediate apply, byte-identical backup round trip, and direct typed locale coverage are verified. The later online-restore slice extends the same review boundary to bounded HTTP(S) downloads.
 - Integration run `30375459826`; product commit `19ed3d66b52be16366842912f0461cd203e1a825`; clean exact Head `b3d54fc266f7472cecca336022f75f56652b84e5` passed CI `30375737690`, Browser E2E `30375737649`, and Parity Documentation `30375737656`. The typed inventory now covers nine components and reports 229 remaining candidates.
 
 ### Firefox optional-origin Rule Source and PAC downloads

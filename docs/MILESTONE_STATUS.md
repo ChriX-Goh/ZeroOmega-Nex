@@ -63,25 +63,23 @@ Rebuild the familiar ZeroOmega v3.5.0 UI and profile workflow on top of the new 
 - Source-backed Inspect context menus, result badge/title evaluation, and real native Chromium menu E2E.
 - Explicit-session bounded request diagnostics with privacy and storage limits.
 - Original schema-v2 Options `.bak` export and browser export → clear → restore → byte-identical export round trip.
+- Original schema-v1 → v2 upgrade, referenced `auto_detect` → WPAD PAC migration, and disabled sync-runtime cleanup.
+- File, pasted JSON/base64, and bounded online HTTP(S) backup review with explicit inactive or immediate-Apply import actions.
 - Virtual reference migration, general Replace Profile dialog, typed deletion protection, and profile-level PAC/Rule List exports.
 - Warning-fatal Svelte checks with zero current warnings.
-- Typed English, Simplified Chinese, and Traditional Chinese catalog for New Profile, lifecycle dialogs, Fixed, Switch, Attached Rule List, Independent Rule List, route labels, dynamic messages, and ARIA.
-- Machine-generated locale inventory and permanent parity/localization guards.
+- Direct typed English, Simplified Chinese, and Traditional Chinese presentation across normal Options, profiles, Popup, Temporary Rules, Network, Import, History, Theme, lifecycle dialogs, dynamic messages, and ARIA.
+- Machine-generated locale inventory with zero untranslated user-visible candidates plus permanent parity/localization guards.
 
 ### Current closure blockers
 
-- Complete typed PAC editor localization and Firefox PAC interaction/activation/download coverage.
-- Explicit modern target decision for `file:` PAC activation.
-- Real proxy-challenge manual QC and stable downloader failure codes.
-- Remaining General, Interface, Import, Theme, History, Popup, Temporary Rules, and Network localization.
-- Online URL restore and final scope decisions for Gist, WebDAV, and browser sync.
+- Explicit first-release scope decisions for Gist, WebDAV, and browser-native sync.
+- Real proxy-challenge manual QC.
 - Consolidated light/dark/zh-CN/zh-TW visual evidence.
 - Repository-owner real complex backup and final installable-candidate acceptance.
-- Recheck Milestone 8 delivery-plan obligations that are not yet clearly closed, especially user-visible snapshot history/rollback UI and complete import-review behavior.
 
 ### Immediate direction
 
-The next product slice is the PAC typed-localization batch using the fixed v3.5.0 PAC templates and locale evidence. It covers URL/Clear, remote headers, download/cache state, script text, `auth.all`, file warnings/errors, actions, placeholders, titles, and ARIA, plus Firefox PAC interaction coverage.
+The remaining automated scope decision is to classify Gist, WebDAV, and browser-native sync independently. Each requires an explicit ADR covering secret ownership, remote conflict semantics, browser quotas/capabilities, first-release scope, and any later milestone. After those decisions, Milestone 8 moves to consolidated visual evidence, real proxy-challenge QC, repository-owner complex-backup acceptance, and formal candidate preparation.
 
 ## Partially pulled forward — Milestone 9
 
