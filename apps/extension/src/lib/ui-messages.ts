@@ -1567,6 +1567,59 @@ export const typedUiTextCatalog = {
     'zh-TW': '相容性檢查',
   },
   'legacy.encoding': { en: 'Encoding', 'zh-CN': '编码', 'zh-TW': '編碼' },
+  'legacy.onlineTitle': {
+    en: 'Restore from online',
+    'zh-CN': '从在线地址恢复',
+    'zh-TW': '從線上位址還原',
+  },
+  'legacy.onlineHelp': {
+    en: 'Download a backup for local compatibility review. Downloading never imports, activates, or changes the current configuration.',
+    'zh-CN': '下载备份并在本地进行兼容性检查。下载本身不会导入、启用或更改当前配置。',
+    'zh-TW': '下載備份並在本機進行相容性檢查。下載本身不會匯入、啟用或變更目前設定。',
+  },
+  'legacy.onlineUrl': { en: 'Online backup URL', 'zh-CN': '在线备份网址', 'zh-TW': '線上備份網址' },
+  'legacy.onlineRestore': { en: 'Restore', 'zh-CN': '恢复', 'zh-TW': '還原' },
+  'legacy.onlineDownloading': { en: 'Downloading…', 'zh-CN': '正在下载…', 'zh-TW': '正在下載…' },
+  'legacy.onlineDownloaded': {
+    en: 'Backup downloaded. Review compatibility before importing.',
+    'zh-CN': '备份已下载。请先检查兼容性，再决定是否导入。',
+    'zh-TW': '備份已下載。請先檢查相容性，再決定是否匯入。',
+  },
+  'legacy.onlineError.invalidUrl': {
+    en: 'Enter a valid absolute backup URL.',
+    'zh-CN': '请输入有效的绝对备份网址。',
+    'zh-TW': '請輸入有效的絕對備份網址。',
+  },
+  'legacy.onlineError.unsupportedProtocol': {
+    en: 'Online restore supports only HTTP and HTTPS URLs.',
+    'zh-CN': '在线恢复只支持 HTTP 和 HTTPS 网址。',
+    'zh-TW': '線上還原只支援 HTTP 與 HTTPS 網址。',
+  },
+  'legacy.onlineError.embeddedCredentials': {
+    en: 'Remove the embedded username or password from the backup URL.',
+    'zh-CN': '请移除备份网址中嵌入的用户名或密码。',
+    'zh-TW': '請移除備份網址中嵌入的使用者名稱或密碼。',
+  },
+  'legacy.onlineError.permissionDenied': {
+    en: 'Access to this backup origin was not granted.',
+    'zh-CN': '未授予对此备份来源网站的访问权限。',
+    'zh-TW': '未授予對此備份來源網站的存取權限。',
+  },
+  'legacy.onlineError.timeout': {
+    en: 'The online backup download timed out.',
+    'zh-CN': '在线备份下载超时。',
+    'zh-TW': '線上備份下載逾時。',
+  },
+  'legacy.onlineError.network': {
+    en: 'The online backup could not be downloaded.',
+    'zh-CN': '无法下载在线备份。',
+    'zh-TW': '無法下載線上備份。',
+  },
+  'legacy.onlineError.empty': {
+    en: 'The downloaded backup is empty.',
+    'zh-CN': '下载的备份为空。',
+    'zh-TW': '下載的備份是空的。',
+  },
   'legacy.encoding.json': { en: 'JSON', 'zh-CN': 'JSON', 'zh-TW': 'JSON' },
   'legacy.encoding.base64': { en: 'Base64 JSON', 'zh-CN': 'Base64 JSON', 'zh-TW': 'Base64 JSON' },
   'legacy.encoding.object': { en: 'Object', 'zh-CN': '对象', 'zh-TW': '物件' },
@@ -1800,6 +1853,8 @@ export interface UiMessageParameters {
   readonly 'legacy.compatibilityWarnings': { readonly count: number };
   readonly 'legacy.exportedWithWarnings': { readonly count: number };
   readonly 'legacy.technicalDetails': { readonly count: number };
+  readonly 'legacy.onlineHttpError': { readonly status: number };
+  readonly 'legacy.onlineTooLarge': { readonly limitBytes: number };
   readonly 'fixed.fieldAria': {
     readonly scheme: string;
     readonly field: 'protocol' | 'server' | 'port';
@@ -2392,6 +2447,18 @@ export function uiMessage<K extends UiMessageKey>(
         return `此操作會立即切換瀏覽器流量，並將已套用設定與草稿都替換為修訂 ${revisionId}。系統會驗證封存快照；若工作流程提交失敗，將還原目前瀏覽器狀態。`;
       }
       return `This immediately switches browser traffic and replaces both Applied and Draft with revision ${revisionId}. The operation verifies the archived snapshot and restores the current browser state if the workflow commit fails.`;
+    }
+    case 'legacy.onlineHttpError': {
+      const { status } = params as UiMessageParameters['legacy.onlineHttpError'];
+      if (locale === 'zh-CN') return `备份服务器返回 HTTP ${status}。`;
+      if (locale === 'zh-TW') return `備份伺服器傳回 HTTP ${status}。`;
+      return `The backup server returned HTTP ${status}.`;
+    }
+    case 'legacy.onlineTooLarge': {
+      const { limitBytes } = params as UiMessageParameters['legacy.onlineTooLarge'];
+      if (locale === 'zh-CN') return `在线备份超过 ${limitBytes} 字节的大小上限。`;
+      if (locale === 'zh-TW') return `線上備份超過 ${limitBytes} 位元組的大小上限。`;
+      return `The online backup exceeds the ${limitBytes}-byte size limit.`;
     }
     case 'legacy.compatibilityWarnings': {
       const { count } = params as UiMessageParameters['legacy.compatibilityWarnings'];

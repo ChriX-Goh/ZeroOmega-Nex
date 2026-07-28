@@ -530,3 +530,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Original v3.5.0 `Options.upgrade` accepts schema 1/2 only. Schema 1 scans inclusive Profile direct references; only a used `+auto_detect` is materialized as `{name: auto_detect, profileType: PacProfile, pacUrl: http://wpad/wpad.dat, color: #00cccc}`, then schemaVersion becomes 2.
 - Inclusive reference evidence includes Switch/Virtual default and rule results plus Rule List result routes. Nex performs this scan before ProfileSpec IDs/routes are generated, so the synthesized PAC participates in ordinary deterministic inventory and references.
 - Profiles with `syncOptions == disabled` lose both `syncOptions` and `syncError`, matching the original runtime cleanup. Input objects are cloned before these changes; migration evidence uses stable report codes.
+
+### Online backup restore trust boundary
+
+- Online restore is three explicit stages: user-granted origin download, page-local compatibility review, and a separate import choice. Downloading alone never writes ProfileSpec, secrets, revisions, snapshots, or browser proxy state.
+- Backup text may contain proxy passwords, request-header values, or sync credentials. It therefore does not travel through extension runtime commands or background responses; only the existing importer extracts secrets during the later explicit import transaction.
+- The downloader accepts absolute HTTP(S) without embedded credentials, requests only the normalized selected origin, omits credentials/referrer/cache, rejects redirects, enforces ten seconds and the legacy decoder byte limit, and exposes stable secret-safe errors.
+- Gist, WebDAV, and built-in browser sync require independent credential, conflict, and storage ADRs; completing URL restore does not imply those synchronization systems.

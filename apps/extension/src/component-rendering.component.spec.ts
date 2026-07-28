@@ -431,6 +431,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('Export options');
     expect(body).toContain('data-legacy-export');
     expect(body).toContain('Restore original ZeroOmega / SwitchyOmega backup');
+    expect(body).toContain('aria-label="Online backup URL"');
+    expect(body).toContain('data-legacy-online-download');
     expect(body).toContain('aria-label="Legacy backup file"');
     expect(body).toContain('Paste backup text instead');
     expect(body).not.toContain('passwordSecretRef');
@@ -452,6 +454,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(simplified).toContain('data-typed-locale="zh-CN"');
     expect(simplified).toContain('导出选项');
     expect(simplified).toContain('恢复原版 ZeroOmega / SwitchyOmega 备份');
+    expect(simplified).toContain('aria-label="在线备份网址"');
+    expect(simplified).toContain('从在线地址恢复');
     expect(simplified).toContain('aria-label="原版备份文件"');
     expect(simplified).toContain('改为粘贴备份文本');
     expect(simplified).not.toContain('Export options');
@@ -463,6 +467,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(traditional).toContain('data-typed-locale="zh-TW"');
     expect(traditional).toContain('匯出選項');
     expect(traditional).toContain('還原原版 ZeroOmega / SwitchyOmega 備份');
+    expect(traditional).toContain('aria-label="線上備份網址"');
+    expect(traditional).toContain('從線上位址還原');
     expect(traditional).toContain('aria-label="原版備份檔案"');
     expect(traditional).toContain('改為貼上備份文字');
     expect(traditional).not.toContain('Export options');

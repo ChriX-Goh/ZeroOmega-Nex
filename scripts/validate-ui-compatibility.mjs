@@ -78,6 +78,7 @@ const proxyAuthenticationPermissionClientPath =
   'apps/extension/src/lib/proxy-auth-permission-client.ts';
 const independentRuleListEditorPath =
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte';
+const onlineBackupDownloaderPath = 'apps/extension/src/lib/online-backup-downloader.ts';
 
 const [
   popupApp,
@@ -224,6 +225,7 @@ const [
   readFile(proxyAuthenticationPlanPath, 'utf8'),
   readFile(proxyAuthenticationPermissionClientPath, 'utf8'),
 ]);
+const onlineBackupDownloader = await readFile(onlineBackupDownloaderPath, 'utf8');
 
 const requirements = [
   [
@@ -651,6 +653,27 @@ const requirements = [
       chromiumE2e.includes("effective?.value?.mode !== 'pac_script'") &&
       chromiumE2e.includes("effective?.levelOfControl !== 'controlled_by_this_extension'"),
     'Original ZeroOmega backups must retain file-first inactive review, typed three-locale activation controls, safe code/path diagnostics, and a browser-confirmed imported startup route.',
+  ],
+  [
+    onlineBackupDownloader.includes('ONLINE_BACKUP_DOWNLOAD_TIMEOUT_MS = 10_000') &&
+      onlineBackupDownloader.includes('DEFAULT_LEGACY_DECODE_LIMITS.maxInputBytes') &&
+      onlineBackupDownloader.includes('requestRuleSourceOriginPermission') &&
+      onlineBackupDownloader.includes("credentials: 'omit'") &&
+      onlineBackupDownloader.includes("redirect: 'error'") &&
+      onlineBackupDownloader.includes("referrerPolicy: 'no-referrer'") &&
+      onlineBackupDownloader.includes("cache: 'no-store'") &&
+      onlineBackupDownloader.includes("'permission-denied'") &&
+      onlineBackupDownloader.includes("'response-http-error'") &&
+      onlineBackupDownloader.includes("'response-too-large'") &&
+      legacyImport.includes('data-legacy-online-restore') &&
+      legacyImport.includes('data-legacy-online-download') &&
+      legacyImport.includes('await downloadOnlineBackup(onlineUrl)') &&
+      legacyImport.includes('await analyze()') &&
+      !onlineBackupDownloader.includes('runtime.sendMessage') &&
+      chromiumE2e.includes('Downloading an online backup changed the Chromium workflow') &&
+      firefoxE2e.includes('Downloading an online backup changed the Firefox workflow') &&
+      firefoxE2e.includes('onlineBackupPermissionOrigin'),
+    'Online restore must use one user-granted bounded HTTP(S) download, keep raw backup text out of runtime messaging, stop at local review, and prove Chromium/Firefox non-mutation before import.',
   ],
   [
     themePanel.includes('data-theme-panel') &&

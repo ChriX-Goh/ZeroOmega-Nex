@@ -11,6 +11,7 @@ const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.js
 const virtualMigrationBackupPath = resolve(
   'fixtures/zeroomega-v2/virtual-reference-migration.json',
 );
+const remoteOnlineBackupText = await readFile(virtualMigrationBackupPath, 'utf8');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
 const conflictUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-user-'));
 const virtualUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-virtual-user-'));
@@ -37,7 +38,17 @@ let remoteRuleText = '[AutoProxy 0.2.9]\n||downloaded.e2e.invalid';
 let remotePacText = "function FindProxyForURL(url, host) { return 'DIRECT'; }\n";
 let receivedRuleHeader = '';
 let ruleRequestCount = 0;
+let onlineBackupRequestCount = 0;
 const ruleServer = createServer((request, response) => {
+  if (request.url?.startsWith('/online-backup')) {
+    onlineBackupRequestCount += 1;
+    response.writeHead(200, {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(remoteOnlineBackupText);
+    return;
+  }
   if (request.url?.startsWith('/diagnostic-error')) {
     request.socket.destroy();
     return;
@@ -85,6 +96,7 @@ const remoteRuleUrl = `http://127.0.0.1:${ruleAddress.port}/rules.txt`;
 const remotePacUrl = `http://127.0.0.1:${ruleAddress.port}/proxy.pac`;
 const sourceHttpErrorUrl = `http://127.0.0.1:${ruleAddress.port}/source-http-error`;
 const sourceEmptyUrl = `http://127.0.0.1:${ruleAddress.port}/source-empty`;
+const onlineBackupUrl = `http://127.0.0.1:${ruleAddress.port}/online-backup`;
 let context;
 let conflictContext;
 let virtualContext;
@@ -1254,6 +1266,43 @@ try {
   await virtualOptions.waitForLoadState('domcontentloaded');
   await virtualOptions.locator('[data-new-profile-action]').waitFor({ timeout: 20_000 });
   await virtualOptions.getByRole('button', { name: '导入 / 导出', exact: true }).click();
+  const onlineRestoreBefore = await virtualWorker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    return {
+      generation: workflow?.generation,
+      applied: JSON.stringify(workflow?.applied),
+      draft: JSON.stringify(workflow?.draft),
+    };
+  });
+  const onlineBackupInput = virtualOptions.getByLabel('在线备份网址', { exact: true });
+  await onlineBackupInput.fill(onlineBackupUrl);
+  await virtualOptions.locator('[data-legacy-online-download]').click();
+  await virtualOptions
+    .locator('[data-legacy-online-status]')
+    .filter({ hasText: '备份已下载。请先检查兼容性，再决定是否导入。' })
+    .waitFor({ timeout: 20_000 });
+  await virtualOptions.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();
+  assert.equal(onlineBackupRequestCount, 1, 'Chromium online restore did not perform one request');
+  const onlineRestoreAfter = await virtualWorker.evaluate(async () => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    return {
+      generation: workflow?.generation,
+      applied: JSON.stringify(workflow?.applied),
+      draft: JSON.stringify(workflow?.draft),
+    };
+  });
+  assert.deepEqual(
+    onlineRestoreAfter,
+    onlineRestoreBefore,
+    'Downloading an online backup changed the Chromium workflow before explicit import',
+  );
+  assert.equal(
+    await virtualOptions.getByText('导入完成，原版配置现已启用。').count(),
+    0,
+    'Online review activated the backup without the explicit import action',
+  );
   await virtualOptions.getByLabel('原版备份文件').setInputFiles(virtualMigrationBackupPath);
   await virtualOptions.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();
   await virtualOptions.locator('.import-actions button.primary').click();

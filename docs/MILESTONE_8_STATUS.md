@@ -294,9 +294,16 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Original per-profile `syncOptions: disabled` and `syncError` runtime fields are removed for both accepted schema versions. Stable report codes expose the upgrade and cleanup without retaining runtime error text.
 - A source-backed fixture and importer tests verify the final PAC Profile, Switch route, color/URL, report evidence, deterministic IDs, and absence of disabled sync state. G-07 and G-08 are now DONE.
 
+### Online URL restore with local review boundary
+
+- Restore from online is a dedicated Options-page downloader, not a runtime command and not a Rule Source update ledger. Raw backup text can contain credentials, so it remains in the page and enters only the existing local decoder/review flow.
+- The Restore click requests one normalized HTTP(S) origin, performs an isolated bounded GET with a ten-second timeout and the decoder input-size limit, rejects redirects and embedded credentials, and classifies URL/permission/timeout/network/HTTP/size/empty failures with stable typed codes.
+- Download success populates the existing compatibility review only. Applied, Draft, generation, proxy state, and activation remain unchanged until the user separately chooses Import and use now or Import without activating.
+- Chromium and Firefox use real HTTP backups and assert one request, local review, retained permission, and byte-for-byte unchanged workflow state before import. G-03 and G-10 are now DONE; Gist/WebDAV/browser sync remain separate UNCERTAIN scope.
+
 ## Automated acceptance state
 
-The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
+The latest product slices passed architecture guards, permanent UI compatibility guards, all 126 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
 
 `svelte-check --fail-on-warnings` reports 0 errors and 0 warnings; future Svelte compiler or accessibility warnings fail CI.
 
@@ -305,12 +312,12 @@ The latest product slices passed architecture guards, permanent UI compatibility
 PR #11 is not a replacement release candidate. Current blockers include:
 
 - real proxy-challenge manual QC,
-- online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
+- Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Decide and implement the online URL restore boundary, then prepare consolidated visual plus real-backup owner QC.
+Form explicit ADRs for Gist, WebDAV, and browser sync, then prepare consolidated visual plus real-backup owner QC.
 
 ### Typed locale inventory and first vertical batch
 

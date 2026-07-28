@@ -10,6 +10,11 @@
   import type { ProfileWorkflowSecretMaterial } from '@zeroomega-nex/profile-workflow';
 
   import { currentAppLocale, type AppLocale } from '../../lib/i18n';
+  import {
+    downloadOnlineBackup,
+    OnlineBackupDownloadError,
+    type OnlineBackupDownloadErrorCode,
+  } from '../../lib/online-backup-downloader';
   import { uiMessage, uiText, type UiTextKey } from '../../lib/ui-messages';
 
   export let locale: AppLocale = currentAppLocale();
@@ -29,15 +34,18 @@
   ) => Promise<boolean>;
 
   let backupText = '';
+  let onlineUrl = '';
   let selectedFileName = '';
   let result: LegacyImportResult | undefined;
   let exportResult: LegacyExportResult | undefined;
   let analyzedGeneration: number | undefined;
   let analyzing = false;
+  let downloadingOnline = false;
   let accepting = false;
   let exporting = false;
   let errorMessage = '';
   let acceptedMessage = '';
+  let onlineMessage = '';
   let exportedMessage = '';
 
   const statuses: readonly {
@@ -83,7 +91,32 @@
   ];
 
   function valueFrom(event: Event): string {
-    return (event.currentTarget as HTMLTextAreaElement).value;
+    return (event.currentTarget as HTMLInputElement | HTMLTextAreaElement).value;
+  }
+
+  function onlineErrorText(error: unknown): string {
+    if (!(error instanceof OnlineBackupDownloadError)) {
+      return uiText('legacy.onlineError.network', locale);
+    }
+    if (error.code === 'response-http-error') {
+      return uiMessage('legacy.onlineHttpError', { status: error.httpStatus ?? 0 }, locale);
+    }
+    if (error.code === 'response-too-large') {
+      return uiMessage('legacy.onlineTooLarge', { limitBytes: error.limitBytes ?? 0 }, locale);
+    }
+    const keys: Record<
+      Exclude<OnlineBackupDownloadErrorCode, 'response-http-error' | 'response-too-large'>,
+      UiTextKey
+    > = {
+      'invalid-url': 'legacy.onlineError.invalidUrl',
+      'unsupported-protocol': 'legacy.onlineError.unsupportedProtocol',
+      'embedded-credentials': 'legacy.onlineError.embeddedCredentials',
+      'permission-denied': 'legacy.onlineError.permissionDenied',
+      'request-timeout': 'legacy.onlineError.timeout',
+      'network-failure': 'legacy.onlineError.network',
+      'response-empty': 'legacy.onlineError.empty',
+    };
+    return uiText(keys[error.code], locale);
   }
 
   function summaryCount(importResult: LegacyImportResult, status: LegacyImportStatus): number {
@@ -175,6 +208,27 @@
       errorMessage = uiText('legacy.readFailed', locale);
     } finally {
       analyzing = false;
+    }
+  }
+
+  async function restoreOnline(): Promise<void> {
+    if (downloadingOnline || disabled || !onlineUrl.trim()) return;
+    downloadingOnline = true;
+    onlineMessage = '';
+    acceptedMessage = '';
+    errorMessage = '';
+    try {
+      const downloaded = await downloadOnlineBackup(onlineUrl);
+      backupText = downloaded.content;
+      selectedFileName = '';
+      result = undefined;
+      analyzedGeneration = undefined;
+      await analyze();
+      if (result !== undefined) onlineMessage = uiText('legacy.onlineDownloaded', locale);
+    } catch (error) {
+      errorMessage = onlineErrorText(error);
+    } finally {
+      downloadingOnline = false;
     }
   }
 
@@ -274,13 +328,46 @@
 >
   <h2>{uiText('legacy.restoreTitle', locale)}</h2>
   <p class="section-help">{uiText('legacy.restoreHelp', locale)}</p>
+  <div class="online-restore" data-legacy-online-restore>
+    <h3>{uiText('legacy.onlineTitle', locale)}</h3>
+    <div class="inline-fields">
+      <label>
+        {uiText('legacy.onlineUrl', locale)}
+        <input
+          type="url"
+          data-legacy-online-url
+          aria-label={uiText('legacy.onlineUrl', locale)}
+          placeholder="https://example.com/options.bak"
+          value={onlineUrl}
+          disabled={disabled || downloadingOnline || analyzing || accepting}
+          oninput={(event) => {
+            onlineUrl = valueFrom(event);
+            onlineMessage = '';
+            errorMessage = '';
+          }}
+        />
+      </label>
+      <button
+        type="button"
+        data-legacy-online-download
+        disabled={disabled || downloadingOnline || analyzing || accepting || !onlineUrl.trim()}
+        onclick={() => void restoreOnline()}
+        >{uiText(
+          downloadingOnline ? 'legacy.onlineDownloading' : 'legacy.onlineRestore',
+          locale,
+        )}</button
+      >
+    </div>
+    <p class="section-help">{uiText('legacy.onlineHelp', locale)}</p>
+    {#if onlineMessage}<p role="status" data-legacy-online-status>{onlineMessage}</p>{/if}
+  </div>
   <label class="file-picker">
     <span>{uiText('legacy.backupFile', locale)}</span>
     <input
       aria-label={uiText('legacy.backupFileAria', locale)}
       type="file"
       accept=".bak,.json,.txt,application/json,text/plain"
-      disabled={disabled || analyzing || accepting}
+      disabled={disabled || downloadingOnline || analyzing || accepting}
       onchange={chooseFile}
     />
     {#if selectedFileName}<strong>{selectedFileName}</strong>{/if}
@@ -292,7 +379,7 @@
       rows="12"
       placeholder={uiText('legacy.backupPlaceholder', locale)}
       value={backupText}
-      disabled={disabled || analyzing || accepting}
+      disabled={disabled || downloadingOnline || analyzing || accepting}
       oninput={(event) => {
         backupText = valueFrom(event);
         selectedFileName = '';

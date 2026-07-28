@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 
@@ -7,9 +8,23 @@ import firefox from 'selenium-webdriver/firefox.js';
 
 const remoteRuleText = '[SwitchyOmega Conditions]\n@with result\n\n* +direct\n';
 const remotePacText = "function FindProxyForURL(url, host) { return 'DIRECT'; }\n";
+const remoteOnlineBackupText = await readFile(
+  resolve('fixtures/zeroomega-v2/minimal-profile-types.json'),
+  'utf8',
+);
 let ruleRequestCount = 0;
 let pacRequestCount = 0;
+let onlineBackupRequestCount = 0;
 const sourceServer = createServer((request, response) => {
+  if (request.url?.startsWith('/online-backup')) {
+    onlineBackupRequestCount += 1;
+    response.writeHead(200, {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(remoteOnlineBackupText);
+    return;
+  }
   if (request.url?.startsWith('/rules.txt')) {
     ruleRequestCount += 1;
     response.writeHead(200, {
@@ -33,7 +48,7 @@ const sourceServer = createServer((request, response) => {
 });
 await new Promise((resolveListen, rejectListen) => {
   sourceServer.once('error', rejectListen);
-  sourceServer.listen(0, '127.0.0.1', resolveListen);
+  sourceServer.listen(0, '0.0.0.0', resolveListen);
 });
 const sourceAddress = sourceServer.address();
 if (!sourceAddress || typeof sourceAddress === 'string') {
@@ -42,6 +57,8 @@ if (!sourceAddress || typeof sourceAddress === 'string') {
 const remoteRuleUrl = `http://127.0.0.1:${sourceAddress.port}/rules.txt`;
 const remotePacUrl = `http://127.0.0.1:${sourceAddress.port}/proxy.pac`;
 const remotePermissionOrigin = 'http://127.0.0.1/*';
+const onlineBackupUrl = `http://localhost:${sourceAddress.port}/online-backup`;
+const onlineBackupPermissionOrigin = 'http://localhost/*';
 
 const extensionPath = resolve('dist/firefox-mv3');
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -51,6 +68,7 @@ const options = new firefox.Options()
   .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
+  .setPreference('network.dns.disableIPv6', true)
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
 
@@ -274,6 +292,67 @@ try {
     15_000,
   );
   await driver.wait(until.elementLocated(By.css('[data-request-diagnostics-stopped]')), 15_000);
+
+  await driver.get(`moz-extension://${extensionUuid}/options.html#/import`);
+  const onlineRestorePanel = await driver.wait(
+    until.elementLocated(
+      By.css('[data-legacy-import-source][data-typed-locale="zh-TW"] [data-legacy-online-restore]'),
+    ),
+    15_000,
+  );
+  await driver.wait(until.elementIsVisible(onlineRestorePanel), 15_000);
+  assert.equal(
+    await hasOriginPermission(onlineBackupPermissionOrigin),
+    false,
+    'Firefox online-backup origin must remain optional before Restore',
+  );
+  const onlineRestoreBefore = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    browser.storage.local.get('zeroomega-nex/profile-workflow/v1/state').then((values) => {
+      const workflow = values['zeroomega-nex/profile-workflow/v1/state'];
+      done({
+        generation: workflow?.generation,
+        applied: JSON.stringify(workflow?.applied),
+        draft: JSON.stringify(workflow?.draft),
+      });
+    }, (error) => done({ error: String(error) }));
+  `);
+  const onlineBackupInput = await onlineRestorePanel.findElement(
+    By.css('[data-legacy-online-url]'),
+  );
+  await setControlValue(onlineBackupInput, onlineBackupUrl);
+  const onlineRestore = await onlineRestorePanel.findElement(
+    By.css('[data-legacy-online-download]'),
+  );
+  await driver.wait(until.elementIsEnabled(onlineRestore), 10_000);
+  await onlineRestore.click();
+  await driver.wait(until.elementLocated(By.css('[data-legacy-online-status]')), 20_000);
+  await driver.wait(
+    until.elementLocated(By.xpath("//h2[normalize-space(.)='相容性檢查']")),
+    20_000,
+  );
+  assert.equal(
+    await hasOriginPermission(onlineBackupPermissionOrigin),
+    true,
+    'Firefox did not retain the online-backup origin after Restore',
+  );
+  assert.equal(onlineBackupRequestCount, 1, 'Firefox online restore did not perform one request');
+  const onlineRestoreAfter = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    browser.storage.local.get('zeroomega-nex/profile-workflow/v1/state').then((values) => {
+      const workflow = values['zeroomega-nex/profile-workflow/v1/state'];
+      done({
+        generation: workflow?.generation,
+        applied: JSON.stringify(workflow?.applied),
+        draft: JSON.stringify(workflow?.draft),
+      });
+    }, (error) => done({ error: String(error) }));
+  `);
+  assert.deepEqual(
+    onlineRestoreAfter,
+    onlineRestoreBefore,
+    'Downloading an online backup changed the Firefox workflow before explicit import',
+  );
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
   const newRuleProfileAction = await driver.wait(
