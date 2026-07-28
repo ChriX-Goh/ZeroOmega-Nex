@@ -1,4 +1,4 @@
-# integration revision 4
+# integration revision 5
 name: Integrate profile exports
 
 on:
@@ -44,6 +44,7 @@ jobs:
             set -x
             python .github/patches/fix-profile-export-e2e-escape.py
             python .github/patches/apply-profile-exports.py
+            python .github/patches/fix-generated-profile-export-guard.py
           } 2>&1 | tee profile-export-apply.log
       - name: Format product slice
         run: |
@@ -76,6 +77,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-profile-exports.yml
           rm -f \
             .github/patches/fix-profile-export-e2e-escape.py \
+            .github/patches/fix-generated-profile-export-guard.py \
             .github/patches/apply-profile-exports.py \
             profile-export-apply.log \
             profile-export-format.log \
