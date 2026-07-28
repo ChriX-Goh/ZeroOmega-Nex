@@ -17,6 +17,29 @@ replace_once(
 )
 
 replace_once(
+    'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
+    '''  <section
+    class="replacement-dialog"
+''',
+    '''  <div
+    class="replacement-dialog"
+''',
+)
+replace_once(
+    'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte',
+    '''  </section>
+</div>
+
+<style>
+''',
+    '''  </div>
+</div>
+
+<style>
+''',
+)
+
+replace_once(
     'apps/extension/src/component-rendering.component.spec.ts',
     '''        disabled: false,
         onReplaceDraft: replaceDraft,
