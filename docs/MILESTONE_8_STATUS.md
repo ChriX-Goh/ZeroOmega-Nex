@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `64cc51231ad20946bb9167705b2dfa05af16c6ed` — Profile deletion and complete typed reference protection  
-**Latest integration verification:** run `30325486940` validates original-compatible deletion blocking, visible referrer reporting, unreferenced Draft deletion, and normal Apply with full `pnpm verify` and Chromium regression  
-**Last completed exact-Head verification:** `69aee5ac54f35526df04a8a55e2276f61581161f`; CI `30325639100`, Browser E2E `30325639148`, Parity Documentation `30325639093` passed  
+**Current product implementation head:** `fa06a34099bc6a3298068f0cd288f7b46c9108e3` — Original general Replace Profile dialog  
+**Latest integration verification:** run `30326757503` validates Apply-before-open, general from/to selectors, endpoint preview, complete typed reference replacement, and normal Apply with full `pnpm verify` and Chromium regression  
+**Last completed exact-Head verification:** `f20fa8b44d9ab82ad02d95aa290c44b79f50f4e8`; CI `30326903002`, Browser E2E `30326903039`, Parity Documentation `30326902994` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -79,7 +79,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Original v3.5.0 exposes replacement from the Virtual page, but the modal is general: both `from` and `to` remain selectable, both endpoints are previewed, and the help text covers rules, Startup, Quick Switch, and other options while preserving both profiles.
 - Nex now applies any dirty Draft before opening the dialog, then uses the existing complete typed replacement transaction to produce a new Draft. The two endpoint profiles remain unchanged and the migration still requires normal Apply.
 - Hidden attached Rule Lists are excluded from both selectors. Chromium verifies the Apply-before-open boundary, arbitrary selector changes and previews, complete cross-type reference migration, endpoint preservation, and final Apply.
-- Integration run `30326757503`; product commit containing this document.
+- Integration run `30326757503`; product commit `fa06a34099bc6a3298068f0cd288f7b46c9108e3`; clean exact Head `f20fa8b44d9ab82ad02d95aa290c44b79f50f4e8` passed CI `30326903002`, Browser E2E `30326903039`, and Parity Documentation `30326902994`.
 
 ### Profile deletion and reference protection
 
