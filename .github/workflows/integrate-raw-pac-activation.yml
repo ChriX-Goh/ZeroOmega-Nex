@@ -1,4 +1,4 @@
-# integration revision 9
+# integration revision 10
 name: Integrate raw PAC activation
 
 on:
@@ -48,6 +48,7 @@ jobs:
             python .github/patches/apply-raw-pac-activation.py
             python .github/patches/fix-raw-pac-ui-component-anchor.py
             python .github/patches/apply-raw-pac-ui-e2e-docs.py
+            python .github/patches/apply-pac-auth-permission.py
             python .github/patches/fix-raw-pac-e2e-sender.py
             python .github/patches/fix-raw-pac-e2e-quick-switch.py
             python .github/patches/fix-raw-pac-e2e-diagnostics.py
@@ -87,6 +88,7 @@ jobs:
             .github/patches/apply-raw-pac-activation.py \
             .github/patches/fix-raw-pac-ui-component-anchor.py \
             .github/patches/apply-raw-pac-ui-e2e-docs.py \
+            .github/patches/apply-pac-auth-permission.py \
             .github/patches/fix-raw-pac-e2e-sender.py \
             .github/patches/fix-raw-pac-e2e-quick-switch.py \
             .github/patches/fix-raw-pac-e2e-diagnostics.py \
