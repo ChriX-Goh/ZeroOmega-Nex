@@ -41,6 +41,7 @@ jobs:
           {
             set -x
             python .github/patches/write-typed-options-virtual.py
+            python .github/patches/fix-typed-options-virtual-export-patch.py
             python .github/patches/patch-typed-options-virtual.py
             python .github/patches/patch-typed-options-virtual-tests-docs.py
           } 2>&1 | tee typed-options-virtual-apply.log
@@ -80,6 +81,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-options-virtual.yml
           rm -f \
             .github/patches/write-typed-options-virtual.py \
+            .github/patches/fix-typed-options-virtual-export-patch.py \
             .github/patches/patch-typed-options-virtual.py \
             .github/patches/patch-typed-options-virtual-tests-docs.py \
             typed-options-virtual-apply.log \
