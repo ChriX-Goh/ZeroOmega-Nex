@@ -1,4 +1,4 @@
-# integration revision 3
+# integration revision 4
 name: Integrate typed History
 
 on:
@@ -9,6 +9,7 @@ on:
       - .github/workflows/integrate-typed-history.yml
       - .github/patches/*typed-history*.py
       - .github/patches/apply-history-delivery-reconciliation.py
+      - .github/patches/fix-parity-status-guard.py
 
 permissions:
   contents: write
@@ -47,6 +48,7 @@ jobs:
             python .github/patches/apply-typed-history-integration.py
             python .github/patches/fix-typed-history-legacy-guards.py
             python .github/patches/apply-history-delivery-reconciliation.py
+            python .github/patches/fix-parity-status-guard.py
           } 2>&1 | tee typed-history-apply.log
       - name: Format product slice
         run: |
@@ -88,6 +90,7 @@ jobs:
             .github/patches/apply-typed-history-catalog.py \
             .github/patches/apply-typed-history-integration.py \
             .github/patches/apply-history-delivery-reconciliation.py \
+            .github/patches/fix-parity-status-guard.py \
             typed-history-apply.log \
             typed-history-format.log \
             typed-history-inventory.log \
