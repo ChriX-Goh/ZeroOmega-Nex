@@ -9,6 +9,7 @@ on:
       - .github/patches/*source-update-error*.py
       - .github/patches/fix-source-update-schedule-fixture.py
       - .github/patches/fix-source-update-scheduler-fixture.py
+      - .github/patches/fix-source-update-timeout-test.py
 
 permissions:
   contents: write
@@ -45,6 +46,7 @@ jobs:
             python .github/patches/apply-source-update-error-core.py
             python .github/patches/apply-source-update-error-runtime.py
             python .github/patches/fix-source-update-error-test-patch.py
+            python .github/patches/fix-source-update-timeout-test.py
             python .github/patches/apply-source-update-error-ui-tests.py
             python .github/patches/fix-source-update-schedule-fixture.py
             python .github/patches/fix-source-update-scheduler-fixture.py
@@ -88,6 +90,7 @@ jobs:
             .github/patches/apply-source-update-error-core.py \
             .github/patches/apply-source-update-error-runtime.py \
             .github/patches/fix-source-update-error-test-patch.py \
+            .github/patches/fix-source-update-timeout-test.py \
             .github/patches/apply-source-update-error-ui-tests.py \
             .github/patches/fix-source-update-schedule-fixture.py \
             .github/patches/fix-source-update-scheduler-fixture.py \
