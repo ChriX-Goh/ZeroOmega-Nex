@@ -1,3 +1,4 @@
+# checkpoint revision 2
 name: Checkpoint typed locale batch one
 
 on:
@@ -39,7 +40,7 @@ jobs:
           rm -f .github/patches/checkpoint-typed-locale-batch-one.py
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add docs/MILESTONE_8_STATUS.md
+          git add -A
           git commit -m "docs: checkpoint typed locale batch one"
           git fetch origin feat/m8-profile-workflow
           git rebase origin/feat/m8-profile-workflow
