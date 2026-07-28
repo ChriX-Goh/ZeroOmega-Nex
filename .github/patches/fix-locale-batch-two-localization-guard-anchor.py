@@ -36,4 +36,11 @@ replacement = '''replace_once(
     ");\\n",
 )
 '''
-path.write_text(text[:start] + replacement + text[end:])
+text = text[:start] + replacement + text[end:]
+old_guard = '    "      attachedRuleListConfig.includes(\\"uiMessage(\'ruleList.updateFailed\'\\") &&\\n",\n'
+new_guard = '''    "      attachedRuleListConfig.includes('uiMessage(') &&\\n"
+    "      attachedRuleListConfig.includes(\\"'ruleList.updateFailed'\\") &&\\n",
+'''
+if text.count(old_guard) != 1:
+    raise SystemExit(f'expected one localized Rule Source UI guard, found {text.count(old_guard)}')
+path.write_text(text.replace(old_guard, new_guard, 1))
