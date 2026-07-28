@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/integrate-source-update-errors.yml
       - .github/patches/*source-update-error*.py
+      - .github/patches/fix-source-update-schedule-fixture.py
 
 permissions:
   contents: write
@@ -44,6 +45,7 @@ jobs:
             python .github/patches/apply-source-update-error-runtime.py
             python .github/patches/fix-source-update-error-test-patch.py
             python .github/patches/apply-source-update-error-ui-tests.py
+            python .github/patches/fix-source-update-schedule-fixture.py
             python .github/patches/apply-source-update-error-e2e-docs.py
           } 2>&1 | tee source-update-error-apply.log
       - name: Format product slice
@@ -85,6 +87,7 @@ jobs:
             .github/patches/apply-source-update-error-runtime.py \
             .github/patches/fix-source-update-error-test-patch.py \
             .github/patches/apply-source-update-error-ui-tests.py \
+            .github/patches/fix-source-update-schedule-fixture.py \
             .github/patches/apply-source-update-error-e2e-docs.py \
             source-update-error-apply.log \
             source-update-error-format.log \
