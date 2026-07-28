@@ -16,6 +16,7 @@ import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte'
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
 import PacProfileEditor from './entrypoints/options/PacProfileEditor.svelte';
 import ProfileDeletionDialog from './entrypoints/options/ProfileDeletionDialog.svelte';
+import ProfileReplacementDialog from './entrypoints/options/ProfileReplacementDialog.svelte';
 import RuleListProfileEditor from './entrypoints/options/RuleListProfileEditor.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
 import LegacyImportPanel from './entrypoints/options/LegacyImportPanel.svelte';
@@ -46,6 +47,27 @@ function idFactory(): ProfileWorkflowIdFactory {
 const replaceDraft = async () => true;
 
 describe('Milestone 8 Svelte component rendering contracts', () => {
+  it('renders the original two-selector Profile replacement dialog and endpoint preview', () => {
+    const source = createVirtualProfileDraft(baseSpec(), idFactory(), 'Alias');
+    const from = source.draft.profiles.find((profile) => profile.id === 'profile-default-proxy');
+    if (!from) throw new Error('default Fixed profile missing');
+    const { body } = render(ProfileReplacementDialog, {
+      props: {
+        spec: source.draft,
+        initialFromProfileId: from.id,
+        initialToProfileId: source.profileId,
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    });
+    expect(body).toContain('data-profile-replacement-dialog');
+    expect(body).toContain('data-profile-replacement-from');
+    expect(body).toContain('data-profile-replacement-to');
+    expect(body).toContain('data-profile-replacement-preview');
+    expect(body).toContain('The two profiles');
+    expect(body).toContain('themselves are not changed or deleted.');
+  });
+
   it('renders blocked and confirm profile-deletion dialogs without a destructive blocked action', () => {
     const blocked = render(ProfileDeletionDialog, {
       props: {
@@ -363,6 +385,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         profileId: mutation.profileId,
         disabled: false,
         onReplaceDraft: replaceDraft,
+        onRequestReplacement: async () => undefined,
       },
     });
 

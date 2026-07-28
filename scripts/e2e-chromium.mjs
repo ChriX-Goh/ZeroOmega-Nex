@@ -972,8 +972,44 @@ try {
     });
   }, 'Virtual target selection did not reach the Draft');
 
-  virtualOptions.once('dialog', (dialog) => dialog.accept());
+  virtualOptions.once('dialog', async (dialog) => {
+    assert.match(dialog.message(), /Apply current changes before replacing profile references/u);
+    await dialog.accept();
+  });
   await virtualOptions.locator('[data-virtual-replace]').click();
+  const replacementDialog = virtualOptions.locator('[data-profile-replacement-dialog]');
+  await replacementDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  const replacementFrom = replacementDialog.locator('[data-profile-replacement-from]');
+  const replacementTo = replacementDialog.locator('[data-profile-replacement-to]');
+  assert.equal(await replacementFrom.inputValue(), virtualIds.targetId);
+  assert.equal(await replacementTo.inputValue(), virtualIds.aliasId);
+  await assertEventually(
+    async () =>
+      virtualWorker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return (
+          workflow !== undefined &&
+          workflow.pendingApply === undefined &&
+          JSON.stringify(workflow.draft) === JSON.stringify(workflow.applied)
+        );
+      }),
+    'Profile replacement dialog opened before the dirty Draft was applied',
+    20_000,
+  );
+  await replacementFrom.selectOption({ label: 'Unrelated Proxy' });
+  assert.match(
+    await replacementDialog.locator('[data-profile-replacement-preview]').innerText(),
+    /Unrelated Proxy/u,
+  );
+  await replacementFrom.selectOption(virtualIds.targetId);
+  await replacementTo.selectOption({ label: 'Existing Alias' });
+  assert.match(
+    await replacementDialog.locator('[data-profile-replacement-preview]').innerText(),
+    /Existing Alias/u,
+  );
+  await replacementTo.selectOption(virtualIds.aliasId);
+  await replacementDialog.locator('[data-profile-replacement-confirm]').click();
   await assertEventually(
     async () =>
       virtualWorker.evaluate(async ({ targetId, aliasId }) => {

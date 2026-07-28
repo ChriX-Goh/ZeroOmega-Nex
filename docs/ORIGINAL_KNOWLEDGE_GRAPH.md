@@ -415,3 +415,7 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - 原版 `ProfileCtrl.deleteProfile` 先调用 `OmegaPac.Profiles.referencedBySet`；若存在 Profile 引用，`cannot_delete_profile.jade` 列出引用者并只允许关闭，附属 `__ruleListOf_*` 通过 `getParentName` 折叠成父 Profile。Startup 与 Quick Switch 不属于阻断引用：确认删除后 Startup 清空、Quick Switch 移除该项；不会把剩余 Profile 引用静默改成 Direct。
 - Nex 删除采用同样双层边界：`listProfileReferenceBlockers` 覆盖 Switch rules/default、Rule List match/default、PAC/Auto Detect fallback、Virtual target，并对隐藏附属 Rule List 去重映射父 Switch；Options 显式 `alertdialog` 列引用者，typed `deleteProfileDraft` 再次拒绝绕过 UI 的删除。未被引用时按 `confirmDeletion` 显示确认对话框或直接生成 Draft，随后仍需正常 Apply。
 - ProfileSpec 允许 Startup route 缺省且 Quick Switch routes 为空，因此删除目标后对齐原版为删除 Startup 字段、过滤 Quick Switch 项，不注入 Nex-only Direct/System 默认。
+
+- 原版通用 Replace Profile 实际只有 Virtual 页面入口，但 `master.coffee` 的 `$rootScope.replaceProfile(fromName, toName)` 会先执行 `applyOptionsConfirm()`，再打开 `replace_profile.jade`；对话框内 `fromName` 与 `toName` 都是可重新选择的普通 Profile，而不是固定确认框。
+- `replace_profile.jade` 同时展示两个 Profile 的行内预览与箭头；帮助文案明确所有规则、Startup、Quick Switch 等引用会从 from 改为 to，但 from/to 两个 Profile 本身均不改变也不删除。
+- Nex 因此由 Options 持有 Apply-before-dialog 边界与 `replaceProfileReferencesDraft` 事务；Virtual 编辑器只传入默认端点。对话框排除隐藏附属 Rule List，但允许用户把 from/to 改为任意可见 Profile；确认后只更新 Draft，仍需正常 Apply。

@@ -20,6 +20,7 @@
     inspectProfileWorkflow,
     listProfileReferenceBlockers,
     parseProfileWorkflowState,
+    replaceProfileReferencesDraft,
   } from '@zeroomega-nex/profile-workflow';
   import type {
     ProfileWorkflowCommandResponse,
@@ -58,6 +59,7 @@
   import NewProfileDialog from './NewProfileDialog.svelte';
   import PacProfileEditor from './PacProfileEditor.svelte';
   import ProfileDeletionDialog from './ProfileDeletionDialog.svelte';
+  import ProfileReplacementDialog from './ProfileReplacementDialog.svelte';
   import RuleListProfileEditor from './RuleListProfileEditor.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
@@ -80,6 +82,11 @@
     readonly profileId: string;
     readonly profileName: string;
     readonly blockers: readonly ProfileReferenceBlocker[];
+  }
+
+  interface PendingProfileReplacement {
+    readonly fromProfileId: string;
+    readonly toProfileId: string;
   }
 
   type InterfaceFlag =
@@ -107,6 +114,7 @@
   let diagnosticsPermissionGranted = false;
   let requestingDiagnosticsPermission = false;
   let pendingProfileDeletion: PendingProfileDeletion | undefined;
+  let pendingProfileReplacement: PendingProfileReplacement | undefined;
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -515,6 +523,48 @@
     const request = pendingProfileDeletion;
     if (!request || request.blockers.length > 0) return;
     await performProfileDeletion(request.profileId);
+  }
+
+  async function requestProfileReplacement(
+    fromProfileId: string,
+    toProfileId: string,
+  ): Promise<void> {
+    if (!state || saving || view?.busy || !(await commitActiveProfileEditor())) return;
+    if (view?.dirty) {
+      const confirmed = globalThis.confirm(
+        'Apply current changes before replacing profile references?',
+      );
+      if (!confirmed) return;
+      const applied = await runCommand({
+        action: 'apply',
+        expectedGeneration: state.generation,
+      });
+      if (!applied) return;
+    }
+    if (
+      !state.draft.profiles.some((profile) => profile.id === fromProfileId) ||
+      !state.draft.profiles.some((profile) => profile.id === toProfileId)
+    ) {
+      errorMessage = 'A replacement endpoint no longer exists.';
+      return;
+    }
+    pendingProfileReplacement = { fromProfileId, toProfileId };
+  }
+
+  async function confirmProfileReplacement(
+    fromProfileId: string,
+    toProfileId: string,
+  ): Promise<void> {
+    if (!state) return;
+    try {
+      if (
+        await replaceDraft(replaceProfileReferencesDraft(state.draft, fromProfileId, toProfileId))
+      ) {
+        pendingProfileReplacement = undefined;
+      }
+    } catch (error) {
+      errorMessage = messageFrom(error);
+    }
   }
 
   async function updateProfileName(name: string): Promise<void> {
@@ -1322,6 +1372,7 @@
           profileId={virtualProfile.id}
           disabled={saving || view?.busy === true}
           onReplaceDraft={replaceDraft}
+          onRequestReplacement={requestProfileReplacement}
         />
       {:else if selectedProfile.kind === 'rule-list'}
         <RuleListProfileEditor
@@ -1370,5 +1421,16 @@
     disabled={saving || view?.busy === true}
     onCancel={() => (pendingProfileDeletion = undefined)}
     onConfirm={confirmProfileDeletion}
+  />
+{/if}
+
+{#if pendingProfileReplacement && state}
+  <ProfileReplacementDialog
+    spec={state.draft}
+    initialFromProfileId={pendingProfileReplacement.fromProfileId}
+    initialToProfileId={pendingProfileReplacement.toProfileId}
+    disabled={saving || view?.busy === true}
+    onCancel={() => (pendingProfileReplacement = undefined)}
+    onConfirm={confirmProfileReplacement}
   />
 {/if}

@@ -22,6 +22,8 @@ const switchProfilePath = 'apps/extension/src/entrypoints/options/SwitchProfileE
 const attachedRuleListConfigPath =
   'apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte';
 const virtualProfilePath = 'apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte';
+const profileReplacementDialogPath =
+  'apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte';
 const profileDeletionDialogPath =
   'apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte';
 const optionsHtmlPath = 'apps/extension/src/entrypoints/options/index.html';
@@ -94,6 +96,7 @@ const [
   switchProfile,
   attachedRuleListConfig,
   virtualProfile,
+  profileReplacementDialog,
   profileDeletionDialog,
   optionsHtml,
   i18n,
@@ -145,6 +148,7 @@ const [
   readFile(switchProfilePath, 'utf8'),
   readFile(attachedRuleListConfigPath, 'utf8'),
   readFile(virtualProfilePath, 'utf8'),
+  readFile(profileReplacementDialogPath, 'utf8'),
   readFile(profileDeletionDialogPath, 'utf8'),
   readFile(optionsHtmlPath, 'utf8'),
   readFile(i18nPath, 'utf8'),
@@ -476,6 +480,24 @@ const requirements = [
       chromiumE2e.includes('Existing Alias') &&
       chromiumE2e.includes('Confirmed profile deletion did not commit through normal Apply'),
     'Profile deletion must block typed references with an explicit referrer dialog, collapse hidden attached Rule Lists to their owner, and only delete unreferenced profiles through Draft plus normal Apply.',
+  ],
+  [
+    virtualProfile.includes('onRequestReplacement') &&
+      !virtualProfile.includes('globalThis.confirm') &&
+      optionsApp.includes('requestProfileReplacement') &&
+      optionsApp.includes('Apply current changes before replacing profile references?') &&
+      optionsApp.includes('replaceProfileReferencesDraft') &&
+      optionsApp.includes('<ProfileReplacementDialog') &&
+      profileReplacementDialog.includes('data-profile-replacement-from') &&
+      profileReplacementDialog.includes('data-profile-replacement-to') &&
+      profileReplacementDialog.includes('data-profile-replacement-preview') &&
+      profileReplacementDialog.includes('The two profiles') &&
+      chromiumE2e.includes(
+        'Profile replacement dialog opened before the dirty Draft was applied',
+      ) &&
+      chromiumE2e.includes("replacementFrom.selectOption({ label: 'Unrelated Proxy' })") &&
+      chromiumE2e.includes("replacementTo.selectOption({ label: 'Existing Alias' })"),
+    'Virtual replacement must open the original general two-selector dialog after the dirty-Draft Apply boundary, preview both endpoints, and produce one typed replacement Draft without changing either profile.',
   ],
   [
     optionsApp.includes('class="nav-group actions"'),

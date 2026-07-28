@@ -6,15 +6,13 @@
     type UserProfile,
     type VirtualProfile,
   } from '@zeroomega-nex/profile-spec';
-  import {
-    attachedRuleListProfileIds,
-    replaceProfileReferencesDraft,
-  } from '@zeroomega-nex/profile-workflow';
+  import { attachedRuleListProfileIds } from '@zeroomega-nex/profile-workflow';
 
   export let spec: ProfileSpec;
   export let profileId: string;
   export let disabled = false;
   export let onReplaceDraft: (draft: ProfileSpec) => Promise<boolean>;
+  export let onRequestReplacement: (fromProfileId: string, toProfileId: string) => Promise<void>;
 
   let profile: VirtualProfile | undefined;
   let candidates: readonly UserProfile[] = [];
@@ -54,13 +52,7 @@
 
   async function replaceTargetReferences(): Promise<void> {
     if (!profile || profile.targetRoute.kind !== 'profile') return;
-    const confirmed = globalThis.confirm(
-      `Replace references to the target profile with “${profile.name}”? The target profile itself is not deleted.`,
-    );
-    if (!confirmed) return;
-    await onReplaceDraft(
-      replaceProfileReferencesDraft(spec, profile.targetRoute.profileId, profile.id),
-    );
+    await onRequestReplacement(profile.targetRoute.profileId, profile.id);
   }
 </script>
 
