@@ -3,11 +3,15 @@ import { readFile } from 'node:fs/promises';
 const graphPath = 'docs/ORIGINAL_KNOWLEDGE_GRAPH.md';
 const auditPath = 'docs/UI_AUDIT_MATRIX.md';
 const indexPath = 'docs/ORIGINAL_PARITY_MATRIX.md';
+const decisionsPath = 'docs/DECISIONS.md';
+const activationTestPath = 'apps/extension/src/lib/profile-workflow-activation.test.ts';
 
-const [graph, audit, index] = await Promise.all([
+const [graph, audit, index, decisions, activationTest] = await Promise.all([
   readFile(graphPath, 'utf8'),
   readFile(auditPath, 'utf8'),
   readFile(indexPath, 'utf8'),
+  readFile(decisionsPath, 'utf8'),
+  readFile(activationTestPath, 'utf8'),
 ]);
 
 const failures = [];
@@ -53,11 +57,27 @@ requireAll('UI audit', audit, [
   'D-02',
   'E-01',
   'F-09',
+  'F-12',
   'G-01',
   'G-02',
   'H-09',
   'I-05',
   'J-10',
+]);
+
+requireAll('file PAC decision', decisions, [
+  'ADR-015',
+  'Preserve but do not activate local `file:` PAC URLs',
+  'INTENTIONAL_DIVERGENCE',
+  'silently activate an old cached script',
+]);
+
+requireAll('file PAC activation regression', activationTest, [
+  "for (const family of ['chromium', 'firefox'] as const)",
+  "rejects.toThrow('local file URL')",
+  'expect(authentication.preparedBindings).toEqual([])',
+  'expect(runtimeCreated).toBe(false)',
+  'expect(proxy.installCount).toBe(0)',
 ]);
 
 requireAll('parity index', index, [

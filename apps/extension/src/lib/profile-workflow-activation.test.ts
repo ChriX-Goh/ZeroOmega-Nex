@@ -254,29 +254,39 @@ describe('ProfileSpec PAC activation driver', () => {
     }
   });
 
-  it('rejects top-level PAC file URLs before authentication or browser changes', async () => {
-    const proxy = new FakeProxyDriver('chromium');
-    const created = runtime(proxy);
-    const authentication = new FakeAuthenticationCoordinator();
-    const spec = rawPacSpec('file');
-    const profile = spec.profiles.find((candidate) => candidate.id === 'profile-raw-pac');
-    if (!profile || profile.kind !== 'pac') throw new Error('raw PAC test profile is missing');
-    profile.credential = {
-      username: 'file-user',
-      passwordSecretRef: 'secret-file-pac',
-    };
-    const driver = new BrowserProfileWorkflowActivationDriver({
-      createRuntime: () => created.runtime,
-      authentication,
-    });
-    await expect(
-      driver.activate(spec, {
-        kind: 'profile',
-        profileId: 'profile-raw-pac',
-      }),
-    ).rejects.toThrow('local file URL');
-    expect(authentication.preparedBindings).toEqual([]);
-    expect(proxy.installCount).toBe(0);
+  it('rejects top-level PAC file URLs on both targets before authentication, runtime creation, or browser changes', async () => {
+    for (const family of ['chromium', 'firefox'] as const) {
+      const proxy = new FakeProxyDriver(family);
+      const created = runtime(proxy);
+      const authentication = new FakeAuthenticationCoordinator();
+      const spec = rawPacSpec('file');
+      const profile = spec.profiles.find((candidate) => candidate.id === 'profile-raw-pac');
+      if (!profile || profile.kind !== 'pac') throw new Error('raw PAC test profile is missing');
+      profile.credential = {
+        username: 'file-user',
+        passwordSecretRef: 'secret-file-pac',
+      };
+      let runtimeCreated = false;
+      const driver = new BrowserProfileWorkflowActivationDriver({
+        createRuntime: () => {
+          runtimeCreated = true;
+          return created.runtime;
+        },
+        authentication,
+      });
+      await expect(
+        driver.activate(spec, {
+          kind: 'profile',
+          profileId: 'profile-raw-pac',
+        }),
+      ).rejects.toThrow('local file URL');
+      expect(authentication.preparedBindings).toEqual([]);
+      expect(runtimeCreated).toBe(false);
+      expect(proxy.installCount).toBe(0);
+      expect(proxy.state.value).toEqual(
+        family === 'chromium' ? { mode: 'system' } : { proxyType: 'system' },
+      );
+    }
   });
 
   it('targets Firefox when the runtime driver is Firefox', async () => {

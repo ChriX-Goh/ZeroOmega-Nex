@@ -517,3 +517,10 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Firefox automation disables only the permission prompt UI through `extensions.webextOptionalPermissionPrompts=false`. It first proves the loopback origin is absent, then requires the real `permissions.request` call to grant it from the user-triggered Download Now action.
 - The Firefox regression creates a real Switch plus attached Rule List and a real PAC Profile, downloads both from a loopback HTTP server through `BrowserRuleSourceDownloader`, verifies one request per source, persisted success metadata, exact cache replacement, normal Apply, Popup activation, and a `raw-pac/1` snapshot.
 - This closes Firefox remote HTTP(S) permission/download coverage. It does not decide `file:` PAC activation and does not replace repository-owner proxy 407 or complex-backup manual QC.
+
+### `file:` PAC target boundary (ADR-015)
+
+- Original local-file source identity is preserved in imported/exported non-secret configuration and continues to drive the source-backed standalone/referenced warning UI. Preservation is not activation support.
+- The browser-only data plane has one activation invariant: traffic changes only through a reproducible, validated and confirmed snapshot. `file:` paths are machine-local and browser/user permission dependent, so direct URL delegation or extension file reads would create an unverified second data plane.
+- Chromium and Firefox therefore reject a top-level `file:` PAC before authentication preparation, runtime creation, optional-origin permission, snapshot installation and browser proxy mutation. Nested PAC remains unsupported independently.
+- Conversion is explicit: clear the URL and paste the PAC as inline text, or serve it over HTTP(S) and grant only that origin. Silent use of an old cached script is forbidden because displayed source and active traffic policy would diverge.

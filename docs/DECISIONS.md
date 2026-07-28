@@ -146,6 +146,18 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Consequences:** Import acceptance uses compare-and-swap Draft semantics and restores prior secret values when persistence fails. Activation synchronizes HTTP/HTTPS authentication bindings before installing a route that can require them and restores prior bindings/listener state on activation or commit failure. Permission-required status is surfaced before traffic switches. Command responses never contain secret values. SOCKS authentication remains unsupported in browser-only mode.
 
+## ADR-015 — Preserve but do not activate local `file:` PAC URLs
+
+**Status:** Accepted
+
+**Decision:** Chromium and Firefox browser-only targets preserve imported PAC Profiles whose source URL uses `file:`, render the original source-backed warnings, and allow the user to clear or replace the URL. They do not read the local file, request file-origin access, install the file URL directly, or silently activate an old cached script. To use the policy, the user must clear the URL and paste the PAC as inline text or expose it through an explicitly permitted HTTP(S) origin.
+
+**Reason:** Nex activation is based on a reproducible, validated `raw-pac/1` snapshot whose script bytes, hash, source revision, installation, and browser confirmation are known before traffic changes. A machine-local path is non-portable across devices, has browser- and user-specific file-access controls, and cannot pass the same bounded background download, compare-and-swap, hashing, and rollback evidence. Directly delegating the path to the browser would create a second unverified activation path.
+
+**Alternatives considered:** Installing the `file:` URL directly through the browser proxy API was rejected because it bypasses the verified snapshot boundary and differs across targets. Requesting broad local-file access and reading the path from the extension was rejected because it adds a high-trust permission for a legacy edge case and still cannot make the path portable. Falling back to a stale cached script was rejected because the UI would claim one source while traffic used another.
+
+**Consequences:** Import/export may retain the non-secret URL for compatibility, but Apply and Popup activation fail before authentication preparation, runtime creation, permission requests, or browser proxy mutation. The Options page keeps the original standalone/referenced warnings and gives the user an explicit conversion path. This is an `INTENTIONAL_DIVERGENCE` from original local-file activation, not a missing implementation.
+
 ## ADR template
 
 ```markdown

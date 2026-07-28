@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `7aa8ff15790223131a39b1a5b9813fe66429ba21` — Stable serializable Rule Source/PAC update failures  
-**Latest integration verification:** run `30395683167` validates the shared fifteen-code contract, secret-safe persistence, cache preservation, full repository verification, and real Chromium HTTP/empty-response failure paths  
-**Last completed exact-Head verification:** `2c31c92a89d665391c87418ba05b0ee41633644d`; CI `30396002670`, Browser E2E `30396002293`, Parity Documentation `30396005041` passed  
+**Current product implementation head:** `a997f72054e26071a614d1db5ae8af1129098560` — Firefox optional-origin Rule Source/PAC downloads and read-only status race fix  
+**Latest integration verification:** run `30399701709` validates permission denial/non-mutation, real Firefox optional-origin grants, Rule Source/PAC downloads, PAC activation, and the read-only status/mutation-lock race fix  
+**Last completed exact-Head verification:** `b63ddf960ea939b814cfee1ca40ef2361579888f`; CI `30399942785`, Browser E2E `30399942779`, Parity Documentation `30399942787` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -279,7 +279,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Firefox E2E starts with the loopback origin absent from granted permissions, creates a Switch Profile and attached Rule List, requests the optional host permission through the real Download Now click, downloads and persists Rule List cache, then repeats the same bounded background path for a remote PAC.
 - The test-only Firefox preference suppresses the browser prompt UI but does not pregrant host access. The regression requires `permissions.contains` to change from false to true only after the click, verifies one real HTTP request per source, checks persisted success ledgers and cache content, and finally applies/activates the downloaded PAC as `raw-pac/1`.
 - Permission denial/non-mutation has direct unit coverage through `runWithRuleSourceOriginPermission`; production continues to show the existing typed permission error without mutating Draft or update ledgers.
-- Integration run `30399701709`; product commit containing this document. Exact-Head verification is required after the temporary integration workflow is removed.
+- Integration run `30399701709`; product commit `a997f72054e26071a614d1db5ae8af1129098560`; clean exact Head `b63ddf960ea939b814cfee1ca40ef2361579888f` passed CI `30399942785`, Browser E2E `30399942779`, and Parity Documentation `30399942787`.
+
+### Explicit `file:` PAC target decision
+
+- ADR-015 classifies direct local-file activation as an intentional browser-only divergence rather than an unfinished downloader feature. Imported `file:` URLs and original warnings remain visible and round-trippable, but no local file is read and no stale cache is silently substituted.
+- Both Chromium and Firefox fail before proxy-authentication preparation, runtime creation, optional-origin permission, snapshot installation, or browser proxy mutation. The existing user conversion paths are Clear-to-inline and explicitly permitted HTTP(S).
+- Unit coverage loops both browser families and verifies unchanged system proxy state; the origin-permission boundary separately rejects `file:` without calling `permissions.request`. F-02 warning parity is now DONE and F-12 records the accepted `INTENTIONAL_DIVERGENCE`.
 
 ## Automated acceptance state
 
@@ -291,13 +297,13 @@ The latest product slices passed architecture guards, permanent UI compatibility
 
 PR #11 is not a replacement release candidate. Current blockers include:
 
-- real proxy-challenge manual QC and an explicit `file:` PAC target decision,
+- real proxy-challenge manual QC,
 - online restore and Gist/WebDAV/browser sync remain explicitly `UNCERTAIN`,
 - consolidated light/dark/zh-CN/zh-TW visual evidence and repository-owner real complex-backup acceptance,
 
 ## Current next action
 
-Resolve the explicit `file:` PAC target scope, then decide schema-v1/online restore boundaries and prepare consolidated visual plus real-backup owner QC.
+Decide schema-v1, v1 AutoDetect, and online restore boundaries, then prepare consolidated visual plus real-backup owner QC.
 
 ### Typed locale inventory and first vertical batch
 
