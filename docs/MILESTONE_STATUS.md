@@ -20,16 +20,16 @@ The pre-normalization main commit remains preserved at `archive/main-before-stac
 
 ## Completed milestones
 
-| Milestone | Result | Integration record |
-| --- | --- | --- |
-| 0 — Foundation and governance | Charter, architecture, compatibility contract, delivery plan, decisions, and agent operating rules | PR #1 |
-| 1 — Monorepo and deterministic tooling | pnpm/TypeScript/WXT/Svelte shell, dual-browser builds, CI, manifest guards, and owner smoke tests | PR #2 |
-| 2 — Legacy inventory and fixture corpus | Fixed ZeroOmega v3.5.0/schema-v2 compatibility surface, positive/negative/scale fixtures, and route vectors | PR #4 |
-| 3 — ProfileSpec v1 | Versioned public model, JSON Schema, semantic validation, deterministic serialization, revisions, and migration framework | PR #6 |
-| 4 — ZeroOmega importer | Bounded JSON/base64 import, complete profile/condition mapping, secret isolation, and structured migration reports | PR #7 |
-| 5 — Reference interpreter | Auditable condition, profile-graph, Fixed, Switch, and Rule List route oracle with deterministic traces | PR #8 |
-| 6 — PAC compiler and verifier | Deterministic PAC generation, capability analysis, differential verification, budgets, hashing, and immutable snapshots | PR #9 |
-| 7 — Browser adapters and atomic activation | Chromium/Firefox installation, confirmation, rollback, restart recovery, ownership checks, and optional proxy authentication | PR #10 |
+| Milestone                                  | Result                                                                                                                       | Integration record |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| 0 — Foundation and governance              | Charter, architecture, compatibility contract, delivery plan, decisions, and agent operating rules                           | PR #1              |
+| 1 — Monorepo and deterministic tooling     | pnpm/TypeScript/WXT/Svelte shell, dual-browser builds, CI, manifest guards, and owner smoke tests                            | PR #2              |
+| 2 — Legacy inventory and fixture corpus    | Fixed ZeroOmega v3.5.0/schema-v2 compatibility surface, positive/negative/scale fixtures, and route vectors                  | PR #4              |
+| 3 — ProfileSpec v1                         | Versioned public model, JSON Schema, semantic validation, deterministic serialization, revisions, and migration framework    | PR #6              |
+| 4 — ZeroOmega importer                     | Bounded JSON/base64 import, complete profile/condition mapping, secret isolation, and structured migration reports           | PR #7              |
+| 5 — Reference interpreter                  | Auditable condition, profile-graph, Fixed, Switch, and Rule List route oracle with deterministic traces                      | PR #8              |
+| 6 — PAC compiler and verifier              | Deterministic PAC generation, capability analysis, differential verification, budgets, hashing, and immutable snapshots      | PR #9              |
+| 7 — Browser adapters and atomic activation | Chromium/Firefox installation, confirmation, rollback, restart recovery, ownership checks, and optional proxy authentication | PR #10             |
 
 ### Stable architectural outcomes
 
