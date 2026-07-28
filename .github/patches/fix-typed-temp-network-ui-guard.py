@@ -22,4 +22,4 @@ for old, new in replacements:
         raise SystemExit(f'{path}: expected one UI guard anchor, found {count}: {old!r}')
     text = text.replace(old, new, 1)
 path.write_text(text)
-print('Connected Firefox E2E source to the UI compatibility guard.')
+print('Connected Firefox E2E source to the UI compatibility guard; integration retry requested.')
