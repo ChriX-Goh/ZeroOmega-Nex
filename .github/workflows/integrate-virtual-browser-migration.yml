@@ -1,4 +1,4 @@
-# integration revision 5
+# integration revision 6
 name: Integrate Virtual browser migration
 
 on:
@@ -45,6 +45,7 @@ jobs:
             python .github/patches/fix-virtual-patch-section-anchor.py
             python .github/patches/fix-virtual-patch-component-anchor.py
             python .github/patches/apply-virtual-browser-migration.py
+            python .github/patches/fix-virtual-fixture-and-auto-fallback.py
             python .github/patches/add-virtual-fixture-import-test.py
           } 2>&1 | tee virtual-browser-apply.log
       - name: Format product slice
@@ -78,6 +79,7 @@ jobs:
             .github/patches/fix-virtual-patch-section-anchor.py \
             .github/patches/fix-virtual-patch-component-anchor.py \
             .github/patches/apply-virtual-browser-migration.py \
+            .github/patches/fix-virtual-fixture-and-auto-fallback.py \
             .github/patches/add-virtual-fixture-import-test.py \
             virtual-browser-apply.log \
             virtual-browser-verify.log \
