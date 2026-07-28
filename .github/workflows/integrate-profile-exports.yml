@@ -1,3 +1,4 @@
+# integration revision 2
 name: Integrate profile exports
 
 on:
@@ -44,7 +45,9 @@ jobs:
             python .github/patches/apply-profile-exports.py
           } 2>&1 | tee profile-export-apply.log
       - name: Format product slice
-        run: pnpm format
+        run: |
+          set -o pipefail
+          pnpm format 2>&1 | tee profile-export-format.log
       - name: Verify repository
         run: |
           set -o pipefail
@@ -73,6 +76,7 @@ jobs:
           rm -f \
             .github/patches/apply-profile-exports.py \
             profile-export-apply.log \
+            profile-export-format.log \
             profile-export-verify.log \
             profile-export-e2e.log
           git config user.name github-actions[bot]
