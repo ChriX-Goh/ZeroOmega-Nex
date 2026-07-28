@@ -1,199 +1,111 @@
 # Milestone Status
 
+## Reading rule
+
+This document summarizes project-wide milestone state. It intentionally avoids naming the moving branch Head.
+
+For exact Milestone 8 commits, workflow runs, current blockers, and the immediate next action, read:
+
+1. Draft PR [#11](https://github.com/ChriX-Goh/ZeroOmega-Nex/pull/11).
+2. [`MILESTONE_8_STATUS.md`](./MILESTONE_8_STATUS.md).
+3. [`ORIGINAL_KNOWLEDGE_GRAPH.md`](./ORIGINAL_KNOWLEDGE_GRAPH.md) and [`UI_AUDIT_MATRIX.md`](./UI_AUDIT_MATRIX.md).
+
+No build is a replacement candidate unless PR #11 explicitly declares a consolidated candidate with a fresh artifact digest and QC checklist.
+
 ## Repository baseline
 
-`main` contains the completed and verified foundation plus Milestones 1 through 6.
+`main` contains the completed and verified foundation plus Milestones 1 through 7. Milestone 7 merged through PR #10 at commit `e3f7725d77d78922589b7c113ffbab806b188ae3`.
 
-The pre-normalization main commit is preserved at `archive/main-before-stack-normalization`.
+The pre-normalization main commit remains preserved at `archive/main-before-stack-normalization`.
 
-## Completed — Milestone 1
+## Completed milestones
 
-Delivered:
+| Milestone | Result | Integration record |
+| --- | --- | --- |
+| 0 — Foundation and governance | Charter, architecture, compatibility contract, delivery plan, decisions, and agent operating rules | PR #1 |
+| 1 — Monorepo and deterministic tooling | pnpm/TypeScript/WXT/Svelte shell, dual-browser builds, CI, manifest guards, and owner smoke tests | PR #2 |
+| 2 — Legacy inventory and fixture corpus | Fixed ZeroOmega v3.5.0/schema-v2 compatibility surface, positive/negative/scale fixtures, and route vectors | PR #4 |
+| 3 — ProfileSpec v1 | Versioned public model, JSON Schema, semantic validation, deterministic serialization, revisions, and migration framework | PR #6 |
+| 4 — ZeroOmega importer | Bounded JSON/base64 import, complete profile/condition mapping, secret isolation, and structured migration reports | PR #7 |
+| 5 — Reference interpreter | Auditable condition, profile-graph, Fixed, Switch, and Rule List route oracle with deterministic traces | PR #8 |
+| 6 — PAC compiler and verifier | Deterministic PAC generation, capability analysis, differential verification, budgets, hashing, and immutable snapshots | PR #9 |
+| 7 — Browser adapters and atomic activation | Chromium/Firefox installation, confirmation, rollback, restart recovery, ownership checks, and optional proxy authentication | PR #10 |
 
-- pnpm workspace and frozen lockfile.
-- Strict TypeScript boundaries.
-- WXT plus Svelte extension shell.
-- Chromium and Firefox Manifest V3 production builds.
-- Familiar ZeroOmega-like popup and options-page layout shells.
-- Architecture guards against premature proxy permissions, global request listeners, and `<all_urls>`.
-- Manifest audits, unit tests, linting, formatting, type checks, and build artifacts.
-- Stable Firefox extension ID and explicit no-data-collection declaration.
+### Stable architectural outcomes
 
-Acceptance:
+- Ordinary navigation uses verified browser-native PAC rather than an extension-side global request decision listener.
+- No `proxy.onRequest` handler or required `<all_urls>` host permission is used.
+- Draft, candidate, Applied revision, verified snapshot, installed state, and browser-confirmed active state remain distinct.
+- Failed compilation or installation cannot silently replace the previous confirmed state.
+- Secrets remain outside ProfileSpec, PAC, ordinary exports, diagnostics, and rendered UI.
+- Firefox and Chromium are separate capability targets with independent builds and tests.
 
-- Automated CI passed.
-- Chromium desktop temporary-load smoke test passed.
-- Firefox desktop temporary-load smoke test passed.
-- Issue #3 closed as completed.
+## Active — Milestone 8
 
-## Completed — Milestone 2
+**Branch:** `feat/m8-profile-workflow`  
+**Pull request:** #11  
+**State:** Draft; no installable release candidate
 
-Delivered:
+### Objective
 
-- ZeroOmega v3.5.0 / schemaVersion 2 compatibility inventory.
-- Full profile, condition, rule-list, endpoint, bypass, credential, header, settings, synchronization, backup, runtime-state, built-in appearance, and network-edge classification.
-- Positive, negative, network-edge, scale, route-decision, and browser-capability fixture corpora.
-- Deterministic 36-profile / 1,024-rule large fixture.
-- Proxy-authentication capability contract for Chromium MV3 and Firefox MV3.
-- Final field decisions with zero remaining `investigate` classifications.
-- Secret isolation, generated-data quarantine, and unknown-field risk policy.
+Rebuild the familiar ZeroOmega v3.5.0 UI and profile workflow on top of the new typed configuration, compiler, snapshot, and browser-adapter architecture.
 
-Acceptance:
+### Verified delivered scope
 
-- Every known v3.5.0 field has an explicit map, preserve, secret, generated, runtime, target-dependent, downgrade, or reject decision.
-- All fixture validators, differential-oracle inputs, linting, formatting, type checks, tests, browser builds, manifest audits, and artifacts passed.
-- PR #4 merged after the verified M1 UI files were consolidated into the final tree.
+- Full-tab Options information architecture with Settings, Profiles, and Actions.
+- Fixed, Switch, PAC, and Virtual normal profile creation; imported/attached Rule List compatibility.
+- Fixed Profile fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned authentication.
+- Switch compact rule table, grouped conditions, Draft/Apply validation boundary, reversible source mode, reload restoration, and real drag ordering.
+- Attached Rule List ownership, create/update/schedule/rename/duplicate/delete/detach lifecycle.
+- Independent Rule List Config/URL/Text editor with bounded download and retained cache semantics.
+- PAC URL/header/download/cache/Clear behavior, top-level raw PAC activation, and original `auth.all` mapping.
+- Popup switching, result routes, current-site permanent rules, browser-session temporary rules, proxy-ownership blockers, and Chromium external-profile import.
+- Source-backed Inspect context menus, result badge/title evaluation, and real native Chromium menu E2E.
+- Explicit-session bounded request diagnostics with privacy and storage limits.
+- Original schema-v2 Options `.bak` export and browser export → clear → restore → byte-identical export round trip.
+- Virtual reference migration, general Replace Profile dialog, typed deletion protection, and profile-level PAC/Rule List exports.
+- Warning-fatal Svelte checks with zero current warnings.
+- Typed English, Simplified Chinese, and Traditional Chinese catalog for New Profile, lifecycle dialogs, Fixed, Switch, Attached Rule List, Independent Rule List, route labels, dynamic messages, and ARIA.
+- Machine-generated locale inventory and permanent parity/localization guards.
 
-## Completed — Milestone 3
+### Current closure blockers
 
-Delivered:
+- Complete typed PAC editor localization and Firefox PAC interaction/activation/download coverage.
+- Explicit modern target decision for `file:` PAC activation.
+- Real proxy-challenge manual QC and stable downloader failure codes.
+- Remaining General, Interface, Import, Theme, History, Popup, Temporary Rules, and Network localization.
+- Online URL restore and final scope decisions for Gist, WebDAV, and browser sync.
+- Consolidated light/dark/zh-CN/zh-TW visual evidence.
+- Repository-owner real complex backup and final installable-candidate acceptance.
+- Recheck Milestone 8 delivery-plan obligations that are not yet clearly closed, especially user-visible snapshot history/rollback UI and complete import-review behavior.
 
-- Versioned ProfileSpec `1.0` public model with stable IDs and ordered user collections.
-- Fixed, switch, rule-list, PAC, and auto-detect profile variants.
-- Explicit equivalents for all twelve pinned ZeroOmega condition families.
-- Built-in Direct/System route targets without name-based references.
-- Proxy endpoint, rule source, startup, ordered quick-switch routes, interface, synchronization, legacy metadata, and namespaced extension contracts.
-- PAC and rule-source download headers with secret references for sensitive values.
-- JSON Schema 2020-12 structural contract.
-- Semantic validation for references, cycles, IDs, names, hosts, URLs, ports, IP prefixes, regular expressions, ranges, secrets, generated fields, and browser-dependent warnings.
-- Deterministic serialization with sorted object keys and preserved array order.
-- Strict parsing with structured errors.
-- Explicit migration registry and cycle/error detection.
-- Deep cloning and immutable child-revision creation.
+### Immediate direction
 
-Acceptance evidence:
+The next product slice is the PAC typed-localization batch using the fixed v3.5.0 PAC templates and locale evidence. It covers URL/Clear, remote headers, download/cache state, script text, `auth.all`, file warnings/errors, actions, placeholders, titles, and ARIA, plus Firefox PAC interaction coverage.
 
-- Public-model Head `bba247e` passed CI run `30111303444`.
-- Schema and semantic-validation Head `f111287` passed CI run `30112709422`.
-- Lifecycle Head `9fec6f6` passed CI run `30113060732`.
-- Final documentation Head `dec72f5` passed CI run `30113191066`.
-- PR #6 merged into `main` at `26dbcc0`.
+## Partially pulled forward — Milestone 9
 
-## Completed — Milestone 4
+Milestone 8 already contains substantial Milestone 9 infrastructure because the restored UI depends on it:
 
-Delivered:
+- Bounded manual and scheduled Rule Source/PAC updates.
+- Failure-preserves-cache behavior.
+- Optional host permission, timeout, byte limit, request-header secret isolation, and atomic CAS replacement.
+- Explicit, bounded, session-only request diagnostics.
 
-- Bounded JSON and base64-JSON legacy backup decoding.
-- Explicit input byte, depth, node, profile, and rule limits.
-- Cycle-safe object inspection and deterministic imported identifiers.
-- Two-stage profile inventory and reference resolution.
-- Fixed, PAC, auto-detect, switch, virtual, rule-list, and legacy rule-list alias conversion.
-- All twelve pinned ZeroOmega condition families.
-- Ordered switch rules, quick-switch routes, startup route, built-in Direct/System appearance, and compatible interface settings.
-- Proxy endpoint conversion with username preservation and password secret references.
-- Sensitive PAC/rule-source header isolation into secret materials.
-- Generated cache/runtime field exclusion and safe unknown-field classification.
-- Inactive candidate output only; import never modifies active browser proxy state.
-- Machine-readable exact, target-dependent, downgraded, preserved, ignored, and rejected migration items.
-- Final ProfileSpec structural and semantic revalidation before a candidate is returned.
+Milestone 9 is not closed. Remaining planned work includes the user-entered URL decision-test tool, exportable secret-free diagnostic bundle, and final error-code/operational hardening.
 
-Acceptance evidence:
+## Pending — Milestone 10
 
-- Full importer Head `257d57d` passed CI run `30116627450`.
-- Final secret-isolation and full base64-pipeline Head `fd989f7` passed CI run `30142477022`.
-- Final documentation Head `00404b9` passed CI run `30142533822`.
-- The complete suite includes 53 tests covering positive fixtures, unsafe fixtures, real secret extraction, IDN and IPv4/IPv6 edges, deterministic output, 36 profiles, and 1,024 ordered rules.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
-- PR #7 merged into `main` at `692b6e5`.
+Packaging and beta hardening have not started as a formal release phase. Existing CI packages are verification artifacts, not release candidates.
 
-## Completed — Milestone 5
+Remaining gates include installation/upgrade/downgrade tests, real migration samples, performance baselines, privacy and permission rationale, release notes, blocker classification, and limited beta acceptance.
 
-Delivered:
+## Conditional future milestones
 
-- Pure request and support contracts independent from browser APIs.
-- All twelve ProfileSpec condition families.
-- IPv4, IPv6, CIDR, host wildcard, and URL wildcard execution.
-- Ordered SwitchProfile first-match and default behavior.
-- Recursive profile graph resolution with deterministic traces.
-- FixedProfile bypass, scheme-specific endpoint, fallback, and unmapped-direct behavior.
-- Missing profile, endpoint, disabled profile, cycle, and maximum-depth protection.
-- SwitchyOmega modern and legacy rule-list parsing.
-- AutoProxy normal and exclusive rule parsing and priority.
-- Execution of all committed condition and rule-list oracle vectors.
-- Explicit indeterminate boundaries for arbitrary PAC and browser auto-detect behavior.
-- Backend-neutral differential records with sanitized terminal routes, profile paths, matched rules, and normalized traces.
-- Credential and secret-reference exclusion from differential records.
-- Deterministic, immutability, domain-suffix, IPv4 subnet, and source-preservation property tests.
+Milestone 11 Rust/WASM work starts only when profiling proves that replacing a typed TypeScript module improves total system behavior without losing differential parity.
 
-Acceptance evidence:
+Milestone 12 native-engine work remains optional. The browser-only product must remain fully usable and safely recoverable without it.
 
-- Condition interpreter Head `12c3d0b` passed CI run `30142970294`.
-- Recursive profile graph Head `bbd14a8` passed CI run `30144021927`.
-- Rule-list interpreter Head `50681fe` passed CI run `30144346169`.
-- Complete implementation Head `5ea9eaf` passed CI run `30144651695`.
-- Final documentation Head `9435e76` passed CI run `30144697164`.
-- The complete suite contains 77 tests, including all immutable Milestone 2 decision vectors.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
-- PR #8 merged into `main` at `c428ad9`.
+## Owner-QC boundary
 
-## Completed — Milestone 6
-
-Delivered:
-
-- Reachability-based exact, target-dependent, and unsupported PAC capability analysis.
-- Explicit blocking for System routes, arbitrary nested PAC, browser auto-detect, missing references, cycles, disabled profiles, unavailable rule-source content, and unsupported target semantics.
-- Deterministic PAC generation with one stable function per reachable profile.
-- Compile-time expansion of Switchy and AutoProxy RuleList profiles.
-- Self-contained conservative PAC runtime for wildcard, regex, bypass, IPv4/IPv6 prefix, host-level, weekday, and hour matching.
-- `PROXY`, `HTTPS`, `SOCKS4`, and `SOCKS5` endpoint directives.
-- Safe string escaping, IDN endpoint normalization, IPv6 bracketing, and directive-injection rejection.
-- Profile, condition, and script-byte hard budgets plus near-limit warnings.
-- Isolated generated-script Harness with deterministic local weekday/hour injection.
-- Differential verifier against every committed condition and RuleList oracle vector.
-- Structured mismatch detection verified with deliberately corrupted PAC output.
-- Credential, secret-reference, request-header, ProfileSpec JSON, and arbitrary PAC-body exclusion from generated output.
-- SHA-256 hashing and immutable verified RuntimeSnapshot metadata.
-- Deterministic snapshot identity independent from `createdAt`.
-- Large 36-profile / 1,024-rule fixture compilation with reachable graph pruning to 25 profiles, 24 endpoints, and 200 conditions.
-
-Acceptance evidence:
-
-- Capability analyzer Head `a246d87` passed CI run `30145010296`.
-- Deterministic generator Head `5ab912b` passed CI run `30145972662`.
-- Differential and verified snapshot Head `acf569f` passed CI run `30146430909`.
-- Large policy Head `2252c57` passed CI run `30146482543`.
-- Final documentation Head `4a643e6` passed CI run `30146582195`.
-- The complete suite contains 108 tests, including all immutable Milestone 2 decision vectors, PAC/reference differential checks, snapshot hashing, and the large representative policy.
-- Chromium MV3 and Firefox MV3 builds, manifest audits, and packaged build artifacts passed.
-- PR #9 merged into `main` at `843433a`.
-
-## Completed in branch — Milestone 7
-
-Branch: `feat/m7-browser-adapters`  
-Pull request: #10
-
-Delivered:
-
-- Browser-neutral Chromium and Firefox proxy capability and control-state contracts.
-- Atomic candidate persistence, install, confirmation, active-state commit, and rollback.
-- Previous verified snapshot and captured browser-baseline restoration.
-- Conflict detection for uncontrollable and other-extension-controlled proxy settings.
-- Restart recovery for interrupted activation and lost effective settings.
-- Chromium regular-scope mandatory inline PAC installation and exact read-back confirmation.
-- Firefox autoConfig data-URL installation, private-window preflight, and PAC runtime error confirmation failure.
-- Versioned persistent activation state and verified snapshot storage with corruption checks.
-- Extension background recovery before active-state restoration.
-- Required extension permissions limited to `proxy` and `storage`.
-- Default-disabled HTTP/HTTPS proxy authentication with browser-specific optional permissions.
-- Separate endpoint binding and secret records, no password values in PAC or binding records.
-- `isProxy`-only Basic/Digest challenge handling, bounded retries, ambiguity rejection, and no SOCKS impersonation.
-- No `proxy.onRequest`, `<all_urls>`, request-completion monitoring, request-error monitoring, or startup permission prompts.
-- Updated architecture and generated-manifest audits for the production proxy boundary.
-
-Acceptance evidence:
-
-- Atomic state-machine Head `82aca61` passed CI run `30147612373`.
-- Chromium and Firefox platform-driver Head `aff8b91` passed CI run `30147933438`.
-- Persistent activation repository Head `277ed33` passed CI run `30148190150`.
-- Extension background and proxy-permission Head `7fb0430` passed CI run `30148414347`.
-- Optional authentication integration Head `be2f339` passed CI run `30149000776`.
-- The complete suite contains 142 tests covering activation, rollback, restart recovery, platform mappings, persistent state, authentication matching, permission gating, retry limits, and secret separation.
-- Generated Chromium and Firefox MV3 packages contain no required host permissions or `<all_urls>`.
-- Generated background bundles contain `onAuthRequired` only when configured at runtime and contain no completion/error monitoring or permission-request calls.
-- Final status and documentation Head must pass the complete read-only pipeline before PR #10 merges.
-
-## Active development direction
-
-After Milestone 7 merges, implementation continues with the familiar ZeroOmega-like profile workflow, import review, Apply/Revert state, popup switching, and snapshot history in Milestone 8.
-
-Intermediate work is verified internally and through GitHub CI. The repository owner is not asked to repeatedly inspect partial slices. Owner QC is reserved for a consolidated, installable release candidate unless an irreducible product decision requires direct input.
+Intermediate slices remain self-verified through exact-Head CI, fixtures, static audits, Chromium/Firefox automation, and parity documentation. The repository owner is asked to install and inspect only a consolidated candidate, except where an irreducible capability or product decision requires direct judgment.
