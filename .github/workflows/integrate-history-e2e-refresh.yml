@@ -39,7 +39,7 @@ jobs:
         run: python .github/patches/harden-history-e2e-refresh.py
       - name: Format and verify repository
         run: |
-          pnpm exec prettier --write scripts/e2e-chromium.mjs
+          pnpm format
           pnpm verify
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
