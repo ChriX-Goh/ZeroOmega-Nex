@@ -8,6 +8,7 @@ on:
       - .github/workflows/integrate-online-restore.yml
       - .github/patches/apply-online-restore-core.py
       - .github/patches/fix-online-restore-core.py
+      - .github/patches/fix-online-restore-optional-fields.py
       - .github/patches/apply-online-restore-e2e-docs.py
 
 permissions:
@@ -47,6 +48,7 @@ jobs:
           {
             python .github/patches/apply-online-restore-core.py
             python .github/patches/fix-online-restore-core.py
+            python .github/patches/fix-online-restore-optional-fields.py
             python .github/patches/apply-online-restore-e2e-docs.py
           } 2>&1 | tee online-restore-apply.log
 
@@ -105,6 +107,7 @@ jobs:
           rm -f \
             .github/patches/apply-online-restore-core.py \
             .github/patches/fix-online-restore-core.py \
+            .github/patches/fix-online-restore-optional-fields.py \
             .github/patches/apply-online-restore-e2e-docs.py \
             online-restore-apply.log \
             online-restore-format.log \
