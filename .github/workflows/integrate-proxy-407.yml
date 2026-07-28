@@ -10,6 +10,7 @@ on:
       - .github/patches/apply-proxy-407-e2e.py
       - .github/patches/apply-proxy-407-docs.py
       - .github/patches/fix-proxy-407-validator.py
+      - .github/patches/fix-proxy-407-types.py
 
 permissions:
   contents: write
@@ -50,6 +51,7 @@ jobs:
             python .github/patches/apply-proxy-407-e2e.py
             python .github/patches/apply-proxy-407-docs.py
             python .github/patches/fix-proxy-407-validator.py
+            python .github/patches/fix-proxy-407-types.py
           } 2>&1 | tee proxy-407-apply.log
 
       - name: Format and refresh locale inventory
@@ -105,6 +107,7 @@ jobs:
             .github/patches/apply-proxy-407-e2e.py \
             .github/patches/apply-proxy-407-docs.py \
             .github/patches/fix-proxy-407-validator.py \
+            .github/patches/fix-proxy-407-types.py \
             proxy-407-apply.log \
             proxy-407-format.log \
             proxy-407-inventory.log \
