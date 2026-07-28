@@ -1,0 +1,43 @@
+name: Format zero-warning docs
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/format-zero-warning-docs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Format durable documents
+        run: pnpm exec prettier --write docs/UI_AUDIT_MATRIX.md docs/MILESTONE_8_STATUS.md
+      - name: Commit formatted documents
+        run: |
+          git checkout HEAD -- .github/workflows/format-zero-warning-docs.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/UI_AUDIT_MATRIX.md docs/MILESTONE_8_STATUS.md
+          git commit -m "docs: format zero-warning checkpoint"
+          git fetch origin feat/m8-profile-workflow
+          git rebase origin/feat/m8-profile-workflow
+          git push origin HEAD:feat/m8-profile-workflow
