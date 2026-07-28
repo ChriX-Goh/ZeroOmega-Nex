@@ -108,7 +108,7 @@ try {
   let profileName;
   try {
     profileName = await driver.wait(
-      until.elementLocated(By.css('input[aria-label="情景模式名稱"]')),
+      until.elementLocated(By.css('input[aria-label="情境模式名稱"]')),
       15_000,
     );
     await driver.wait(until.elementIsVisible(profileName), 15_000);
