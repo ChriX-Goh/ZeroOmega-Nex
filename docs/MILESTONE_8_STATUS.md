@@ -3,9 +3,9 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; original-parity implementation continues  
-**Current product implementation head:** `b686e109f4ae8d4bf6ec85346608a1c23c1d3cd3` — Virtual creation/reference migration and Auto Detect fallback round-trip  
-**Latest integration verification:** run `30320204375` validates source-backed Virtual creation, complete typed reference migration, normal Apply, and Auto Detect fallback extension round-trip with full `pnpm verify` and Chromium regression  
-**Last completed exact-Head verification:** `ac5d0e2c5e191c11acfc6aa1a36a244e6bf5ee35`; CI `30320359259`, Browser E2E `30320359263`, Parity Documentation `30320359269` passed  
+**Current product implementation head:** `64cc51231ad20946bb9167705b2dfa05af16c6ed` — Profile deletion and complete typed reference protection  
+**Latest integration verification:** run `30325486940` validates original-compatible deletion blocking, visible referrer reporting, unreferenced Draft deletion, and normal Apply with full `pnpm verify` and Chromium regression  
+**Last completed exact-Head verification:** `69aee5ac54f35526df04a8a55e2276f61581161f`; CI `30325639100`, Browser E2E `30325639148`, Parity Documentation `30325639093` passed  
 **Installable release candidate:** none; all previously frozen artifacts are obsolete  
 **Current-head rule:** read PR #11 and exact GitHub Actions runs; never infer completion from this document alone
 
@@ -80,7 +80,7 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Nex now exposes a typed blocker list across Switch, Rule List, PAC, Auto Detect, and Virtual routes; `deleteProfileDraft` rejects referenced deletion even when called outside Options.
 - Options uses explicit accessible blocked/confirmation dialogs instead of a generic browser confirm. Unreferenced deletion changes Draft only and commits through normal Apply; Startup becomes unset and Quick Switch only removes deleted routes.
 - Chromium restores the cross-reference fixture, verifies that `Target Proxy` cannot be deleted and lists all five referrers, then confirms deletion of `Unrelated Proxy`, verifies Draft/resource cleanup, and applies it normally.
-- Integration run `30325486940`; product commit containing this document.
+- Integration run `30325486940`; product commit `64cc51231ad20946bb9167705b2dfa05af16c6ed`; clean exact Head `69aee5ac54f35526df04a8a55e2276f61581161f` passed CI `30325639100`, Browser E2E `30325639148`, and Parity Documentation `30325639093`.
 
 ### Attached Rule List lifecycle and background updates
 
