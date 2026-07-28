@@ -1,4 +1,4 @@
-# integration revision 3
+# integration revision 4
 name: Integrate profile deletion protection
 
 on:
@@ -44,6 +44,7 @@ jobs:
             set -x
             python .github/patches/fix-profile-deletion-app-anchor.py
             python .github/patches/fix-profile-deletion-validator-anchor.py
+            python .github/patches/fix-profile-deletion-guard-string.py
             python .github/patches/apply-profile-deletion-protection.py
           } 2>&1 | tee profile-deletion-apply.log
       - name: Format product slice
@@ -76,6 +77,7 @@ jobs:
           rm -f \
             .github/patches/fix-profile-deletion-app-anchor.py \
             .github/patches/fix-profile-deletion-validator-anchor.py \
+            .github/patches/fix-profile-deletion-guard-string.py \
             .github/patches/apply-profile-deletion-protection.py \
             profile-deletion-apply.log \
             profile-deletion-verify.log \
