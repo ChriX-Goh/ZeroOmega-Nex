@@ -1,4 +1,4 @@
-# integration revision 2
+# integration revision 3
 name: Integrate typed History
 
 on:
@@ -45,6 +45,7 @@ jobs:
             python .github/patches/fix-typed-history-patches.py
             python .github/patches/apply-typed-history-catalog.py
             python .github/patches/apply-typed-history-integration.py
+            python .github/patches/fix-typed-history-legacy-guards.py
             python .github/patches/apply-history-delivery-reconciliation.py
           } 2>&1 | tee typed-history-apply.log
       - name: Format product slice
@@ -83,6 +84,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-typed-history.yml
           rm -f \
             .github/patches/fix-typed-history-patches.py \
+            .github/patches/fix-typed-history-legacy-guards.py \
             .github/patches/apply-typed-history-catalog.py \
             .github/patches/apply-typed-history-integration.py \
             .github/patches/apply-history-delivery-reconciliation.py \
