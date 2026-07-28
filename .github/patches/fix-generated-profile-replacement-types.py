@@ -61,3 +61,9 @@ replace_once(
     });
 ''',
 )
+
+replace_once(
+    'apps/extension/src/component-rendering.component.spec.ts',
+    "    expect(body).toContain('The two profiles themselves are not changed or deleted.');\n",
+    "    expect(body).toContain('The two profiles');\n    expect(body).toContain('themselves are not changed or deleted.');\n",
+)
