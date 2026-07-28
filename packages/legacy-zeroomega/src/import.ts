@@ -1511,6 +1511,9 @@ export function importZeroOmegaBackup(
   }
 
   const report = new LegacyImportReportBuilder(decoded.value.encoding);
+  decoded.value.upgrades.forEach((notice) => {
+    report.add(notice.status, notice.code, notice.path, notice.message);
+  });
   if (decoded.value.stats.profileCount === 0) {
     report.add(
       'rejected',

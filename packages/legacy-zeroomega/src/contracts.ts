@@ -87,9 +87,18 @@ export interface LegacyDecodeStats {
   readonly ruleCount: number;
 }
 
+export interface LegacyUpgradeNotice {
+  readonly status: Extract<LegacyImportStatus, 'exact' | 'ignored-runtime'>;
+  readonly code: string;
+  readonly path: string;
+  readonly message: string;
+}
+
 export interface LegacyDecodedBackup {
   readonly encoding: LegacyInputEncoding;
+  readonly sourceSchemaVersion: 1 | 2;
   readonly options: Readonly<Record<string, unknown>>;
+  readonly upgrades: readonly LegacyUpgradeNotice[];
   readonly stats: LegacyDecodeStats;
 }
 

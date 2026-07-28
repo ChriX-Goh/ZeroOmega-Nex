@@ -67,6 +67,38 @@ describe('ZeroOmega schema-v2 importer', () => {
     ]);
   });
 
+  it('upgrades the source-backed schema-v1 auto_detect reference to the original WPAD PAC', async () => {
+    const source = await fixture('schema-v1-auto-detect.json');
+    const result = importZeroOmegaBackup(source, context);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+
+    const autoDetect = result.candidate.profiles.find((profile) => profile.name === 'auto_detect');
+    expect(autoDetect).toMatchObject({
+      kind: 'pac',
+      color: '#00cccc',
+      source: { kind: 'url', url: 'http://wpad/wpad.dat' },
+    });
+    const switchProfile = result.candidate.profiles.find((profile) => profile.name === 'switch');
+    expect(switchProfile?.kind).toBe('switch');
+    if (
+      !autoDetect ||
+      autoDetect.kind !== 'pac' ||
+      !switchProfile ||
+      switchProfile.kind !== 'switch'
+    ) {
+      throw new Error('schema-v1 WPAD fixture did not map expected profiles');
+    }
+    expect(switchProfile.rules[0]?.route).toEqual({
+      kind: 'profile',
+      profileId: autoDetect.id,
+    });
+    expect(codes(result)).toContain('schema.v1-upgraded');
+    expect(codes(result)).toContain('schema.v1-auto-detect-wpad-created');
+    expect(codes(result)).toContain('profile.disabled-sync-state-removed');
+    expect(JSON.stringify(result.candidate)).not.toContain('legacy-disabled-state');
+  });
+
   it('imports a base64-encoded backup through the full migration pipeline', async () => {
     const source = await fixture('minimal-profile-types.json');
     const result = importZeroOmegaBackup(btoa(source), context);

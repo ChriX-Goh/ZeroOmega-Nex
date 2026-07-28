@@ -287,6 +287,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - Both Chromium and Firefox fail before proxy-authentication preparation, runtime creation, optional-origin permission, snapshot installation, or browser proxy mutation. The existing user conversion paths are Clear-to-inline and explicitly permitted HTTP(S).
 - Unit coverage loops both browser families and verifies unchanged system proxy state; the origin-permission boundary separately rejects `file:` without calling `permissions.request`. F-02 warning parity is now DONE and F-12 records the accepted `INTENTIONAL_DIVERGENCE`.
 
+### Original schema-v1 upgrade and WPAD migration
+
+- Decoder accepts original schema versions 1 and 2. Schema 1 is cloned, upgraded before inventory/mapping, and never mutates an object supplied by the caller; schema 3+ remains rejected.
+- Direct-reference detection follows original inclusive types: Switch and Virtual default/rule results plus Rule List match/default and result-enabled Switchy source routes. A referenced `auto_detect` is overwritten with the original `PacProfile` at `http://wpad/wpad.dat` and color `#00cccc`; an unused name is not synthesized.
+- Original per-profile `syncOptions: disabled` and `syncError` runtime fields are removed for both accepted schema versions. Stable report codes expose the upgrade and cleanup without retaining runtime error text.
+- A source-backed fixture and importer tests verify the final PAC Profile, Switch route, color/URL, report evidence, deterministic IDs, and absence of disabled sync state. G-07 and G-08 are now DONE.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 124 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
@@ -303,7 +310,7 @@ PR #11 is not a replacement release candidate. Current blockers include:
 
 ## Current next action
 
-Decide schema-v1, v1 AutoDetect, and online restore boundaries, then prepare consolidated visual plus real-backup owner QC.
+Decide and implement the online URL restore boundary, then prepare consolidated visual plus real-backup owner QC.
 
 ### Typed locale inventory and first vertical batch
 

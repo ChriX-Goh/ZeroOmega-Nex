@@ -27,6 +27,7 @@ export type {
   LegacyImportSuccess,
   LegacyImportSummary,
   LegacyInputEncoding,
+  LegacyUpgradeNotice,
   LegacySecretKind,
   LegacySecretMaterial,
 } from './contracts.js';

@@ -5,13 +5,28 @@ const auditPath = 'docs/UI_AUDIT_MATRIX.md';
 const indexPath = 'docs/ORIGINAL_PARITY_MATRIX.md';
 const decisionsPath = 'docs/DECISIONS.md';
 const activationTestPath = 'apps/extension/src/lib/profile-workflow-activation.test.ts';
+const legacyDecodePath = 'packages/legacy-zeroomega/src/decode.ts';
+const legacyImportTestPath = 'packages/legacy-zeroomega/src/import.test.ts';
+const schemaV1FixturePath = 'fixtures/zeroomega-v2/schema-v1-auto-detect.json';
 
-const [graph, audit, index, decisions, activationTest] = await Promise.all([
+const [
+  graph,
+  audit,
+  index,
+  decisions,
+  activationTest,
+  legacyDecode,
+  legacyImportTest,
+  schemaV1Fixture,
+] = await Promise.all([
   readFile(graphPath, 'utf8'),
   readFile(auditPath, 'utf8'),
   readFile(indexPath, 'utf8'),
   readFile(decisionsPath, 'utf8'),
   readFile(activationTestPath, 'utf8'),
+  readFile(legacyDecodePath, 'utf8'),
+  readFile(legacyImportTestPath, 'utf8'),
+  readFile(schemaV1FixturePath, 'utf8'),
 ]);
 
 const failures = [];
@@ -63,6 +78,28 @@ requireAll('UI audit', audit, [
   'H-09',
   'I-05',
   'J-10',
+]);
+
+requireAll('schema-v1 decoder', legacyDecode, [
+  'schema.v1-auto-detect-wpad-created',
+  'schema.v1-upgraded',
+  'profile.disabled-sync-state-removed',
+  'http://wpad/wpad.dat',
+  '#00cccc',
+  'switchyRuleListReferencesAutoDetect',
+]);
+
+requireAll('schema-v1 importer regression', legacyImportTest, [
+  "fixture('schema-v1-auto-detect.json')",
+  "url: 'http://wpad/wpad.dat'",
+  "color: '#00cccc'",
+  "codes(result)).toContain('schema.v1-upgraded')",
+]);
+
+requireAll('schema-v1 source fixture', schemaV1Fixture, [
+  '"schemaVersion": 1',
+  '"profileName": "auto_detect"',
+  '"syncOptions": "disabled"',
 ]);
 
 requireAll('file PAC decision', decisions, [

@@ -1,0 +1,7 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceFile": "omega-target/src/options.coffee",
+  "sourceBehavior": "Options.upgrade schemaVersion 1 to 2 and synthesize referenced auto_detect as PacProfile http://wpad/wpad.dat #00cccc",
+  "capturedFor": "ZeroOmega Nex M8 schema-v1 importer regression"
+}

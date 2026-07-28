@@ -524,3 +524,9 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - The browser-only data plane has one activation invariant: traffic changes only through a reproducible, validated and confirmed snapshot. `file:` paths are machine-local and browser/user permission dependent, so direct URL delegation or extension file reads would create an unverified second data plane.
 - Chromium and Firefox therefore reject a top-level `file:` PAC before authentication preparation, runtime creation, optional-origin permission, snapshot installation and browser proxy mutation. Nested PAC remains unsupported independently.
 - Conversion is explicit: clear the URL and paste the PAC as inline text, or serve it over HTTP(S) and grant only that origin. Silent use of an old cached script is forbidden because displayed source and active traffic policy would diverge.
+
+### Schema-v1 upgrade boundary
+
+- Original v3.5.0 `Options.upgrade` accepts schema 1/2 only. Schema 1 scans inclusive Profile direct references; only a used `+auto_detect` is materialized as `{name: auto_detect, profileType: PacProfile, pacUrl: http://wpad/wpad.dat, color: #00cccc}`, then schemaVersion becomes 2.
+- Inclusive reference evidence includes Switch/Virtual default and rule results plus Rule List result routes. Nex performs this scan before ProfileSpec IDs/routes are generated, so the synthesized PAC participates in ordinary deterministic inventory and references.
+- Profiles with `syncOptions == disabled` lose both `syncOptions` and `syncError`, matching the original runtime cleanup. Input objects are cloned before these changes; migration evidence uses stable report codes.
