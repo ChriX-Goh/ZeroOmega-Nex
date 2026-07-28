@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/integrate-firefox-remote-source.yml
       - .github/patches/apply-firefox-remote-source.py
+      - .github/patches/fix-firefox-remote-source-guard.py
 
 permissions:
   contents: write
@@ -42,7 +43,10 @@ jobs:
       - name: Apply Firefox remote-source slice
         run: |
           set -o pipefail
-          python .github/patches/apply-firefox-remote-source.py 2>&1 | tee firefox-remote-source-apply.log
+          {
+            python .github/patches/apply-firefox-remote-source.py
+            python .github/patches/fix-firefox-remote-source-guard.py
+          } 2>&1 | tee firefox-remote-source-apply.log
 
       - name: Format product slice
         run: |
@@ -85,6 +89,7 @@ jobs:
           git checkout HEAD -- .github/workflows/integrate-firefox-remote-source.yml
           rm -f \
             .github/patches/apply-firefox-remote-source.py \
+            .github/patches/fix-firefox-remote-source-guard.py \
             firefox-remote-source-apply.log \
             firefox-remote-source-format.log \
             firefox-remote-source-inventory.log \
