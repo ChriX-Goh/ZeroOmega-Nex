@@ -139,6 +139,14 @@ jobs:
           if app_start == -1 or app_end == -1:
               raise SystemExit(f'Fixed editor wiring markers missing: start={app_start}, end={app_end}')
           text = text[:app_start] + "app = Path('apps/extension/src/entrypoints/options/App.svelte')" + text[app_end:]
+
+          old_strings = '''anchor = """  'fixed.authUnsupported': {
+          """'''
+          new_strings = '''anchor = """  'fixed.proxyServers': { en: 'Proxy servers', 'zh-CN': '代理服务器', 'zh-TW': '代理伺服器' },
+          """'''
+          if text.count(old_strings) != 1:
+              raise SystemExit(f'Fixed capability string patch anchor mismatch: {text.count(old_strings)}')
+          text = text.replace(old_strings, new_strings)
           path.write_text(text)
           PY
 
