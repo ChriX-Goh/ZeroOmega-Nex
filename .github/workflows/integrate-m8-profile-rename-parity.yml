@@ -73,68 +73,49 @@ jobs:
           from pathlib import Path
 
           path = Path('scripts/e2e-chromium.mjs')
-          text = path.read_text()
+          lines = path.read_text().splitlines()
 
-          replacements = {
-              """  await renameInput.fill('');
-          assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
-          """: """  await renameInput.fill('');
-          await assertEventually(
-            async () => renameDialog.locator('[data-profile-rename-confirm]').isDisabled(),
-            'Empty Rename value did not disable confirmation',
-          );
-          """,
-              """  await renameInput.fill('direct');
-          assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
-          """: """  await renameInput.fill('direct');
-          await assertEventually(
-            async () => renameDialog.locator('[data-profile-rename-confirm]').isDisabled(),
-            'Reserved Rename value did not disable confirmation',
-          );
-          """,
-              """  await renameInput.fill('Backup');
-          assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
-          """: "",
-              """  await renameInput.fill('_Hidden Proxy');
-          assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), false);
-          """: """  await renameInput.fill('_Hidden Proxy');
-          await assertEventually(
-            async () => !(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled()),
-            'Hidden Rename value did not enable confirmation',
-          );
-          """,
-          }
-          for old, new in replacements.items():
-              if text.count(old) != 1:
-                  raise SystemExit(f'Rename validation correction mismatch: {text.count(old)}')
-              text = text.replace(old, new)
+          fake_indices = [
+              index
+              for index, line in enumerate(lines)
+              if line.strip() == "await renameInput.fill('Backup');"
+          ]
+          if len(fake_indices) != 1:
+              raise SystemExit(f'fake Rename conflict anchors: {len(fake_indices)}')
+          fake_index = fake_indices[0]
+          if (
+              fake_index + 1 >= len(lines)
+              or 'data-profile-rename-confirm' not in lines[fake_index + 1]
+              or 'isDisabled()' not in lines[fake_index + 1]
+          ):
+              raise SystemExit('fake Rename conflict assertion shape changed')
+          del lines[fake_index : fake_index + 2]
 
-          anchor = """    'The four normal New Profile flows did not commit through normal Apply',
-            20_000,
-          );
-          const unsupportedPacOptions = await creationContext.newPage();
-          """
-          conflict = """    'The four normal New Profile flows did not commit through normal Apply',
-            20_000,
-          );
-          await creationOptions.getByRole('button', { name: 'Created Fixed', exact: true }).click();
-          await creationOptions.locator('[data-profile-rename-action]').click();
-          const creationRenameDialog = creationOptions.locator('[data-profile-rename-dialog]');
-          await creationRenameDialog.waitFor({ state: 'visible', timeout: 20_000 });
-          const creationRenameInput = creationRenameDialog.locator('[data-profile-rename-name-input]');
-          await creationRenameInput.fill('created pac');
-          await assertEventually(
-            async () => creationRenameDialog.locator('[data-profile-rename-confirm]').isDisabled(),
-            'Case-insensitive existing Profile name did not disable Rename confirmation',
-          );
-          await creationRenameDialog.locator('[data-profile-rename-cancel]').click();
-          await creationRenameDialog.waitFor({ state: 'detached', timeout: 20_000 });
-
-          const unsupportedPacOptions = await creationContext.newPage();
-          """
-          if text.count(anchor) != 1:
-              raise SystemExit(f'Created-profile Rename conflict anchor mismatch: {text.count(anchor)}')
-          path.write_text(text.replace(anchor, conflict))
+          insertion_indices = [
+              index
+              for index, line in enumerate(lines)
+              if line.strip() == 'const unsupportedPacOptions = await creationContext.newPage();'
+          ]
+          if len(insertion_indices) != 1:
+              raise SystemExit(f'creation Rename insertion anchors: {len(insertion_indices)}')
+          insertion_index = insertion_indices[0]
+          conflict_block = [
+              "  await creationOptions.getByRole('button', { name: 'Created Fixed', exact: true }).click();",
+              "  await creationOptions.locator('[data-profile-rename-action]').click();",
+              "  const creationRenameDialog = creationOptions.locator('[data-profile-rename-dialog]');",
+              "  await creationRenameDialog.waitFor({ state: 'visible', timeout: 20_000 });",
+              "  const creationRenameInput = creationRenameDialog.locator('[data-profile-rename-name-input]');",
+              "  await creationRenameInput.fill('created pac');",
+              "  await assertEventually(",
+              "    async () => creationRenameDialog.locator('[data-profile-rename-confirm]').isDisabled(),",
+              "    'Case-insensitive existing Profile name did not disable Rename confirmation',",
+              "  );",
+              "  await creationRenameDialog.locator('[data-profile-rename-cancel]').click();",
+              "  await creationRenameDialog.waitFor({ state: 'detached', timeout: 20_000 });",
+              "",
+          ]
+          lines[insertion_index:insertion_index] = conflict_block
+          path.write_text('\n'.join(lines) + '\n')
           PY
 
       - name: Regenerate locale inventory
