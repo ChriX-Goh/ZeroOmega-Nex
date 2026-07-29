@@ -8,6 +8,7 @@ on:
       - .github/workflows/integrate-m8-switch-condition-matrix.yml
       - .github/patches/apply-m8-switch-condition-matrix.py
       - .github/patches/fix-m8-switch-condition-validator.py
+      - .github/patches/fix-m8-switch-e2e-escapes.py
 
 permissions:
   contents: write
@@ -46,6 +47,9 @@ jobs:
 
       - name: Apply source-backed Switch condition matrix
         run: python .github/patches/apply-m8-switch-condition-matrix.py
+
+      - name: Repair Chromium regex string escapes
+        run: python .github/patches/fix-m8-switch-e2e-escapes.py
 
       - name: Regenerate locale inventory
         run: pnpm locale:inventory
@@ -111,6 +115,7 @@ jobs:
           git rm -f .github/workflows/integrate-m8-switch-condition-matrix.yml
           git rm -f .github/patches/apply-m8-switch-condition-matrix.py
           git rm -f .github/patches/fix-m8-switch-condition-validator.py
+          git rm -f .github/patches/fix-m8-switch-e2e-escapes.py
           git add apps/extension/src/lib/switch-condition-catalog.ts \
             apps/extension/src/lib/switch-condition-catalog.test.ts \
             apps/extension/src/lib/ui-messages.ts \
