@@ -1,53 +1,147 @@
 # ZeroOmega Original ↔ Nex Delivery Knowledge Graph
 
+## 0. Canonical project contract
+
+This document is simultaneously:
+
+- the highest-level product contract for the ZeroOmega rewrite;
+- the Original ↔ Nex engineering knowledge graph;
+- the owner-facing delivery order;
+- the defect and acceptance authority.
+
+The project goal is not to design a new proxy-extension product inspired by ZeroOmega. The goal is to **rewrite the complete underlying implementation while preserving the original user-facing product contract as closely as modern browser APIs permit**.
+
+### 0.1 Non-negotiable outcome
+
+The finished product must allow an experienced ZeroOmega user to switch without relearning the product:
+
+1. The user exports a configuration from the original extension.
+2. The user installs the rewritten extension.
+3. The user imports the original exported file directly.
+4. The rewritten extension preserves the meaningful configuration, relationships, ordering, colors, startup state, Quick Switch state, rules, Rule Lists, PAC definitions, bypass entries and other supported behavior.
+5. The imported configuration can be used immediately without manual reconstruction, reinterpretation or a new workflow.
+6. Toolbar, Popup, Options, dialogs, terminology, action placement, profile editing and state transitions remain familiar enough to constitute a near-seamless migration.
+
+The bottom layer may be replaced completely. The user-facing mental model may not be replaced merely because the new architecture is cleaner or easier to implement.
+
+### 0.2 Original-first authority
+
+For every user-visible surface, action, state transition, label and data transformation:
+
+- the original ZeroOmega v3.5.0 source and real runtime behavior are the default authority;
+- Nex must match the original observable contract unless a modern browser limitation makes that impossible;
+- a necessary divergence must be minimized, documented with source/API evidence and explicitly accepted by the repository owner;
+- absence of evidence is `UNKNOWN`, never permission to invent.
+
+### 0.3 No-invention rule
+
+The rewrite must not invent user-facing content or workflow without evidence and approval.
+
+The following are defects unless they have an original source/runtime anchor or an owner-accepted divergence record:
+
+- new pages or auxiliary surfaces;
+- new multi-step workflows;
+- additional dialogs or confirmation layers;
+- description cards, help boxes, status summaries and compatibility taxonomies;
+- renamed concepts or reorganized actions;
+- different default selections or validation timing;
+- new visible state distinctions created only to expose internal architecture;
+- developer-oriented explanations shown during normal use.
+
+Internal safety, typed state, snapshots, atomic Apply, diagnostics and modern browser adapters may be improved, but those improvements should remain behind the original-facing interaction model whenever possible.
+
+### 0.4 UI contract
+
+“UI尽可能一致” means more than using similar colors. The comparison must cover:
+
+- window and Popup dimensions;
+- toolbar icons and state transitions;
+- navigation hierarchy;
+- page boundaries;
+- control order and grouping;
+- labels and terminology;
+- button placement and priority;
+- dialogs and validation timing;
+- information density and whitespace;
+- help text quantity and placement;
+- disabled, warning, error, loading and active states;
+- profile colors, icons and inheritance;
+- light/dark and locale expansion behavior.
+
+Visual modernization is permitted only where it does not require relearning or alter the original workflow. Unnecessary explanation is not modernization.
+
+### 0.5 Configuration migration contract
+
+A configuration feature is not complete because a parser accepts a synthetic fixture. It is complete only when representative, sanitized files exported by the original extension can be imported into a clean Nex installation and used directly.
+
+Acceptance must compare the original semantic graph before export with the Nex semantic and browser state after import, including:
+
+- profile identity, type and names;
+- colors, icons and ordering;
+- profile references and result profiles;
+- Fixed protocols, authentication references and bypass rules;
+- Switch rules, condition kinds, fields, order and attached Rule Lists;
+- PAC URLs, raw content, headers and cache-relevant state;
+- Virtual targets and nested references;
+- startup profile, active profile and Quick Switch order;
+- generated/runtime fields that must be ignored, migrated or preserved;
+- credentials under the documented security boundary;
+- immediate Apply/activation behavior;
+- export and semantic round trip.
+
+Any manual repair needed after import is a compatibility defect unless explicitly accepted.
+
 ## 1. Purpose
 
-This document is the owner-facing delivery order and the engineering authority for the ZeroOmega rewrite.
+The rewrite is not accepted because code compiles, tests pass, screenshots exist, or a previous matrix row was marked `DONE`. Acceptance requires demonstrated equivalence against the original product on complete user journeys and real original exports.
 
-The rewrite is not accepted because code compiles, tests pass, screenshots exist, or a row was previously marked `DONE`. Acceptance requires demonstrated equivalence against the original product on real user workflows and real backups.
-
-The owner QC performed on 2026-07-30 invalidated the previous Milestone 8 completion claim and candidate `M8-OWNER-QC-1`.
+The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 completion claim and candidate `M8-OWNER-QC-1`.
 
 ## 2. Current state
 
-- Product completion: **not currently measurable**.
-- Previous `DONE=124 / PARTIAL=2` summary: **not a valid release-completeness measure**.
+- Product completion: **unknown pending full parity audit**.
+- Previous `DONE=124 / PARTIAL=2` summary: **invalid as a product-completeness measure**.
 - Active installable candidate: **none**.
-- Required mode: full parity re-audit before further candidate preparation.
-- PR #11 remains Draft.
+- Previous candidate `M8-OWNER-QC-1`: **FAILED**.
+- Existing code and tests: implementation inventory requiring re-audit, not presumed parity evidence.
+- Required mode: complete Original capture, independent Nex capture, explicit mapping, then journey-level correction.
+- PR #11 remains Draft; merge and release are prohibited.
 
 ## 3. Status vocabulary
 
 | Status | Meaning |
 | --- | --- |
 | `SOURCE_CAPTURED` | Original source, runtime behavior, UI and data evidence are captured. |
-| `NEX_CAPTURED` | Current Nex code and real browser behavior are captured. |
+| `NEX_CAPTURED` | Current Nex code and real browser behavior are captured independently. |
 | `MAPPED` | Original and Nex nodes have an explicit relationship and gap classification. |
-| `IMPLEMENTED` | Code exists, but equivalence has not yet passed acceptance. |
+| `IMPLEMENTED` | Code exists, but equivalence has not passed acceptance. |
 | `VERIFIED_AUTOMATION` | Automated checks pass against the explicit original contract. |
-| `VERIFIED_REAL_DATA` | Real original backup and real browser workflow pass. |
-| `OWNER_ACCEPTED` | Repository owner has reviewed and accepted the exact behavior. |
+| `VERIFIED_REAL_DATA` | Real original exports and real browser journeys pass. |
+| `OWNER_ACCEPTED` | Repository owner has reviewed and accepted the exact behavior/build. |
 | `FAILED` | A demonstrated mismatch or defect exists. |
-| `UNKNOWN` | Evidence is incomplete; must never be treated as done. |
+| `UNKNOWN` | Evidence is incomplete; it must never be treated as done. |
 
 Only `OWNER_ACCEPTED` is delivery-complete.
 
 ## 4. Required evidence for every delivery row
 
-Every row must contain all of the following:
+Every row must contain:
 
 1. Original source file, symbol/controller/template and version.
 2. Original runtime screenshot, recording or reproducible browser steps.
-3. Original data shape before and after the operation.
-4. Current Nex source file and runtime behavior.
-5. Explicit relationship: exact match, compatible modernization, intentional divergence, missing, broken or extra behavior.
-6. Expected user-visible result written without implementation jargon.
-7. Automated test tied to the original contract rather than a self-created fixture alone.
-8. Real Chromium and Firefox evidence when the original behavior is browser-sensitive.
-9. Real exported ZeroOmega/SwitchyOmega backup evidence when configuration data is involved.
-10. Repository-owner result: `PASS`, `FAIL` or `NOT RUN`.
+3. Original UI hierarchy and visible text.
+4. Original data shape before and after the operation.
+5. Current Nex source file and real runtime behavior.
+6. Explicit relationship and gap classification.
+7. Inventory of missing and extra Nex behavior.
+8. Expected user-visible result written without implementation jargon.
+9. Automated test tied to the original contract rather than a self-created fixture alone.
+10. Real Chromium and Firefox evidence when browser-sensitive.
+11. Real exported ZeroOmega/SwitchyOmega file evidence when configuration is involved.
+12. Provenance for every Nex-only visible element or workflow.
+13. Repository-owner result: `PASS`, `FAIL` or `NOT RUN`.
 
-A unit test, component render, generated screenshot, or synthetic fixture cannot independently close a row.
+A unit test, component render, generated screenshot, synthetic fixture or successful build cannot independently close a row.
 
 ## 5. Knowledge graph model
 
@@ -55,14 +149,20 @@ A unit test, component render, generated screenshot, or synthetic fixture cannot
 
 `OriginalProduct`
 
+- `InstallationAndStartup`
+  - first-run behavior
+  - default configuration
+  - startup restore
+  - browser ownership state
 - `BrowserToolbar`
-  - icon artwork
+  - original icon artwork
   - icon state changes
   - badge/title/tooltip state
   - active profile indication
-  - error/direct/system/temporary-rule states
-  - click behavior and Popup dimensions
+  - Direct/System/error/temporary-rule states
+  - click behavior
 - `Popup`
+  - dimensions and density
   - profile list and hierarchy
   - active/result profile indication
   - current-site rule actions
@@ -73,14 +173,11 @@ A unit test, component render, generated screenshot, or synthetic fixture cannot
   - page separation
   - action placement
   - Apply/Discard lifecycle
-  - dialog placement and wording
-  - information density
+  - dialogs, labels and validation timing
+  - information density and help text
 - `ProfileLifecycle`
-  - create
-  - rename
-  - delete
+  - create, rename, delete and duplicate
   - replace references
-  - duplicate
   - color/icon inheritance
   - export profile/PAC/rule list
 - `ProfileTypes`
@@ -91,24 +188,22 @@ A unit test, component render, generated screenshot, or synthetic fixture cannot
   - Rule List/import-only states
 - `RuleAndConditionEditing`
   - selector catalog
-  - fields
+  - condition-specific fields
   - validation timing
   - drag/order
   - source mode
-  - attached rule lists
+  - attached Rule Lists
 - `BackupContract`
-  - accepted encodings
-  - schema versions
+  - accepted encodings and schema versions
   - generated/runtime fields
   - profile identity and references
   - credentials
-  - startup/quick-switch state
+  - startup/Quick Switch state
   - import side effects
   - immediate usability after import
-  - byte/semantic export round trip
+  - semantic export round trip
 - `RuntimeState`
-  - selected profile
-  - result profile
+  - selected and result profile
   - browser-installed proxy state
   - temporary rules
   - startup restore
@@ -121,8 +216,9 @@ A unit test, component render, generated screenshot, or synthetic fixture cannot
 
 ### 5.2 Nex product graph
 
-The Nex graph must expose the same user-facing nodes separately from internal architecture:
+The Nex graph must capture the current product independently, without assuming equivalence:
 
+- `NexInstallationAndStartup`
 - `NexToolbarRuntime`
 - `NexPopup`
 - `NexOptionsInformationArchitecture`
@@ -133,127 +229,142 @@ The Nex graph must expose the same user-facing nodes separately from internal ar
 - `NexAppliedDraftBrowserState`
 - `NexLocalizationAndVisuals`
 - `NexExtraSurfaces`
+- `NexInventedTerminologyAndWorkflow`
 
-Internal typed models, snapshots, diagnostics and safety boundaries are implementation nodes. They do not justify changing the original-facing interaction model unless an explicit accepted divergence exists.
+Internal architecture nodes are recorded separately and never count as user-facing parity by themselves.
 
 ### 5.3 Mapping edge types
 
 | Edge | Meaning |
 | --- | --- |
 | `EXACT_EQUIVALENT` | Same observable behavior and compatible data result. |
-| `MODERNIZED_EQUIVALENT` | Browser/API implementation changed but user contract remains equivalent. |
-| `INTENTIONAL_DIVERGENCE` | Difference is documented, justified and owner accepted. |
+| `MODERNIZED_EQUIVALENT` | Implementation changed, but the user contract and mental model remain equivalent. |
+| `INTENTIONAL_DIVERGENCE` | Difference is necessary, evidenced, minimized and owner accepted. |
 | `MISSING_IN_NEX` | Original behavior is absent. |
 | `BROKEN_IN_NEX` | Behavior exists but fails or produces incompatible state. |
-| `EXTRA_IN_NEX` | Nex adds user-visible workflow or explanatory UI not required by the original. |
+| `EXTRA_IN_NEX` | Nex adds visible behavior not present in the original. |
+| `UNJUSTIFIED_INVENTION` | Nex behavior or UI was created without original evidence or owner approval. |
 | `UNKNOWN` | Evidence is insufficient. |
 
-## 6. Initial owner-reported defect register
+## 6. Reopened defect register
 
-| ID | Area | Original contract | Observed Nex result | Current status | Delivery requirement |
+| ID | Area | Original contract | Observed Nex result | Status | Delivery requirement |
 | --- | --- | --- | --- | --- | --- |
-| `KG-ICON-001` | Browser toolbar icon | Icon and visible toolbar state change with the current profile/runtime situation; Popup identity matches the original interaction model. | Nex background currently has no toolbar icon state controller; icon/UI remain inconsistent. | `FAILED` | Capture every original icon/badge/title state, implement a deterministic state machine, and verify transitions in real Chromium and Firefox. |
-| `KG-IMPORT-001` | Original backup import | A real exported original configuration imports and can be used directly without manual reconstruction. | Owner reports original export still cannot be imported and used directly. Existing acceptance relies heavily on synthetic fixtures and internal Draft transactions. | `FAILED` | Build a sanitized real-backup corpus, preserve all meaningful fields/references/order/startup state, import into a clean browser and prove direct usability. |
-| `KG-UI-001` | UI layout | Original information density, action hierarchy, dialogs and page workflow remain familiar to an experienced original user. | Layout and UI remain substantially different. | `FAILED` | Produce page-by-page original/Nex annotated comparisons and fix structure before cosmetic polish. |
-| `KG-EXTRA-001` | Explanatory boxes | Normal workflows use the original amount and placement of help text; extra guidance appears only where required by a real capability boundary. | Nex contains many unnecessary description/help boxes that alter density and workflow. | `FAILED` | Inventory every user-visible explanatory block; remove, collapse or relocate every block without an original or accepted-divergence justification. |
-| `KG-FLOW-001` | General behavior | Normal actions, state transitions and terminology follow the original mental model. | Owner reports many additional functional and logical mismatches beyond the listed examples. | `FAILED` | Re-audit every user journey; no existing `DONE` row is trusted without owner-facing evidence. |
-| `KG-GOV-001` | Acceptance governance | Completion reflects product parity and real user acceptance. | Automation closure was incorrectly promoted to product completion. | `FAILED` | Separate implementation, automated verification, real-data verification and owner acceptance in all status reporting. |
+| `KG-ICON-001` | Browser toolbar | Icon, title and visible toolbar state follow the current profile/runtime situation. | No complete toolbar state controller; icon and Popup identity differ. | `FAILED` | Capture and implement every original state transition in Chromium and Firefox. |
+| `KG-IMPORT-001` | Original export migration | Original exported files import directly and become immediately usable. | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures. | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations. |
+| `KG-UI-001` | UI structure | Navigation, layout, density, dialogs and actions remain familiar. | Broad structural and interaction differences remain. | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish. |
+| `KG-EXTRA-001` | Extra descriptions | Normal workflows contain only original or necessary accepted guidance. | Many unnecessary description/help boxes change density and workflow. | `FAILED` | Inventory and remove/collapse/relocate every unjustified block. |
+| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown. | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped. | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it. |
+| `KG-FLOW-001` | General behavior | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples. | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows. |
+| `KG-GOV-001` | Acceptance governance | Completion reflects actual parity and owner acceptance. | Automation closure was promoted incorrectly to product completion. | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
 
 ## 7. Delivery order
 
-### Order 0 — invalidate the failed candidate
+### Order 0 — reset false completion
+
+- Keep `M8-OWNER-QC-1` permanently marked failed.
+- Remove completion/candidate language from current status.
+- Treat previous broad matrix results as historical implementation inventory only.
+- Prohibit candidate generation, merge and release.
+
+Acceptance: repository, PR and delivery graph all show the same failed/re-audit state.
+
+### Order 1 — capture the original completely
 
 Deliverables:
 
-- Mark `M8-OWNER-QC-1` as failed owner QC.
-- Remove all language claiming product parity completion or 100% completion.
-- Reopen release blockers and freeze candidate production.
+- complete surface and page inventory;
+- toolbar icon/badge/title transition inventory;
+- Popup states and workflows;
+- Options navigation, controls, dialogs, wording and layout;
+- every profile type and lifecycle operation;
+- every condition type, field and validation rule;
+- import/export schema and runtime-field contract;
+- real original screenshots, recordings, source anchors and exported files.
 
-Acceptance: candidate and PR state clearly say failed/not release-ready.
+Acceptance: every original node is `SOURCE_CAPTURED`; no unknown behavior is omitted or guessed.
 
-### Order 1 — capture the original product completely
-
-Deliverables:
-
-- Page/surface inventory.
-- Toolbar icon/badge/title transition inventory.
-- Popup workflow inventory.
-- Options navigation and dialog inventory.
-- Profile-type and condition-field inventory.
-- Import/export schema and runtime-field inventory.
-- Real original browser screenshots/recordings and source anchors.
-
-Acceptance: every original node is `SOURCE_CAPTURED`; unknown nodes are visible, not omitted.
-
-### Order 2 — capture the current Nex product independently
+### Order 2 — capture current Nex independently
 
 Deliverables:
 
-- Same inventory and recordings using the current branch.
-- Current data transformations for each workflow.
-- Inventory of every extra dialog, description box, warning panel and auxiliary page.
+- matching inventory and recordings of the current branch;
+- current data transformations for each workflow;
+- every extra page, dialog, explanation, warning, taxonomy and auxiliary action;
+- every visible term or state with no original provenance.
 
-Acceptance: every Nex node is `NEX_CAPTURED` without assuming equivalence.
+Acceptance: every Nex node is `NEX_CAPTURED`; extras and inventions are explicit.
 
-### Order 3 — construct the comparison order
+### Order 3 — construct the owner-facing comparison order
 
-Deliverable: one owner-readable table for every original node with original evidence, Nex evidence, gap, required correction and test/QC instructions.
+For every original node, provide:
 
-Acceptance: all nodes are `MAPPED`; no broad row such as “Popup done” can hide sub-behavior gaps.
+- original annotated screenshot/source/steps;
+- Nex annotated screenshot/source/steps;
+- data before/after comparison;
+- mapping edge;
+- defect and required correction;
+- automation and real-data test plan;
+- owner acceptance field.
 
-### Order 4 — fix by complete user journey
+Acceptance: all nodes are `MAPPED`; broad labels such as “Popup done” or “Import done” are prohibited.
+
+### Order 4 — fix complete user journeys
 
 Priority:
 
-1. Install/startup/toolbar state.
-2. Import a real original backup and use it immediately.
-3. Popup selection and current-site/temporary rules.
+1. Installation, startup and toolbar state.
+2. Direct import and immediate use of real original exports.
+3. Popup selection, result state and site/temporary rules.
 4. Options information architecture and Apply/Discard lifecycle.
-5. Fixed/Switch/PAC/Virtual complete editing journeys.
+5. Fixed, Switch, PAC, Virtual and Rule List editing.
 6. Profile lifecycle and exports.
 7. Authentication, ownership, restart and rollback.
-8. Localization, density and visual alignment.
+8. Localization, information density and visual alignment.
 
-Acceptance: each journey passes automation, real data, two-browser checks and owner review before the next candidate.
+Acceptance: each journey passes contract automation, real exports, Chromium/Firefox and owner review.
 
-### Order 5 — real-backup corpus
+### Order 5 — real-export corpus
 
-Required corpus categories:
+Required categories:
 
-- small default export;
+- original default export;
 - multiple Fixed profiles with protocol/auth/bypass variation;
 - complex Switch rules and attached Rule Lists;
-- PAC URL/raw/header/cache states;
+- PAC URL/raw/header states;
 - Virtual and nested references;
-- profile colors/order/quick-switch/startup state;
+- profile colors, ordering, Quick Switch and startup state;
 - schema-v1 and schema-v2 exports;
-- exported backups containing generated/runtime fields;
+- generated/runtime-field variants;
 - configurations previously used by the repository owner.
 
-Every corpus item must record provenance, sanitized hash, expected semantic graph and import result.
+Each item records provenance, sanitized hash, expected semantic graph, browser result and owner verdict.
 
 ### Order 6 — owner-facing delivery package
 
-Each delivery package must include:
+Each package must include:
 
 - exact build identity and hashes;
-- original/Nex side-by-side comparison report;
+- Original/Nex side-by-side comparison report;
 - resolved and unresolved defect register;
-- real-backup compatibility report;
-- Chromium/Firefox results;
+- real-export compatibility report;
+- Chromium and Firefox results;
 - installation and rollback steps;
-- explicit list of intentional divergences;
-- checklist requiring owner `PASS` rather than inferred acceptance.
+- complete list of necessary accepted divergences;
+- complete list of removed Nex inventions/extras;
+- checklist requiring explicit owner `PASS`.
 
 ## 8. Completion rule
 
 The project is 100% complete only when:
 
-- every required original node is mapped;
-- every mismatch is fixed or explicitly owner-accepted as a divergence;
-- representative real original backups import and work directly;
-- toolbar, Popup, Options, all profile journeys, restart, rollback and authentication pass in Chromium and Firefox;
-- extra UI is justified or removed;
-- the repository owner marks the exact final candidate `PASS`.
+- every required original node is captured and mapped;
+- every Nex-only visible element has original provenance or explicit owner approval;
+- every mismatch is fixed or explicitly accepted as a necessary divergence;
+- representative real original exports import directly and work immediately without reconstruction;
+- toolbar, Popup, Options, dialogs, profiles, restart, rollback and authentication pass in Chromium and Firefox;
+- UI and interaction require no material relearning by an experienced original user;
+- unnecessary descriptions and extra workflow are removed;
+- the repository owner marks one exact final candidate `PASS`.
 
-Until then, completion percentage must be reported as **unknown pending full parity audit**, not inferred from test counts.
+Until then, completion must be reported as **unknown pending full parity audit**, never inferred from code volume, test counts or matrix row counts.
