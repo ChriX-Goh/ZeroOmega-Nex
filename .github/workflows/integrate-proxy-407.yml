@@ -12,6 +12,7 @@ on:
       - .github/patches/fix-proxy-407-validator.py
       - .github/patches/fix-proxy-407-types.py
       - .github/patches/fix-proxy-407-target-sentinel.py
+      - .github/patches/diagnose-proxy-407-chromium.py
 
 permissions:
   contents: write
@@ -54,6 +55,7 @@ jobs:
             python .github/patches/fix-proxy-407-validator.py
             python .github/patches/fix-proxy-407-types.py
             python .github/patches/fix-proxy-407-target-sentinel.py
+            python .github/patches/diagnose-proxy-407-chromium.py
           } 2>&1 | tee proxy-407-apply.log
 
       - name: Format and refresh locale inventory
@@ -111,6 +113,7 @@ jobs:
             .github/patches/fix-proxy-407-validator.py \
             .github/patches/fix-proxy-407-types.py \
             .github/patches/fix-proxy-407-target-sentinel.py \
+            .github/patches/diagnose-proxy-407-chromium.py \
             proxy-407-apply.log \
             proxy-407-format.log \
             proxy-407-inventory.log \
