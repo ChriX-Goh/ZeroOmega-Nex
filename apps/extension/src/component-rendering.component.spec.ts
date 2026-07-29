@@ -223,6 +223,64 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).not.toContain('Ordered Switch Profile rules');
   });
 
+  it('renders the exact original advanced condition controls and source-only compatibility states', () => {
+    const ids = idFactory();
+    const created = createSwitchProfileDraft(baseSpec(), ids, 'Condition matrix');
+    created.draft.settings.interface.showAdvancedConditions = true;
+    const profile = created.draft.profiles.find(
+      (candidate) => candidate.id === created.profileId && candidate.kind === 'switch',
+    );
+    if (!profile || profile.kind !== 'switch')
+      throw new Error('Switch condition matrix profile missing');
+    profile.rules = [
+      {
+        id: 'rule-host-warning',
+        condition: { kind: 'host-wildcard', pattern: 'https://example.invalid/' },
+        route: { kind: 'direct' },
+      },
+      {
+        id: 'rule-false-annotation',
+        condition: { kind: 'false', annotation: 'disabled fixture rule' },
+        route: { kind: 'direct' },
+      },
+      {
+        id: 'rule-ip-network',
+        condition: { kind: 'ip', address: '192.0.2.0', prefixLength: 24 },
+        route: { kind: 'direct' },
+      },
+      { id: 'rule-true-source', condition: { kind: 'true' }, route: { kind: 'direct' } },
+      {
+        id: 'rule-bypass-source',
+        condition: { kind: 'bypass', pattern: '<local>' },
+        route: { kind: 'direct' },
+      },
+    ];
+    const body = render(SwitchProfileEditor, {
+      props: {
+        spec: created.draft,
+        profileId: created.profileId,
+        disabled: false,
+        idFactory: ids,
+        onReplaceDraft: replaceDraft,
+        onRegisterBeforeAction: () => undefined,
+        onSourceDirtyChange: () => undefined,
+      },
+    }).body;
+
+    expect(body).toContain('data-switch-condition-selectable-option="host-wildcard"');
+    expect(body).toContain('data-switch-condition-selectable-option="weekday"');
+    expect(body).not.toContain('data-switch-condition-selectable-option="true"');
+    expect(body).not.toContain('data-switch-condition-selectable-option="bypass"');
+    expect(body).toContain('data-switch-source-only-condition-option="true"');
+    expect(body).toContain('data-switch-source-only-condition-option="bypass"');
+    expect(body).toContain('data-switch-normalize-true-condition');
+    expect(body).toContain('data-switch-false-annotation');
+    expect(body).toContain('disabled fixture rule');
+    expect(body).toContain('data-switch-condition-field="ipNetwork"');
+    expect(body).toContain('value="192.0.2.0/24"');
+    expect(body).toContain('data-switch-host-wildcard-warning');
+  });
+
   it('renders the attached Rule List row, configuration, headers, and detach action', () => {
     const ids = idFactory();
     const created = createSwitchProfileDraft(baseSpec(), ids, 'Owner');

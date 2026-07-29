@@ -89,6 +89,18 @@ const [
   readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
 ]);
 
+const [
+  switchConditionCatalog,
+  switchConditionEditor,
+  switchConditionMatrix,
+  switchConditionCatalogTest,
+] = await Promise.all([
+  readFile('apps/extension/src/lib/switch-condition-catalog.ts', 'utf8'),
+  readFile('apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte', 'utf8'),
+  readFile('docs/SWITCH_CONDITION_MATRIX.md', 'utf8'),
+  readFile('apps/extension/src/lib/switch-condition-catalog.test.ts', 'utf8'),
+]);
+
 const failures = [];
 
 function requireAll(documentName, document, tokens) {
@@ -453,6 +465,57 @@ requireAll('parity index', index, [
   'UI_AUDIT_MATRIX.md',
   'PR #11 remains Draft',
 ]);
+
+requireAll('source-backed Switch condition catalog', switchConditionCatalog, [
+  'ORIGINAL_SWITCH_BASIC_CONDITION_GROUPS',
+  'ORIGINAL_SWITCH_ADVANCED_CONDITION_GROUPS',
+  'SOURCE_ONLY_SWITCH_CONDITION_KINDS',
+  "'true'",
+  "'bypass'",
+  "value: 'host-levels'",
+  "value: 'weekday'",
+  "value: 'time'",
+]);
+requireAll('Switch condition field UI', switchConditionEditor, [
+  'data-switch-condition-selectable-option',
+  'data-switch-source-only-condition-option',
+  'data-switch-false-annotation',
+  'data-switch-condition-field="ipNetwork"',
+  'data-switch-host-wildcard-warning',
+  'data-switch-normalize-true-condition',
+]);
+requireAll('Switch condition matrix document', switchConditionMatrix, [
+  'HostWildcardCondition',
+  'IpCondition',
+  'TrueCondition',
+  'BypassCondition',
+  'invalid-regex rejection',
+  'Chromium',
+  'Firefox',
+]);
+requireAll('Switch condition catalog regression', switchConditionCatalogTest, [
+  "['host-wildcard', 'host-regex', 'host-levels', 'ip']",
+  "['weekday', 'time', 'false']",
+  'SOURCE_ONLY_SWITCH_CONDITION_KINDS',
+]);
+requireAll('Switch condition Chromium acceptance', chromiumE2e, [
+  'Source-only True/Bypass conditions leaked into the ordinary original selector',
+  'Strict Apply did not reject the invalid regular expression while preserving Draft',
+  'data-switch-condition-field="ipNetwork"',
+  'Switch source round trip did not restore the weekday field state',
+]);
+requireAll('Switch condition Firefox acceptance', firefoxE2e, [
+  'Firefox ordinary Switch selector exposed source-only conditions',
+  'data-switch-condition-field="ipNetwork"',
+  "'host-wildcard'",
+  "'false'",
+]);
+for (const rowId of ['D-04', 'D-05']) {
+  const row = audit.split('\n').find((line) => line.startsWith(`| ${rowId} `));
+  if (!row || !row.includes('| DONE') || !row.includes('Chromium') || !row.includes('Firefox')) {
+    failures.push(`${rowId} must remain DONE with dual-browser Switch condition evidence`);
+  }
+}
 
 const auditRowLines = audit.split('\n').filter((line) => /^\|\s+[A-J]-\d+\s+\|/u.test(line));
 if (auditRowLines.length < 120) {

@@ -1886,6 +1886,154 @@ try {
     .getByLabel('虚拟情景模式目标', { exact: true })
     .selectOption({ label: 'Created Fixed' });
 
+  await creationOptions.getByRole('button', { name: '界面', exact: true }).click();
+  const advancedConditionsSetting = creationOptions.locator(
+    '[data-show-advanced-conditions-setting]',
+  );
+  await advancedConditionsSetting.waitFor({ state: 'visible', timeout: 20_000 });
+  if (!(await advancedConditionsSetting.isChecked())) await advancedConditionsSetting.check();
+
+  await creationOptions.getByRole('button', { name: 'Created Switch', exact: true }).click();
+  const createdSwitchTable = creationOptions.locator('[data-switch-rules-table]');
+  await createdSwitchTable.waitFor({ state: 'visible', timeout: 20_000 });
+  await createdSwitchTable.locator('.add-condition-row button').click();
+  const conditionRow = createdSwitchTable.locator('[data-switch-rule-row]').first();
+  const conditionSelect = conditionRow.locator('[data-switch-condition-select]');
+  await assertEventually(
+    async () => (await conditionSelect.locator('option').count()) === 10,
+    'Original Switch condition options did not finish rendering',
+  );
+  const originalConditionKinds = await conditionSelect
+    .locator('option')
+    .evaluateAll((options) => options.map((option) => option.value));
+  assert.deepEqual(originalConditionKinds, [
+    'host-wildcard',
+    'host-regex',
+    'host-levels',
+    'ip',
+    'url-wildcard',
+    'url-regex',
+    'keyword',
+    'weekday',
+    'time',
+    'false',
+  ]);
+  assert.equal(
+    await conditionSelect.locator('option[value="true"], option[value="bypass"]').count(),
+    0,
+    'Source-only True/Bypass conditions leaked into the ordinary original selector',
+  );
+
+  const selectCondition = async (kind) => {
+    await conditionSelect.selectOption(kind);
+    await assertEventually(
+      async () => (await conditionSelect.inputValue()) === kind,
+      `Switch condition ${kind} did not become active`,
+    );
+  };
+
+  await selectCondition('host-wildcard');
+  let patternField = conditionRow.locator('[data-switch-condition-field="pattern"]');
+  await patternField.fill('https://wrong.example.invalid/path');
+  await patternField.press('Tab');
+  await conditionRow.locator('[data-switch-host-wildcard-warning]').waitFor({ state: 'visible' });
+  await patternField.fill('*.matrix.example.invalid');
+  await patternField.press('Tab');
+
+  await selectCondition('host-regex');
+  patternField = conditionRow.locator('[data-switch-condition-field="pattern"]');
+  await patternField.fill('[');
+  await patternField.press('Tab');
+  const conditionApply = creationOptions.getByRole('button', { name: '应用选项', exact: true });
+  await assertEventually(
+    async () => !(await conditionApply.isDisabled()),
+    'Invalid regex Draft did not remain available for strict Apply validation',
+  );
+  await conditionApply.click();
+  await creationOptions.locator('.global-error [role="alert"]').waitFor({
+    state: 'visible',
+    timeout: 20_000,
+  });
+  await assertEventually(
+    async () =>
+      creationWorker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        const draftProfile = workflow?.draft?.profiles?.find(
+          (profile) => profile.name === 'Created Switch',
+        );
+        return (
+          workflow !== undefined &&
+          workflow.pendingApply === undefined &&
+          draftProfile?.kind === 'switch' &&
+          draftProfile.rules?.[0]?.condition?.kind === 'host-regex' &&
+          draftProfile.rules[0].condition.pattern === '[' &&
+          !workflow.applied.profiles.some((profile) => profile.name === 'Created Switch')
+        );
+      }),
+    'Strict Apply did not reject the invalid regular expression while preserving Draft',
+    20_000,
+  );
+  await patternField.fill('(^|\\.)matrix\\.example\\.invalid$');
+  await patternField.press('Tab');
+
+  await selectCondition('host-levels');
+  await conditionRow.locator('[data-switch-condition-field="minimumHostLevels"]').fill('2');
+  await conditionRow.locator('[data-switch-condition-field="minimumHostLevels"]').press('Tab');
+  await conditionRow.locator('[data-switch-condition-field="maximumHostLevels"]').fill('4');
+  await conditionRow.locator('[data-switch-condition-field="maximumHostLevels"]').press('Tab');
+
+  await selectCondition('ip');
+  const ipNetwork = conditionRow.locator('[data-switch-condition-field="ipNetwork"]');
+  assert.equal(await ipNetwork.getAttribute('placeholder'), '127.0.0.1/8');
+  await ipNetwork.fill('192.0.2.0/24');
+  await ipNetwork.press('Tab');
+
+  await selectCondition('url-wildcard');
+  patternField = conditionRow.locator('[data-switch-condition-field="pattern"]');
+  await patternField.fill('https://*.assets.example.invalid/*');
+  await patternField.press('Tab');
+
+  await selectCondition('url-regex');
+  patternField = conditionRow.locator('[data-switch-condition-field="pattern"]');
+  await patternField.fill('^https://secure\\.example\\.invalid/');
+  await patternField.press('Tab');
+
+  await selectCondition('keyword');
+  patternField = conditionRow.locator('[data-switch-condition-field="pattern"]');
+  await patternField.fill('matrix-keyword');
+  await patternField.press('Tab');
+
+  await selectCondition('false');
+  await conditionRow.locator('[data-switch-false-condition]').waitFor({ state: 'visible' });
+
+  await selectCondition('weekday');
+  const monday = conditionRow.locator('[data-switch-weekday="mon"]');
+  const friday = conditionRow.locator('[data-switch-weekday="fri"]');
+  assert.equal(await monday.isChecked(), true);
+  await monday.uncheck();
+  await friday.check();
+
+  await selectCondition('time');
+  await conditionRow.locator('[data-switch-condition-field="startHour"]').fill('8');
+  await conditionRow.locator('[data-switch-condition-field="startHour"]').press('Tab');
+  await conditionRow.locator('[data-switch-condition-field="endHour"]').fill('18');
+  await conditionRow.locator('[data-switch-condition-field="endHour"]').press('Tab');
+
+  await creationOptions.locator('[data-switch-source-toggle]').click();
+  const conditionSource = creationOptions.locator('[data-switch-source-editor] textarea');
+  await conditionSource.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.match(await conditionSource.inputValue(), /Time: 8~18 \+direct/u);
+  await conditionSource.fill(
+    '[SwitchyOmega Conditions]\n@with result\n\nWeekday: -M----- +direct\n\n* +direct\n',
+  );
+  await creationOptions.locator('[data-switch-source-toggle]').click();
+  await createdSwitchTable.waitFor({ state: 'visible', timeout: 20_000 });
+  await assertEventually(
+    async () => (await conditionSelect.inputValue()) === 'weekday' && (await monday.isChecked()),
+    'Switch source round trip did not restore the weekday field state',
+  );
+
   await creationOptions.getByRole('button', { name: 'Created Fixed', exact: true }).click();
   const createdFixedTable = creationOptions.locator('[data-fixed-proxy-table]');
   await createdFixedTable.waitFor({ state: 'visible', timeout: 20_000 });
@@ -1923,7 +2071,9 @@ try {
         profiles['Created Virtual']?.kind !== 'virtual' ||
         profiles['Created Virtual'].targetRoute?.kind !== 'profile' ||
         profiles['Created Virtual'].targetRoute.profileId !== profiles['Created Fixed'].id ||
-        profiles['Created Fixed'].proxyByScheme === undefined
+        profiles['Created Fixed'].proxyByScheme === undefined ||
+        profiles['Created Switch'].rules?.[0]?.condition?.kind !== 'weekday' ||
+        !profiles['Created Switch'].rules[0].condition.days?.includes('mon')
       ) {
         return undefined;
       }

@@ -285,6 +285,26 @@ export const typedUiTextCatalog = {
     'zh-TW':
       '所有指向第一個情境模式的規則將改用第二個情境模式；啟動情境模式、快速切換及其他引用也會一併更新。兩個情境模式本身不會被修改或刪除。',
   },
+  'switch.group.compatibility': {
+    en: 'Source compatibility',
+    'zh-CN': '源码兼容',
+    'zh-TW': '原始碼相容',
+  },
+  'switch.condition.sourceOnlyWarning': {
+    en: 'This condition is retained for imported or source-edited profiles, but the original Switch Profile UI does not offer it as a normal selectable type.',
+    'zh-CN': '此条件仅为导入或源码编辑的情景模式保留；原版自动切换界面不会把它作为普通可选类型。',
+    'zh-TW': '此條件僅為匯入或原始碼編輯的情境模式保留；原版自動切換介面不會把它作為一般可選類型。',
+  },
+  'switch.normalizeTrueTitle': {
+    en: 'Normalize Always to the original host wildcard * form',
+    'zh-CN': '将“总是”规范化为原版域名通配符 *',
+    'zh-TW': '將「永遠」正規化為原版網域萬用字元 *',
+  },
+  'switch.condition.hostWildcardWarning': {
+    en: 'A host wildcard containing “:” or “/” is probably a full URL. Use a URL condition instead.',
+    'zh-CN': '域名通配符中包含“:”或“/”时通常表示完整网址，请改用网址条件。',
+    'zh-TW': '網域萬用字元中包含「:」或「/」時通常表示完整網址，請改用網址條件。',
+  },
   'switch.conditionHelp': {
     en: 'Condition help',
     'zh-CN': '条件类型说明',

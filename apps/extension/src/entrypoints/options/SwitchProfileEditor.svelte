@@ -33,6 +33,15 @@
 
   import { currentAppLocale, type AppLocale } from '../../lib/i18n';
   import { uiMessage, uiText, type UiTextKey } from '../../lib/ui-messages';
+  import {
+    ORIGINAL_SWITCH_ADVANCED_CONDITION_GROUPS as advancedConditionGroups,
+    ORIGINAL_SWITCH_BASIC_CONDITION_GROUPS as basicConditionGroups,
+    ORIGINAL_SWITCH_BASIC_CONDITION_KINDS,
+    isOriginalSwitchSelectableConditionKind,
+    isSourceOnlySwitchConditionKind,
+    sourceOnlySwitchConditionLabelKey,
+    type SwitchConditionGroup,
+  } from '../../lib/switch-condition-catalog';
   import AttachedRuleListConfig from './AttachedRuleListConfig.svelte';
   import { readSwitchSourceEditorMode, storeSwitchSourceEditorMode } from './switch-editor-state';
 
@@ -52,118 +61,7 @@
   export let onRegisterBeforeAction: (guard: (() => Promise<boolean>) | undefined) => void;
   export let onSourceDirtyChange: (dirty: boolean) => void;
 
-  interface ConditionKindOption {
-    readonly value: Condition['kind'];
-    readonly labelKey: UiTextKey;
-    readonly helpKey: UiTextKey;
-  }
-
-  interface ConditionGroup {
-    readonly labelKey: UiTextKey;
-    readonly options: readonly ConditionKindOption[];
-  }
-
-  const basicConditionGroups: readonly ConditionGroup[] = [
-    {
-      labelKey: 'switch.group.basic',
-      options: [
-        {
-          value: 'host-wildcard',
-          labelKey: 'switch.condition.hostWildcard',
-          helpKey: 'switch.condition.hostWildcardHelp',
-        },
-        {
-          value: 'url-wildcard',
-          labelKey: 'switch.condition.urlWildcard',
-          helpKey: 'switch.condition.urlWildcardHelp',
-        },
-        {
-          value: 'url-regex',
-          labelKey: 'switch.condition.urlRegex',
-          helpKey: 'switch.condition.urlRegexHelp',
-        },
-        {
-          value: 'false',
-          labelKey: 'switch.condition.never',
-          helpKey: 'switch.condition.neverHelp',
-        },
-      ],
-    },
-  ];
-
-  const advancedConditionGroups: readonly ConditionGroup[] = [
-    {
-      labelKey: 'switch.group.host',
-      options: [
-        {
-          value: 'host-wildcard',
-          labelKey: 'switch.condition.hostWildcard',
-          helpKey: 'switch.condition.hostWildcardHelp',
-        },
-        {
-          value: 'host-regex',
-          labelKey: 'switch.condition.hostRegex',
-          helpKey: 'switch.condition.hostRegexHelp',
-        },
-        {
-          value: 'host-levels',
-          labelKey: 'switch.condition.hostLevels',
-          helpKey: 'switch.condition.hostLevelsHelp',
-        },
-        { value: 'ip', labelKey: 'switch.condition.ip', helpKey: 'switch.condition.ipHelp' },
-        {
-          value: 'bypass',
-          labelKey: 'switch.condition.bypass',
-          helpKey: 'switch.condition.bypassHelp',
-        },
-      ],
-    },
-    {
-      labelKey: 'switch.group.url',
-      options: [
-        {
-          value: 'url-wildcard',
-          labelKey: 'switch.condition.urlWildcard',
-          helpKey: 'switch.condition.urlWildcardHelp',
-        },
-        {
-          value: 'url-regex',
-          labelKey: 'switch.condition.urlRegex',
-          helpKey: 'switch.condition.urlRegexHelp',
-        },
-        {
-          value: 'keyword',
-          labelKey: 'switch.condition.keyword',
-          helpKey: 'switch.condition.keywordHelp',
-        },
-      ],
-    },
-    {
-      labelKey: 'switch.group.special',
-      options: [
-        {
-          value: 'weekday',
-          labelKey: 'switch.condition.weekday',
-          helpKey: 'switch.condition.weekdayHelp',
-        },
-        { value: 'time', labelKey: 'switch.condition.time', helpKey: 'switch.condition.timeHelp' },
-        {
-          value: 'true',
-          labelKey: 'switch.condition.always',
-          helpKey: 'switch.condition.alwaysHelp',
-        },
-        {
-          value: 'false',
-          labelKey: 'switch.condition.never',
-          helpKey: 'switch.condition.neverHelp',
-        },
-      ],
-    },
-  ];
-
-  const basicConditionKinds = new Set(
-    basicConditionGroups.flatMap((group) => group.options.map((option) => option.value)),
-  );
+  const basicConditionKinds = new Set<Condition['kind']>(ORIGINAL_SWITCH_BASIC_CONDITION_KINDS);
 
   const weekdays: readonly { value: Weekday; labelKey: UiTextKey }[] = [
     { value: 'sun', labelKey: 'switch.weekday.sun' },
@@ -187,7 +85,7 @@
   let sourceTouched = false;
   let sourceError: SwitchSourceError | undefined;
   let useAdvancedConditions = false;
-  let conditionGroups: readonly ConditionGroup[] = basicConditionGroups;
+  let conditionGroups: readonly SwitchConditionGroup[] = basicConditionGroups;
   let showNotes = false;
   let hasUrlConditions = false;
   $: profile = spec.profiles.find(
@@ -232,8 +130,12 @@
     return 'pattern' in condition ? condition.pattern : '';
   }
 
-  function conditionAddress(condition: Condition): string {
-    return condition.kind === 'ip' ? condition.address : '';
+  function conditionIpNetwork(condition: Condition): string {
+    return condition.kind === 'ip' ? `${condition.address}/${condition.prefixLength}` : '';
+  }
+
+  function hostWildcardHasWarning(condition: Condition): boolean {
+    return condition.kind === 'host-wildcard' && /[:/]/u.test(condition.pattern);
   }
 
   function conditionNumber(
@@ -332,6 +234,7 @@
   }
 
   async function updateConditionKind(ruleId: string, kind: Condition['kind']): Promise<void> {
+    if (!isOriginalSwitchSelectableConditionKind(kind)) return;
     await mutateRule(ruleId, (rule) => {
       rule.condition = createDefaultSwitchCondition(kind);
       delete rule.enabled;
@@ -355,15 +258,30 @@
     });
   }
 
+  async function normalizeTrueCondition(ruleId: string): Promise<void> {
+    await mutateRule(ruleId, (rule) => {
+      if (rule.condition.kind === 'true') {
+        rule.condition = { kind: 'host-wildcard', pattern: '*' };
+      }
+    });
+  }
+
   async function updateConditionPattern(ruleId: string, pattern: string): Promise<void> {
     await mutateRule(ruleId, (rule) => {
       if ('pattern' in rule.condition) rule.condition.pattern = pattern.trim();
     });
   }
 
-  async function updateIpAddress(ruleId: string, address: string): Promise<void> {
+  async function updateIpNetwork(ruleId: string, network: string): Promise<void> {
+    const normalized = network.trim();
+    const separator = normalized.lastIndexOf('/');
+    const address = separator < 0 ? normalized : normalized.slice(0, separator).trim();
+    const prefix =
+      separator < 0 ? Number.NaN : Number.parseInt(normalized.slice(separator + 1), 10);
     await mutateRule(ruleId, (rule) => {
-      if (rule.condition.kind === 'ip') rule.condition.address = address.trim();
+      if (rule.condition.kind !== 'ip') return;
+      rule.condition.address = address;
+      rule.condition.prefixLength = Number.isInteger(prefix) ? prefix : 0;
     });
   }
 
@@ -653,6 +571,8 @@
                 </td>
                 <td>
                   <select
+                    data-switch-condition-select
+                    data-switch-condition-kind={rule.condition.kind}
                     aria-label={uiMessage(
                       'switch.ruleFieldAria',
                       { index: index + 1, field: 'conditionType' },
@@ -663,10 +583,28 @@
                     on:change={(event) =>
                       updateConditionKind(rule.id, valueFrom(event) as Condition['kind'])}
                   >
+                    {#if isSourceOnlySwitchConditionKind(rule.condition.kind)}
+                      <optgroup
+                        label={uiText('switch.group.compatibility', locale)}
+                        data-switch-source-only-condition-group
+                      >
+                        <option
+                          value={rule.condition.kind}
+                          data-switch-source-only-condition-option={rule.condition.kind}
+                        >
+                          {uiText(sourceOnlySwitchConditionLabelKey(rule.condition.kind), locale)}
+                        </option>
+                      </optgroup>
+                    {/if}
                     {#each conditionGroups as group (group.labelKey)}
                       <optgroup label={uiText(group.labelKey, locale)}>
                         {#each group.options as option (option.value)}
-                          <option value={option.value}>{uiText(option.labelKey, locale)}</option>
+                          <option
+                            value={option.value}
+                            data-switch-condition-selectable-option={option.value}
+                          >
+                            {uiText(option.labelKey, locale)}
+                          </option>
                         {/each}
                       </optgroup>
                     {/each}
@@ -674,12 +612,24 @@
                 </td>
                 <td class="condition-details-cell">
                   {#if rule.condition.kind === 'true'}
-                    <span>{uiText('switch.alwaysMatches', locale)}</span>
+                    <span data-switch-true-condition>{uiText('switch.alwaysMatches', locale)}</span>
                   {:else if rule.condition.kind === 'false'}
-                    <span>{uiText('switch.neverMatches', locale)}</span>
+                    {#if rule.condition.annotation}
+                      <input
+                        data-switch-false-annotation
+                        value={rule.condition.annotation}
+                        disabled
+                        title={rule.condition.annotation}
+                      />
+                    {:else}
+                      <span data-switch-false-condition
+                        >{uiText('switch.neverMatches', locale)}</span
+                      >
+                    {/if}
                   {:else if 'pattern' in rule.condition}
                     <div class="inline-details">
                       <input
+                        data-switch-condition-field="pattern"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'pattern' },
@@ -690,40 +640,35 @@
                         on:change={(event) => updateConditionPattern(rule.id, valueFrom(event))}
                       />
                     </div>
+                    {#if hostWildcardHasWarning(rule.condition)}
+                      <p
+                        class="legacy-source-warning"
+                        role="alert"
+                        data-switch-host-wildcard-warning
+                      >
+                        {uiText('switch.condition.hostWildcardWarning', locale)}
+                      </p>
+                    {/if}
                   {:else if rule.condition.kind === 'ip'}
                     <div class="inline-details ip-details">
                       <input
+                        data-switch-condition-field="ipNetwork"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'ipAddress' },
                           locale,
                         )}
-                        value={conditionAddress(rule.condition)}
-                        placeholder="127.0.0.1"
+                        value={conditionIpNetwork(rule.condition)}
+                        placeholder="127.0.0.1/8"
                         {disabled}
-                        on:change={(event) => updateIpAddress(rule.id, valueFrom(event))}
-                      />
-                      <span>/</span>
-                      <input
-                        class="small-number"
-                        aria-label={uiMessage(
-                          'switch.ruleFieldAria',
-                          { index: index + 1, field: 'prefixLength' },
-                          locale,
-                        )}
-                        type="number"
-                        min="0"
-                        max="128"
-                        value={conditionNumber(rule.condition, 'prefixLength')}
-                        {disabled}
-                        on:change={(event) =>
-                          updateConditionNumber(rule.id, 'prefixLength', valueFrom(event))}
+                        on:change={(event) => updateIpNetwork(rule.id, valueFrom(event))}
                       />
                     </div>
                   {:else if rule.condition.kind === 'host-levels'}
                     <div class="inline-details range-details">
                       <input
                         class="small-number"
+                        data-switch-condition-field="minimumHostLevels"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'minimumHostLevels' },
@@ -740,6 +685,7 @@
                       <span>{uiText('switch.rangeTo', locale)}</span>
                       <input
                         class="small-number"
+                        data-switch-condition-field="maximumHostLevels"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'maximumHostLevels' },
@@ -757,6 +703,7 @@
                   {:else if rule.condition.kind === 'weekday'}
                     <div
                       class="weekday-options"
+                      data-switch-condition-field="weekdays"
                       aria-label={uiMessage(
                         'switch.ruleFieldAria',
                         { index: index + 1, field: 'weekdays' },
@@ -767,6 +714,7 @@
                         <label class="weekday-option">
                           <input
                             type="checkbox"
+                            data-switch-weekday={day.value}
                             checked={conditionWeekdays(rule.condition).includes(day.value)}
                             {disabled}
                             on:change={(event) =>
@@ -780,6 +728,7 @@
                     <div class="inline-details range-details">
                       <input
                         class="small-number"
+                        data-switch-condition-field="startHour"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'startHour' },
@@ -796,6 +745,7 @@
                       <span>{uiText('switch.rangeTo', locale)}</span>
                       <input
                         class="small-number"
+                        data-switch-condition-field="endHour"
                         aria-label={uiMessage(
                           'switch.ruleFieldAria',
                           { index: index + 1, field: 'endHour' },
@@ -810,6 +760,15 @@
                           updateConditionNumber(rule.id, 'endHour', valueFrom(event))}
                       />
                     </div>
+                  {/if}
+                  {#if isSourceOnlySwitchConditionKind(rule.condition.kind)}
+                    <p
+                      class="legacy-source-warning"
+                      role="note"
+                      data-switch-source-only-condition={rule.condition.kind}
+                    >
+                      {uiText('switch.condition.sourceOnlyWarning', locale)}
+                    </p>
                   {/if}
                   {#if hasLegacySourceState(rule)}
                     <p class="legacy-source-warning">
@@ -859,6 +818,17 @@
                       {disabled}
                       on:click={() => duplicateRule(rule.id)}>⧉</button
                     >
+                    {#if rule.condition.kind === 'true'}
+                      <button
+                        type="button"
+                        data-switch-normalize-true-condition
+                        title={uiText('switch.normalizeTrueTitle', locale)}
+                        aria-label={uiText('switch.normalizeTrueTitle', locale)}
+                        {disabled}
+                        on:click={() => normalizeTrueCondition(rule.id)}
+                        >{uiText('switch.normalizeRule', locale)}</button
+                      >
+                    {/if}
                     {#if hasLegacySourceState(rule)}
                       <button
                         type="button"

@@ -133,3 +133,12 @@ A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 ## Session 7 acceptance boundary
 
 Automation alone does not declare a replacement candidate. A valid release requires corrected canonical documentation, proven real browser behavior, a clean exact human-authored Head, no temporary integration residue, and repository-owner acceptance of one consolidated visual artifact and a real complex backup.
+
+## Switch condition matrix closure
+
+- Source-backed ordinary Switch selectors contain exactly 4 basic and 10 advanced entries.
+- `TrueCondition` and `BypassCondition` remain model/source compatibility states, not ordinary selectable UI entries.
+- False annotation, combined IP/CIDR, HostWildcard warning, host-level range, weekday checkboxes, and time range match the original field shapes.
+- Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
+- Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
+- D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.

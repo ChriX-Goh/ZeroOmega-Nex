@@ -533,6 +533,17 @@ try {
   );
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
+  const interfaceAction = await driver.wait(
+    until.elementLocated(By.css('[data-interface-action]')),
+    15_000,
+  );
+  await interfaceAction.click();
+  const advancedConditionsSetting = await driver.wait(
+    until.elementLocated(By.css('[data-show-advanced-conditions-setting]')),
+    15_000,
+  );
+  if (!(await advancedConditionsSetting.isSelected())) await advancedConditionsSetting.click();
+
   const newRuleProfileAction = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-action]')),
     15_000,
@@ -548,15 +559,155 @@ try {
   const createSwitch = await driver.findElement(By.css('[data-new-profile-create]'));
   await driver.wait(until.elementIsEnabled(createSwitch), 10_000);
   await createSwitch.click();
+  await driver.wait(
+    async () => (await driver.findElements(By.css('.new-profile-dialog'))).length === 0,
+    20_000,
+    'Firefox Switch creation dialog did not close',
+  );
+  await driver.wait(
+    until.elementLocated(By.xpath("//h1[normalize-space(.)='Firefox Rule Source E2E']")),
+    20_000,
+  );
+  await driver.wait(
+    async () =>
+      driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.storage.local.get('zeroomega-nex/profile-workflow/v1/state').then((values) => {
+        const workflow = values['zeroomega-nex/profile-workflow/v1/state'];
+        const selected = workflow?.draft?.profiles?.find(
+          (candidate) => candidate.id === workflow?.selectedProfileId,
+        );
+        done(Boolean(
+          selected?.kind === 'switch' &&
+          selected.name === 'Firefox Rule Source E2E' &&
+          selected.attachedRuleListProfileId === undefined
+        ));
+      }, (error) => done(String(error)));
+    `),
+    20_000,
+    'Firefox newly created Switch profile did not settle before condition editing',
+  );
+  const switchRulesTable = await driver.wait(
+    until.elementLocated(By.css('[data-switch-rules-table]')),
+    20_000,
+  );
+  await switchRulesTable.findElement(By.css('.add-condition-row button')).click();
+  const conditionRow = await driver.wait(
+    until.elementLocated(By.css('[data-switch-rule-row]')),
+    15_000,
+  );
+  const conditionSelect = await conditionRow.findElement(By.css('[data-switch-condition-select]'));
+  await driver.wait(
+    async () =>
+      Number(
+        await driver.executeScript(
+          `return arguments[0].querySelectorAll('option').length;`,
+          conditionSelect,
+        ),
+      ) === 10,
+    10_000,
+  );
+  const originalConditionKinds = await driver.executeScript(
+    `return [...arguments[0].querySelectorAll('option')].map((option) => option.value);`,
+    conditionSelect,
+  );
+  assert.deepEqual(originalConditionKinds, [
+    'host-wildcard',
+    'host-regex',
+    'host-levels',
+    'ip',
+    'url-wildcard',
+    'url-regex',
+    'keyword',
+    'weekday',
+    'time',
+    'false',
+  ]);
+  assert.equal(
+    await driver.executeScript(
+      `return arguments[0].querySelectorAll('option[value="true"], option[value="bypass"]').length;`,
+      conditionSelect,
+    ),
+    0,
+    'Firefox ordinary Switch selector exposed source-only conditions',
+  );
+  const firefoxDraftCondition = async () =>
+    driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.storage.local.get('zeroomega-nex/profile-workflow/v1/state').then((values) => {
+        const workflow = values['zeroomega-nex/profile-workflow/v1/state'];
+        const profile = workflow?.draft?.profiles?.find(
+          (candidate) => candidate.name === 'Firefox Rule Source E2E',
+        );
+        done(profile?.kind === 'switch' ? profile.rules?.[0]?.condition : undefined);
+      }, (error) => done({ error: String(error) }));
+    `);
+  const selectFirefoxCondition = async (kind) => {
+    const currentSelect = await driver.wait(
+      until.elementLocated(By.css('[data-switch-rule-row] [data-switch-condition-select]')),
+      10_000,
+    );
+    await setControlValue(currentSelect, kind);
+    await driver.wait(async () => (await firefoxDraftCondition())?.kind === kind, 10_000);
+  };
+
+  await selectFirefoxCondition('ip');
+  const ipNetwork = await driver.wait(
+    until.elementLocated(By.css('[data-switch-condition-field="ipNetwork"]')),
+    10_000,
+  );
+  assert.equal(await ipNetwork.getAttribute('placeholder'), '127.0.0.1/8');
+  await setControlValue(ipNetwork, '198.51.100.0/24');
+  await driver.wait(async () => {
+    const condition = await firefoxDraftCondition();
+    return (
+      condition?.kind === 'ip' &&
+      condition.address === '198.51.100.0' &&
+      condition.prefixLength === 24
+    );
+  }, 10_000);
+  await selectFirefoxCondition('false');
+  await driver.wait(until.elementLocated(By.css('[data-switch-false-condition]')), 10_000);
+  await selectFirefoxCondition('host-wildcard');
+  const hostPattern = await driver.wait(
+    until.elementLocated(By.css('[data-switch-condition-field="pattern"]')),
+    10_000,
+  );
+  await setControlValue(hostPattern, '*.firefox-condition.example.invalid');
+
   const attachRuleListSection = await driver.wait(
     until.elementLocated(By.css('[data-attach-rule-list-section]')),
     20_000,
   );
-  await attachRuleListSection.findElement(By.css('button')).click();
+  await driver.wait(until.elementIsVisible(attachRuleListSection), 10_000);
+  const attachRuleListButton = await attachRuleListSection.findElement(By.css('button'));
+  await driver.wait(until.elementIsEnabled(attachRuleListButton), 10_000);
+  await attachRuleListButton.click();
+  await driver.wait(
+    async () =>
+      driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.storage.local.get('zeroomega-nex/profile-workflow/v1/state').then((values) => {
+        const workflow = values['zeroomega-nex/profile-workflow/v1/state'];
+        const selected = workflow?.draft?.profiles?.find(
+          (candidate) => candidate.id === workflow?.selectedProfileId,
+        );
+        const attached = selected?.attachedRuleListProfileId
+          ? workflow?.draft?.profiles?.find(
+              (candidate) => candidate.id === selected.attachedRuleListProfileId,
+            )
+          : undefined;
+        done(Boolean(selected?.kind === 'switch' && attached?.kind === 'rule-list'));
+      }, (error) => done(String(error)));
+    `),
+    20_000,
+    'Firefox Rule List attachment did not settle in Draft',
+  );
   const attachedRuleList = await driver.wait(
     until.elementLocated(By.css('[data-attached-rule-list-config][data-typed-locale="zh-TW"]')),
     20_000,
   );
+  await driver.wait(until.elementIsVisible(attachedRuleList), 10_000);
   const attachedSourceType = await attachedRuleList.findElement(By.css('select'));
   await setControlValue(attachedSourceType, 'url');
   const attachedUrl = await driver.wait(

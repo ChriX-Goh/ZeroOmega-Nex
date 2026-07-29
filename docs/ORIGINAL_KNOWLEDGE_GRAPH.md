@@ -592,3 +592,12 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - SOCKS DNS semantics remain target-specific: Chromium SOCKS4 resolves client-side and is IPv4-only; Chromium SOCKS5 resolves through the proxy; Firefox keeps its browser-target default. Cross-browser analysis labels these semantics target-dependent.
 - The `ftp` slot is preserved as legacy configuration data and deterministic PAC output. Modern Chromium and Firefox do not produce ordinary browser FTP requests, so the slot is explicitly legacy-inactive rather than removed or falsely advertised as live.
 - ADR-019, compiler warnings, the Fixed capability table, unit tests, compiler evaluation, and Chromium/Firefox E2E jointly own C-05 and C-09 acceptance.
+
+## D-04/D-05 Switch condition knowledge
+
+- Source-backed ordinary Switch selectors contain exactly 4 basic and 10 advanced entries.
+- `TrueCondition` and `BypassCondition` remain model/source compatibility states, not ordinary selectable UI entries.
+- False annotation, combined IP/CIDR, HostWildcard warning, host-level range, weekday checkboxes, and time range match the original field shapes.
+- Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
+- Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
+- D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.

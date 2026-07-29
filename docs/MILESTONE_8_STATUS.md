@@ -120,14 +120,11 @@ Exact workflow evidence is intentionally maintained in PR #11 rather than repeat
 
 ## Honest remaining parity work
 
-The canonical matrix contains 126 rows: `DONE=122`, `PARTIAL=4`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+The canonical matrix contains 126 rows: `DONE=124`, `PARTIAL=2`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 
-Two release-blocking `MUST_MATCH` rows remain:
+No release-blocking `MUST_MATCH` rows remain. D-04 and D-05 are closed by `docs/SWITCH_CONDITION_MATRIX.md`, typed catalog tests, complete Chromium field/Apply/source acceptance, and independent Firefox target acceptance.
 
-1. D-04 — Switch condition-type matrix acceptance.
-2. D-05 — condition-specific fields and Draft/Apply browser acceptance.
-
-Additional open rows:
+The only open rows are non-blocking visual references:
 
 - A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
@@ -141,4 +138,4 @@ Additional open rows:
 
 ## Current next action
 
-Proceed to D-04 and D-05 Switch condition matrix acceptance. Do not request installation of intermediate slices.
+Freeze one consolidated installable candidate, then perform repository-owner visual, real complex-backup, restart-recovery, rollback, and authenticated-route QC in Chromium and Firefox.
