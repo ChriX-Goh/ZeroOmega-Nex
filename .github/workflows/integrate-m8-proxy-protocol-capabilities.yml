@@ -40,6 +40,28 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Align patch with current PAC capability imports
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/patches/apply-m8-proxy-protocol-capabilities.py')
+          text = path.read_text()
+          old = '''"""import { PAC_COMPILER_VERSION } from './contracts.js';
+          """'''
+          new = '''"""import {
+            PAC_COMPILER_VERSION,
+            type PacCapability,
+            type PacCapabilityAnalysis,
+            type PacCapabilityIssue,
+            type PacTarget,
+          } from './contracts.js';
+          """'''
+          if text.count(old) != 1:
+              raise SystemExit(f'PAC capability import patch anchor mismatch: {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
+
       - name: Apply proxy protocol capability slice
         run: python .github/patches/apply-m8-proxy-protocol-capabilities.py
 
