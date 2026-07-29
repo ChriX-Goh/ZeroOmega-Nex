@@ -2,11 +2,6 @@ from pathlib import Path
 
 path = Path('scripts/e2e-firefox.mjs')
 text = path.read_text()
-old_import = "import { Browser, Builder, By, until } from 'selenium-webdriver';"
-new_import = "import { Browser, Builder, By, Key, until } from 'selenium-webdriver';"
-if text.count(old_import) != 1:
-    raise SystemExit(f'Firefox Selenium import mismatch: {text.count(old_import)}')
-text = text.replace(old_import, new_import)
 
 old_runtime = """      const result = {
         manifest: browser.runtime.getManifest(),
@@ -49,8 +44,7 @@ new_port = """  await setControlValue(fallbackServer, authProxy.host);
     10_000,
     'Firefox port input did not re-enable after committing the proxy host',
   );
-  await fallbackPort.clear();
-  await fallbackPort.sendKeys(String(authProxy.port), Key.TAB);
+  await setControlValue(fallbackPort, String(authProxy.port));
   await driver.wait(
     async () => (await fallbackPort.getAttribute('value')) === String(authProxy.port),
     10_000,
