@@ -44,6 +44,11 @@ old_port = """  await setControlValue(fallbackServer, authProxy.host);
   const authenticationButton = await fallbackRow.findElement(
 """
 new_port = """  await setControlValue(fallbackServer, authProxy.host);
+  await driver.wait(
+    until.elementIsEnabled(fallbackPort),
+    10_000,
+    'Firefox port input did not re-enable after committing the proxy host',
+  );
   await fallbackPort.clear();
   await fallbackPort.sendKeys(String(authProxy.port), Key.TAB);
   await driver.wait(
@@ -93,6 +98,7 @@ new = """requireAll('Firefox real proxy challenge', firefoxE2e, [
   "createBasicAuthProxyChallengeServer",
   "permissions: ['webRequest', 'webRequestBlocking']",
   "key.includes('/secret/') ? '<redacted>' : value",
+  'Firefox port input did not re-enable after committing the proxy host',
   'Firefox Fixed editor did not persist the dynamic proxy endpoint before authentication',
   'Firefox proxy never emitted a real 407 challenge',
   'targetAuthorizedCount >= 1',
