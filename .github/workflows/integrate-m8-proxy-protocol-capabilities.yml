@@ -147,6 +147,16 @@ jobs:
           if text.count(old_strings) != 1:
               raise SystemExit(f'Fixed capability string patch anchor mismatch: {text.count(old_strings)}')
           text = text.replace(old_strings, new_strings)
+
+          component_path = "components = Path('apps/extension/src/component-rendering.component.spec.ts')"
+          component_start = text.find(component_path)
+          component_replace = text.find('replace_once(', component_start)
+          component_anchor = text.find('\nanchor = ', component_replace)
+          if component_start == -1 or component_replace == -1 or component_anchor == -1:
+              raise SystemExit(
+                  f'Fixed component prop patch markers missing: path={component_start}, replace={component_replace}, anchor={component_anchor}'
+              )
+          text = text[:component_replace] + text[component_anchor + 1:]
           path.write_text(text)
           PY
 
@@ -168,6 +178,30 @@ jobs:
               raise SystemExit('FixedProfileEditor locale prop shape changed')
           indent = lines[index + 1][: len(lines[index + 1]) - len(lines[index + 1].lstrip())]
           lines.insert(index + 2, f'{indent}browserTarget={{browserTargetCapabilities.target}}')
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Wire target into Fixed component rendering
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/extension/src/component-rendering.component.spec.ts')
+          lines = path.read_text().splitlines()
+          renders = [index for index, line in enumerate(lines) if 'render(FixedProfileEditor' in line]
+          if len(renders) != 1:
+              raise SystemExit(f'FixedProfileEditor render matches: {len(renders)}')
+          start = renders[0]
+          generation_matches = [
+              index
+              for index in range(start, min(start + 20, len(lines)))
+              if lines[index].strip() == 'generation: 0,'
+          ]
+          if len(generation_matches) != 1:
+              raise SystemExit(f'Fixed component generation matches: {len(generation_matches)}')
+          index = generation_matches[0]
+          indent = lines[index][: len(lines[index]) - len(lines[index].lstrip())]
+          lines.insert(index + 1, f"{indent}browserTarget: 'firefox',")
           path.write_text('\n'.join(lines) + '\n')
           PY
 
