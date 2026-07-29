@@ -1,0 +1,105 @@
+name: Integrate M8 PAC target capability
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-m8-pac-target-capability.yml
+      - .github/patches/apply-m8-pac-target-capability.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-m8-pac-target-capability-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply PAC target capability slice
+        run: python .github/patches/apply-m8-pac-target-capability.py
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/lib/browser-target-capabilities.ts \
+            apps/extension/src/lib/browser-target-capabilities.test.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/NewProfileDialog.svelte \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+
+      - name: Verify repository
+        run: pnpm verify
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Chromium E2E candidate
+        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+
+      - name: Run PAC capability Chromium E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee pac-target-capability-chromium.log
+
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-pac-target-capability-evidence
+          path: pac-target-capability-chromium.log
+          if-no-files-found: warn
+
+      - name: Commit verified product slice and remove integration machinery
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/integrate-m8-pac-target-capability.yml
+          git rm -f .github/patches/apply-m8-pac-target-capability.py
+          git add apps/extension/src/lib/browser-target-capabilities.ts \
+            apps/extension/src/lib/browser-target-capabilities.test.ts \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/entrypoints/options/NewProfileDialog.svelte \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+          git commit -m 'feat: gate PAC creation by browser target capability'
+          git push origin HEAD:feat/m8-profile-workflow
