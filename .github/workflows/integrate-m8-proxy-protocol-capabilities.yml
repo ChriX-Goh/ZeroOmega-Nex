@@ -62,21 +62,15 @@ jobs:
               raise SystemExit(f'PAC capability import patch anchor mismatch: {text.count(old_import)}')
           text = text.replace(old_import, new_import)
 
-          old_call_patch = '''replace_once(
+          start_marker = '''replace_once(
               capabilities,
-              """        endpointCapability(endpoint, `${path}/proxyByScheme/${slot}`, addIssue);
-          """,
-              """        endpointCapability(
-                endpoint,
-                `${path}/proxyByScheme/${slot}`,
-                target,
-                slot as FixedProxySlot,
-                addIssue,
-              );
-          """,
-              'target-aware endpoint analysis call',
-          )'''
-          new_call_patch = '''replace_once(
+              """        endpointCapability'''
+          end_marker = "\n\ncompiler_tests = Path('packages/pac-compiler/src/compiler.test.ts')"
+          start = text.find(start_marker)
+          end = text.find(end_marker, start)
+          if start == -1 or end == -1:
+              raise SystemExit(f'endpoint traversal markers missing: start={start}, end={end}')
+          replacement = '''replace_once(
               capabilities,
               """  const visitEndpoint = (endpointId: string, path: string): void => {
               if (visitedEndpoints.has(endpointId)) return;
@@ -138,9 +132,7 @@ jobs:
           """,
               'target-aware Fixed slot traversal',
           )'''
-          if text.count(old_call_patch) != 1:
-              raise SystemExit(f'endpoint traversal patch anchor mismatch: {text.count(old_call_patch)}')
-          path.write_text(text.replace(old_call_patch, new_call_patch))
+          path.write_text(text[:start] + replacement + text[end:])
           PY
 
       - name: Apply proxy protocol capability slice
