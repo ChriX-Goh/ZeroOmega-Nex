@@ -6,7 +6,11 @@ old = """  const originalConditionKinds = await conditionSelect
     .locator('option[data-switch-condition-selectable-option]')
     .evaluateAll((options) => options.map((option) => option.value));
 """
-new = """  const originalConditionKinds = await conditionSelect
+new = """  await assertEventually(
+    async () => (await conditionSelect.locator('option').count()) === 10,
+    'Original Switch condition options did not finish rendering',
+  );
+  const originalConditionKinds = await conditionSelect
     .locator('option')
     .evaluateAll((options) => options.map((option) => option.value));
 """
@@ -23,5 +27,21 @@ new = """    `return [...arguments[0].querySelectorAll('option')].map((option) =
 """
 if text.count(old) != 1:
     raise SystemExit(f'Firefox option reader matches: {text.count(old)}')
-firefox.write_text(text.replace(old, new))
-print('Changed browser Switch matrix checks to read real option values.')
+text = text.replace(old, new)
+anchor = """  const originalConditionKinds = await driver.executeScript(
+"""
+wait = """  await driver.wait(
+    async () =>
+      Number(
+        await driver.executeScript(
+          `return arguments[0].querySelectorAll('option').length;`,
+          conditionSelect,
+        ),
+      ) === 10,
+    10_000,
+  );
+"""
+if text.count(anchor) != 1:
+    raise SystemExit(f'Firefox option wait anchor matches: {text.count(anchor)}')
+firefox.write_text(text.replace(anchor, wait + anchor))
+print('Wait for the ten real browser Switch options before reading their values.')
