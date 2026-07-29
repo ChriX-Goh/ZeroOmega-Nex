@@ -40,7 +40,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Isolate moving control documents from product patch
+      - name: Normalize moving prose and generated guard token
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -54,7 +54,17 @@ jobs:
               "checkpoint = Path('docs/MILESTONE_8_SESSION_7_CHECKPOINT.md')\n"
               "candidate = Path('docs/MILESTONE_8_RELEASE_CANDIDATE.md')\n\n"
           )
-          path.write_text(text[:start] + replacement + text[end:])
+          text = text[:start] + replacement + text[end:]
+          lines = text.splitlines()
+          matches = [
+              index
+              for index, line in enumerate(lines)
+              if line.strip().startswith('"locator(') and 'data-new-profile-kind' in line
+          ]
+          if len(matches) != 1:
+              raise SystemExit(f'PAC validator token matches: {len(matches)}')
+          lines[matches[0]] = '  "\'data-new-profile-kind\'",'
+          path.write_text('\n'.join(lines) + '\n')
           PY
 
       - name: Apply PAC target capability slice
