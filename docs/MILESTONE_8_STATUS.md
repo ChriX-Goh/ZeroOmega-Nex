@@ -58,7 +58,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
   - targets without writable `proxy.settings` fail closed.
 - Component rendering covers supported and unsupported capability metadata; real Chromium Options injection proves the unsupported radio state and warning.
 - Imported and attached Rule List compatibility without exposing Rule List as a normal creation type.
-- Fixed fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned credentials.
+- Fixed fallback/HTTP/HTTPS/FTP table, all original protocol choices, target-specific transport/authentication/DNS capability matrix, legacy-inactive FTP request explanation, bypass, inherited placeholders, and background-owned credentials.
 - Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
 - Complete Virtual target and reference-replacement transaction.
 - Original profile-header Rename action and independent validated dialog, including Apply-before-dialog and attached Rule List/source rename transactions.
@@ -118,17 +118,15 @@ Exact workflow evidence is intentionally maintained in PR #11 rather than repeat
 
 ## Honest remaining parity work
 
-The canonical matrix contains 126 rows: `DONE=120`, `PARTIAL=6`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+The canonical matrix contains 126 rows: `DONE=122`, `PARTIAL=4`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 
-Three release-blocking `MUST_MATCH` rows remain:
+Two release-blocking `MUST_MATCH` rows remain:
 
-1. C-09 — protocol/target capability matrix.
-2. D-04 — Switch condition-type matrix acceptance.
-3. D-05 — condition-specific fields and Draft/Apply browser acceptance.
+1. D-04 — Switch condition-type matrix acceptance.
+2. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
 Additional open rows:
 
-- C-05 remains `UNCERTAIN` for modern Chromium/Firefox FTP behavior.
 - A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
 ## Remaining release gates
@@ -141,4 +139,4 @@ Additional open rows:
 
 ## Current next action
 
-Proceed to C-09 protocol/target capability acceptance. Do not request installation of intermediate slices.
+Proceed to D-04 and D-05 Switch condition matrix acceptance. Do not request installation of intermediate slices.

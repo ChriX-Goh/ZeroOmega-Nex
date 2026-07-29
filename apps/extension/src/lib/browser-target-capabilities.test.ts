@@ -8,6 +8,15 @@ describe('browser target capabilities', () => {
     set: () => undefined,
   };
 
+  it('records the independently selected Chromium or Firefox target', () => {
+    expect(inspectBrowserTargetCapabilities({ settings: proxySettings }, 'chromium').target).toBe(
+      'chromium',
+    );
+    expect(inspectBrowserTargetCapabilities({ settings: proxySettings }, 'firefox').target).toBe(
+      'firefox',
+    );
+  });
+
   it('supports PAC profiles through writable proxy.settings', () => {
     expect(inspectBrowserTargetCapabilities({ settings: proxySettings }).pacProfiles).toEqual({
       supported: true,

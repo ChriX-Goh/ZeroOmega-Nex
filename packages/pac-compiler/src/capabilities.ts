@@ -14,6 +14,11 @@ import {
   type PacCapabilityIssue,
   type PacTarget,
 } from './contracts.js';
+import {
+  fixedProxySlotCapability,
+  proxyProtocolCapability,
+  type FixedProxySlot,
+} from './proxy-capabilities.js';
 
 function containsNonAscii(value: string): boolean {
   for (const character of value) {
@@ -88,41 +93,96 @@ function conditionPathCapability(
   }
 }
 
+function issue(
+  code: string,
+  path: string,
+  capability: PacCapability,
+  severity: PacCapabilityIssue['severity'],
+  blocking: boolean,
+  message: string,
+): PacCapabilityIssue {
+  return { code, path, capability, severity, blocking, message };
+}
+
 function endpointCapability(
   endpoint: ProxyEndpoint,
   path: string,
+  target: PacTarget,
+  slot: FixedProxySlot,
   addIssue: (issue: PacCapabilityIssue) => void,
 ): void {
-  if (containsNonAscii(endpoint.host)) {
-    addIssue({
-      code: 'endpoint.host-needs-ascii',
-      path: `${path}/host`,
-      capability: 'target-dependent',
-      severity: 'warning',
-      blocking: true,
-      message:
-        'PAC proxy endpoints require an ASCII hostname; IDN conversion must be verified before compilation.',
-    });
+  const slotCapability = fixedProxySlotCapability(slot, target);
+  if (slotCapability.request === 'browser-request-removed') {
+    addIssue(
+      issue(
+        'fixed-slot.ftp-browser-request-removed',
+        path,
+        'unsupported',
+        'info',
+        false,
+        'The FTP slot is preserved for original backup round-trip, but modern Chromium and Firefox no longer issue browser FTP requests.',
+      ),
+    );
   }
 
-  if (endpoint.credential !== undefined) {
-    addIssue({
-      code: 'endpoint.authentication-external',
-      path: `${path}/credential`,
-      capability: 'exact',
-      severity: 'info',
-      blocking: false,
-      message:
-        'PAC selects this endpoint, while proxy authentication is handled by the browser adapter.',
-    });
+  const protocolCapability = proxyProtocolCapability(endpoint.protocol, target);
+  if (protocolCapability.semantics === 'target-dependent') {
+    addIssue(
+      issue(
+        `endpoint.${endpoint.protocol}-dns-target-dependent`,
+        path,
+        'target-dependent',
+        'warning',
+        false,
+        `${endpoint.protocol.toUpperCase()} DNS behavior differs between Chromium and Firefox targets.`,
+      ),
+    );
   }
+
+  if (containsNonAscii(endpoint.host)) {
+    addIssue(
+      issue(
+        'endpoint.host-needs-ascii',
+        `${path}/host`,
+        'target-dependent',
+        'warning',
+        true,
+        'PAC proxy endpoints require an ASCII hostname; IDN conversion must be verified before compilation.',
+      ),
+    );
+  }
+
+  if (!endpoint.credential) return;
+  if (protocolCapability.authentication === 'unsupported') {
+    addIssue(
+      issue(
+        'endpoint.socks-authentication-unsupported',
+        `${path}/credential`,
+        'unsupported',
+        'error',
+        true,
+        'Browser-only PAC activation does not support SOCKS credentials.',
+      ),
+    );
+    return;
+  }
+  addIssue(
+    issue(
+      'endpoint.authentication-external',
+      `${path}/credential`,
+      'exact',
+      'info',
+      false,
+      'HTTP/HTTPS proxy credentials are handled by the bounded browser 407 challenge adapter and are never embedded in PAC output.',
+    ),
+  );
 }
 
 function strongestCapability(issues: readonly PacCapabilityIssue[]): PacCapability {
-  if (issues.some((issue) => issue.blocking && issue.capability === 'unsupported')) {
+  if (issues.some((entry) => entry.blocking && entry.capability === 'unsupported')) {
     return 'unsupported';
   }
-  if (issues.some((issue) => issue.blocking && issue.capability === 'target-dependent')) {
+  if (issues.some((entry) => entry.blocking && entry.capability === 'target-dependent')) {
     return 'target-dependent';
   }
   return 'exact';
@@ -168,9 +228,7 @@ export function analyzePacCompatibility(
     visitProfile(route.profileId, path);
   };
 
-  const visitEndpoint = (endpointId: string, path: string): void => {
-    if (visitedEndpoints.has(endpointId)) return;
-    visitedEndpoints.add(endpointId);
+  const visitEndpoint = (endpointId: string, path: string, slot: FixedProxySlot): void => {
     const endpoint = endpointById.get(endpointId);
     if (!endpoint) {
       addIssue({
@@ -183,12 +241,10 @@ export function analyzePacCompatibility(
       });
       return;
     }
+    endpointCapability(endpoint, path, target, slot, addIssue);
+    if (visitedEndpoints.has(endpointId)) return;
+    visitedEndpoints.add(endpointId);
     reachableEndpointIds.push(endpointId);
-    endpointCapability(
-      endpoint,
-      `/proxyEndpoints/${spec.proxyEndpoints.indexOf(endpoint)}`,
-      addIssue,
-    );
   };
 
   const visitProfile = (profileId: string, referencePath: string): void => {
@@ -244,7 +300,11 @@ export function analyzePacCompatibility(
       case 'fixed':
         for (const [slot, endpointId] of Object.entries(profile.proxyByScheme)) {
           if (endpointId !== undefined)
-            visitEndpoint(endpointId, `${profilePath}/proxyByScheme/${slot}`);
+            visitEndpoint(
+              endpointId,
+              `${profilePath}/proxyByScheme/${slot}`,
+              slot as FixedProxySlot,
+            );
         }
         for (const [index, bypass] of profile.bypass.entries()) {
           conditionPathCapability(

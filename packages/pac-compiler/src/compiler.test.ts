@@ -99,6 +99,54 @@ describe('deterministic PAC compiler', () => {
     expect(allowed.artifact.capability).toBe('target-dependent');
   });
 
+  it('emits the complete protocol directive matrix and reports the inactive FTP slot', async () => {
+    const spec = await importedFixture('minimal-profile-types.json');
+    const result = compilePac(spec, profileRoute(spec, 'fixed'), { target: 'chromium' });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.issues, null, 2));
+
+    expect(result.artifact.script).toContain('PROXY proxy.example.invalid:8080');
+    expect(result.artifact.script).toContain('HTTPS proxy.example.invalid:8443');
+    expect(result.artifact.script).toContain('SOCKS4 127.0.0.1:1081');
+    expect(result.artifact.script).toContain('SOCKS5 127.0.0.1:1080');
+    expect(
+      evaluatePacScript(result.artifact.script, {
+        url: 'ftp://legacy.example.invalid/file',
+        host: 'legacy.example.invalid',
+      }),
+    ).toBe('SOCKS4 127.0.0.1:1081');
+    expect(
+      evaluatePacScript(result.artifact.script, {
+        url: 'custom://fallback.example.invalid/',
+        host: 'fallback.example.invalid',
+      }),
+    ).toBe('SOCKS5 127.0.0.1:1080');
+    expect(result.analysis.issues.map((entry) => entry.code)).toContain(
+      'fixed-slot.ftp-browser-request-removed',
+    );
+  });
+
+  it('blocks SOCKS credentials before browser mutation', async () => {
+    const spec = await importedFixture('minimal-profile-types.json');
+    const fixed = spec.profiles.find((profile) => profile.name === 'fixed');
+    if (!fixed || fixed.kind !== 'fixed') throw new Error('fixed fixture missing');
+    const fallback = spec.proxyEndpoints.find(
+      (endpoint) => endpoint.id === fixed.proxyByScheme.fallback,
+    );
+    if (!fallback) throw new Error('fallback endpoint missing');
+    fallback.credential = {
+      username: 'unsupported-socks-user',
+      passwordSecretRef: 'secret-socks-unsupported',
+    };
+
+    const result = compilePac(spec, profileRoute(spec, 'fixed'), { target: 'firefox' });
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected SOCKS credential rejection');
+    expect(result.issues.map((entry) => entry.code)).toContain(
+      'endpoint.socks-authentication-unsupported',
+    );
+  });
+
   it('never serializes proxy credentials or secret references into PAC output', async () => {
     const spec = await importedFixture('credentials-and-headers.redacted.json');
     const result = compilePac(spec, profileRoute(spec, 'authenticated-proxy'));

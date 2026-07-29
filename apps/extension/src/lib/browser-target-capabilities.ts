@@ -9,6 +9,7 @@ export interface PacProfileCapability {
 }
 
 export interface BrowserTargetCapabilities {
+  readonly target: 'chromium' | 'firefox';
   readonly pacProfiles: PacProfileCapability;
 }
 
@@ -29,9 +30,11 @@ function callable(value: unknown): boolean {
 
 export function inspectBrowserTargetCapabilities(
   proxyApi: BrowserProxyApiProbe | undefined,
+  target: BrowserTargetCapabilities['target'] = 'chromium',
 ): BrowserTargetCapabilities {
   if (callable(proxyApi?.register) || callable(proxyApi?.registerProxyScript)) {
     return {
+      target,
       pacProfiles: {
         supported: false,
         reason: 'proxy-script-registration',
@@ -41,6 +44,7 @@ export function inspectBrowserTargetCapabilities(
 
   if (!callable(proxyApi?.settings?.get) || !callable(proxyApi?.settings?.set)) {
     return {
+      target,
       pacProfiles: {
         supported: false,
         reason: 'missing-proxy-settings',
@@ -49,6 +53,7 @@ export function inspectBrowserTargetCapabilities(
   }
 
   return {
+    target,
     pacProfiles: {
       supported: true,
       reason: 'proxy-settings',
@@ -61,5 +66,12 @@ export function currentBrowserTargetCapabilities(): BrowserTargetCapabilities {
     typeof browser === 'undefined'
       ? undefined
       : (browser.proxy as unknown as BrowserProxyApiProbe | undefined);
-  return inspectBrowserTargetCapabilities(proxyApi);
+  const manifest =
+    typeof browser === 'undefined'
+      ? undefined
+      : (browser.runtime.getManifest() as { browser_specific_settings?: { gecko?: unknown } });
+  const target: BrowserTargetCapabilities['target'] = manifest?.browser_specific_settings?.gecko
+    ? 'firefox'
+    : 'chromium';
+  return inspectBrowserTargetCapabilities(proxyApi, target);
 }

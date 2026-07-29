@@ -44,20 +44,20 @@
 
 ## C. FixedProfile
 
-| ID   | 界面/功能          | 原版源码                 | 原版布局与行为                              | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                                     | 下一步                |
-| ---- | ------------------ | ------------------------ | ------------------------------------------- | ---------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| C-01 | 代理服务器表格     | `profile_fixed.jade`     | 表格而非单行表单                            | MUST_MATCH | DONE     | COMPLETE | 已恢复默认/HTTP/HTTPS/FTP 表格；Chromium E2E 验证结构                                                                                                                                         | 保持                  |
-| C-02 | 默认/后备代理行    | 同上                     | 第一行覆盖未独立设置的 scheme               | MUST_MATCH | DONE     | COMPLETE | fallback 为第一行；DIRECT 表示不使用代理                                                                                                                                                      | 保持                  |
-| C-03 | HTTP 行            | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口；Chromium E2E 已覆盖                                                                                                                                             | 保持                  |
-| C-04 | HTTPS 行           | 同上                     | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口                                                                                                                                                                  | 浏览器巡查            |
-| C-05 | FTP 行/目标差异    | 同上                     | 原版包含 scheme 行；现代支持需核对          | UNCERTAIN  | PARTIAL  | COMPLETE | UI 已恢复；Chromium/Firefox 对 FTP 请求与现代代理 API 的真实行为仍需能力测试                                                                                                                  | 双浏览器能力测试      |
-| C-06 | 高级行折叠         | 同上                     | 默认隐藏，展开后显示                        | MUST_MATCH | DONE     | COMPLETE | 无高级映射时默认折叠；已有映射自动展开                                                                                                                                                        | 保持                  |
-| C-07 | 继承值 placeholder | 同上                     | 未设置行显示 fallback host/port placeholder | MUST_MATCH | DONE     | COMPLETE | 未单独设置时禁用输入并显示 fallback 值                                                                                                                                                        | 保持                  |
-| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`   | 锁形按钮打开认证编辑                        | MUST_MATCH | DONE     | COMPLETE | 对话框、后台秘密存储、用户名初始焦点与权限 fail-closed 已验证；受控 Basic 代理在 Chromium/Firefox 均真实返回 407，扩展经 `onAuthRequired` 提供凭据后目标页面成功加载；原始授权头不记录/不输出 | 保持双浏览器 407 回归 |
-| C-09 | 协议选项限制       | `fixed_profile.coffee`   | 按 scheme/target 提供允许协议               | MUST_MATCH | PARTIAL  | COMPLETE | 原版协议项已恢复；HTTP/HTTPS Basic 认证已双浏览器实证，SOCKS 认证明确拒绝；其余 scheme/target 组合尚缺完整能力矩阵                                                                            | 完成能力矩阵          |
-| C-10 | Bypass 独立区块    | `profile_fixed.jade`     | 帮助、链接、多行输入                        | MUST_MATCH | DONE     | COMPLETE | 原版标题、帮助、链接与多行输入已恢复                                                                                                                                                          | 保持                  |
-| C-11 | 默认 bypass        | `default_options.coffee` | 127.0.0.1 / [::1] / localhost               | MUST_MATCH | DONE     | N/A      | 新建 Fixed 显式测试三条原版默认值                                                                                                                                                             | 保持                  |
-| C-12 | 初始示例 proxy     | `default_options.coffee` | 示例只能是示例，不能冒充用户配置            | MUST_MATCH | DONE     | N/A      | 新建及首次运行均为空代理；Chromium E2E 验证示例只为 placeholder                                                                                                                               | 保持                  |
+| ID   | 界面/功能          | 原版源码                  | 原版布局与行为                              | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                                     | 下一步                 |
+| ---- | ------------------ | ------------------------- | ------------------------------------------- | ---------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| C-01 | 代理服务器表格     | `profile_fixed.jade`      | 表格而非单行表单                            | MUST_MATCH | DONE     | COMPLETE | 已恢复默认/HTTP/HTTPS/FTP 表格；Chromium E2E 验证结构                                                                                                                                         | 保持                   |
+| C-02 | 默认/后备代理行    | 同上                      | 第一行覆盖未独立设置的 scheme               | MUST_MATCH | DONE     | COMPLETE | fallback 为第一行；DIRECT 表示不使用代理                                                                                                                                                      | 保持                   |
+| C-03 | HTTP 行            | 同上                      | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口；Chromium E2E 已覆盖                                                                                                                                             | 保持                   |
+| C-04 | HTTPS 行           | 同上                      | 可独立协议/host/port/auth                   | MUST_MATCH | DONE     | COMPLETE | 独立映射、端口默认、认证入口                                                                                                                                                                  | 浏览器巡查             |
+| C-05 | FTP scheme         | `proxy_scheme.jade`       | 有该行                                      | UNCERTAIN  | DONE     | N/A      | ADR-019：保留 ftp:// 行及导入/导出/PAC 往返；现代 Chromium/Firefox 已移除浏览器 FTP 请求，故明确标记为 legacy-inactive，不宣称真实浏览流量；双浏览器 UI 与编译器能力矩阵固定该边界            | 保持 ADR 与目标回归    |
+| C-06 | 高级行折叠         | 同上                      | 默认隐藏，展开后显示                        | MUST_MATCH | DONE     | COMPLETE | 无高级映射时默认折叠；已有映射自动展开                                                                                                                                                        | 保持                   |
+| C-07 | 继承值 placeholder | 同上                      | 未设置行显示 fallback host/port placeholder | MUST_MATCH | DONE     | COMPLETE | 未单独设置时禁用输入并显示 fallback 值                                                                                                                                                        | 保持                   |
+| C-08 | 每 scheme 认证     | `fixed_auth_edit.jade`    | 锁形按钮打开认证编辑                        | MUST_MATCH | DONE     | COMPLETE | 对话框、后台秘密存储、用户名初始焦点与权限 fail-closed 已验证；受控 Basic 代理在 Chromium/Firefox 均真实返回 407，扩展经 `onAuthRequired` 提供凭据后目标页面成功加载；原始授权头不记录/不输出 | 保持双浏览器 407 回归  |
+| C-09 | 协议能力限制说明   | 原版行为 + 浏览器目标证据 | 不假设所有协议/认证/DNS 在目标间完全等价    | MUST_MATCH | DONE     | COMPLETE | typed 协议×目标×槽位矩阵覆盖 PROXY/HTTPS/SOCKS4/SOCKS5、HTTP(S) 407、SOCKS 认证拒绝、Chromium/Firefox DNS 差异及 FTP 请求移除；Fixed UI、编译器、单测与双浏览器 E2E 已闭环                    | 保持矩阵与双浏览器回归 |
+| C-10 | Bypass 独立区块    | `profile_fixed.jade`      | 帮助、链接、多行输入                        | MUST_MATCH | DONE     | COMPLETE | 原版标题、帮助、链接与多行输入已恢复                                                                                                                                                          | 保持                   |
+| C-11 | 默认 bypass        | `default_options.coffee`  | 127.0.0.1 / [::1] / localhost               | MUST_MATCH | DONE     | N/A      | 新建 Fixed 显式测试三条原版默认值                                                                                                                                                             | 保持                   |
+| C-12 | 初始示例 proxy     | `default_options.coffee`  | 示例只能是示例，不能冒充用户配置            | MUST_MATCH | DONE     | N/A      | 新建及首次运行均为空代理；Chromium E2E 验证示例只为 placeholder                                                                                                                               | 保持                   |
 
 ## D. SwitchProfile 与附属 RuleList
 
@@ -188,8 +188,8 @@
 ## 当前结论
 
 - **BROKEN / MISSING / UNVERIFIED：0。** 先前关于辅助页面翻译、在线恢复、视觉证据和真实 407 的结论已过期并完成纠正。
-- **仍开放的 MUST_MATCH：3 项。** C-09 协议能力矩阵、D-04 条件类型矩阵、D-05 条件字段矩阵。
-- **UNCERTAIN：1 项。** C-05 FTP scheme 的现代双浏览器能力。
+- **仍开放的 MUST_MATCH：2 项。** D-04 条件类型矩阵、D-05 条件字段矩阵。
+- **UNCERTAIN 开放项：0。** C-05 已通过 ADR-019 解析为“保留兼容数据，但现代浏览器请求能力已移除”。
 - **REFERENCE：2 项保持 PARTIAL。** A-14 原版像素皮肤与 I-11 Popup 精确尺寸不阻断功能闭环，但进入 owner 视觉评审。
 - PR #11 必须继续保持 Draft，直到开放 MUST_MATCH 完成或形成明确范围决定，并由仓库所有者接受一个全新 consolidated candidate。
 
@@ -213,3 +213,4 @@
 | 2026-07-29 | 完成独立全新 Chromium 工作区内 Fixed/Switch/PAC/Virtual 四类统一 New Profile 创建、专属编辑器、Draft 与 Apply 闭环；开放 MUST_MATCH 降至 5 项                                 |
 | 2026-07-29 | 完成 PAC 目标能力信号：原版 proxy-script-registration 不支持分支、缺失 proxy.settings 的 fail-closed、当前目标支持分支及 Chromium 真实 UI 禁用验证；开放 MUST_MATCH 降至 4 项 |
 | 2026-07-29 | 恢复原版 Profile 页头 Rename 动作与独立对话框；完成 Apply-before-dialog、名称校验、Draft/Apply、附属 Rule List/源事务及 Chromium/Firefox 回归；开放 MUST_MATCH 降至 3 项      |
+| 2026-07-29 | 完成代理协议×浏览器目标×URL 槽位能力矩阵、SOCKS DNS/认证边界及现代 FTP 请求移除决定；C-05/C-09 关闭，开放 MUST_MATCH 降至 2 项                                                |

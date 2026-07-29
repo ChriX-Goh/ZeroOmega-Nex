@@ -1522,6 +1522,7 @@
       {#if fixedProfile}
         <FixedProfileEditor
           {locale}
+          browserTarget={browserTargetCapabilities.target}
           spec={state.draft}
           profileId={fixedProfile.id}
           generation={state.generation}

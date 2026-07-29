@@ -21,6 +21,19 @@ export {
 } from './contracts.js';
 export { normalizePacProxyHost, pacDirective, pacStringLiteral } from './escape.js';
 export {
+  FIXED_PROXY_SLOTS,
+  PROXY_PROTOCOLS,
+  fixedProxySlotCapability,
+  proxyProtocolCapability,
+  type FixedProxySlot,
+  type FixedProxySlotCapability,
+  type FixedSlotRequestCapability,
+  type ProxyAuthenticationCapability,
+  type ProxyDnsCapability,
+  type ProxyProtocol,
+  type ProxyProtocolCapability,
+} from './proxy-capabilities.js';
+export {
   createPacEvaluator,
   evaluatePacScript,
   type PacEvaluationRequest,

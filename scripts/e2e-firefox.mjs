@@ -216,6 +216,29 @@ try {
       15_000,
     );
     await driver.wait(until.elementIsVisible(profileHeading), 15_000);
+    const firefoxProtocolCapabilities = await driver.wait(
+      until.elementLocated(
+        By.css('[data-fixed-protocol-capabilities][data-browser-target="firefox"]'),
+      ),
+      15_000,
+    );
+    assert.equal(
+      (await firefoxProtocolCapabilities.findElements(By.css('[data-proxy-protocol-capability]')))
+        .length,
+      4,
+    );
+    assert.match(
+      await firefoxProtocolCapabilities
+        .findElement(By.css('[data-fixed-ftp-capability]'))
+        .getText(),
+      /不再發出瀏覽器 FTP 請求/u,
+    );
+    const protocolValues = await driver.executeScript(`
+      return [...document.querySelector('[data-proxy-scheme="fallback"] [data-proxy-field="protocol"]').options]
+        .map((option) => option.value)
+        .filter(Boolean);
+    `);
+    assert.deepEqual(protocolValues, ['http', 'https', 'socks4', 'socks5']);
   } catch (error) {
     await logDiagnostics('Options initialization');
     console.error(`[Firefox Options source] ${(await driver.getPageSource()).slice(0, 20_000)}`);

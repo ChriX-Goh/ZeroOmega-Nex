@@ -28,7 +28,7 @@ The initial failure showed extension control and a PAC containing the expected p
 
 - `scripts/validate-parity-docs.mjs` now parses the Nex-status column relative to the classification column instead of counting status-like text in unrelated columns.
 - The validator no longer forces `PARTIAL`, `MISSING`, or `UNVERIFIED` rows to stay non-zero.
-- The canonical matrix now honestly reports `DONE=120`, `PARTIAL=6`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+- The canonical matrix now honestly reports `DONE=122`, `PARTIAL=4`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 - PR #11, status, candidate gate, matrix, knowledge graph, and this checkpoint are synchronized by exact product checkpoints rather than stale moving Heads.
 - Obsolete candidate pointers and one-off integration machinery are removed after verified product commits.
 
@@ -79,6 +79,16 @@ Integration run `30418355127` committed product Head `4233e45340ea0d1185e87270aa
 - Chromium verifies Apply-before-dialog, all validation branches, Draft isolation, navigation/header updates, and final Apply. Firefox verifies the independent dialog and final Apply.
 - B-03 is `DONE`; release-blocking `MUST_MATCH` rows fall from four to three.
 
+### Proxy protocol and browser-target capability acceptance
+
+- A typed PAC-compiler matrix covers every original protocol across Chromium, Firefox, and cross-browser analysis.
+- HTTP and HTTPS map to `PROXY` and `HTTPS` and use the bounded 407 authentication adapter.
+- SOCKS4 and SOCKS5 map to their native PAC directives, reject credentials before browser mutation, and expose target-specific DNS behavior rather than claiming false cross-browser identity.
+- All original protocol choices remain available in every Fixed row; the URL slot and proxy transport remain separate concepts as in original ZeroOmega.
+- The original `ftp` slot is preserved for import/export and deterministic PAC round-trip, while ADR-019 records that modern Chromium and Firefox no longer issue browser FTP requests.
+- Unit, compiler, component, Chromium, Firefox, and permanent parity guards cover the matrix.
+- C-05 and C-09 are `DONE`; release-blocking `MUST_MATCH` rows fall from three to two.
+
 ## Direction and scope assessment
 
 No major product or architectural drift was found. Milestone 8 still rebuilds the familiar ZeroOmega v3.5.0 workflow on typed ProfileSpec, deterministic PAC, immutable snapshots, and atomic browser adapters.
@@ -105,13 +115,12 @@ Rounded progress toward the first stable replacement release is **97%**. Pure en
 
 ## Remaining canonical work
 
-Three release-blocking `MUST_MATCH` rows remain:
+Two release-blocking `MUST_MATCH` rows remain:
 
-1. C-09 — protocol/target capability matrix.
-2. D-04 — Switch condition-type matrix acceptance.
-3. D-05 — condition-specific fields and Draft/Apply browser acceptance.
+1. D-04 — Switch condition-type matrix acceptance.
+2. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
-C-05 remains `UNCERTAIN` for modern FTP behavior. A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
+A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
 ## Ordered next actions
 

@@ -57,6 +57,7 @@ These remain verification evidence, not a consolidated owner-QC candidate, becau
 - Fixed, Switch, PAC, and Virtual normal profile creation, including one unified fresh-workspace browser chain;
 - target-dependent PAC creation support and unsupported-state explanation;
 - original profile-header Rename action, independent validation dialog, and attached Rule List/source rename transaction;
+- typed proxy protocol/browser-target/slot capability matrix, SOCKS authentication and DNS boundaries, and legacy-inactive FTP request decision;
 - imported and attached Rule List workflows;
 - Draft/Applied/snapshot/browser-state separation;
 - original schema-v1/v2 import, bounded online review, and byte-identical export round trip;
@@ -69,13 +70,12 @@ These remain verification evidence, not a consolidated owner-QC candidate, becau
 
 ## Open candidate blockers
 
-Three release-blocking `MUST_MATCH` rows remain:
+Two release-blocking `MUST_MATCH` rows remain:
 
-1. C-09 — protocol/target capability matrix.
-2. D-04 — Switch condition-type matrix acceptance.
-3. D-05 — condition-specific fields and Draft/Apply browser acceptance.
+1. D-04 — Switch condition-type matrix acceptance.
+2. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
-C-05 remains `UNCERTAIN` for modern Chromium/Firefox FTP behavior. A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
+A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
 ## Candidate freeze prerequisites
 

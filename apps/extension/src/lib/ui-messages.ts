@@ -1766,6 +1766,75 @@ export const typedUiTextCatalog = {
     'zh-CN': '此备份包含不支持或无效的项目。请展开上方技术迁移详情。',
     'zh-TW': '此備份包含不支援或無效的項目。請展開上方技術移轉詳情。',
   },
+  'fixed.capability.title': {
+    en: 'Protocol capabilities',
+    'zh-CN': '协议能力',
+    'zh-TW': '通訊協定能力',
+  },
+  'fixed.capability.help': {
+    en: 'ZeroOmega keeps every original protocol choice in every proxy row. The table below states the real browser-target transport, authentication, and DNS boundaries.',
+    'zh-CN':
+      'ZeroOmega 在每个代理行中保留原版全部协议选项。下表明确当前浏览器目标的传输、认证与 DNS 边界。',
+    'zh-TW':
+      'ZeroOmega 在每個代理列中保留原版全部通訊協定選項。下表明確目前瀏覽器目標的傳輸、驗證與 DNS 邊界。',
+  },
+  'fixed.capability.target': { en: 'Browser target', 'zh-CN': '浏览器目标', 'zh-TW': '瀏覽器目標' },
+  'fixed.capability.targetChromium': { en: 'Chromium', 'zh-CN': 'Chromium', 'zh-TW': 'Chromium' },
+  'fixed.capability.targetFirefox': { en: 'Firefox', 'zh-CN': 'Firefox', 'zh-TW': 'Firefox' },
+  'fixed.capability.pacDirective': {
+    en: 'PAC directive',
+    'zh-CN': 'PAC 指令',
+    'zh-TW': 'PAC 指令',
+  },
+  'fixed.capability.transport': { en: 'Transport', 'zh-CN': '传输', 'zh-TW': '傳輸' },
+  'fixed.capability.transportSupported': {
+    en: 'Supported',
+    'zh-CN': '支持',
+    'zh-TW': '支援',
+  },
+  'fixed.capability.authentication407': {
+    en: 'HTTP 407 challenge',
+    'zh-CN': 'HTTP 407 挑战认证',
+    'zh-TW': 'HTTP 407 挑戰驗證',
+  },
+  'fixed.capability.authenticationUnsupported': {
+    en: 'Not supported in browser-only PAC mode',
+    'zh-CN': '浏览器纯 PAC 模式不支持',
+    'zh-TW': '瀏覽器純 PAC 模式不支援',
+  },
+  'fixed.capability.dns': { en: 'DNS behavior', 'zh-CN': 'DNS 行为', 'zh-TW': 'DNS 行為' },
+  'fixed.capability.dnsProtocolDefault': {
+    en: 'Proxy protocol default',
+    'zh-CN': '遵循代理协议默认行为',
+    'zh-TW': '遵循代理通訊協定預設行為',
+  },
+  'fixed.capability.dnsClientIpv4': {
+    en: 'Client-side IPv4 resolution',
+    'zh-CN': '客户端解析，仅 IPv4',
+    'zh-TW': '用戶端解析，僅 IPv4',
+  },
+  'fixed.capability.dnsProxySide': {
+    en: 'Proxy-side resolution',
+    'zh-CN': '代理端解析',
+    'zh-TW': '代理端解析',
+  },
+  'fixed.capability.dnsBrowserDefault': {
+    en: 'Firefox target default',
+    'zh-CN': 'Firefox 目标默认行为',
+    'zh-TW': 'Firefox 目標預設行為',
+  },
+  'fixed.capability.dnsTargetDependent': {
+    en: 'Differs by browser target',
+    'zh-CN': '因浏览器目标而异',
+    'zh-TW': '依瀏覽器目標而異',
+  },
+  'fixed.capability.ftpRemoved': {
+    en: 'The ftp:// row is preserved for original backup round-trip. Modern Chromium and Firefox no longer issue browser FTP requests, so this row does not route normal browser traffic.',
+    'zh-CN':
+      'ftp:// 行仅为原版备份往返兼容而保留。现代 Chromium 与 Firefox 已不再发起浏览器 FTP 请求，因此此行不会路由普通浏览流量。',
+    'zh-TW':
+      'ftp:// 列僅為原版備份往返相容而保留。現代 Chromium 與 Firefox 已不再發出瀏覽器 FTP 請求，因此此列不會路由一般瀏覽流量。',
+  },
   'fixed.proxyServers': { en: 'Proxy servers', 'zh-CN': '代理服务器', 'zh-TW': '代理伺服器' },
   'fixed.scheme': { en: 'Scheme', 'zh-CN': '网址协议', 'zh-TW': '網址協定' },
   'fixed.protocol': { en: 'Protocol', 'zh-CN': '协议', 'zh-TW': '通訊協定' },

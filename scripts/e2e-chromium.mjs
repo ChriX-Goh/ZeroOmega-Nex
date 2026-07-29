@@ -218,6 +218,18 @@ try {
 
   const fixedTable = options.locator('[data-fixed-proxy-table]');
   await fixedTable.waitFor({ state: 'visible' });
+  const chromiumProtocolCapabilities = options.locator(
+    '[data-fixed-protocol-capabilities][data-browser-target="chromium"]',
+  );
+  await chromiumProtocolCapabilities.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(
+    await chromiumProtocolCapabilities.locator('[data-proxy-protocol-capability]').count(),
+    4,
+  );
+  assert.match(
+    await chromiumProtocolCapabilities.locator('[data-fixed-ftp-capability]').innerText(),
+    /不再发起浏览器 FTP 请求/u,
+  );
   await options.getByRole('heading', { name: '代理服务器', exact: true }).waitFor();
   assert.equal(await fixedTable.locator('[data-proxy-scheme]').count(), 1);
   const fallbackRow = fixedTable.locator('[data-proxy-scheme="fallback"]');
@@ -1874,6 +1886,25 @@ try {
     .getByLabel('虚拟情景模式目标', { exact: true })
     .selectOption({ label: 'Created Fixed' });
 
+  await creationOptions.getByRole('button', { name: 'Created Fixed', exact: true }).click();
+  const createdFixedTable = creationOptions.locator('[data-fixed-proxy-table]');
+  await createdFixedTable.waitFor({ state: 'visible', timeout: 20_000 });
+  await createdFixedTable.locator('[data-proxy-action="show-advanced"]').click();
+  const createdProtocolMatrix = [
+    ['http', 'https', 'matrix-https.invalid', '8443'],
+    ['https', 'socks4', 'matrix-socks4.invalid', '1080'],
+    ['ftp', 'socks5', 'matrix-socks5.invalid', '1081'],
+    ['fallback', 'http', 'matrix-http.invalid', '8080'],
+  ];
+  for (const [scheme, protocol, host, port] of createdProtocolMatrix) {
+    const row = createdFixedTable.locator(`[data-proxy-scheme="${scheme}"]`);
+    await row.locator('[data-proxy-field="protocol"]').selectOption(protocol);
+    await row.locator('[data-proxy-field="server"]').fill(host);
+    await row.locator('[data-proxy-field="server"]').press('Tab');
+    await row.locator('[data-proxy-field="port"]').fill(port);
+    await row.locator('[data-proxy-field="port"]').press('Tab');
+  }
+
   const createdProfileIds = await assertEventuallyValue(async () => {
     return creationWorker.evaluate(async () => {
       const key = 'zeroomega-nex/profile-workflow/v1/state';
@@ -1891,7 +1922,23 @@ try {
         profiles['Created PAC']?.kind !== 'pac' ||
         profiles['Created Virtual']?.kind !== 'virtual' ||
         profiles['Created Virtual'].targetRoute?.kind !== 'profile' ||
-        profiles['Created Virtual'].targetRoute.profileId !== profiles['Created Fixed'].id
+        profiles['Created Virtual'].targetRoute.profileId !== profiles['Created Fixed'].id ||
+        profiles['Created Fixed'].proxyByScheme === undefined
+      ) {
+        return undefined;
+      }
+      const fixed = profiles['Created Fixed'];
+      const protocols = Object.fromEntries(
+        Object.entries(fixed.proxyByScheme).map(([scheme, endpointId]) => [
+          scheme,
+          workflow.draft.proxyEndpoints.find((endpoint) => endpoint.id === endpointId)?.protocol,
+        ]),
+      );
+      if (
+        protocols.fallback !== 'http' ||
+        protocols.http !== 'https' ||
+        protocols.https !== 'socks4' ||
+        protocols.ftp !== 'socks5'
       ) {
         return undefined;
       }

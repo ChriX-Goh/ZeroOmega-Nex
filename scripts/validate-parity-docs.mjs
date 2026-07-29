@@ -75,6 +75,20 @@ const [
   readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
 ]);
 
+const [
+  proxyProtocolCapabilities,
+  pacProtocolCapabilities,
+  fixedProtocolEditor,
+  protocolBrowserTargetCapabilities,
+  protocolComponentRendering,
+] = await Promise.all([
+  readFile('packages/pac-compiler/src/proxy-capabilities.ts', 'utf8'),
+  readFile('packages/pac-compiler/src/capabilities.ts', 'utf8'),
+  readFile('apps/extension/src/entrypoints/options/FixedProfileEditor.svelte', 'utf8'),
+  readFile('apps/extension/src/lib/browser-target-capabilities.ts', 'utf8'),
+  readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
+]);
+
 const failures = [];
 
 function requireAll(documentName, document, tokens) {
@@ -237,6 +251,63 @@ requireAll('controlled proxy challenge server', proxyChallengeServer, [
   'zeroomega-auth-target.test',
   'data-proxy-auth-success',
 ]);
+
+requireAll('proxy protocol target matrix', proxyProtocolCapabilities, [
+  'PROXY_PROTOCOLS',
+  'FIXED_PROXY_SLOTS',
+  "'web-request-407'",
+  "'client-ipv4-only'",
+  "'proxy-side'",
+  "'browser-target-default'",
+  "'browser-request-removed'",
+]);
+requireAll('PAC protocol capability enforcement', pacProtocolCapabilities, [
+  'fixed-slot.ftp-browser-request-removed',
+  'endpoint.socks-authentication-unsupported',
+  'dns-target-dependent',
+]);
+requireAll('Fixed protocol capability UI', fixedProtocolEditor, [
+  'data-fixed-protocol-capabilities',
+  'data-browser-target',
+  'data-proxy-protocol-capability',
+  'data-fixed-ftp-capability',
+  'fixedProxySlotCapability',
+  'proxyProtocolCapability',
+]);
+requireAll('browser family capability', protocolBrowserTargetCapabilities, [
+  "target: 'chromium' | 'firefox'",
+  'browser_specific_settings',
+]);
+requireAll('protocol capability component rendering', protocolComponentRendering, [
+  'data-fixed-protocol-capabilities',
+  'data-browser-target="firefox"',
+  'browser FTP requests',
+]);
+requireAll('protocol capability Chromium acceptance', chromiumE2e, [
+  'data-fixed-protocol-capabilities',
+  'matrix-socks4.invalid',
+  'matrix-socks5.invalid',
+  "protocols.ftp !== 'socks5'",
+]);
+requireAll('protocol capability Firefox acceptance', firefoxE2e, [
+  'data-fixed-protocol-capabilities',
+  'data-browser-target="firefox"',
+  "['http', 'https', 'socks4', 'socks5']",
+]);
+requireAll('FTP and protocol decision', decisions, [
+  'ADR-019',
+  'browser FTP requests',
+  'SOCKS credentials remain unsupported',
+]);
+
+const ftpRow = audit.split('\n').find((line) => line.startsWith('| C-05 '));
+const protocolRow = audit.split('\n').find((line) => line.startsWith('| C-09 '));
+if (!ftpRow || !ftpRow.includes('| DONE') || !ftpRow.includes('ADR-019')) {
+  failures.push('C-05 must remain DONE with ADR-019 modern FTP resolution');
+}
+if (!protocolRow || !protocolRow.includes('| DONE') || !protocolRow.includes('Chromium/Firefox')) {
+  failures.push('C-09 must remain DONE with dual-browser protocol matrix evidence');
+}
 
 requireAll('Profile Rename workflow operation', profileOperations, [
   'renameProfileDraft',

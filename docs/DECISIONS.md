@@ -194,6 +194,18 @@ This file records decisions that materially affect product behavior, compatibili
 
 **Consequences:** G-15 is DONE as an intentional divergence. Production manifests continue to request only ordinary `storage`; no product path writes credentials to browser-synchronized storage. Future browser-native sync, if any, must default to non-secret metadata, define quotas and conflict semantics, and require an explicit encrypted-secret ADR before credentials or recovery material can cross devices.
 
+## ADR-019 — Preserve original protocol choices while exposing modern browser limits
+
+**Status:** Accepted
+
+**Decision:** Fixed Profiles retain the original four URL slots (`fallback`, `http`, `https`, and `ftp`) and all four proxy protocol choices (HTTP, HTTPS, SOCKS4, and SOCKS5) in every row. Browser-target capability is reported separately. HTTP and HTTPS authentication uses the bounded 407 adapter; SOCKS credentials remain unsupported in PAC-first browser-only mode. The `ftp` slot is preserved for import/export and deterministic PAC round-trip, but modern Chromium and Firefox no longer issue browser FTP requests.
+
+**Reason:** Original ZeroOmega deliberately allowed any proxy protocol in any URL row. Restricting the editor by an invented slot/protocol pairing would break compatibility. Conversely, showing all choices without the real authentication, DNS, and browser-request boundaries would imply capabilities the browser cannot deliver. Chromium SOCKS4 uses client-side IPv4 resolution, Chromium SOCKS5 uses proxy-side resolution, and Firefox retains target-specific behavior; these differences must remain visible rather than being hidden behind a false cross-browser abstraction.
+
+**Alternatives considered:** Removing the FTP row was rejected because it would lose original backup information and change round-trip exports. Pretending FTP remains a live browser request scheme was rejected because both target browsers removed it. Adding a global Firefox `proxy.onRequest` listener solely to recover optional SOCKS credentials or DNS flags was rejected under ADR-005 because it would reintroduce request-time proxy decisions. Restricting HTTP rows to HTTP proxies and HTTPS rows to HTTPS proxies was rejected because it contradicts the original controller and browser proxy model.
+
+**Consequences:** The PAC compiler owns a typed protocol/target matrix and emits stable warnings for cross-target SOCKS DNS differences and legacy-inactive FTP slots. The Fixed editor displays the exact target, PAC directive, transport, authentication, and DNS behavior. SOCKS credentials fail before browser mutation. C-05 is resolved as a modern-browser capability decision, and C-09 is accepted only with unit, compiler, component, Chromium, and Firefox evidence.
+
 ## ADR template
 
 ```markdown

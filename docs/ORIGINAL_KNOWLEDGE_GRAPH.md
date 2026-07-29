@@ -583,3 +583,12 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Rename validation is shared semantically with New Profile: trimmed non-empty names, reserved `direct`/`system` and `__` rejection, case-insensitive conflict detection, and informational single-underscore hidden names.
 - Profile IDs and all route references remain stable. Renaming a Switch atomically renames its hidden `__ruleListOf_...` profile and associated Rule Source without changing IDs.
 - Chromium covers Apply-before-dialog, validation, Draft isolation, navigation/header convergence, and Apply; Firefox covers the independent dialog and Apply. Workflow unit tests cover ordinary, attached-resource, and invalid-name transactions.
+
+### Fixed proxy protocol and browser-target capability matrix
+
+- Original Fixed Profile rows are URL routing slots, not restrictions on proxy transport. Every slot retains HTTP, HTTPS, SOCKS4, and SOCKS5 choices.
+- PAC directives are stable: HTTP → `PROXY`, HTTPS → `HTTPS`, SOCKS4 → `SOCKS4`, SOCKS5 → `SOCKS5`.
+- HTTP/HTTPS credentials are external to PAC and handled only by the bounded real-407 adapter. SOCKS credentials are rejected before browser proxy mutation.
+- SOCKS DNS semantics remain target-specific: Chromium SOCKS4 resolves client-side and is IPv4-only; Chromium SOCKS5 resolves through the proxy; Firefox keeps its browser-target default. Cross-browser analysis labels these semantics target-dependent.
+- The `ftp` slot is preserved as legacy configuration data and deterministic PAC output. Modern Chromium and Firefox do not produce ordinary browser FTP requests, so the slot is explicitly legacy-inactive rather than removed or falsely advertised as live.
+- ADR-019, compiler warnings, the Fixed capability table, unit tests, compiler evaluation, and Chromium/Firefox E2E jointly own C-05 and C-09 acceptance.
