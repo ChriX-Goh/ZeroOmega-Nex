@@ -3,10 +3,23 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; no installable replacement candidate  
-**Integrated product Head:** `8c0d4ce735d0f59cec80442667442a8160dfc182`  
-**Product integration:** run `30414496421`, rerun job `90458570753`, passed and committed the product slice  
+**Integrated product Head:** `febb7dcd8a5455bd31c499a88bf450039bc4a67b`  
+**Exact verified Head:** `a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`  
 **Estimated first replacement-release progress:** 96%  
-**Current-head rule:** use PR #11 and exact GitHub Actions runs for the moving branch Head; this document records the latest accepted product checkpoint.
+**Current-head rule:** use PR #11 and exact GitHub Actions runs for the moving branch Head; this document records the latest accepted checkpoint.
+
+## Exact verification evidence
+
+At Head `a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`:
+
+- CI `30416573442` passed full verification, tests, dual-target builds, inspection, packaging, and artifact upload.
+- Browser E2E `30416573430` passed Chromium, Firefox, and headed native Chromium Inspect.
+- Parity Documentation `30416573424` passed 126 rows: `DONE=118`, `PARTIAL=8`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+- Milestone 8 Visual Evidence `30416573395` passed all 24 light/dark × zh-CN/zh-TW captures.
+- Build artifact `browser-builds`, ID `8710375259`, digest `sha256:a61770c9e6e1860e8acb5692282984bf72257713b06c85b1abd95b45f5c0b34c`.
+- Visual artifact `m8-visual-evidence-a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`, ID `8710369376`, digest `sha256:67a660e2ee1421590759e310347a5a17a34065a2446042570b5d8e5bb61743c6`.
+
+These are verification artifacts only. No consolidated owner-QC candidate is declared while `MUST_MATCH` rows remain open.
 
 ## Acceptance authority
 
@@ -25,7 +38,7 @@ All previously frozen Milestone 8 candidates and artifacts are obsolete. None ma
 
 ## Objective
 
-Rebuild the familiar ZeroOmega v3.5.0 interface and profile workflow on top of the typed ProfileSpec, deterministic PAC compiler, immutable snapshot, and atomic Chromium/Firefox browser-adapter architecture.
+Rebuild the familiar ZeroOmega v3.5.0 interface and profile workflow on top of typed ProfileSpec, deterministic PAC compilation, immutable snapshots, and atomic Chromium/Firefox browser adapters.
 
 An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation and configuration model without inheriting the original secret-storage, browser-sync, or rollback weaknesses.
 
@@ -39,7 +52,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 6. Production diagnostics never auto-start and never collect headers, bodies, cookies, credentials, query strings, fragments, or response content.
 7. Failed compilation, permission, installation, confirmation, or rollback cannot silently replace the previous confirmed state.
 8. Chromium and Firefox remain independent capability targets with separate builds and browser tests.
-9. Temporary integration patches and generated diagnostic residue must be removed after the verified product commit.
+9. Temporary integration patches and generated diagnostic residue are removed after each verified product commit.
 10. PR #11 remains Draft until every `MUST_MATCH` row is `DONE + VERIFIED` or receives an explicit documented scope decision, and repository-owner QC accepts one consolidated candidate.
 
 ## Verified delivered scope
@@ -48,7 +61,8 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 
 - Full-tab Options with Settings, Profiles, and Actions.
 - Independent General, Interface, Import/Export, Theme, Snapshot History, Built-in Profiles, About, New Profile, and type-specific profile pages.
-- Fixed, Switch, PAC, and Virtual as the four normal creation types, with one isolated Chromium chain creating all four through the real New Profile dialog and committing them through normal Apply.
+- Fixed, Switch, PAC, and Virtual as the four normal creation types.
+- One isolated Chromium chain creates all four through the real New Profile dialog, verifies type-specific editors and typed Draft state, points Virtual at the new Fixed profile, and commits through normal Apply.
 - Imported and attached Rule List compatibility without exposing Rule List as a normal creation type.
 - Fixed fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned credentials.
 - Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
@@ -79,7 +93,6 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Direct typed English, Simplified Chinese, and Traditional Chinese across normal Options, profiles, Popup, Temporary Rules, Network, Import, History, Theme, dialogs, dynamic messages, placeholders, titles, and ARIA.
 - Locale inventory reports zero untranslated user-visible candidates and is guarded by verification.
 - Permanent visual workflow captures light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network.
-- Exact visual artifact at product Head `1eb20d1d57cc53887d5d53df7963b8e85709ea24`: run `30407814012`, artifact ID `8707237406`, artifact digest `sha256:c61b7ea58e8dccd59fb1e0a628af6b9fec2303a824ab070f730ed08d354e30f2`, manifest digest `176dcfbbb0e1c152f8c16016be98c8ffd2ca78b46fe981e56e7ce422d2160206`.
 
 ### Real Chromium and Firefox proxy authentication
 
@@ -100,38 +113,36 @@ Integration run `30414496421`, rerun job `90458570753`, verified and committed H
 - ADR-017: WebDAV synchronization is `NOT_PORTING` for the first release and requires a separate crash-safe, HTTPS-oriented design.
 - ADR-018: original credential-bearing browser `storage.sync` behavior is an `INTENTIONAL_DIVERGENCE`; Nex does not propagate Gist tokens or WebDAV passwords through browser sync.
 
-## Automated acceptance state
-
-The integrated product slice passed:
-
-- architecture and UI compatibility guards;
-- corrected parity-document validation across 126 classified rows;
-- ESLint, Prettier, workspace type checks, and `svelte-check --fail-on-warnings` with zero errors and zero warnings;
-- unit, integration, and component-rendering tests;
-- manifest, MV3 CSP, build, inspection, packaging, and dual-browser checks;
-- complete Chromium and Firefox E2E, including genuine 407 authentication;
-- temporary patch cleanup and automatic product commit.
-
-The bot-authored integration commit produced `action_required` workflow shells with no jobs. A human-authored reconciliation Head must therefore run fresh exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence before candidate preparation.
-
 ## Honest remaining parity work
 
-The matrix reconciliation must preserve genuine open items rather than converting them into paperwork closure:
+Eight rows remain `PARTIAL`:
 
-- target-dependent PAC-disable wiring in the New Profile dialog;
-- original-style Rename action/dialog parity;
-- modern browser FTP/protocol capability edges;
-- final Switch condition-type and condition-field matrix acceptance;
-- non-blocking reference-level visual differences such as exact Popup dimensions.
+### Five release-blocking `MUST_MATCH` rows
+
+1. A-12 — connect target-dependent PAC unsupported state to the New Profile dialog and prove it in-browser.
+2. B-03 — restore original-style Rename action/dialog parity or record a justified product decision.
+3. C-09 — finish the protocol/target capability matrix.
+4. D-04 — complete the original Switch condition-type matrix acceptance.
+5. D-05 — complete condition-specific field/control and Draft/Apply browser acceptance.
+
+### One `UNCERTAIN` row
+
+- C-05 — modern Chromium/Firefox FTP scheme behavior.
+
+### Two non-blocking `REFERENCE` rows
+
+- A-14 — exact original skin.
+- I-11 — exact Popup dimensions and pixels.
 
 ## Remaining release gates
 
-- exact human-authored reconciliation Head with green CI, Browser E2E, Parity Documentation, and Visual Evidence;
-- one consolidated installable candidate with fresh artifact digest and current QC checklist;
-- repository-owner review of the consolidated visual artifact;
-- repository-owner acceptance of a real complex ZeroOmega backup in Chromium and Firefox;
-- restart recovery, active-route, theme, rollback, and authenticated-route checks on the consolidated candidate.
+- close or explicitly scope the five remaining `MUST_MATCH` rows without weakening acceptance;
+- maintain exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence;
+- produce one consolidated installable candidate with fresh artifact digest and current QC checklist;
+- obtain repository-owner review of the consolidated visual artifact;
+- obtain repository-owner acceptance of a real complex ZeroOmega backup in Chromium and Firefox;
+- verify restart recovery, active route, theme, rollback, and authenticated routing on the consolidated candidate.
 
 ## Current next action
 
-Reconcile the canonical matrix, PR body, and replacement-candidate record; run exact-Head automation; then freeze one consolidated owner-QC candidate. Do not request installation of intermediate slices.
+Close A-12, then proceed through B-03, C-09, D-04, and D-05. Do not request installation of intermediate slices.
