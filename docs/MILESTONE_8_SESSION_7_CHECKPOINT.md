@@ -27,7 +27,7 @@ The Chromium failure showed extension control and a PAC containing the expected 
 
 ## Session 7 completed work
 
-### Governance and parity accounting
+### Governance drift found and parity accounting reconciled
 
 - `scripts/validate-parity-docs.mjs` now parses the Nex-status column relative to the classification column instead of counting status-like text across translation and evidence columns.
 - The validator no longer requires `PARTIAL`, `MISSING`, or `UNVERIFIED` rows to remain non-zero. A fully closed matrix is now representable.
