@@ -40,6 +40,18 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Decouple moving status text from product patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/patches/apply-m8-pac-target-capability.py')
+          text = path.read_text()
+          start = text.index("status = Path('docs/MILESTONE_8_STATUS.md')")
+          end = text.index("checkpoint = Path('docs/MILESTONE_8_SESSION_7_CHECKPOINT.md')", start)
+          path.write_text(text[:start] + "status = Path('docs/MILESTONE_8_STATUS.md')\n\n" + text[end:])
+          PY
+
       - name: Apply PAC target capability slice
         run: python .github/patches/apply-m8-pac-target-capability.py
 
