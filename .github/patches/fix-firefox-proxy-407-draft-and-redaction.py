@@ -78,21 +78,13 @@ if text.count(old_port) != 1:
     raise SystemExit(f'Firefox dynamic port anchor mismatch: {text.count(old_port)}')
 text = text.replace(old_port, new_port)
 
-old_after_407 = """  assert.equal(
-    firefoxProxyStats.directTargetCount,
-    0,
-    'Firefox bypassed the configured authenticated proxy',
-  );
+old_after_direct = """  await direct.click();
+  await driver.wait(until.elementIsDisabled(direct), 15_000);
 
-  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
+  await driver.get(`moz-extension://${extensionUuid}/temp-rules.html`);
 """
-new_after_407 = """  assert.equal(
-    firefoxProxyStats.directTargetCount,
-    0,
-    'Firefox bypassed the configured authenticated proxy',
-  );
-
-  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
+new_after_direct = """  await direct.click();
+  await driver.wait(until.elementIsDisabled(direct), 15_000);
   assert.equal(
     await driver.executeAsyncScript(`
       const done = arguments[0];
@@ -102,7 +94,7 @@ new_after_407 = """  assert.equal(
       }).then(done, (error) => done(String(error)));
     `),
     true,
-    'Firefox could not remove the broad proxy-authentication permission after the isolated 407 proof',
+    'Firefox could not remove the broad proxy-authentication permission after returning Direct',
   );
   assert.equal(
     await driver.executeAsyncScript(`
@@ -113,12 +105,14 @@ new_after_407 = """  assert.equal(
       }).then(done, (error) => done(String(error)));
     `),
     false,
-    'Firefox broad proxy-authentication permission remained after the isolated 407 proof',
+    'Firefox broad proxy-authentication permission remained after returning Direct',
   );
+
+  await driver.get(`moz-extension://${extensionUuid}/temp-rules.html`);
 """
-if text.count(old_after_407) != 1:
-    raise SystemExit(f'Firefox post-407 permission reset anchor mismatch: {text.count(old_after_407)}')
-text = text.replace(old_after_407, new_after_407)
+if text.count(old_after_direct) != 1:
+    raise SystemExit(f'Firefox post-Direct permission reset anchor mismatch: {text.count(old_after_direct)}')
+text = text.replace(old_after_direct, new_after_direct)
 path.write_text(text)
 
 validator = Path('scripts/validate-parity-docs.mjs')
@@ -138,7 +132,7 @@ new = """requireAll('Firefox real proxy challenge', firefoxE2e, [
   'Firefox Fixed editor did not persist the dynamic proxy endpoint before authentication',
   'Firefox proxy never emitted a real 407 challenge',
   'targetAuthorizedCount >= 1',
-  'Firefox broad proxy-authentication permission remained after the isolated 407 proof',
+  'Firefox broad proxy-authentication permission remained after returning Direct',
 ]);
 """
 if text.count(old) != 1:
