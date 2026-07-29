@@ -91,6 +91,8 @@ new_after_407 = """  assert.equal(
     0,
     'Firefox bypassed the configured authenticated proxy',
   );
+
+  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
   assert.equal(
     await driver.executeAsyncScript(`
       const done = arguments[0];
@@ -113,8 +115,6 @@ new_after_407 = """  assert.equal(
     false,
     'Firefox broad proxy-authentication permission remained after the isolated 407 proof',
   );
-
-  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
 """
 if text.count(old_after_407) != 1:
     raise SystemExit(f'Firefox post-407 permission reset anchor mismatch: {text.count(old_after_407)}')
