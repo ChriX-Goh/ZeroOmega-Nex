@@ -1,0 +1,121 @@
+name: Integrate M8 Profile Rename parity
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-m8-profile-rename-parity.yml
+      - .github/patches/apply-m8-profile-rename-parity.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-m8-profile-rename-parity-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply Profile Rename parity slice
+        run: python .github/patches/apply-m8-profile-rename-parity.py
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/profile-operations.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/index.ts \
+            apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/lib/ui-messages.ts \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+
+      - name: Verify repository
+        run: pnpm verify
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build both browser E2E candidates
+        run: |
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm build:firefox
+
+      - name: Run Chromium Rename E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee profile-rename-chromium.log
+
+      - name: Run Firefox Rename E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox 2>&1 | tee profile-rename-firefox.log
+
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-profile-rename-parity-evidence
+          path: |
+            profile-rename-chromium.log
+            profile-rename-firefox.log
+          if-no-files-found: warn
+
+      - name: Commit verified product slice and remove integration machinery
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/integrate-m8-profile-rename-parity.yml
+          git rm -f .github/patches/apply-m8-profile-rename-parity.py
+          git add packages/profile-workflow/src/profile-operations.ts \
+            packages/profile-workflow/src/profile-operations.test.ts \
+            packages/profile-workflow/src/index.ts \
+            apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte \
+            apps/extension/src/entrypoints/options/App.svelte \
+            apps/extension/src/lib/ui-messages.ts \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+          git commit -m 'feat: restore original Profile Rename workflow'
+          git push origin HEAD:feat/m8-profile-workflow
