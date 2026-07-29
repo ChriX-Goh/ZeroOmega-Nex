@@ -61,6 +61,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Fixed fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned credentials.
 - Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
 - Complete Virtual target and reference-replacement transaction.
+- Original profile-header Rename action and independent validated dialog, including Apply-before-dialog and attached Rule List/source rename transactions.
 - Typed deletion blockers, general Replace Profile dialog, profile PAC export, and Switch Rule List export.
 
 ### Rule Source, PAC, import, and history
@@ -117,14 +118,13 @@ Exact workflow evidence is intentionally maintained in PR #11 rather than repeat
 
 ## Honest remaining parity work
 
-The canonical matrix contains 126 rows: `DONE=119`, `PARTIAL=7`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+The canonical matrix contains 126 rows: `DONE=120`, `PARTIAL=6`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 
-Four release-blocking `MUST_MATCH` rows remain:
+Three release-blocking `MUST_MATCH` rows remain:
 
-1. B-03 — original-style Rename action and dialog parity.
-2. C-09 — protocol/target capability matrix.
-3. D-04 — Switch condition-type matrix acceptance.
-4. D-05 — condition-specific fields and Draft/Apply browser acceptance.
+1. C-09 — protocol/target capability matrix.
+2. D-04 — Switch condition-type matrix acceptance.
+3. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
 Additional open rows:
 
@@ -141,4 +141,4 @@ Additional open rows:
 
 ## Current next action
 
-Proceed to B-03 Rename parity. Do not request installation of intermediate slices.
+Proceed to C-09 protocol/target capability acceptance. Do not request installation of intermediate slices.

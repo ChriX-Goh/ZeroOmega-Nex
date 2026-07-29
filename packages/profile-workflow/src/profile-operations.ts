@@ -163,6 +163,14 @@ export function createFixedProfileDraft(
   return { draft, profileId };
 }
 
+function normalizedProfileName(name: string): string {
+  return name.trim();
+}
+
+function reservedProfileName(name: string): boolean {
+  return name.startsWith('__') || /^(?:direct|system)$/iu.test(name);
+}
+
 export function duplicateProfileDraft(
   spec: ProfileSpec,
   sourceProfileId: string,
@@ -198,6 +206,49 @@ export function duplicateProfileDraft(
   appendQuickSwitchRoute(draft, profileId);
   assertValidDraft(draft);
   return { draft, profileId };
+}
+
+export function renameProfileDraft(
+  spec: ProfileSpec,
+  profileId: string,
+  requestedName: string,
+): ProfileSpec {
+  const draft = cloneProfileSpecDraft(spec);
+  const profile = draft.profiles.find((candidate) => candidate.id === profileId);
+  if (!profile) throw new RangeError(`profile ${profileId} does not exist`);
+
+  const name = normalizedProfileName(requestedName);
+  if (!name) throw new TypeError('profile name is required');
+  if (reservedProfileName(name)) throw new TypeError('profile name is reserved');
+  if (
+    draft.profiles.some(
+      (candidate) =>
+        candidate.id !== profileId &&
+        candidate.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0,
+    )
+  ) {
+    throw new TypeError('profile name already exists');
+  }
+
+  profile.name = name;
+  if (profile.kind === 'switch' && profile.attachedRuleListProfileId !== undefined) {
+    const attached = draft.profiles.find(
+      (candidate): candidate is RuleListProfile =>
+        candidate.id === profile.attachedRuleListProfileId && candidate.kind === 'rule-list',
+    );
+    if (!attached) {
+      throw new RangeError(
+        `attached Rule List profile ${profile.attachedRuleListProfileId} does not exist`,
+      );
+    }
+    attached.name = `__ruleListOf_${name}`;
+    const source = draft.ruleSources.find((candidate) => candidate.id === attached.sourceId);
+    if (!source) throw new RangeError(`rule source ${attached.sourceId} does not exist`);
+    source.name = `${name} attached rules`;
+  }
+
+  assertValidDraft(draft);
+  return draft;
 }
 
 export interface ProfileReferenceBlocker {

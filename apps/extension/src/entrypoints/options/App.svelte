@@ -20,6 +20,7 @@
     inspectProfileWorkflow,
     listProfileReferenceBlockers,
     parseProfileWorkflowState,
+    renameProfileDraft,
     replaceProfileReferencesDraft,
   } from '@zeroomega-nex/profile-workflow';
   import type {
@@ -70,6 +71,7 @@
   import NewProfileDialog from './NewProfileDialog.svelte';
   import PacProfileEditor from './PacProfileEditor.svelte';
   import ProfileDeletionDialog from './ProfileDeletionDialog.svelte';
+  import ProfileRenameDialog from './ProfileRenameDialog.svelte';
   import ProfileReplacementDialog from './ProfileReplacementDialog.svelte';
   import RuleListProfileEditor from './RuleListProfileEditor.svelte';
   import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
@@ -93,6 +95,11 @@
     readonly profileId: string;
     readonly profileName: string;
     readonly blockers: readonly ProfileReferenceBlocker[];
+  }
+
+  interface PendingProfileRename {
+    readonly profileId: string;
+    readonly profileName: string;
   }
 
   interface PendingProfileReplacement {
@@ -125,6 +132,7 @@
   let diagnosticsPermissionGranted = false;
   let requestingDiagnosticsPermission = false;
   let pendingProfileDeletion: PendingProfileDeletion | undefined;
+  let pendingProfileRename: PendingProfileRename | undefined;
   let pendingProfileReplacement: PendingProfileReplacement | undefined;
   let profileExporting = false;
   let profileExportMessage = '';
@@ -603,6 +611,52 @@
     await performProfileDeletion(request.profileId);
   }
 
+  async function requestSelectedProfileRename(): Promise<void> {
+    if (
+      !state ||
+      !selectedProfile ||
+      saving ||
+      view?.busy ||
+      !(await commitActiveProfileEditor())
+    ) {
+      return;
+    }
+    const profileId = selectedProfile.id;
+    if (view?.dirty) {
+      const confirmed = globalThis.confirm(uiText('options.confirm.rename', locale));
+      if (!confirmed) return;
+      const permission = await runWithProxyAuthenticationPermission(state.draft, () =>
+        runCommand({
+          action: 'apply',
+          expectedGeneration: state!.generation,
+        }),
+      );
+      if (!permission.granted) {
+        errorMessage = uiText('options.error.proxyAuthPermission', locale);
+        return;
+      }
+      if (!permission.value) return;
+    }
+    const current = state?.draft.profiles.find((profile) => profile.id === profileId);
+    if (!current) {
+      errorMessage = uiText('options.error.safeMessage', locale);
+      return;
+    }
+    pendingProfileRename = { profileId, profileName: current.name };
+  }
+
+  async function confirmProfileRename(name: string): Promise<void> {
+    const request = pendingProfileRename;
+    if (!state || !request) return;
+    try {
+      if (await replaceDraft(renameProfileDraft(state.draft, request.profileId, name))) {
+        pendingProfileRename = undefined;
+      }
+    } catch {
+      errorMessage = uiText('options.error.safeMessage', locale);
+    }
+  }
+
   async function requestProfileReplacement(
     fromProfileId: string,
     toProfileId: string,
@@ -647,25 +701,6 @@
     } catch {
       errorMessage = uiText('options.error.safeMessage', locale);
     }
-  }
-
-  async function updateProfileName(name: string): Promise<void> {
-    if (!selectedProfile) return;
-    const profileId = selectedProfile.id;
-    await mutateDraft((draft) => {
-      const profile = draft.profiles.find((candidate) => candidate.id === profileId);
-      if (!profile) return;
-      profile.name = name.trim();
-      if (profile.kind !== 'switch' || profile.attachedRuleListProfileId === undefined) return;
-      const attached = draft.profiles.find(
-        (candidate) =>
-          candidate.id === profile.attachedRuleListProfileId && candidate.kind === 'rule-list',
-      );
-      if (!attached || attached.kind !== 'rule-list') return;
-      attached.name = `__ruleListOf_${profile.name}`;
-      const source = draft.ruleSources.find((candidate) => candidate.id === attached.sourceId);
-      if (source) source.name = `${profile.name} attached rules`;
-    });
   }
 
   async function updateProfileColor(color: string): Promise<void> {
@@ -1449,6 +1484,13 @@
           {/if}
           <button
             type="button"
+            data-profile-rename-action
+            disabled={view?.busy || saving || profileExporting}
+            onclick={() => void requestSelectedProfileRename()}
+            >{uiText('profile.rename.action', locale)}</button
+          >
+          <button
+            type="button"
             disabled={view?.busy || saving || profileExporting}
             onclick={duplicateSelectedProfile}>{uiText('common.duplicate', locale)}</button
           ><button
@@ -1466,15 +1508,6 @@
         </p>
       {/if}
       <section class="settings-section profile-identity-editor">
-        <label>
-          <span>{uiText('profile.name', locale)}</span>
-          <input
-            aria-label={uiText('profile.name', locale)}
-            value={selectedProfile.name}
-            disabled={saving || view?.busy}
-            onchange={(event) => updateProfileName(valueFrom(event))}
-          />
-        </label>
         <label class="profile-color-field">
           <span>{uiText('profile.color', locale)}</span>
           <input
@@ -1562,6 +1595,19 @@
     {/if}
   </main>
 </div>
+
+{#if pendingProfileRename}
+  <ProfileRenameDialog
+    {locale}
+    profileName={pendingProfileRename.profileName}
+    existingNames={allProfiles
+      .filter((profile) => profile.id !== pendingProfileRename?.profileId)
+      .map((profile) => profile.name)}
+    disabled={saving || view?.busy === true}
+    onCancel={() => (pendingProfileRename = undefined)}
+    onConfirm={confirmProfileRename}
+  />
+{/if}
 
 {#if pendingProfileDeletion}
   <ProfileDeletionDialog

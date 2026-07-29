@@ -209,19 +209,18 @@ try {
   assert.equal(installedId, addonId, 'Firefox returned an unexpected add-on ID');
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
-  let profileName;
+  let profileHeading;
   try {
-    profileName = await driver.wait(
-      until.elementLocated(By.css('input[aria-label="情境模式名稱"]')),
+    profileHeading = await driver.wait(
+      until.elementLocated(By.xpath("//h1[normalize-space(.)='Proxy']")),
       15_000,
     );
-    await driver.wait(until.elementIsVisible(profileName), 15_000);
+    await driver.wait(until.elementIsVisible(profileHeading), 15_000);
   } catch (error) {
     await logDiagnostics('Options initialization');
     console.error(`[Firefox Options source] ${(await driver.getPageSource()).slice(0, 20_000)}`);
     throw error;
   }
-  assert.equal(await profileName.getAttribute('value'), 'Proxy');
   assert.equal(
     await driver.executeAsyncScript(`
       const done = arguments[0];
@@ -298,22 +297,6 @@ try {
   await saveAuthentication.click();
   await driver.wait(until.stalenessOf(authDialog), 10_000);
 
-  await driver.executeScript(
-    `
-      const input = arguments[0];
-      const value = arguments[1];
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-      setter.call(input, value);
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    `,
-    profileName,
-    'Firefox E2E Proxy',
-  );
-  await driver.wait(
-    async () => (await profileName.getAttribute('value')) === 'Firefox E2E Proxy',
-    5_000,
-  );
   const apply = await driver.wait(until.elementLocated(By.css('.actions button.primary')), 15_000);
   await driver.wait(until.elementIsEnabled(apply), 15_000);
   await apply.click();
@@ -336,6 +319,50 @@ try {
     `),
     true,
     'Firefox Apply did not grant proxy-authentication permissions',
+  );
+  assert.equal(
+    (await driver.findElements(By.css('input[aria-label="情境模式名稱"]'))).length,
+    0,
+    'Firefox still exposed the removed inline profile-name field',
+  );
+  const renameAction = await driver.findElement(By.css('[data-profile-rename-action]'));
+  await renameAction.click();
+  const renameDialog = await driver.wait(
+    until.elementLocated(By.css('[data-profile-rename-dialog]')),
+    10_000,
+  );
+  const renameInput = await renameDialog.findElement(By.css('[data-profile-rename-name-input]'));
+  assert.equal(await renameInput.getAttribute('value'), 'Proxy');
+  await setControlValue(renameInput, 'Firefox E2E Proxy');
+  const renameConfirm = await renameDialog.findElement(By.css('[data-profile-rename-confirm]'));
+  await driver.wait(until.elementIsEnabled(renameConfirm), 10_000);
+  await renameConfirm.click();
+  await driver.wait(until.stalenessOf(renameDialog), 10_000);
+  await driver.wait(
+    until.elementLocated(By.xpath("//h1[normalize-space(.)='Firefox E2E Proxy']")),
+    10_000,
+  );
+  await driver.wait(until.elementIsEnabled(apply), 15_000);
+  await apply.click();
+  await driver.wait(
+    async () =>
+      driver.executeAsyncScript(`
+        const done = arguments[0];
+        browser.runtime.sendMessage({
+          channel: 'zeroomega-nex/profile-workflow/v1',
+          action: 'get',
+        }).then((response) => {
+          const draft = response?.state?.draft?.profiles?.find(
+            (profile) => profile.id === 'profile-default-proxy',
+          );
+          const applied = response?.state?.applied?.profiles?.find(
+            (profile) => profile.id === 'profile-default-proxy',
+          );
+          done(draft?.name === 'Firefox E2E Proxy' && applied?.name === 'Firefox E2E Proxy');
+        }, (error) => done(String(error)));
+      `),
+    20_000,
+    'Firefox Rename did not commit through normal Apply',
   );
 
   await driver.get(`moz-extension://${extensionUuid}/popup.html`);

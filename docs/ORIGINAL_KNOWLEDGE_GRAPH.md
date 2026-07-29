@@ -575,3 +575,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Nex centralizes that decision in a pure browser-target capability module. Writable `proxy.settings.get/set` means PAC Profile creation is supported; legacy proxy-script registration APIs take precedence and mark the target unsupported.
 - A target without writable `proxy.settings` fails closed. The New Profile dialog receives the resolved capability and exposes stable evidence attributes while retaining the original localized warning and disabled PAC radio.
 - Chromium acceptance injects `chrome.proxy.registerProxyScript` before the Options application loads, proving the unsupported branch in a real extension page without adding a production test override.
+
+### Profile Rename transaction boundary
+
+- Original ZeroOmega exposes Rename as a Profile header action and opens a dedicated one-field modal after current changes are accepted; the profile page does not use an always-editable name field.
+- Nex preserves that navigation contract while retaining its typed Draft/Applied invariant: dirty profile-editor state is committed and normally Applied before the modal, while the rename itself remains a Draft change until the next normal Apply.
+- Rename validation is shared semantically with New Profile: trimmed non-empty names, reserved `direct`/`system` and `__` rejection, case-insensitive conflict detection, and informational single-underscore hidden names.
+- Profile IDs and all route references remain stable. Renaming a Switch atomically renames its hidden `__ruleListOf_...` profile and associated Rule Source without changing IDs.
+- Chromium covers Apply-before-dialog, validation, Draft isolation, navigation/header convergence, and Apply; Firefox covers the independent dialog and Apply. Workflow unit tests cover ordinary, attached-resource, and invalid-name transactions.

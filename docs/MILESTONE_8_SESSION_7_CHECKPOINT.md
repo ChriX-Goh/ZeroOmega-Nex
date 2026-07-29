@@ -28,7 +28,7 @@ The initial failure showed extension control and a PAC containing the expected p
 
 - `scripts/validate-parity-docs.mjs` now parses the Nex-status column relative to the classification column instead of counting status-like text in unrelated columns.
 - The validator no longer forces `PARTIAL`, `MISSING`, or `UNVERIFIED` rows to stay non-zero.
-- The canonical matrix now honestly reports `DONE=119`, `PARTIAL=7`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+- The canonical matrix now honestly reports `DONE=120`, `PARTIAL=6`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 - PR #11, status, candidate gate, matrix, knowledge graph, and this checkpoint are synchronized by exact product checkpoints rather than stale moving Heads.
 - Obsolete candidate pointers and one-off integration machinery are removed after verified product commits.
 
@@ -69,6 +69,16 @@ Integration run `30418355127` committed product Head `4233e45340ea0d1185e87270aa
 - Repository verification and complete Chromium E2E passed before commit; the temporary workflow and patch self-deleted.
 - A-12 is `DONE`; release-blocking `MUST_MATCH` rows fall from five to four.
 
+### Original Profile Rename acceptance
+
+- The Profile header restores the source-backed Rename action; the inline profile-name editor is removed.
+- Dirty editor state commits first and the user explicitly accepts normal Apply before the Rename dialog opens.
+- The independent typed dialog initializes and focuses the current name, then enforces the same empty, reserved, case-insensitive conflict, and hidden-name rules as New Profile.
+- Rename changes remain in Draft until normal Apply; profile identity IDs and route references do not change.
+- A Switch rename transaction also updates its hidden attached Rule List name and associated Rule Source name.
+- Chromium verifies Apply-before-dialog, all validation branches, Draft isolation, navigation/header updates, and final Apply. Firefox verifies the independent dialog and final Apply.
+- B-03 is `DONE`; release-blocking `MUST_MATCH` rows fall from four to three.
+
 ## Direction and scope assessment
 
 No major product or architectural drift was found. Milestone 8 still rebuilds the familiar ZeroOmega v3.5.0 workflow on typed ProfileSpec, deterministic PAC, immutable snapshots, and atomic browser adapters.
@@ -95,12 +105,11 @@ Rounded progress toward the first stable replacement release is **97%**. Pure en
 
 ## Remaining canonical work
 
-Four release-blocking `MUST_MATCH` rows remain:
+Three release-blocking `MUST_MATCH` rows remain:
 
-1. B-03 — original-style Rename action/dialog parity or a justified source-backed decision.
-2. C-09 — protocol/target capability matrix.
-3. D-04 — Switch condition-type matrix acceptance.
-4. D-05 — condition-specific fields and Draft/Apply browser acceptance.
+1. C-09 — protocol/target capability matrix.
+2. D-04 — Switch condition-type matrix acceptance.
+3. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
 C-05 remains `UNCERTAIN` for modern FTP behavior. A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
@@ -108,10 +117,9 @@ C-05 remains `UNCERTAIN` for modern FTP behavior. A-14 and I-11 remain non-block
 
 1. Establish a human-authored exact verification Head after the PAC capability product commit.
 2. Require exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence to pass.
-3. Implement and verify B-03 Rename parity.
-4. Complete or explicitly scope C-09, D-04, and D-05 without weakening acceptance criteria.
-5. Freeze one consolidated candidate with fresh artifact digest and owner-QC checklist.
-6. Require repository-owner visual review, real complex-backup acceptance, authenticated-route acceptance, restart recovery, and final browser checks before PR #11 leaves Draft.
+3. Complete or explicitly scope C-09, D-04, and D-05 without weakening acceptance criteria.
+4. Freeze one consolidated candidate with fresh artifact digest and owner-QC checklist.
+5. Require repository-owner visual review, real complex-backup acceptance, authenticated-route acceptance, restart recovery, and final browser checks before PR #11 leaves Draft.
 
 ## Session 7 acceptance boundary
 

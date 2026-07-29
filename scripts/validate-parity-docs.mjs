@@ -61,6 +61,20 @@ const [browserTargetCapabilities, optionsApp, newProfileDialog, componentRenderi
     readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
   ]);
 
+const [
+  profileOperations,
+  profileWorkflowIndex,
+  renameDialog,
+  renameOptionsApp,
+  renameComponentRendering,
+] = await Promise.all([
+  readFile('packages/profile-workflow/src/profile-operations.ts', 'utf8'),
+  readFile('packages/profile-workflow/src/index.ts', 'utf8'),
+  readFile('apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte', 'utf8'),
+  readFile('apps/extension/src/entrypoints/options/App.svelte', 'utf8'),
+  readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
+]);
+
 const failures = [];
 
 function requireAll(documentName, document, tokens) {
@@ -223,6 +237,56 @@ requireAll('controlled proxy challenge server', proxyChallengeServer, [
   'zeroomega-auth-target.test',
   'data-proxy-auth-success',
 ]);
+
+requireAll('Profile Rename workflow operation', profileOperations, [
+  'renameProfileDraft',
+  'profile name is required',
+  'profile name is reserved',
+  'profile name already exists',
+  '__ruleListOf_${name}',
+  '${name} attached rules',
+]);
+requireAll('Profile Rename export', profileWorkflowIndex, ['renameProfileDraft']);
+requireAll('Profile Rename dialog', renameDialog, [
+  'data-profile-rename-dialog',
+  'data-profile-rename-name-input',
+  'data-profile-rename-confirm',
+  "'newProfile.error.empty'",
+  "'newProfile.error.reserved'",
+  "'newProfile.error.conflict'",
+]);
+requireAll('Profile Rename Options wiring', renameOptionsApp, [
+  'data-profile-rename-action',
+  'requestSelectedProfileRename',
+  "uiText('options.confirm.rename', locale)",
+  'renameProfileDraft',
+  '<ProfileRenameDialog',
+]);
+if (renameOptionsApp.includes('onchange={(event) => updateProfileName')) {
+  failures.push('Profile page must not restore the direct inline name editor');
+}
+requireAll('Profile Rename component rendering', renameComponentRendering, [
+  'ProfileRenameDialog',
+  'data-profile-rename-dialog',
+  '重命名情景模式',
+]);
+requireAll('Profile Rename Chromium acceptance', chromiumE2e, [
+  'data-profile-rename-action',
+  'Rename dialog opened before the dirty Draft was applied',
+  'Rename did not remain inside the Draft boundary before Apply',
+  'Chromium E2E Proxy',
+]);
+requireAll('Profile Rename Firefox acceptance', firefoxE2e, [
+  'data-profile-rename-action',
+  'data-profile-rename-dialog',
+  'Firefox E2E Proxy',
+  'Firefox Rename did not commit through normal Apply',
+]);
+
+const renameRow = audit.split('\n').find((line) => line.startsWith('| B-03 '));
+if (!renameRow || !renameRow.includes('| DONE') || !renameRow.includes('Chromium/Firefox')) {
+  failures.push('B-03 must remain DONE with dual-browser Rename evidence');
+}
 
 requireAll('PAC target capability module', browserTargetCapabilities, [
   'proxy-script-registration',

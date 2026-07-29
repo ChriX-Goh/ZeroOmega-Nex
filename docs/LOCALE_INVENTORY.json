@@ -19,12 +19,12 @@
     "apps/extension/src/entrypoints/temp-rules/App.svelte",
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 25,
+  "candidateCount": 27,
   "untranslatedUserVisibleCount": 0,
   "classificationSummary": {
     "example-placeholder": 1,
     "format-name": 4,
-    "keyboard-key": 2,
+    "keyboard-key": 4,
     "scanner-code-fragment": 2,
     "source-token": 14,
     "stable-technical-code": 1,
@@ -135,6 +135,18 @@
     },
     {
       "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Escape",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Enter",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte",
       "kind": "expression-literal",
       "text": "Escape",
       "classification": "keyboard-key"

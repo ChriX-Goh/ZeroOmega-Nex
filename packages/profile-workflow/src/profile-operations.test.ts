@@ -11,6 +11,7 @@ import {
   deleteProfileDraft,
   duplicateProfileDraft,
   listProfileReferenceBlockers,
+  renameProfileDraft,
   replaceProfileReferencesDraft,
   type ProfileWorkflowIdFactory,
 } from './profile-operations.js';
@@ -106,6 +107,53 @@ describe('profile draft operations', () => {
       profileId: duplicateState?.profile.id,
     });
     expect(validateProfileSpec(result.draft).valid).toBe(true);
+  });
+
+  it('renames a profile without changing its identity or references', () => {
+    const renamed = renameProfileDraft(workflowFixture(), 'profile-primary', '  Renamed Proxy  ');
+
+    expect(renamed.profiles.find((profile) => profile.id === 'profile-primary')?.name).toBe(
+      'Renamed Proxy',
+    );
+    expect(renamed.settings.quickSwitch.routes).toContainEqual({
+      kind: 'profile',
+      profileId: 'profile-primary',
+    });
+    expect(validateProfileSpec(renamed).valid).toBe(true);
+  });
+
+  it('renames a Switch profile together with its hidden attached Rule List and source', () => {
+    const ids = deterministicIds();
+    const created = createSwitchProfileDraft(workflowFixture(), ids, 'Owner');
+    const attached = createAttachedRuleListDraft(created.draft, created.profileId, ids);
+    const before = inspectAttachedRuleList(attached, created.profileId);
+    const renamed = renameProfileDraft(attached, created.profileId, 'Renamed Owner');
+    const after = inspectAttachedRuleList(renamed, created.profileId);
+
+    expect(before).toBeDefined();
+    expect(after?.profile.id).toBe(before?.profile.id);
+    expect(after?.source.id).toBe(before?.source.id);
+    expect(after?.profile.name).toBe('__ruleListOf_Renamed Owner');
+    expect(after?.source.name).toBe('Renamed Owner attached rules');
+    expect(validateProfileSpec(renamed).valid).toBe(true);
+  });
+
+  it('rejects empty, reserved, conflicting, and missing profile renames', () => {
+    expect(() => renameProfileDraft(workflowFixture(), 'profile-primary', '   ')).toThrow(
+      'profile name is required',
+    );
+    expect(() => renameProfileDraft(workflowFixture(), 'profile-primary', '__hidden')).toThrow(
+      'profile name is reserved',
+    );
+    expect(() => renameProfileDraft(workflowFixture(), 'profile-primary', 'system')).toThrow(
+      'profile name is reserved',
+    );
+    expect(() => renameProfileDraft(workflowFixture(), 'profile-secondary', 'proxy')).toThrow(
+      'profile name already exists',
+    );
+    expect(() => renameProfileDraft(workflowFixture(), 'missing-profile', 'Renamed')).toThrow(
+      'does not exist',
+    );
   });
 
   it('deletes a Switch profile together with its hidden attached Rule List and source', () => {

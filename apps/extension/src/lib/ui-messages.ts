@@ -19,6 +19,22 @@ export const typedUiTextCatalog = {
   'route.system': { en: 'System Proxy', 'zh-CN': '系统代理', 'zh-TW': '系統代理' },
   'route.missing': { en: 'Missing profile', 'zh-CN': '情景模式不存在', 'zh-TW': '情境模式不存在' },
   'profile.name': { en: 'Profile name', 'zh-CN': '情景模式名称', 'zh-TW': '情境模式名稱' },
+  'profile.rename.action': { en: 'Rename', 'zh-CN': '重命名', 'zh-TW': '重新命名' },
+  'profile.rename.title': {
+    en: 'Rename Profile',
+    'zh-CN': '重命名情景模式',
+    'zh-TW': '重新命名情境模式',
+  },
+  'profile.rename.label': {
+    en: 'New profile name',
+    'zh-CN': '新的情景模式名称',
+    'zh-TW': '新的情境模式名稱',
+  },
+  'profile.rename.renaming': {
+    en: 'Renaming…',
+    'zh-CN': '正在重命名…',
+    'zh-TW': '正在重新命名…',
+  },
   'profile.color': { en: 'Profile color', 'zh-CN': '情景模式颜色', 'zh-TW': '情境模式顏色' },
   'profile.kind.fixed': { en: 'Fixed Profile', 'zh-CN': '固定情景模式', 'zh-TW': '固定情境模式' },
   'profile.kind.switch': {
@@ -893,6 +909,11 @@ export const typedUiTextCatalog = {
     en: 'Apply current changes before exporting the Options backup?',
     'zh-CN': '导出选项备份前，先应用当前更改吗？',
     'zh-TW': '匯出選項備份前，先套用目前變更嗎？',
+  },
+  'options.confirm.rename': {
+    en: 'Apply current changes before renaming this profile?',
+    'zh-CN': '重命名此情景模式前，先应用当前更改吗？',
+    'zh-TW': '重新命名此情境模式前，先套用目前變更嗎？',
   },
   'options.confirm.replace': {
     en: 'Apply current changes before replacing profile references?',

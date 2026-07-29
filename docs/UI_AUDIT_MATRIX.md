@@ -30,17 +30,17 @@
 
 ## B. 共用情景模式页头与生命周期
 
-| ID   | 界面/功能         | 原版源码                                       | 原版布局与行为                                                | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                     | 下一步                   |
-| ---- | ----------------- | ---------------------------------------------- | ------------------------------------------------------------- | ---------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| B-01 | 情景模式颜色      | `profile.jade`                                 | 标题旁可调色；全 UI 图标同步                                  | MUST_MATCH | DONE     | COMPLETE | 普通类型颜色、图标与路由展示已实现并直接 typed 三语；Popup/Options 回归覆盖                                                   | 保持回归                 |
-| B-02 | Virtual 继承颜色  | `profile.jade`                                 | Virtual 不直接选色，显示目标颜色                              | MUST_MATCH | DONE     | COMPLETE | 已继承目标 Profile 颜色并禁用直接选色；内置 Direct/System 使用配置颜色；typed 三语与 Chromium Virtual 流程覆盖                | 保持回归                 |
-| B-03 | 重命名按钮/对话框 | `profile.jade`、`rename_profile.jade`          | 页头按钮，校验同新建                                          | MUST_MATCH | PARTIAL  | PARTIAL  | 当前仍是直接编辑名称字段，没有原版页头 Rename 动作与独立对话框                                                                | 实现原版动作或正式定差异 |
-| B-04 | 删除按钮/确认     | `profile.jade`、`delete_profile.jade`          | 页头删除，按设置确认                                          | MUST_MATCH | DONE     | COMPLETE | 页头删除按 `confirmDeletion` 使用 typed 三语可访问对话框；Cancel 初始焦点、Draft→Apply 全链、0-warning 与 Chromium 回归均验证 | 保持双浏览器回归         |
-| B-05 | 被引用时禁止删除  | `cannot_delete_profile.jade`、`profile.coffee` | 列出引用者，不允许损坏引用                                    | MUST_MATCH | DONE     | COMPLETE | typed blocker 覆盖所有 route；附属 Rule List 折叠为父 Switch；标题、说明、按钮及引用类型均直接三语渲染                        | 保持回归                 |
-| B-06 | 替换情景模式引用  | `replace_profile.jade`、`master.coffee`        | Virtual 入口打开双选择器通用对话框；批量把 from 引用替换为 to | MUST_MATCH | DONE     | COMPLETE | Apply-before-dialog、双端选择/预览、完整 typed transaction、端点保留及三语正文/ARIA 均已验证                                  | 保持回归                 |
-| B-07 | 导出 PAC          | `profile.jade`、`master.coffee`                | scriptable 类型页头导出；原版文件名与 UTF-8 MIME              | MUST_MATCH | DONE     | COMPLETE | typed Profile 生成 PAC；PAC Profile raw 结构验证；Auto Detect 隐藏；Chromium 验证 generated/raw 下载                          | 保持双浏览器回归         |
-| B-08 | 导出规则列表      | `profile.jade`、`switch_profile.coffee`        | Switch 页头导出 `.sorl`；可选 `.ssrl`，高级条件时警告回退     | MUST_MATCH | DONE     | COMPLETE | result-enabled `.sorl`、legacy `.ssrl`、warning fallback、原版文件名/MIME 与 Chromium 下载均验证                              | 保持回归                 |
-| B-09 | 修改 revision     | `profile.coffee`                               | 深层编辑更新 revision                                         | MUST_MATCH | DONE     | N/A      | Nex 有 immutable revision                                                                                                     | 保持自动测试             |
+| ID   | 界面/功能         | 原版源码                                       | 原版布局与行为                                                | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                    | 下一步           |
+| ---- | ----------------- | ---------------------------------------------- | ------------------------------------------------------------- | ---------- | -------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| B-01 | 情景模式颜色      | `profile.jade`                                 | 标题旁可调色；全 UI 图标同步                                  | MUST_MATCH | DONE     | COMPLETE | 普通类型颜色、图标与路由展示已实现并直接 typed 三语；Popup/Options 回归覆盖                                                                                                  | 保持回归         |
+| B-02 | Virtual 继承颜色  | `profile.jade`                                 | Virtual 不直接选色，显示目标颜色                              | MUST_MATCH | DONE     | COMPLETE | 已继承目标 Profile 颜色并禁用直接选色；内置 Direct/System 使用配置颜色；typed 三语与 Chromium Virtual 流程覆盖                                                               | 保持回归         |
+| B-03 | 重命名按钮/对话框 | `profile.jade`、`rename_profile.jade`          | 页头按钮，校验同新建                                          | MUST_MATCH | DONE     | COMPLETE | 页头独立 Rename 动作、Apply-before-dialog、typed 三语可访问对话框、必填/保留名/重名/隐藏名校验、Draft 边界、Switch 附属 Rule List/源同步改名及 Chromium/Firefox 回归均已验证 | 保持双浏览器回归 |
+| B-04 | 删除按钮/确认     | `profile.jade`、`delete_profile.jade`          | 页头删除，按设置确认                                          | MUST_MATCH | DONE     | COMPLETE | 页头删除按 `confirmDeletion` 使用 typed 三语可访问对话框；Cancel 初始焦点、Draft→Apply 全链、0-warning 与 Chromium 回归均验证                                                | 保持双浏览器回归 |
+| B-05 | 被引用时禁止删除  | `cannot_delete_profile.jade`、`profile.coffee` | 列出引用者，不允许损坏引用                                    | MUST_MATCH | DONE     | COMPLETE | typed blocker 覆盖所有 route；附属 Rule List 折叠为父 Switch；标题、说明、按钮及引用类型均直接三语渲染                                                                       | 保持回归         |
+| B-06 | 替换情景模式引用  | `replace_profile.jade`、`master.coffee`        | Virtual 入口打开双选择器通用对话框；批量把 from 引用替换为 to | MUST_MATCH | DONE     | COMPLETE | Apply-before-dialog、双端选择/预览、完整 typed transaction、端点保留及三语正文/ARIA 均已验证                                                                                 | 保持回归         |
+| B-07 | 导出 PAC          | `profile.jade`、`master.coffee`                | scriptable 类型页头导出；原版文件名与 UTF-8 MIME              | MUST_MATCH | DONE     | COMPLETE | typed Profile 生成 PAC；PAC Profile raw 结构验证；Auto Detect 隐藏；Chromium 验证 generated/raw 下载                                                                         | 保持双浏览器回归 |
+| B-08 | 导出规则列表      | `profile.jade`、`switch_profile.coffee`        | Switch 页头导出 `.sorl`；可选 `.ssrl`，高级条件时警告回退     | MUST_MATCH | DONE     | COMPLETE | result-enabled `.sorl`、legacy `.ssrl`、warning fallback、原版文件名/MIME 与 Chromium 下载均验证                                                                             | 保持回归         |
+| B-09 | 修改 revision     | `profile.coffee`                               | 深层编辑更新 revision                                         | MUST_MATCH | DONE     | N/A      | Nex 有 immutable revision                                                                                                                                                    | 保持自动测试     |
 
 ## C. FixedProfile
 
@@ -188,7 +188,7 @@
 ## 当前结论
 
 - **BROKEN / MISSING / UNVERIFIED：0。** 先前关于辅助页面翻译、在线恢复、视觉证据和真实 407 的结论已过期并完成纠正。
-- **仍开放的 MUST_MATCH：4 项。** B-03 Rename 对话框、C-09 协议能力矩阵、D-04 条件类型矩阵、D-05 条件字段矩阵。
+- **仍开放的 MUST_MATCH：3 项。** C-09 协议能力矩阵、D-04 条件类型矩阵、D-05 条件字段矩阵。
 - **UNCERTAIN：1 项。** C-05 FTP scheme 的现代双浏览器能力。
 - **REFERENCE：2 项保持 PARTIAL。** A-14 原版像素皮肤与 I-11 Popup 精确尺寸不阻断功能闭环，但进入 owner 视觉评审。
 - PR #11 必须继续保持 Draft，直到开放 MUST_MATCH 完成或形成明确范围决定，并由仓库所有者接受一个全新 consolidated candidate。
@@ -212,3 +212,4 @@
 | 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                                                                     |
 | 2026-07-29 | 完成独立全新 Chromium 工作区内 Fixed/Switch/PAC/Virtual 四类统一 New Profile 创建、专属编辑器、Draft 与 Apply 闭环；开放 MUST_MATCH 降至 5 项                                 |
 | 2026-07-29 | 完成 PAC 目标能力信号：原版 proxy-script-registration 不支持分支、缺失 proxy.settings 的 fail-closed、当前目标支持分支及 Chromium 真实 UI 禁用验证；开放 MUST_MATCH 降至 4 项 |
+| 2026-07-29 | 恢复原版 Profile 页头 Rename 动作与独立对话框；完成 Apply-before-dialog、名称校验、Draft/Apply、附属 Rule List/源事务及 Chromium/Firefox 回归；开放 MUST_MATCH 降至 3 项      |

@@ -134,9 +134,13 @@ try {
   );
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await options.waitForLoadState('domcontentloaded');
-  const profileName = options.getByLabel('情景模式名称');
+  const profileHeading = options.getByRole('heading', {
+    name: 'Proxy',
+    exact: true,
+    level: 1,
+  });
   try {
-    await profileName.waitFor({ state: 'visible', timeout: 15_000 });
+    await profileHeading.waitFor({ state: 'visible', timeout: 15_000 });
   } catch (error) {
     const diagnostics = await worker.evaluate(async () => ({
       location: globalThis.location.href,
@@ -148,7 +152,6 @@ try {
     console.error(`[Chromium worker] ${JSON.stringify(diagnostics)}`);
     throw error;
   }
-  assert.equal(await profileName.inputValue(), 'Proxy');
   assert.equal(
     await options.locator('.app-shell').getAttribute('data-options-shell-locale'),
     'zh-CN',
@@ -211,7 +214,7 @@ try {
   );
 
   await options.getByRole('button', { name: 'Proxy', exact: true }).click();
-  await profileName.waitFor({ state: 'visible' });
+  await profileHeading.waitFor({ state: 'visible' });
 
   const fixedTable = options.locator('[data-fixed-proxy-table]');
   await fixedTable.waitFor({ state: 'visible' });
@@ -301,12 +304,70 @@ try {
   );
 
   await options.getByRole('button', { name: 'Proxy', exact: true }).click();
-  await profileName.waitFor({ state: 'visible' });
-  await profileName.fill('Chromium E2E Proxy');
-  await profileName.press('Tab');
+  await profileHeading.waitFor({ state: 'visible' });
+  assert.equal(await options.getByLabel('情景模式名称').count(), 0);
   const apply = options.getByRole('button', { name: '应用选项' });
   await apply.waitFor({ state: 'visible' });
-  await assertEventually(async () => !(await apply.isDisabled()), 'Apply button remained disabled');
+  await assertEventually(
+    async () => !(await apply.isDisabled()),
+    'Proxy edits did not leave an applicable Draft before Rename',
+  );
+  options.once('dialog', async (dialog) => {
+    assert.match(dialog.message(), /重命名此情景模式前，先应用当前更改吗/u);
+    await dialog.accept();
+  });
+  await options.locator('[data-profile-rename-action]').click();
+  const renameDialog = options.locator('[data-profile-rename-dialog]');
+  await renameDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        return (
+          workflow !== undefined &&
+          workflow.pendingApply === undefined &&
+          JSON.stringify(workflow.draft) === JSON.stringify(workflow.applied)
+        );
+      }),
+    'Rename dialog opened before the dirty Draft was applied',
+    20_000,
+  );
+  const renameInput = renameDialog.locator('[data-profile-rename-name-input]');
+  await assertEventually(
+    async () => renameInput.evaluate((element) => element === document.activeElement),
+    'Rename dialog did not focus the name field',
+  );
+  assert.equal(await renameInput.inputValue(), 'Proxy');
+  await renameInput.fill('');
+  assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
+  await renameInput.fill('direct');
+  assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
+  await renameInput.fill('_Hidden Proxy');
+  assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), false);
+  assert.match(await renameDialog.innerText(), /以下划线开头/u);
+  await renameInput.fill('Chromium E2E Proxy');
+  await renameDialog.locator('[data-profile-rename-confirm]').click();
+  await renameDialog.waitFor({ state: 'detached', timeout: 20_000 });
+  await options
+    .getByRole('heading', { name: 'Chromium E2E Proxy', exact: true, level: 1 })
+    .waitFor();
+  await assertEventually(
+    async () =>
+      worker.evaluate(async () => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        const draft = workflow?.draft?.profiles?.find(
+          (profile) => profile.id === 'profile-default-proxy',
+        );
+        const applied = workflow?.applied?.profiles?.find(
+          (profile) => profile.id === 'profile-default-proxy',
+        );
+        return draft?.name === 'Chromium E2E Proxy' && applied?.name === 'Proxy';
+      }),
+    'Rename did not remain inside the Draft boundary before Apply',
+  );
+  await assertEventually(async () => !(await apply.isDisabled()), 'Rename did not enable Apply');
   await apply.click();
   await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(
@@ -1781,9 +1842,10 @@ try {
     assert.equal(await kindInput.isChecked(), true, `${name} kind was not selected`);
     await dialog.locator('[data-new-profile-create]').click();
     await dialog.waitFor({ state: 'detached', timeout: 20_000 });
-    const profileNameInput = creationOptions.getByLabel('情景模式名称');
-    await profileNameInput.waitFor({ state: 'visible', timeout: 20_000 });
-    assert.equal(await profileNameInput.inputValue(), name);
+    await creationOptions
+      .getByRole('heading', { name, exact: true, level: 1 })
+      .waitFor({ state: 'visible', timeout: 20_000 });
+    assert.equal(await creationOptions.getByLabel('情景模式名称').count(), 0);
     await editor().waitFor({ state: 'visible', timeout: 20_000 });
   };
 
@@ -1870,6 +1932,19 @@ try {
     'The four normal New Profile flows did not commit through normal Apply',
     20_000,
   );
+  await creationOptions.getByRole('button', { name: 'Created Fixed', exact: true }).click();
+  await creationOptions.locator('[data-profile-rename-action]').click();
+  const creationRenameDialog = creationOptions.locator('[data-profile-rename-dialog]');
+  await creationRenameDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  const creationRenameInput = creationRenameDialog.locator('[data-profile-rename-name-input]');
+  await creationRenameInput.fill('created pac');
+  await assertEventually(
+    async () => creationRenameDialog.locator('[data-profile-rename-confirm]').isDisabled(),
+    'Case-insensitive existing Profile name did not disable Rename confirmation',
+  );
+  await creationRenameDialog.locator('[data-profile-rename-cancel]').click();
+  await creationRenameDialog.waitFor({ state: 'detached', timeout: 20_000 });
+
   const unsupportedPacOptions = await creationContext.newPage();
   await unsupportedPacOptions.addInitScript(() => {
     Object.defineProperty(chrome.proxy, 'registerProxyScript', {

@@ -109,6 +109,7 @@ export {
   deleteProfileDraft,
   duplicateProfileDraft,
   listProfileReferenceBlockers,
+  renameProfileDraft,
   replaceProfileReferencesDraft,
   type ProfileReferenceBlocker,
   type ProfileWorkflowIdFactory,

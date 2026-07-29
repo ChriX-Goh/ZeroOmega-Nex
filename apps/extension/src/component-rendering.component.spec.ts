@@ -17,6 +17,7 @@ import FixedProfileEditor from './entrypoints/options/FixedProfileEditor.svelte'
 import NewProfileDialog from './entrypoints/options/NewProfileDialog.svelte';
 import PacProfileEditor from './entrypoints/options/PacProfileEditor.svelte';
 import ProfileDeletionDialog from './entrypoints/options/ProfileDeletionDialog.svelte';
+import ProfileRenameDialog from './entrypoints/options/ProfileRenameDialog.svelte';
 import ProfileReplacementDialog from './entrypoints/options/ProfileReplacementDialog.svelte';
 import RuleListProfileEditor from './entrypoints/options/RuleListProfileEditor.svelte';
 import VirtualProfileEditor from './entrypoints/options/VirtualProfileEditor.svelte';
@@ -69,6 +70,26 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('data-profile-replacement-preview');
     expect(body).toContain('The two profiles');
     expect(body).toContain('themselves are not changed or deleted.');
+  });
+
+  it('renders the original independent validated Profile Rename dialog', () => {
+    const body = render(ProfileRenameDialog, {
+      props: {
+        profileName: 'Proxy',
+        existingNames: ['Backup'],
+        locale: 'zh-CN',
+        onCancel: () => undefined,
+        onConfirm: async () => undefined,
+      },
+    }).body;
+
+    expect(body).toContain('data-profile-rename-dialog');
+    expect(body).toContain('data-profile-rename-name-input');
+    expect(body).toContain('data-profile-rename-cancel');
+    expect(body).toContain('data-profile-rename-confirm');
+    expect(body).toContain('value="Proxy"');
+    expect(body).toContain('重命名情景模式');
+    expect(body).not.toContain('Rename Profile');
   });
 
   it('renders blocked and confirm profile-deletion dialogs without a destructive blocked action', () => {
