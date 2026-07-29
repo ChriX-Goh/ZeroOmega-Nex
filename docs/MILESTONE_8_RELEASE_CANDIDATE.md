@@ -1,98 +1,164 @@
-# Milestone 8 Candidate and Repository-Owner QC
+# Milestone 8 Candidate Gate
 
-## Current candidate state
+## Current state
 
-**No active installable candidate is accepted or under QC.**
+**Active candidate:** none  
+**Previous candidate:** `M8-OWNER-QC-1`  
+**Previous candidate result:** `FAILED` on 2026-07-30
 
-Candidate `M8-OWNER-QC-1` is permanently recorded as:
+The failed candidate must not be installed, reissued, renamed, repackaged or treated as evidence that the project is close to release.
 
-- **Candidate Head:** `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`
-- **Artifact ID:** `8725915254`
-- **Owner-QC result:** `FAILED`
-- **Failure recorded:** 2026-07-30
-- **Release status:** rejected; must not be presented as nearly complete or reused as a future candidate
+## Why the previous candidate failed
 
-PR #11 remains Draft.
+Repository-owner trial found project-wide original-compatibility failures:
 
-## Why the candidate failed
+- browser toolbar icon and visible state did not match the original;
+- a real original exported configuration could not be imported and used directly;
+- UI layout, information density, action hierarchy and interaction logic remained substantially different;
+- many unnecessary descriptions, help boxes and additional workflows were present;
+- multiple visible behaviors had been inferred or invented rather than strictly mapped from the original;
+- further mismatches were too broad for focused candidate repair.
 
-Repository-owner trial identified broad original-compatibility failures, including:
+The exact failed identity remains historical evidence only:
 
-1. The browser toolbar icon and its UI do not match the original and do not change correctly with active profile/runtime state.
-2. A configuration exported by the original extension still cannot be imported and used directly as an equivalent working configuration.
-3. Layout, interaction logic and information density remain substantially different from the original.
-4. Nex introduces many unnecessary user-visible explanatory blocks and auxiliary workflow that are not part of the original mental model.
-5. Additional defects and mismatches are too numerous to treat as a finite final-QC punch list.
-
-These failures invalidate the previous premise that only A-14 and I-11 remained open. They also invalidate the use of `DONE=124 / PARTIAL=2` as a product-completion measure.
-
-## Governance correction
-
-The previous process confused four different states:
-
-- code implemented;
-- automated checks passing;
-- original-compatible behavior verified with real data;
-- repository-owner acceptance.
-
-Only the final state is delivery-complete.
-
-All future work is governed by:
-
-- `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
-
-That document is both the engineering comparison authority and the owner-facing delivery order.
-
-## Initial failed areas
-
-| Defect ID | Area | Result |
-| --- | --- | --- |
-| `KG-ICON-001` | Toolbar icon, badge/title and runtime-state presentation | `FAILED` |
-| `KG-IMPORT-001` | Direct use of real original exported configurations | `FAILED` |
-| `KG-UI-001` | Original information architecture, layout and action hierarchy | `FAILED` |
-| `KG-EXTRA-001` | Unnecessary description/help boxes and extra user-facing workflow | `FAILED` |
-| `KG-FLOW-001` | Broad feature and interaction parity | `FAILED` |
-| `KG-GOV-001` | Completion and acceptance governance | `FAILED` |
-
-## Candidate freeze prohibition
-
-No new candidate may be declared until all of the following are true:
-
-1. The original product graph is captured page-by-page, state-by-state and data-contract-by-data-contract.
-2. The current Nex product is captured independently without assuming equivalence.
-3. Every original node has an explicit Original ↔ Nex mapping and gap classification.
-4. Real sanitized original backups covering complex production configurations import into a clean browser and work directly.
-5. Toolbar, Popup, Options, all profile journeys, Apply/Discard, import/export, restart, rollback, ownership and authentication pass in Chromium and Firefox.
-6. Every extra Nex dialog, description block and auxiliary surface is justified by an accepted divergence or removed.
-7. The repository owner reviews the comparison order and marks the exact final build `PASS`.
-
-## Superseded evidence
-
-The following remain historical engineering evidence only and must not be used as release-completeness evidence:
-
-- candidate Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`;
+- Candidate ID `M8-OWNER-QC-1`;
+- Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`;
 - Artifact `8725915254`;
-- CI `30456863674`;
-- Browser E2E `30456863926`;
-- Parity Documentation `30456863775`;
-- Visual Evidence `30456863885`;
-- the earlier canonical count `DONE=124 / PARTIAL=2`.
+- product Head `23272bd9efc4abbcec5ca99c86d31a1353714e8b`.
 
-Passing those checks proves only that the tested implementation was internally consistent with the incomplete test contract.
+## Candidate authority
 
-## Next acceptance artifact
+The candidate gate is subordinate to:
 
-The next owner-facing artifact is not another ZIP. It is the completed comparison and delivery order containing:
+- `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`;
+- `docs/MILESTONE_8_STATUS.md`.
+
+The project is a complete bottom-layer rewrite with an original-compatible user contract. It is not a modernization redesign of the user experience.
+
+## Candidate prohibition
+
+No new installable candidate may be declared until all conditions below are satisfied.
+
+### 1. Complete original capture
+
+- Every original user-facing surface, control, dialog, action and state transition is captured.
+- Toolbar icon, title, badge and profile/runtime states are captured.
+- Popup dimensions, layout and complete workflows are captured.
+- Options information architecture, wording, density and Apply/Discard behavior are captured.
+- Every profile type, lifecycle operation, condition field and Rule List workflow is captured.
+- Original export schemas, runtime/generated fields, startup state and Quick Switch state are captured.
+- Unknown behavior is recorded as `UNKNOWN`, not filled by assumptions.
+
+### 2. Independent Nex capture
+
+- The current Nex product is captured without assuming equivalence.
+- Every extra page, dialog, description, help box, warning, status taxonomy and workflow step is inventoried.
+- Every visible Nex-only element has provenance.
+
+### 3. Complete Original ↔ Nex mapping
+
+Every required original node must have:
 
 - original source and runtime evidence;
-- current Nex source and runtime evidence;
-- exact differences;
-- required correction;
+- original UI and data before/after;
+- Nex source and runtime evidence;
+- a mapping edge;
+- missing, broken, extra or invented behavior;
+- an exact correction target;
 - automated acceptance;
-- real-backup acceptance;
+- real original-export acceptance;
 - Chromium and Firefox evidence;
-- owner `PASS`, `FAIL` or `NOT RUN`.
+- owner result.
 
-## Closure rule
+Broad status rows such as “Popup done”, “Import done” or “Profile editor done” cannot satisfy this gate.
 
-Milestone 8 cannot be described as 100%, parity-complete, candidate-ready or release-ready until the complete delivery knowledge graph is mapped and the repository owner accepts one exact final candidate.
+### 4. Direct migration acceptance
+
+Representative sanitized files exported by the original extension must:
+
+1. import directly into a clean Nex installation;
+2. preserve meaningful supported configuration and relationships;
+3. require no manual reconstruction;
+4. become immediately usable;
+5. produce equivalent browser behavior;
+6. pass semantic export round trip.
+
+The corpus must cover Fixed, Switch, PAC, Virtual, Rule Lists, colors, ordering, references, bypass, startup profile, active profile and Quick Switch state.
+
+### 5. No-relearning acceptance
+
+An experienced original user must be able to use Nex without material relearning.
+
+The following must match the original unless a necessary divergence is evidenced and owner accepted:
+
+- toolbar and Popup behavior;
+- navigation and page boundaries;
+- labels and terminology;
+- controls and grouping;
+- dialogs and validation timing;
+- action hierarchy;
+- information density;
+- profile editing and state transitions.
+
+### 6. No-invention acceptance
+
+Every Nex-only user-visible item must be either:
+
+- directly grounded in original source/runtime behavior; or
+- a minimized, necessary divergence explicitly accepted by the owner.
+
+Unnecessary descriptions, help boxes, compatibility summaries, extra dialogs and internal-architecture workflow must be removed.
+
+### 7. Complete browser journeys
+
+The exact build must pass complete real-data journeys in Chromium and Firefox:
+
+- install and startup;
+- toolbar and Popup state;
+- original export import and immediate use;
+- Options and Apply/Discard;
+- all profile types and lifecycle operations;
+- export;
+- ownership and authentication;
+- restart recovery;
+- rollback;
+- localization and visual review.
+
+### 8. Owner-facing delivery order
+
+Before a candidate ZIP exists, the owner must receive:
+
+- Original/Nex side-by-side comparison report;
+- complete mapped delivery checklist;
+- real-export compatibility report;
+- resolved and unresolved defect register;
+- explicit necessary divergence list;
+- removed Nex invention/extra list;
+- Chromium and Firefox results.
+
+## Candidate creation rule
+
+Only after the repository owner accepts the mapped comparison state may one exact candidate be built and frozen.
+
+A candidate identity must include:
+
+- candidate ID;
+- exact Head;
+- product commit;
+- workflow run IDs;
+- artifact ID, expiry and hashes;
+- exact package layout;
+- browser versions;
+- executable owner checklist.
+
+A failed candidate cannot be silently replaced. Every replacement requires a new identity and complete evidence.
+
+## Completion rule
+
+PR #11 remains Draft and no release decision is permitted until one exact candidate passes:
+
+- direct original-export migration;
+- no-relearning UI/workflow acceptance;
+- Chromium and Firefox complete journeys;
+- restart, rollback, ownership and authentication;
+- repository-owner `PASS`.
