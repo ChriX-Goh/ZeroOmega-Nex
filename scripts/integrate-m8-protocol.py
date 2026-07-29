@@ -193,6 +193,71 @@ def post_patch() -> None:
         validator = replace_once(validator, old, new, f'protocol guard rename {old!r}')
     validator_path.write_text(validator)
 
+    capabilities_path = Path('packages/pac-compiler/src/capabilities.ts')
+    capabilities = capabilities_path.read_text()
+    capabilities = replace_once(
+        capabilities,
+        """import { PAC_COMPILER_VERSION } from './contracts.js';
+import {
+  fixedProxySlotCapability,
+  proxyProtocolCapability,
+  type FixedProxySlot,
+} from './proxy-capabilities.js';
+""",
+        """import {
+  PAC_COMPILER_VERSION,
+  type PacCapability,
+  type PacCapabilityAnalysis,
+  type PacCapabilityIssue,
+  type PacTarget,
+} from './contracts.js';
+import {
+  fixedProxySlotCapability,
+  proxyProtocolCapability,
+  type FixedProxySlot,
+} from './proxy-capabilities.js';
+""",
+        'PAC capability contracts import',
+    )
+    issue_helper = """function issue(
+  code: string,
+  path: string,
+  capability: PacCapability,
+  severity: PacCapabilityIssue['severity'],
+  blocking: boolean,
+  message: string,
+): PacCapabilityIssue {
+  return { code, path, capability, severity, blocking, message };
+}
+
+"""
+    capabilities = replace_once(
+        capabilities,
+        'function endpointCapability(',
+        issue_helper + 'function endpointCapability(',
+        'PAC capability issue helper',
+    )
+    strongest_helper = """function strongestCapability(
+  issues: readonly PacCapabilityIssue[],
+): PacCapability {
+  if (issues.some((entry) => entry.blocking && entry.capability === 'unsupported')) {
+    return 'unsupported';
+  }
+  if (issues.some((entry) => entry.blocking && entry.capability === 'target-dependent')) {
+    return 'target-dependent';
+  }
+  return 'exact';
+}
+
+"""
+    capabilities = replace_once(
+        capabilities,
+        'export function analyzePacCompatibility(',
+        strongest_helper + 'export function analyzePacCompatibility(',
+        'PAC strongest capability helper',
+    )
+    capabilities_path.write_text(capabilities)
+
     proxy_path = Path('packages/pac-compiler/src/proxy-capabilities.ts')
     proxy_text = proxy_path.read_text()
     proxy_text = replace_once(
