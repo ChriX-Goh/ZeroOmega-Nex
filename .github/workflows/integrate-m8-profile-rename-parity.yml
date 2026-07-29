@@ -67,6 +67,9 @@ jobs:
       - name: Apply Profile Rename parity slice
         run: python .github/patches/apply-m8-profile-rename-parity.py
 
+      - name: Regenerate locale inventory
+        run: pnpm locale:inventory
+
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
@@ -80,6 +83,7 @@ jobs:
             scripts/e2e-chromium.mjs \
             scripts/e2e-firefox.mjs \
             scripts/validate-parity-docs.mjs \
+            docs/LOCALE_INVENTORY.json \
             docs/UI_AUDIT_MATRIX.md \
             docs/MILESTONE_8_STATUS.md \
             docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
@@ -136,6 +140,7 @@ jobs:
             scripts/e2e-chromium.mjs \
             scripts/e2e-firefox.mjs \
             scripts/validate-parity-docs.mjs \
+            docs/LOCALE_INVENTORY.json \
             docs/UI_AUDIT_MATRIX.md \
             docs/MILESTONE_8_STATUS.md \
             docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
