@@ -110,7 +110,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/integrate-m8-four-profile-creation.yml
-          git rm .github/patches/apply-m8-four-profile-creation.py
+          git rm -f .github/patches/apply-m8-four-profile-creation.py
           git add scripts/e2e-chromium.mjs \
             scripts/validate-parity-docs.mjs \
             docs/UI_AUDIT_MATRIX.md \
