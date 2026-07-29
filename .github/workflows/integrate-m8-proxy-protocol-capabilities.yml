@@ -218,6 +218,34 @@ jobs:
           path.write_text('\n'.join(lines) + '\n')
           PY
 
+      - name: Scope protocol parity guard variables
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/validate-parity-docs.mjs')
+          text = path.read_text()
+          replacements = {
+              'const [proxyCapabilities, pacCapabilities, fixedEditor, browserTargetCapabilities, componentRendering] =':
+                  'const [proxyProtocolCapabilities, pacProtocolCapabilities, fixedProtocolEditor, protocolBrowserTargetCapabilities, protocolComponentRendering] =',
+              "requireAll('proxy protocol target matrix', proxyCapabilities, [":
+                  "requireAll('proxy protocol target matrix', proxyProtocolCapabilities, [",
+              "requireAll('PAC protocol capability enforcement', pacCapabilities, [":
+                  "requireAll('PAC protocol capability enforcement', pacProtocolCapabilities, [",
+              "requireAll('Fixed protocol capability UI', fixedEditor, [":
+                  "requireAll('Fixed protocol capability UI', fixedProtocolEditor, [",
+              "requireAll('browser family capability', browserTargetCapabilities, [":
+                  "requireAll('browser family capability', protocolBrowserTargetCapabilities, [",
+              "requireAll('protocol capability component rendering', componentRendering, [":
+                  "requireAll('protocol capability component rendering', protocolComponentRendering, [",
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'protocol guard rename matches for {old!r}: {text.count(old)}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+
       - name: Regenerate locale inventory
         run: pnpm locale:inventory
 
