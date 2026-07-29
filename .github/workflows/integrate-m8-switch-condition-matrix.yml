@@ -11,6 +11,7 @@ on:
       - .github/patches/fix-m8-switch-e2e-escapes.py
       - .github/patches/fix-m8-switch-catalog-types.py
       - .github/patches/fix-m8-switch-invalid-apply-assertion.py
+      - .github/patches/fix-m8-switch-option-reading.py
 
 permissions:
   contents: write
@@ -58,6 +59,9 @@ jobs:
 
       - name: Correct invalid Apply assertion
         run: python .github/patches/fix-m8-switch-invalid-apply-assertion.py
+
+      - name: Read real browser option values
+        run: python .github/patches/fix-m8-switch-option-reading.py
 
       - name: Regenerate locale inventory
         run: pnpm locale:inventory
@@ -126,6 +130,7 @@ jobs:
           git rm -f .github/patches/fix-m8-switch-e2e-escapes.py
           git rm -f .github/patches/fix-m8-switch-catalog-types.py
           git rm -f .github/patches/fix-m8-switch-invalid-apply-assertion.py
+          git rm -f .github/patches/fix-m8-switch-option-reading.py
           git add apps/extension/src/lib/switch-condition-catalog.ts \
             apps/extension/src/lib/switch-condition-catalog.test.ts \
             apps/extension/src/lib/ui-messages.ts \
