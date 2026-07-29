@@ -40,7 +40,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Isolate Rename parity guard variable names
+      - name: Normalize Rename parity guard and localized assertion
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -56,10 +56,12 @@ jobs:
                   "if (renameOptionsApp.includes('onchange={(event) => updateProfileName')) {",
               "requireAll('Profile Rename component rendering', componentRendering, [":
                   "requireAll('Profile Rename component rendering', renameComponentRendering, [",
+              "assert.match(await renameDialog.innerText(), /左侧列表中隐藏/u);":
+                  "assert.match(await renameDialog.innerText(), /以下划线开头/u);",
           }
           for old, new in replacements.items():
               if text.count(old) != 1:
-                  raise SystemExit(f'Rename guard normalization mismatch for {old!r}: {text.count(old)}')
+                  raise SystemExit(f'Rename normalization mismatch for {old!r}: {text.count(old)}')
               text = text.replace(old, new)
           path.write_text(text)
           PY
