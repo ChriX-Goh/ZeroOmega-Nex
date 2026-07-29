@@ -601,3 +601,16 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
 - Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
 - D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.
+
+## Milestone 8 owner-QC candidate `M8-OWNER-QC-1`
+
+- Candidate identity is immutable: Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`, Artifact `browser-builds` ID `8725915254`.
+- Outer GitHub Artifact ZIP SHA-256: `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c`.
+- Inner `browser-builds.tar.gz` SHA-256: `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`.
+- Package layout is `browser-builds/chrome-mv3` plus `browser-builds/firefox-mv3`; both are Manifest V3 version `0.0.1`.
+- Exact-head CI, Chromium, Firefox, headed native Inspect, parity, and 24-image visual evidence passed before freeze.
+- Canonical matrix is `DONE=124`, `PARTIAL=2`; no release-blocking `MUST_MATCH` row remains.
+- A-14 exact skin and I-11 exact Popup pixels remain non-blocking visual references evaluated during owner QC.
+- QC state is `NOT RUN`; candidate declaration is not release acceptance.
+- Owner QC must use a real complex backup and record visual parity, authenticated routing, permission denial, restart recovery, rollback, and whether failed/cancelled operations changed traffic.
+- Any defect stays attached to this exact candidate; replacement requires a new Head, full automation, fresh artifact identity, and a new candidate ID.

@@ -142,3 +142,14 @@ Automation alone does not declare a replacement candidate. A valid release requi
 - Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
 - Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
 - D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.
+
+## Consolidated owner-QC candidate freeze — `M8-OWNER-QC-1`
+
+- Product integration run `30456527030` produced product Head `23272bd9efc4abbcec5ca99c86d31a1353714e8b` and removed all temporary Switch-condition machinery.
+- Human-authored candidate Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a` passed CI `30456863674`, Browser E2E `30456863926`, Parity `30456863775`, and Visual Evidence `30456863885`.
+- The initial exact-head Chromium attempt hit the existing external-Profile popup timing race; the unchanged-job rerun passed. Firefox and native Inspect passed.
+- Candidate Artifact `browser-builds` ID `8725915254` was independently downloaded and archive-tested.
+- Outer ZIP SHA-256 `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c` matches GitHub Actions; inner tarball SHA-256 is `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`.
+- Matrix state is `DONE=124`, `PARTIAL=2`, with no release-blocking `MUST_MATCH` row.
+- Candidate QC state remains `NOT RUN`; PR #11 remains Draft.
+- Next step is repository-owner QC on this exact artifact, not additional feature work or an untracked rebuild.

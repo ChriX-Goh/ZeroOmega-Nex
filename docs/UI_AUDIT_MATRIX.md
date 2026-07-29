@@ -2,6 +2,11 @@
 
 > 本表是 Milestone 8 的用户界面与功能验收主表。原版基准固定为 `zero-peak/ZeroOmega v3.5.0`。状态必须基于源码、真实浏览器或真实备份，不得凭“看起来类似”判定。
 
+> Owner-QC candidate: `M8-OWNER-QC-1`  
+> Candidate Head: `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`  
+> Artifact: `browser-builds` ID `8725915254`  
+> QC state: `NOT RUN`; all `MUST_MATCH` rows are `DONE`, while A-14 and I-11 remain non-blocking `REFERENCE` rows.
+
 ## 状态定义
 
 - 分类：`MUST_MATCH`、`REFERENCE`、`UNCERTAIN`、`INTENTIONAL_DIVERGENCE`、`NOT_PORTING`。
