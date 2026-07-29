@@ -1,0 +1,66 @@
+name: Fix M8 protocol component wiring
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/fix-m8-protocol-component-wire.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Target the original Fixed component test
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/integrate-m8-proxy-protocol-capabilities.yml')
+          text = path.read_text()
+          old = """          renders = [index for index, line in enumerate(lines) if 'render(FixedProfileEditor' in line]
+          if len(renders) != 1:
+              raise SystemExit(f'FixedProfileEditor render matches: {len(renders)}')
+          start = renders[0]
+"""
+          new = """          test_markers = [
+              index
+              for index, line in enumerate(lines)
+              if 'renders the original Fixed Profile proxy table and collapsed advanced rows' in line
+          ]
+          if len(test_markers) != 1:
+              raise SystemExit(f'Fixed component test markers: {len(test_markers)}')
+          test_start = test_markers[0]
+          renders = [
+              index
+              for index in range(test_start, min(test_start + 30, len(lines)))
+              if 'render(FixedProfileEditor' in lines[index]
+          ]
+          if len(renders) != 1:
+              raise SystemExit(f'FixedProfileEditor target render matches: {len(renders)}')
+          start = renders[0]
+"""
+          if text.count(old) != 1:
+              raise SystemExit(f'component wiring block matches: {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
+
+      - name: Commit correction and remove fixer
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/fix-m8-protocol-component-wire.yml
+          git add .github/workflows/integrate-m8-proxy-protocol-capabilities.yml
+          git commit -m 'chore: scope Fixed capability component wiring'
+          git push origin HEAD:feat/m8-profile-workflow
