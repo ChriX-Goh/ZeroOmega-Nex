@@ -14,7 +14,9 @@ if validator_index == -1:
 validator_guards = """requireAll('source-backed Switch condition catalog', switchConditionCatalog, [
   'ORIGINAL_SWITCH_BASIC_CONDITION_GROUPS',
   'ORIGINAL_SWITCH_ADVANCED_CONDITION_GROUPS',
-  \"['true', 'bypass']\",
+  'SOURCE_ONLY_SWITCH_CONDITION_KINDS',
+  \"'true'\",
+  \"'bypass'\",
   \"value: 'host-levels'\",
   \"value: 'weekday'\",
   \"value: 'time'\",
