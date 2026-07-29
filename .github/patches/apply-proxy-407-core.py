@@ -64,7 +64,9 @@ export async function hasProxyAuthenticationPermission(
 export async function requestProxyAuthenticationPermission(
   api: ProxyAuthenticationPermissionClientApi = browser as unknown as ProxyAuthenticationPermissionClientApi,
 ): Promise<boolean> {
-  if (await hasProxyAuthenticationPermission(api)) return true;
+  // Firefox requires permissions.request to remain in the original user activation.
+  // Do not await permissions.contains first: an already-granted request is idempotent,
+  // while the preliminary asynchronous check can consume the activation boundary.
   return api.permissions.request(permissionDetails(api));
 }
 
@@ -127,17 +129,10 @@ function credentialedSpec() {
 }
 
 describe('proxy authentication permission client', () => {
-  it('requests Chromium authentication permissions and origins', async () => {
+  it('requests Chromium authentication permissions and origins without a preliminary await', async () => {
     const client = api(false, false);
     await expect(requestProxyAuthenticationPermission(client.value)).resolves.toBe(true);
     expect(client.calls).toEqual([
-      [
-        'contains',
-        {
-          permissions: ['webRequest', 'webRequestAuthProvider'],
-          origins: ['http://*/*', 'https://*/*'],
-        },
-      ],
       [
         'request',
         {
@@ -148,7 +143,7 @@ describe('proxy authentication permission client', () => {
     ]);
   });
 
-  it('uses Firefox blocking permissions and skips a redundant request', async () => {
+  it('checks Firefox permission separately and requests blocking permissions directly', async () => {
     const client = api(true, true);
     await expect(hasProxyAuthenticationPermission(client.value)).resolves.toBe(true);
     await expect(requestProxyAuthenticationPermission(client.value)).resolves.toBe(true);
@@ -161,7 +156,7 @@ describe('proxy authentication permission client', () => {
         },
       ],
       [
-        'contains',
+        'request',
         {
           permissions: ['webRequest', 'webRequestBlocking'],
           origins: ['http://*/*', 'https://*/*'],
