@@ -51,13 +51,15 @@ jobs:
       - name: Reconcile generated integration files
         run: python scripts/integrate-m8-protocol.py post
 
+      - name: Remove obsolete fixer workflow
+        run: git rm -f .github/workflows/fix-m8-protocol-component-wire.yml
+
       - name: Regenerate locale inventory
         run: pnpm locale:inventory
 
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
-            .github/workflows/fix-m8-protocol-component-wire.yml \
             packages/pac-compiler/src/proxy-capabilities.ts \
             packages/pac-compiler/src/proxy-capabilities.test.ts \
             packages/pac-compiler/src/index.ts \
@@ -120,7 +122,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm -f .github/workflows/integrate-m8-proxy-protocol-capabilities.yml
           git rm -f .github/patches/apply-m8-proxy-protocol-capabilities.py
-          git rm -f .github/workflows/fix-m8-protocol-component-wire.yml
           git rm -f scripts/integrate-m8-protocol.py
           git add packages/pac-compiler/src/proxy-capabilities.ts \
             packages/pac-compiler/src/proxy-capabilities.test.ts \
