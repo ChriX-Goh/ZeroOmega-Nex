@@ -57,6 +57,7 @@ jobs:
       - name: Format changed files
         run: |
           pnpm exec prettier --write \
+            .github/workflows/fix-m8-protocol-component-wire.yml \
             packages/pac-compiler/src/proxy-capabilities.ts \
             packages/pac-compiler/src/proxy-capabilities.test.ts \
             packages/pac-compiler/src/index.ts \
