@@ -77,6 +77,48 @@ new_port = """  await setControlValue(fallbackServer, authProxy.host);
 if text.count(old_port) != 1:
     raise SystemExit(f'Firefox dynamic port anchor mismatch: {text.count(old_port)}')
 text = text.replace(old_port, new_port)
+
+old_after_407 = """  assert.equal(
+    firefoxProxyStats.authorizedCount >= 1 && firefoxProxyStats.targetAuthorizedCount >= 1,
+    true,
+    'Firefox did not retry the target with extension-supplied proxy credentials',
+  );
+
+  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
+"""
+new_after_407 = """  assert.equal(
+    firefoxProxyStats.authorizedCount >= 1 && firefoxProxyStats.targetAuthorizedCount >= 1,
+    true,
+    'Firefox did not retry the target with extension-supplied proxy credentials',
+  );
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.permissions.remove({
+        permissions: ['webRequest', 'webRequestBlocking'],
+        origins: ['http://*/*', 'https://*/*'],
+      }).then(done, (error) => done(String(error)));
+    `),
+    true,
+    'Firefox could not remove the broad proxy-authentication permission after the isolated 407 proof',
+  );
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.permissions.contains({
+        permissions: ['webRequest', 'webRequestBlocking'],
+        origins: ['http://*/*', 'https://*/*'],
+      }).then(done, (error) => done(String(error)));
+    `),
+    false,
+    'Firefox broad proxy-authentication permission remained after the isolated 407 proof',
+  );
+
+  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
+"""
+if text.count(old_after_407) != 1:
+    raise SystemExit(f'Firefox post-407 permission reset anchor mismatch: {text.count(old_after_407)}')
+text = text.replace(old_after_407, new_after_407)
 path.write_text(text)
 
 validator = Path('scripts/validate-parity-docs.mjs')
@@ -96,6 +138,7 @@ new = """requireAll('Firefox real proxy challenge', firefoxE2e, [
   'Firefox Fixed editor did not persist the dynamic proxy endpoint before authentication',
   'Firefox proxy never emitted a real 407 challenge',
   'targetAuthorizedCount >= 1',
+  'Firefox broad proxy-authentication permission remained after the isolated 407 proof',
 ]);
 """
 if text.count(old) != 1:
