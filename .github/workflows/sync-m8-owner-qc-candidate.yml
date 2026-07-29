@@ -1,0 +1,71 @@
+name: Sync M8 owner QC candidate metadata
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/sync-m8-owner-qc-candidate.yml
+      - .github/patches/sync-m8-owner-qc-candidate.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-m8-owner-qc-candidate-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Synchronize candidate metadata
+        run: python .github/patches/sync-m8-owner-qc-candidate.py
+
+      - name: Format candidate documents
+        run: |
+          pnpm exec prettier --write \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md
+
+      - name: Validate parity and repository
+        run: pnpm verify
+
+      - name: Commit metadata and remove temporary machinery
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/sync-m8-owner-qc-candidate.yml
+          git rm -f .github/patches/sync-m8-owner-qc-candidate.py
+          git add docs/UI_AUDIT_MATRIX.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md
+          git commit -m 'docs: synchronize owner QC candidate metadata'
+          git push origin HEAD:feat/m8-profile-workflow
