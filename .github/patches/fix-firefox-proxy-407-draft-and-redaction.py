@@ -79,17 +79,17 @@ if text.count(old_port) != 1:
 text = text.replace(old_port, new_port)
 
 old_after_407 = """  assert.equal(
-    firefoxProxyStats.authorizedCount >= 1 && firefoxProxyStats.targetAuthorizedCount >= 1,
-    true,
-    'Firefox did not retry the target with extension-supplied proxy credentials',
+    firefoxProxyStats.directTargetCount,
+    0,
+    'Firefox bypassed the configured authenticated proxy',
   );
 
   await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
 """
 new_after_407 = """  assert.equal(
-    firefoxProxyStats.authorizedCount >= 1 && firefoxProxyStats.targetAuthorizedCount >= 1,
-    true,
-    'Firefox did not retry the target with extension-supplied proxy credentials',
+    firefoxProxyStats.directTargetCount,
+    0,
+    'Firefox bypassed the configured authenticated proxy',
   );
   assert.equal(
     await driver.executeAsyncScript(`
