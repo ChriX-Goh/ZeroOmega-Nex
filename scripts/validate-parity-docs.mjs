@@ -11,6 +11,10 @@ const schemaV1FixturePath = 'fixtures/zeroomega-v2/schema-v1-auto-detect.json';
 const manifestConfigPath = 'apps/extension/wxt.config.ts';
 const visualEvidenceScriptPath = 'scripts/capture-visual-evidence.mjs';
 const visualEvidenceWorkflowPath = '.github/workflows/m8-visual-evidence.yml';
+const proxyPermissionClientPath = 'apps/extension/src/lib/proxy-auth-permission-client.ts';
+const proxyChallengeServerPath = 'scripts/e2e-basic-auth-proxy.mjs';
+const chromiumE2ePath = 'scripts/e2e-chromium.mjs';
+const firefoxE2ePath = 'scripts/e2e-firefox.mjs';
 const sessionCheckpointPath = 'docs/MILESTONE_8_SESSION_7_CHECKPOINT.md';
 
 const [
@@ -25,6 +29,10 @@ const [
   manifestConfig,
   visualEvidenceScript,
   visualEvidenceWorkflow,
+  proxyPermissionClient,
+  proxyChallengeServer,
+  chromiumE2e,
+  firefoxE2e,
   sessionCheckpoint,
 ] = await Promise.all([
   readFile(graphPath, 'utf8'),
@@ -38,6 +46,10 @@ const [
   readFile(manifestConfigPath, 'utf8'),
   readFile(visualEvidenceScriptPath, 'utf8'),
   readFile(visualEvidenceWorkflowPath, 'utf8'),
+  readFile(proxyPermissionClientPath, 'utf8'),
+  readFile(proxyChallengeServerPath, 'utf8'),
+  readFile(chromiumE2ePath, 'utf8'),
+  readFile(firefoxE2ePath, 'utf8'),
   readFile(sessionCheckpointPath, 'utf8'),
 ]);
 
@@ -185,6 +197,48 @@ requireAll('visual evidence workflow', visualEvidenceWorkflow, [
   'retention-days: 30',
 ]);
 
+requireAll('proxy authentication permission boundary', proxyPermissionClient, [
+  'profileSpecUsesProxyAuthentication',
+  'runWithProxyAuthenticationPermission',
+  "['webRequest', 'webRequestAuthProvider']",
+  "['webRequest', 'webRequestBlocking']",
+  'PROXY_AUTH_PERMISSION_ORIGINS',
+  'return { granted: false }',
+]);
+
+requireAll('controlled proxy challenge server', proxyChallengeServer, [
+  '407',
+  'proxy-authenticate',
+  'Basic realm="ZeroOmega Nex E2E"',
+  'timingSafeEqual',
+  'targetAuthorizedCount',
+  'zeroomega-auth-target.test',
+  'data-proxy-auth-success',
+]);
+
+requireAll('Chromium real proxy challenge', chromiumE2e, [
+  'createBasicAuthProxyChallengeServer',
+  "permissions: ['webRequest', 'webRequestAuthProvider']",
+  'Chromium proxy never emitted a real 407 challenge',
+  'targetAuthorizedCount >= 1',
+]);
+
+requireAll('Firefox real proxy challenge', firefoxE2e, [
+  'createBasicAuthProxyChallengeServer',
+  "permissions: ['webRequest', 'webRequestBlocking']",
+  "key.includes('/secret/') ? '<redacted>' : value",
+  'Firefox port input did not re-enable after committing the proxy host',
+  'Firefox Fixed editor did not persist the dynamic proxy endpoint before authentication',
+  'Firefox proxy never emitted a real 407 challenge',
+  'targetAuthorizedCount >= 1',
+  'Firefox broad proxy-authentication permission remained after returning Direct',
+]);
+
+const fixedAuthRow = audit.split('\n').find((line) => line.startsWith('| C-08 '));
+if (!fixedAuthRow || !fixedAuthRow.includes('| DONE') || !fixedAuthRow.includes('407')) {
+  failures.push('C-08 must remain DONE with real 407 evidence');
+}
+
 requireAll('file PAC decision', decisions, [
   'ADR-015',
   'Preserve but do not activate local `file:` PAC URLs',
@@ -206,9 +260,7 @@ requireAll('parity index', index, [
   'PR #11 remains Draft',
 ]);
 
-const auditRowLines = audit
-  .split('\n')
-  .filter((line) => /^\|\s+[A-J]-\d+\s+\|/u.test(line));
+const auditRowLines = audit.split('\n').filter((line) => /^\|\s+[A-J]-\d+\s+\|/u.test(line));
 if (auditRowLines.length < 120) {
   failures.push(`UI audit has ${auditRowLines.length} classified rows; expected at least 120`);
 }
@@ -226,9 +278,7 @@ const statusCounts = Object.fromEntries(validStatuses.map((status) => [status, 0
 for (const line of auditRowLines) {
   const columns = line.split('|').map((column) => column.trim());
   const rowId = columns[1];
-  const classificationIndex = columns.findIndex((column) =>
-    validClassifications.includes(column),
-  );
+  const classificationIndex = columns.findIndex((column) => validClassifications.includes(column));
   if (classificationIndex === -1) {
     failures.push(`${rowId} has no valid classification column`);
     continue;

@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import { createBasicAuthProxyChallengeServer } from './e2e-basic-auth-proxy.mjs';
+
 const remoteRuleText = '[SwitchyOmega Conditions]\n@with result\n\n* +direct\n';
 const remotePacText = "function FindProxyForURL(url, host) { return 'DIRECT'; }\n";
 const remoteOnlineBackupText = await readFile(
@@ -59,6 +61,13 @@ const remotePacUrl = `http://127.0.0.1:${sourceAddress.port}/proxy.pac`;
 const remotePermissionOrigin = 'http://127.0.0.1/*';
 const onlineBackupUrl = `http://localhost:${sourceAddress.port}/online-backup`;
 const onlineBackupPermissionOrigin = 'http://localhost/*';
+const proxyAuthUsername = 'firefox-e2e';
+const proxyAuthPassword = 'firefox-e2e-password';
+const authProxy = await createBasicAuthProxyChallengeServer({
+  username: proxyAuthUsername,
+  password: proxyAuthPassword,
+  marker: 'Firefox authenticated proxy request passed',
+});
 
 const extensionPath = resolve('dist/firefox-mv3');
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -118,11 +127,17 @@ async function runtimeDiagnostics() {
   return driver.executeAsyncScript(`
     const done = arguments[0];
     (async () => {
+      const redactStorage = (storage) => Object.fromEntries(
+        Object.entries(storage).map(([key, value]) => [
+          key,
+          key.includes('/secret/') ? '<redacted>' : value,
+        ]),
+      );
       const result = {
         manifest: browser.runtime.getManifest(),
         incognitoAllowed: await browser.extension.isAllowedIncognitoAccess(),
         proxyState: await browser.proxy.settings.get({}),
-        storage: await browser.storage.local.get(null),
+        storage: redactStorage(await browser.storage.local.get(null)),
       };
       try {
         result.response = await browser.runtime.sendMessage({
@@ -135,7 +150,7 @@ async function runtimeDiagnostics() {
           stack: sendError instanceof Error ? sendError.stack : undefined,
         };
       }
-      result.storageAfterMessage = await browser.storage.local.get(null);
+      result.storageAfterMessage = redactStorage(await browser.storage.local.get(null));
       done(result);
     })().catch((diagnosticError) => done({
       diagnosticError: diagnosticError instanceof Error
@@ -221,6 +236,68 @@ try {
     'Firefox remote source origin must remain optional before a user action',
   );
 
+  const fixedTable = await driver.wait(
+    until.elementLocated(By.css('[data-fixed-proxy-table]')),
+    15_000,
+  );
+  const fallbackRow = await fixedTable.findElement(By.css('[data-proxy-scheme="fallback"]'));
+  const fallbackProtocol = await fallbackRow.findElement(By.css('[data-proxy-field="protocol"]'));
+  const fallbackServer = await fallbackRow.findElement(By.css('[data-proxy-field="server"]'));
+  const fallbackPort = await fallbackRow.findElement(By.css('[data-proxy-field="port"]'));
+  await setControlValue(fallbackProtocol, 'http');
+  await driver.wait(async () => (await fallbackPort.getAttribute('value')) === '80', 10_000);
+  await setControlValue(fallbackServer, authProxy.host);
+  await driver.wait(
+    until.elementIsEnabled(fallbackPort),
+    10_000,
+    'Firefox port input did not re-enable after committing the proxy host',
+  );
+  await setControlValue(fallbackPort, String(authProxy.port));
+  await driver.wait(
+    async () => (await fallbackPort.getAttribute('value')) === String(authProxy.port),
+    10_000,
+    'Firefox port input did not retain the dynamic proxy port',
+  );
+  await driver.wait(
+    async () =>
+      driver.executeAsyncScript(
+        `
+          const expectedHost = arguments[0];
+          const expectedPort = arguments[1];
+          const done = arguments[2];
+          browser.runtime.sendMessage({
+            channel: 'zeroomega-nex/profile-workflow/v1',
+            action: 'get',
+          }).then((response) => done(Boolean(
+            response?.ok && response.state?.draft?.proxyEndpoints?.some(
+              (endpoint) => endpoint.host === expectedHost && endpoint.port === expectedPort,
+            )
+          )), (error) => done(String(error)));
+        `,
+        authProxy.host,
+        authProxy.port,
+      ),
+    15_000,
+    'Firefox Fixed editor did not persist the dynamic proxy endpoint before authentication',
+  );
+  const authenticationButton = await fallbackRow.findElement(
+    By.css('[data-proxy-action="authentication"]'),
+  );
+  await driver.wait(until.elementIsEnabled(authenticationButton), 10_000);
+  await authenticationButton.click();
+  const authDialog = await driver.wait(
+    until.elementLocated(By.css('[data-fixed-auth-dialog]')),
+    10_000,
+  );
+  const authInputs = await authDialog.findElements(By.css('input'));
+  assert.equal(authInputs.length >= 2, true, 'Firefox authentication dialog inputs are missing');
+  await setControlValue(authInputs[0], proxyAuthUsername);
+  await setControlValue(authInputs[1], proxyAuthPassword);
+  const saveAuthentication = await authDialog.findElement(By.css('[data-auth-action="save"]'));
+  await driver.wait(until.elementIsEnabled(saveAuthentication), 10_000);
+  await saveAuthentication.click();
+  await driver.wait(until.stalenessOf(authDialog), 10_000);
+
   await driver.executeScript(
     `
       const input = arguments[0];
@@ -249,6 +326,17 @@ try {
     await logDiagnostics('Apply');
     throw error;
   }
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.permissions.contains({
+        permissions: ['webRequest', 'webRequestBlocking'],
+        origins: ['http://*/*', 'https://*/*'],
+      }).then(done, (error) => done(String(error)));
+    `),
+    true,
+    'Firefox Apply did not grant proxy-authentication permissions',
+  );
 
   await driver.get(`moz-extension://${extensionUuid}/popup.html`);
   const customProfile = await driver.wait(
@@ -257,6 +345,24 @@ try {
   );
   await customProfile.click();
   await driver.wait(until.elementIsDisabled(customProfile), 20_000);
+
+  await driver.get(authProxy.targetUrl);
+  const authenticatedMarker = await driver.wait(
+    until.elementLocated(By.css('[data-proxy-auth-success]')),
+    20_000,
+  );
+  assert.equal(await authenticatedMarker.getText(), authProxy.marker);
+  const firefoxProxyStats = authProxy.stats();
+  assert.equal(
+    firefoxProxyStats.unauthorizedCount >= 1,
+    true,
+    'Firefox proxy never emitted a real 407 challenge',
+  );
+  assert.equal(
+    firefoxProxyStats.authorizedCount >= 1 && firefoxProxyStats.targetAuthorizedCount >= 1,
+    true,
+    'Firefox did not retry the target with extension-supplied proxy credentials',
+  );
 
   await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
   await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
@@ -269,6 +375,28 @@ try {
   );
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.permissions.remove({
+        permissions: ['webRequest', 'webRequestBlocking'],
+        origins: ['http://*/*', 'https://*/*'],
+      }).then(done, (error) => done(String(error)));
+    `),
+    true,
+    'Firefox could not remove the broad proxy-authentication permission after returning Direct',
+  );
+  assert.equal(
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      browser.permissions.contains({
+        permissions: ['webRequest', 'webRequestBlocking'],
+        origins: ['http://*/*', 'https://*/*'],
+      }).then(done, (error) => done(String(error)));
+    `),
+    false,
+    'Firefox broad proxy-authentication permission remained after returning Direct',
+  );
 
   await driver.get(`moz-extension://${extensionUuid}/temp-rules.html`);
   await driver.wait(
@@ -570,5 +698,6 @@ try {
     await new Promise((resolveClose, rejectClose) => {
       sourceServer.close((error) => (error ? rejectClose(error) : resolveClose()));
     });
+    await authProxy.close();
   }
 }

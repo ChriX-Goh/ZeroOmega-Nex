@@ -552,3 +552,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - Each combination covers six representative surfaces: Options General/shell, Fixed Profile editor, Import/Export, Popup, Temporary Rules, and Network diagnostics. The matrix therefore contains exactly 24 PNG files.
 - `scripts/capture-visual-evidence.mjs` requires the typed locale marker and explicit `data-theme` before capture, disables animation/caret noise, records image dimensions and SHA-256, and writes `manifest.json`, `manifest.sha256`, and a human-readable table.
 - `.github/workflows/m8-visual-evidence.yml` builds the exact Chromium extension and uploads the complete artifact. Automated capture proves reproducibility and coverage; repository-owner visual acceptance remains a separate release gate.
+
+### Real proxy 407 authentication boundary
+
+- Supported Fixed HTTP/HTTPS credentials are saved through the Options authentication dialog as `{username, passwordSecretRef}` plus background-owned secret material. ProfileSpec, ordinary exports, logs, rendered UI, and E2E telemetry never contain the password value after the save command.
+- Every UI path that can Apply a credential-bearing candidate requests the browser-specific optional authentication permission inside the originating user gesture. Chromium requires `webRequest` + `webRequestAuthProvider`; Firefox requires `webRequest` + `webRequestBlocking`; both require HTTP(S) origins. Denial returns before import, Apply, or proxy mutation.
+- A controlled local HTTP proxy proves the complete browser data plane. It emits a real `407 Proxy Authentication Required` with a Basic challenge, accepts only the expected `Proxy-Authorization`, and returns a marked target document without forwarding or DNS. The helper records counts only and never stores or prints the authorization value.
+- Chromium and Firefox configure `127.0.0.1:<dynamic port>` through their real localized Fixed UI, save a secret, Apply, activate through Popup, navigate an ordinary HTTP target, observe at least one 407, and require a subsequent authorized target request.
+- The handler still fails closed for website authentication, unsupported schemes, ambiguous bindings, missing secrets, repeated attempts, and SOCKS authentication. SOCKS/target capability remains C-09 rather than weakening C-08 HTTP(S) closure.

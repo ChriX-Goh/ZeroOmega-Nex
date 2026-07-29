@@ -315,6 +315,13 @@ This file is the durable execution context for Milestone 8. The acceptance autho
 - The artifact includes a machine-readable manifest with exact Head, Chromium version, locale, theme, surface, URL, dimensions, byte size, and per-image SHA-256, plus `manifest.sha256` and a readable index.
 - Exact-Head run `30407814012` produced artifact `m8-visual-evidence-1eb20d1d57cc53887d5d53df7963b8e85709ea24`, ID `8707237406`, artifact digest `sha256:c61b7ea58e8dccd59fb1e0a628af6b9fec2303a824ab070f730ed08d354e30f2`, and manifest digest `176dcfbbb0e1c152f8c16016be98c8ffd2ca78b46fe981e56e7ce422d2160206`. All 24 files were independently rehashed successfully. Repository-owner visual review remains required before a consolidated candidate can be accepted.
 
+### Real Chromium and Firefox proxy-407 challenge
+
+- Apply-capable Options paths now route credential-bearing ProfileSpec candidates through one fail-closed optional-permission helper before any command or browser mutation. Permission denial has direct unit coverage and never invokes the guarded action.
+- A shared controlled HTTP proxy emits a genuine Basic `407 Proxy Authentication Required`, compares authorization without retaining it, and returns a marked success document only after valid credentials. Its public evidence is bounded request counts, never the password or authorization header.
+- Chromium and Firefox both configure the dynamic localhost endpoint and credentials through the actual localized Fixed Profile UI, Apply through the ordinary verified transaction, confirm the target-specific browser permissions, activate through Popup, and load the ordinary HTTP target through the authenticated proxy.
+- Both regressions require at least one 407 plus an authorized target request. C-08 is DONE for supported HTTP/HTTPS authentication; SOCKS authentication remains explicitly unsupported under C-09.
+
 ## Automated acceptance state
 
 The latest product slices passed architecture guards, permanent UI compatibility guards, all 126 parity-document rows, ESLint, Prettier, workspace type checks, unit/integration tests, component rendering, manifest and MV3 CSP inspection, Chromium/Firefox builds and packaging, the complete Chromium regression suite, a real headed Chromium native Inspect menu path, and a browser download→clear→restore→download Options backup round trip. Request diagnostics were rebuilt with test-only pregranted permissions; production manifests retain optional WebRequest and HTTP(S) host permissions.
@@ -325,12 +332,11 @@ The latest product slices passed architecture guards, permanent UI compatibility
 
 PR #11 is not a replacement release candidate. Current blockers include:
 
-- real proxy-challenge manual QC,
 - repository-owner review of the consolidated visual artifact and real complex-backup acceptance,
 
 ## Current next action
 
-Attempt to close the real proxy 407 challenge through controlled Chromium/Firefox E2E; then stage repository-owner visual and real complex-backup QC for one consolidated candidate.
+Prepare one consolidated owner-QC candidate for visual-artifact review and a real complex ZeroOmega backup; do not request installation of intermediate slices.
 
 ### Typed locale inventory and first vertical batch
 

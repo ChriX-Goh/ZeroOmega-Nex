@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
+import { createBasicAuthProxyChallengeServer } from './e2e-basic-auth-proxy.mjs';
+
 const extensionPath = resolve('dist/chrome-mv3');
 const legacyBackupPath = resolve('fixtures/zeroomega-v2/minimal-profile-types.json');
 const virtualMigrationBackupPath = resolve(
@@ -97,6 +99,13 @@ const remotePacUrl = `http://127.0.0.1:${ruleAddress.port}/proxy.pac`;
 const sourceHttpErrorUrl = `http://127.0.0.1:${ruleAddress.port}/source-http-error`;
 const sourceEmptyUrl = `http://127.0.0.1:${ruleAddress.port}/source-empty`;
 const onlineBackupUrl = `http://127.0.0.1:${ruleAddress.port}/online-backup`;
+const proxyAuthUsername = 'chromium-e2e';
+const proxyAuthPassword = 'chromium-e2e-password';
+const authProxy = await createBasicAuthProxyChallengeServer({
+  username: proxyAuthUsername,
+  password: proxyAuthPassword,
+  marker: 'Chromium authenticated proxy request passed',
+});
 let context;
 let conflictContext;
 let virtualContext;
@@ -217,8 +226,10 @@ try {
   await fallbackProtocol.selectOption('http');
   assert.equal(await fallbackServer.inputValue(), '');
   assert.equal(await fallbackPort.inputValue(), '80');
-  await fallbackServer.fill('proxy.e2e.invalid');
+  await fallbackServer.fill(authProxy.host);
   await fallbackServer.press('Tab');
+  await fallbackPort.fill(String(authProxy.port));
+  await fallbackPort.press('Tab');
   await assertEventually(
     async () => !(await fallbackRow.locator('[data-proxy-action="authentication"]').isDisabled()),
     'Fixed Profile authentication button remained disabled after saving the endpoint',
@@ -229,11 +240,11 @@ try {
   assert.equal(await httpRow.locator('[data-proxy-field="protocol"]').inputValue(), '');
   assert.equal(
     await httpRow.locator('[data-proxy-field="server"]').getAttribute('placeholder'),
-    'proxy.e2e.invalid',
+    authProxy.host,
   );
   assert.equal(
     await httpRow.locator('[data-proxy-field="port"]').getAttribute('placeholder'),
-    '80',
+    String(authProxy.port),
   );
   await fallbackRow.locator('[data-proxy-action="authentication"]').click();
   const authDialog = options.locator('[data-fixed-auth-dialog]');
@@ -243,8 +254,8 @@ try {
     async () => fixedAuthUsername.evaluate((element) => element === document.activeElement),
     'Fixed authentication dialog did not focus the username field',
   );
-  await fixedAuthUsername.fill('chromium-e2e');
-  await authDialog.getByRole('textbox', { name: '密码', exact: true }).fill('not-a-real-secret');
+  await fixedAuthUsername.fill(proxyAuthUsername);
+  await authDialog.getByRole('textbox', { name: '密码', exact: true }).fill(proxyAuthPassword);
   await authDialog.locator('[data-auth-action="save"]').click();
   await authDialog.waitFor({ state: 'detached' });
 
@@ -296,6 +307,16 @@ try {
   await assertEventually(async () => !(await apply.isDisabled()), 'Apply button remained disabled');
   await apply.click();
   await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(
+    await worker.evaluate(async () =>
+      chrome.permissions.contains({
+        permissions: ['webRequest', 'webRequestAuthProvider'],
+        origins: ['http://*/*', 'https://*/*'],
+      }),
+    ),
+    true,
+    'Chromium Apply did not grant proxy-authentication permissions',
+  );
 
   const popup = await context.newPage();
   popup.on('pageerror', (error) =>
@@ -309,6 +330,57 @@ try {
     async () => customProfile.isDisabled(),
     'Custom profile did not become active',
   );
+
+  const authenticatedPage = await context.newPage();
+  let chromiumNavigationError = '';
+  try {
+    await authenticatedPage.goto(authProxy.targetUrl, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20_000,
+    });
+  } catch (error) {
+    chromiumNavigationError = error instanceof Error ? error.message : String(error);
+  }
+  await authenticatedPage.waitForTimeout(2_000);
+  const chromiumProxyStats = authProxy.stats();
+  const chromiumProxySetting = await worker.evaluate(
+    async ({ expectedHost, expectedPort }) => {
+      const setting = await chrome.proxy.settings.get({ incognito: false });
+      const value = setting.value ?? {};
+      const pacData = String(value?.pacScript?.data ?? '');
+      return {
+        levelOfControl: setting.levelOfControl,
+        mode: value?.mode ?? null,
+        containsExpectedProxy: pacData.includes(`${expectedHost}:${expectedPort}`),
+      };
+    },
+    { expectedHost: authProxy.host, expectedPort: authProxy.port },
+  );
+  const successMarker = authenticatedPage.locator('[data-proxy-auth-success]');
+  const successVisible = await successMarker.isVisible().catch(() => false);
+  if (!successVisible) {
+    throw new Error(
+      `Chromium proxy authentication target failed: ${JSON.stringify({
+        currentUrl: authenticatedPage.url(),
+        title: await authenticatedPage.title().catch(() => ''),
+        navigationError: chromiumNavigationError,
+        stats: chromiumProxyStats,
+        proxySetting: chromiumProxySetting,
+      })}`,
+    );
+  }
+  assert.equal(await successMarker.innerText(), authProxy.marker);
+  assert.equal(
+    chromiumProxyStats.unauthorizedCount >= 1,
+    true,
+    'Chromium proxy never emitted a real 407 challenge',
+  );
+  assert.equal(
+    chromiumProxyStats.authorizedCount >= 1 && chromiumProxyStats.targetAuthorizedCount >= 1,
+    true,
+    'Chromium did not retry the target with extension-supplied proxy credentials',
+  );
+  await authenticatedPage.close();
 
   await options.getByRole('button', { name: '配置历史' }).click();
   await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
@@ -1723,6 +1795,7 @@ try {
   await virtualContext?.close();
   await context?.close();
   await new Promise((resolveClose) => ruleServer.close(resolveClose));
+  await authProxy.close();
   await rm(userDataDir, { recursive: true, force: true });
   await rm(conflictUserDataDir, { recursive: true, force: true });
   await rm(virtualUserDataDir, { recursive: true, force: true });

@@ -70,15 +70,15 @@ Rebuild the familiar ZeroOmega v3.5.0 UI and profile workflow on top of the new 
 - Direct typed English, Simplified Chinese, and Traditional Chinese presentation across normal Options, profiles, Popup, Temporary Rules, Network, Import, History, Theme, lifecycle dialogs, dynamic messages, and ARIA.
 - Machine-generated locale inventory with zero untranslated user-visible candidates plus permanent parity/localization guards.
 - Exact-Head visual evidence: light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network, with 24 per-image hashes plus artifact/manifest digests.
+- Real Chromium/Firefox Basic proxy authentication: localized UI credential save, permission grant, verified Apply/activation, genuine 407 challenge, `onAuthRequired` response, and successful target navigation.
 
 ### Current closure blockers
 
-- Real proxy-challenge manual QC.
 - Repository-owner visual-artifact review, real complex backup, and final installable-candidate acceptance.
 
 ### Immediate direction
 
-The exact-Head visual matrix is generated and integrity-checked. Milestone 8 now attempts controlled Chromium/Firefox proxy-407 challenge coverage, then moves to repository-owner visual/complex-backup acceptance and formal consolidated-candidate preparation.
+The exact-Head visual matrix and controlled Chromium/Firefox proxy-407 path are automated and integrity-checked. Milestone 8 now moves to one repository-owner visual/complex-backup acceptance pass and formal consolidated-candidate preparation.
 
 ## Partially pulled forward — Milestone 9
 

@@ -49,7 +49,10 @@
     sendProfileWorkflowCommand,
     subscribeProfileWorkflowStateChanges,
   } from '../../lib/profile-workflow-client';
-  import { requestProxyAuthenticationPermission } from '../../lib/proxy-auth-permission-client';
+  import {
+    requestProxyAuthenticationPermission,
+    runWithProxyAuthenticationPermission,
+  } from '../../lib/proxy-auth-permission-client';
   import {
     hasRequestDiagnosticsPermission,
     requestRequestDiagnosticsPermission,
@@ -419,13 +422,20 @@
     candidate: ProfileSpec,
     secretMaterials: readonly ProfileWorkflowSecretMaterial[],
   ): Promise<boolean> {
-    if (!(await acceptImportedDraft(expectedGeneration, candidate, secretMaterials)) || !state) {
+    const permission = await runWithProxyAuthenticationPermission(candidate, async () => {
+      if (!(await acceptImportedDraft(expectedGeneration, candidate, secretMaterials)) || !state) {
+        return false;
+      }
+      return runCommand({
+        action: 'apply',
+        expectedGeneration: state.generation,
+      });
+    });
+    if (!permission.granted) {
+      errorMessage = uiText('options.error.proxyAuthPermission', locale);
       return false;
     }
-    return runCommand({
-      action: 'apply',
-      expectedGeneration: state.generation,
-    });
+    return permission.value;
   }
 
   async function rollbackSnapshot(
@@ -599,11 +609,17 @@
     if (view?.dirty) {
       const confirmed = globalThis.confirm(uiText('options.confirm.replace', locale));
       if (!confirmed) return;
-      const applied = await runCommand({
-        action: 'apply',
-        expectedGeneration: state.generation,
-      });
-      if (!applied) return;
+      const permission = await runWithProxyAuthenticationPermission(state.draft, () =>
+        runCommand({
+          action: 'apply',
+          expectedGeneration: state!.generation,
+        }),
+      );
+      if (!permission.granted) {
+        errorMessage = uiText('options.error.proxyAuthPermission', locale);
+        return;
+      }
+      if (!permission.value) return;
     }
     if (
       !state.draft.profiles.some((profile) => profile.id === fromProfileId) ||
@@ -859,12 +875,17 @@
   }
 
   async function applyDraft(): Promise<void> {
-    if (!state || !hasUnappliedChanges || !(await commitActiveProfileEditor())) return;
-    if (!view?.dirty) return;
-    await runCommand({
-      action: 'apply',
-      expectedGeneration: state.generation,
+    if (!state || !hasUnappliedChanges) return;
+    const permission = await runWithProxyAuthenticationPermission(state.draft, async () => {
+      if (!state || !(await commitActiveProfileEditor()) || !view?.dirty) return false;
+      return runCommand({
+        action: 'apply',
+        expectedGeneration: state.generation,
+      });
     });
+    if (!permission.granted) {
+      errorMessage = uiText('options.error.proxyAuthPermission', locale);
+    }
   }
 
   async function prepareLegacyExport(): Promise<ProfileSpec | undefined> {
@@ -872,11 +893,17 @@
     if (view?.dirty) {
       const confirmed = globalThis.confirm(uiText('options.confirm.export', locale));
       if (!confirmed) return undefined;
-      const applied = await runCommand({
-        action: 'apply',
-        expectedGeneration: state.generation,
-      });
-      if (!applied) return undefined;
+      const permission = await runWithProxyAuthenticationPermission(state.draft, () =>
+        runCommand({
+          action: 'apply',
+          expectedGeneration: state!.generation,
+        }),
+      );
+      if (!permission.granted) {
+        errorMessage = uiText('options.error.proxyAuthPermission', locale);
+        return undefined;
+      }
+      if (!permission.value) return undefined;
     }
     return state ? structuredClone(state.applied) : undefined;
   }

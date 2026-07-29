@@ -859,6 +859,11 @@ export const typedUiTextCatalog = {
     'zh-CN': '无法完成此操作。请重试或查看相关状态区域。',
     'zh-TW': '無法完成此操作。請重試或查看相關狀態區域。',
   },
+  'options.error.proxyAuthPermission': {
+    en: 'Proxy authentication permission is required before applying credentials.',
+    'zh-CN': '应用代理登录凭据前，需要授予代理认证权限。',
+    'zh-TW': '套用代理登入憑證前，需要授予代理驗證權限。',
+  },
   'options.error.ruleListPermission': {
     en: 'Host permission is required before downloading this Rule List URL.',
     'zh-CN': '下载此规则列表网址前，需要授予网站权限。',

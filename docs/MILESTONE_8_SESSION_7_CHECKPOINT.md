@@ -51,12 +51,12 @@ This is control-plane drift, not evidence that the rebuilt product has abandoned
 
 The 94% estimate uses acceptance value rather than commit count:
 
-| Area | Weight | Completion | Weighted result |
-| --- | ---: | ---: | ---: |
-| Milestones 0–7 foundation and engines | 35% | 100% | 35.0% |
-| Milestone 8 product and original-compatible workflow | 45% | 96% | 43.2% |
-| Real-environment, documentation, owner-QC, and candidate closure | 20% | 78% | 15.6% |
-| **Total** | **100%** |  | **93.8%** |
+| Area                                                             |   Weight | Completion | Weighted result |
+| ---------------------------------------------------------------- | -------: | ---------: | --------------: |
+| Milestones 0–7 foundation and engines                            |      35% |       100% |           35.0% |
+| Milestone 8 product and original-compatible workflow             |      45% |        96% |           43.2% |
+| Real-environment, documentation, owner-QC, and candidate closure |      20% |        78% |           15.6% |
+| **Total**                                                        | **100%** |            |       **93.8%** |
 
 Rounded project progress toward the first stable replacement release is **94%**. Pure implementation is approximately 96%; formal Milestone 8 closure remains lower because proxy challenge, document reconciliation, owner QC, and candidate freezing are release gates.
 
