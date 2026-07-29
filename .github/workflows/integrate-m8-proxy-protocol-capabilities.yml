@@ -58,20 +58,15 @@ jobs:
 
           path = Path('packages/pac-compiler/src/capabilities.ts')
           text = path.read_text()
-          old = r"""  if (/[-￿]/u.test(endpoint.host)) {
-            addIssue(
-              issue(
-                'endpoint.non-ascii-host',
-                `${path}/host`,
-                'unsupported',
-                'error',
-                true,
-                'PAC proxy directives require an ASCII host after normalization.',
-              ),
-            );
-          }
-          """
-          new = """  if (containsNonAscii(endpoint.host)) {
+          marker = "'endpoint.non-ascii-host'"
+          marker_index = text.find(marker)
+          start = text.rfind('  if (', 0, marker_index)
+          end = text.find('\n  if (!endpoint.credential)', marker_index)
+          if marker_index == -1 or start == -1 or end == -1:
+              raise SystemExit(
+                  f'Unicode endpoint block markers: marker={marker_index}, start={start}, end={end}'
+              )
+          replacement = """  if (containsNonAscii(endpoint.host)) {
             addIssue(
               issue(
                 'endpoint.host-needs-ascii',
@@ -84,9 +79,7 @@ jobs:
             );
           }
           """
-          if text.count(old) != 1:
-              raise SystemExit(f'Unicode endpoint capability block matches: {text.count(old)}')
-          path.write_text(text.replace(old, new))
+          path.write_text(text[:start] + replacement + text[end:])
           PY
 
       - name: Remove obsolete fixer workflow
