@@ -65,15 +65,6 @@ if text.count(old) != 1:
 text = text.replace(old, new)
 
 old = """  await createSwitch.click();
-  const attachRuleListSection = await driver.wait(
-    until.elementLocated(By.css('[data-attach-rule-list-section]')),
-    20_000,
-  );
-  await attachRuleListSection.findElement(By.css('button')).click();
-  const attachedRuleList = await driver.wait(
-    until.elementLocated(By.css('[data-attached-rule-list-config][data-typed-locale="zh-TW"]')),
-    20_000,
-  );
 """
 new = """  await createSwitch.click();
   await driver.wait(
@@ -101,9 +92,24 @@ new = """  await createSwitch.click();
       }, (error) => done(String(error)));
     `),
     20_000,
-    'Firefox newly created Switch profile did not settle before Rule List attachment',
+    'Firefox newly created Switch profile did not settle before condition editing',
   );
-  const attachRuleListSection = await driver.wait(
+"""
+if text.count(old) != 1:
+    raise SystemExit(f'Firefox Switch creation click matches: {text.count(old)}')
+text = text.replace(old, new)
+
+old = """  const attachRuleListSection = await driver.wait(
+    until.elementLocated(By.css('[data-attach-rule-list-section]')),
+    20_000,
+  );
+  await attachRuleListSection.findElement(By.css('button')).click();
+  const attachedRuleList = await driver.wait(
+    until.elementLocated(By.css('[data-attached-rule-list-config][data-typed-locale="zh-TW"]')),
+    20_000,
+  );
+"""
+new = """  const attachRuleListSection = await driver.wait(
     until.elementLocated(By.css('[data-attach-rule-list-section]')),
     20_000,
   );
@@ -139,4 +145,4 @@ new = """  await createSwitch.click();
 if text.count(old) != 1:
     raise SystemExit(f'Firefox Rule List attachment block matches: {text.count(old)}')
 path.write_text(text.replace(old, new))
-print('Stabilized Firefox Switch Draft convergence and Rule List attachment transitions.')
+print('Stabilized Firefox Switch creation, condition Draft, and Rule List attachment transitions.')
