@@ -36,9 +36,19 @@ The slice proves:
 
 - Unified four-profile creation: run `30416441326`, product Head `febb7dcd8a5455bd31c499a88bf450039bc4a67b`.
 - Genuine Chromium/Firefox proxy 407: run `30414496421`, rerun job `90458570753`, product Head `8c0d4ce735d0f59cec80442667442a8160dfc182`.
-- Last fully synchronized exact verification before the PAC slice: human Head `b8bc7718954874542f557ab66eb430178c8b02fb`, all four permanent workflows passed.
 
-A new human-authored exact verification Head is required after the PAC capability product commit before the next product slice or candidate preparation.
+## Latest exact verification evidence
+
+At human-authored Head `28d95bc600d3e8678a7b2c50f387a2754f001807`:
+
+- CI `30418808732` passed full verification, dual-target builds, inspection, packaging, and artifact upload.
+- Browser E2E `30418808739` passed Chromium, Firefox, and headed native Chromium Inspect.
+- Parity Documentation `30418808735` passed the canonical matrix: `DONE=119`, `PARTIAL=7`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
+- Milestone 8 Visual Evidence `30418808737` passed all 24 light/dark × zh-CN/zh-TW captures.
+- Build artifact `browser-builds`, ID `8711139469`, digest `sha256:7d035a7eabb751529f5e9fe7f3a03666741f4822f8e64213cdc3875d159ae086`, expiry 2026-10-27.
+- Visual artifact `m8-visual-evidence-28d95bc600d3e8678a7b2c50f387a2754f001807`, ID `8711138863`, digest `sha256:3e17518f3b4608ae17dc1a79fdac58a256c5aa4c95a53a9320bc67f1b0231a34`, expiry 2026-08-28.
+
+These remain verification evidence, not a consolidated owner-QC candidate, because four release-blocking `MUST_MATCH` rows remain.
 
 ## Verified product capabilities entering candidate preparation
 
