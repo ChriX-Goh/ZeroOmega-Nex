@@ -213,13 +213,27 @@ if (auditRowLines.length < 120) {
   failures.push(`UI audit has ${auditRowLines.length} classified rows; expected at least 120`);
 }
 
+const validClassifications = [
+  'MUST_MATCH',
+  'REFERENCE',
+  'UNCERTAIN',
+  'INTENTIONAL_DIVERGENCE',
+  'NOT_PORTING',
+];
 const validStatuses = ['DONE', 'PARTIAL', 'MISSING', 'BROKEN', 'UNVERIFIED'];
 const statusCounts = Object.fromEntries(validStatuses.map((status) => [status, 0]));
 
 for (const line of auditRowLines) {
   const columns = line.split('|').map((column) => column.trim());
   const rowId = columns[1];
-  const status = columns[6];
+  const classificationIndex = columns.findIndex((column) =>
+    validClassifications.includes(column),
+  );
+  if (classificationIndex === -1) {
+    failures.push(`${rowId} has no valid classification column`);
+    continue;
+  }
+  const status = columns[classificationIndex + 1];
   if (!validStatuses.includes(status)) {
     failures.push(`${rowId} has invalid Nex status: ${status || '<empty>'}`);
     continue;
