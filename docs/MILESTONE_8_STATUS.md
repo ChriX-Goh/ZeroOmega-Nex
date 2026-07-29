@@ -3,8 +3,8 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; no installable replacement candidate  
-**Latest integrated product Head:** `4233e45340ea0d1185e87270aa9c10cfcd2c7b6b`  
-**Latest product integration:** run `30418355127`, passed repository verification and complete Chromium E2E, committed the product slice, and removed temporary integration machinery  
+**Latest integrated product Head:** `f0a11300eba0958662e3b9fa4806ea3582bec8ca`  
+**Latest product integration:** run `30423585469`, passed repository verification, complete Chromium and Firefox E2E, committed the product slice, uploaded evidence, and removed all temporary integration machinery  
 **Estimated first stable replacement-release progress:** 97%
 
 The moving branch Head and exact workflow runs are recorded only in PR #11. This file records stable product checkpoints and release boundaries, so evidence bookkeeping does not repeatedly invalidate its own exact verification Head.
@@ -93,7 +93,7 @@ Integration run `30414496421`, rerun job `90458570753`, committed product Head `
 - The sentinel hostname is unresolvable, so direct navigation cannot fake success.
 - Chromium and Firefox both complete the real challenge through localized Fixed UI, Apply, Popup activation, permission acquisition, and background credential handling.
 - Secret diagnostics redact `/secret/` entries; authorization material is never logged.
-- C-08 is closed for supported HTTP/HTTPS proxy authentication. Authenticated SOCKS remains unsupported under C-09.
+- C-08 is closed for supported HTTP/HTTPS proxy authentication. Authenticated SOCKS is explicitly unsupported by the completed C-09 capability matrix and ADR-019.
 
 ## Explicit scope decisions
 
@@ -101,18 +101,20 @@ Integration run `30414496421`, rerun job `90458570753`, committed product Head `
 - ADR-016: GitHub Gist synchronization is `NOT_PORTING` for the first release.
 - ADR-017: WebDAV synchronization is `NOT_PORTING` for the first release.
 - ADR-018: original credential-bearing browser `storage.sync` is an `INTENTIONAL_DIVERGENCE`.
+- ADR-019: preserve all original Fixed URL slots and protocol choices while explicitly reporting modern FTP-request removal, SOCKS DNS target differences, and SOCKS authentication limits.
 
 ## Automated acceptance state
 
-The PAC target-capability integration passed:
+The proxy protocol and browser-target capability integration passed:
 
 - architecture and UI compatibility guards;
-- canonical parity validation;
-- ESLint, Prettier, workspace type checks, and warning-fatal Svelte checks;
-- unit, integration, and component-rendering tests;
+- canonical parity validation with C-05 and C-09 closed;
+- ESLint, Prettier, workspace type checks, warning-fatal Svelte checks, and all 450 tests;
+- unit, integration, and component-rendering tests for the protocol, slot, authentication, and DNS matrix;
 - dual-browser build, manifest, inspection, packaging, and staging checks;
-- complete Chromium E2E, including current-target support and injected unsupported-target behavior;
-- evidence upload, product commit, and temporary workflow/patch cleanup.
+- complete Chromium E2E, including all four protocols in a real Fixed Draft and normal Apply workflow;
+- complete Firefox E2E, including target identification, all four protocol choices, and legacy-inactive FTP disclosure;
+- evidence upload, product commit, and removal of the temporary workflows, patch, and integration helper.
 
 Exact workflow evidence is intentionally maintained in PR #11 rather than repeatedly committed into this file.
 
@@ -131,8 +133,8 @@ Additional open rows:
 
 ## Remaining release gates
 
-- maintain a clean exact human-authored Head with green CI, Browser E2E, Parity Documentation, and Visual Evidence;
-- close or explicitly scope the four remaining `MUST_MATCH` rows without weakening acceptance;
+- maintain a clean exact non-Actions-authored Head with green CI, Browser E2E, Parity Documentation, and Visual Evidence;
+- close or explicitly scope the two remaining `MUST_MATCH` rows without weakening acceptance;
 - produce one consolidated installable candidate with a fresh artifact digest and current QC checklist;
 - obtain repository-owner visual review and real complex-backup acceptance in Chromium and Firefox;
 - verify restart recovery, active route, theme, rollback, and authenticated routing on the consolidated candidate.
