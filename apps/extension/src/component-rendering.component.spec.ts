@@ -559,7 +559,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
       props: {
         existingNames: ['Existing'],
         disabled: false,
-        pacSupported: true,
+        pacCapability: { supported: true, reason: 'proxy-settings' },
         onCancel: () => undefined,
         onCreate: async () => undefined,
       },
@@ -569,6 +569,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('role="dialog"');
     expect(body).toContain('tabindex="-1"');
     expect(body).toContain('data-new-profile-name-input');
+    expect(body).toContain('data-pac-profile-supported="true"');
+    expect(body).toContain('data-pac-profile-capability-reason="proxy-settings"');
     expect(body).not.toContain('autofocus');
     expect(body).toContain('Profile name');
     expect(body).toContain('Proxy Profile');
@@ -587,7 +589,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         locale: 'zh-CN',
         existingNames: [],
         disabled: false,
-        pacSupported: false,
+        pacCapability: { supported: false, reason: 'proxy-script-registration' },
         onCancel: () => undefined,
         onCreate: async () => undefined,
       },
@@ -596,6 +598,8 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(newProfile).toContain('请选择情景模式的类型：');
     expect(newProfile).toContain('代理服务器');
     expect(newProfile).toContain('由于技术限制');
+    expect(newProfile).toContain('data-pac-profile-supported="false"');
+    expect(newProfile).toContain('data-pac-profile-capability-reason="proxy-script-registration"');
     expect(newProfile).not.toContain('New Profile');
 
     const fixedEditor = render(FixedProfileEditor, {

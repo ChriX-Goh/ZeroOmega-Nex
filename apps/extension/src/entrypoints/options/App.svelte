@@ -36,6 +36,7 @@
   import { onMount } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import { currentBrowserTargetCapabilities } from '../../lib/browser-target-capabilities';
   import { currentAppLocale } from '../../lib/i18n';
   import { profileKindText, uiMessage, uiText } from '../../lib/ui-messages';
   import {
@@ -129,6 +130,7 @@
   let profileExportMessage = '';
   let ruleListExportWarning = '';
   const locale = currentAppLocale();
+  const browserTargetCapabilities = currentBrowserTargetCapabilities();
 
   let allProfiles: readonly UserProfile[] = [];
   let hiddenProfileIds: ReadonlySet<string> = new Set();
@@ -1389,6 +1391,7 @@
           {locale}
           existingNames={profiles.map((profile) => profile.name)}
           disabled={saving || view?.busy === true}
+          pacCapability={browserTargetCapabilities.pacProfiles}
           onCancel={cancelNewProfile}
           onCreate={createNamedProfile}
         />

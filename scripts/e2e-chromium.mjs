@@ -1768,6 +1768,8 @@ try {
     await creationOptions.locator('[data-new-profile-action]').click();
     const dialog = creationOptions.locator('.new-profile-dialog');
     await dialog.waitFor({ state: 'visible', timeout: 20_000 });
+    assert.equal(await dialog.getAttribute('data-pac-profile-supported'), 'true');
+    assert.equal(await dialog.getAttribute('data-pac-profile-capability-reason'), 'proxy-settings');
     const nameInput = dialog.locator('[data-new-profile-name-input]');
     await assertEventually(
       async () => nameInput.evaluate((element) => element === document.activeElement),
@@ -1868,6 +1870,30 @@ try {
     'The four normal New Profile flows did not commit through normal Apply',
     20_000,
   );
+  const unsupportedPacOptions = await creationContext.newPage();
+  await unsupportedPacOptions.addInitScript(() => {
+    Object.defineProperty(chrome.proxy, 'registerProxyScript', {
+      configurable: true,
+      value: () => undefined,
+    });
+  });
+  await unsupportedPacOptions.goto(`chrome-extension://${creationExtensionId}/options.html`);
+  await unsupportedPacOptions.waitForLoadState('domcontentloaded');
+  await unsupportedPacOptions.locator('[data-new-profile-action]').click();
+  const unsupportedPacDialog = unsupportedPacOptions.locator('.new-profile-dialog');
+  await unsupportedPacDialog.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await unsupportedPacDialog.getAttribute('data-pac-profile-supported'), 'false');
+  assert.equal(
+    await unsupportedPacDialog.getAttribute('data-pac-profile-capability-reason'),
+    'proxy-script-registration',
+  );
+  assert.equal(
+    await unsupportedPacDialog.locator('[data-new-profile-kind="pac"]').isDisabled(),
+    true,
+  );
+  assert.match(await unsupportedPacDialog.innerText(), /由于技术限制/u);
+  await unsupportedPacOptions.close();
+
   await creationContext.close();
   creationContext = undefined;
 

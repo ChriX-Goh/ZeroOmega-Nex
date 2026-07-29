@@ -53,6 +53,14 @@ const [
   readFile(sessionCheckpointPath, 'utf8'),
 ]);
 
+const [browserTargetCapabilities, optionsApp, newProfileDialog, componentRendering] =
+  await Promise.all([
+    readFile('apps/extension/src/lib/browser-target-capabilities.ts', 'utf8'),
+    readFile('apps/extension/src/entrypoints/options/App.svelte', 'utf8'),
+    readFile('apps/extension/src/entrypoints/options/NewProfileDialog.svelte', 'utf8'),
+    readFile('apps/extension/src/component-rendering.component.spec.ts', 'utf8'),
+  ]);
+
 const failures = [];
 
 function requireAll(documentName, document, tokens) {
@@ -215,6 +223,42 @@ requireAll('controlled proxy challenge server', proxyChallengeServer, [
   'zeroomega-auth-target.test',
   'data-proxy-auth-success',
 ]);
+
+requireAll('PAC target capability module', browserTargetCapabilities, [
+  'proxy-script-registration',
+  'missing-proxy-settings',
+  'proxy-settings',
+  'currentBrowserTargetCapabilities',
+]);
+requireAll('PAC target capability wiring', optionsApp, [
+  'currentBrowserTargetCapabilities',
+  'pacCapability={browserTargetCapabilities.pacProfiles}',
+]);
+requireAll('PAC unsupported New Profile branch', newProfileDialog, [
+  'data-pac-profile-supported',
+  'data-pac-profile-capability-reason',
+  "uiText('newProfile.pac.unsupported', locale)",
+]);
+requireAll('PAC capability component rendering', componentRendering, [
+  "reason: 'proxy-settings'",
+  "reason: 'proxy-script-registration'",
+  'data-pac-profile-supported',
+]);
+requireAll('PAC target capability Chromium acceptance', chromiumE2e, [
+  "Object.defineProperty(chrome.proxy, 'registerProxyScript'",
+  "'data-pac-profile-supported'",
+  "'proxy-script-registration'",
+  'data-new-profile-kind',
+]);
+
+const pacCapabilityRow = audit.split('\n').find((line) => line.startsWith('| A-12 '));
+if (
+  !pacCapabilityRow ||
+  !pacCapabilityRow.includes('| DONE') ||
+  !pacCapabilityRow.includes('Chromium')
+) {
+  failures.push('A-12 must remain DONE with target capability and Chromium evidence');
+}
 
 requireAll('unified four-profile creation', chromiumE2e, [
   'creationUserDataDir',

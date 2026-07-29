@@ -2,6 +2,7 @@
   import { onMount, tick } from 'svelte';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import type { PacProfileCapability } from '../../lib/browser-target-capabilities';
   import { currentAppLocale, type AppLocale } from '../../lib/i18n';
   import { uiText, type UiTextKey } from '../../lib/ui-messages';
 
@@ -9,7 +10,10 @@
 
   export let existingNames: readonly string[] = [];
   export let disabled = false;
-  export let pacSupported = true;
+  export let pacCapability: PacProfileCapability = {
+    supported: true,
+    reason: 'proxy-settings',
+  };
   export let locale: AppLocale = currentAppLocale();
   export let onCancel: () => void;
   export let onCreate: (kind: NewProfileKind, name: string) => Promise<void>;
@@ -73,7 +77,10 @@
           ? ('newProfile.error.conflict' as const)
           : undefined;
   $: canCreate =
-    !disabled && !submitting && errorKey === undefined && (kind !== 'pac' || pacSupported);
+    !disabled &&
+    !submitting &&
+    errorKey === undefined &&
+    (kind !== 'pac' || pacCapability.supported);
 
   async function create(): Promise<void> {
     if (!canCreate) return;
@@ -94,6 +101,8 @@
     aria-modal="true"
     aria-labelledby="new-profile-title"
     data-typed-locale={locale}
+    data-pac-profile-supported={pacCapability.supported}
+    data-pac-profile-capability-reason={pacCapability.reason}
   >
     <header>
       <h1 id="new-profile-title">{uiText('newProfile.title', locale)}</h1>
@@ -131,21 +140,21 @@
       <fieldset class="profile-type-choices" {disabled}>
         <legend>{uiText('newProfile.type', locale)}</legend>
         {#each choices as choice (choice.kind)}
-          <label class:disabled-choice={choice.kind === 'pac' && !pacSupported}>
+          <label class:disabled-choice={choice.kind === 'pac' && !pacCapability.supported}>
             <input
               type="radio"
               name="profile-type"
               value={choice.kind}
               data-new-profile-kind={choice.kind}
               checked={kind === choice.kind}
-              disabled={disabled || (choice.kind === 'pac' && !pacSupported)}
+              disabled={disabled || (choice.kind === 'pac' && !pacCapability.supported)}
               on:change={() => (kind = choice.kind)}
             />
             <ProfileIcon kind={choice.kind} color={choice.color} size={31} />
             <span>
               <strong>{uiText(choice.titleKey, locale)}</strong>
               <small>{uiText(choice.descriptionKey, locale)}</small>
-              {#if choice.kind === 'pac' && !pacSupported}
+              {#if choice.kind === 'pac' && !pacCapability.supported}
                 <small class="error-message">{uiText('newProfile.pac.unsupported', locale)}</small>
               {/if}
             </span>
