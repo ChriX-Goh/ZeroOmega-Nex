@@ -40,7 +40,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Decouple moving status and checkpoint prose from product patch
+      - name: Isolate moving control documents from product patch
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -48,10 +48,11 @@ jobs:
           path = Path('.github/patches/apply-m8-pac-target-capability.py')
           text = path.read_text()
           start = text.index("status = Path('docs/MILESTONE_8_STATUS.md')")
-          end = text.index("candidate = Path('docs/MILESTONE_8_RELEASE_CANDIDATE.md')", start)
+          end = text.index("graph = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')", start)
           replacement = (
               "status = Path('docs/MILESTONE_8_STATUS.md')\n"
-              "checkpoint = Path('docs/MILESTONE_8_SESSION_7_CHECKPOINT.md')\n\n"
+              "checkpoint = Path('docs/MILESTONE_8_SESSION_7_CHECKPOINT.md')\n"
+              "candidate = Path('docs/MILESTONE_8_RELEASE_CANDIDATE.md')\n\n"
           )
           path.write_text(text[:start] + replacement + text[end:])
           PY
@@ -70,9 +71,6 @@ jobs:
             scripts/e2e-chromium.mjs \
             scripts/validate-parity-docs.mjs \
             docs/UI_AUDIT_MATRIX.md \
-            docs/MILESTONE_8_STATUS.md \
-            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
-            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md
 
       - name: Verify repository
@@ -113,9 +111,6 @@ jobs:
             scripts/e2e-chromium.mjs \
             scripts/validate-parity-docs.mjs \
             docs/UI_AUDIT_MATRIX.md \
-            docs/MILESTONE_8_STATUS.md \
-            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
-            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md
           git commit -m 'feat: gate PAC creation by browser target capability'
           git push origin HEAD:feat/m8-profile-workflow
