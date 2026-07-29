@@ -11,7 +11,10 @@ It includes:
 - corrected parity status parsing;
 - canonical matrix state `DONE=118`, `PARTIAL=8`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`;
 - five remaining release-blocking `MUST_MATCH` rows;
-- removal of the temporary four-profile integration workflow and patch;
-- current Milestone 8 status, knowledge graph, matrix, and candidate records.
+- synchronized `MILESTONE_8_STATUS.md`, `MILESTONE_8_SESSION_7_CHECKPOINT.md`, `MILESTONE_8_RELEASE_CANDIDATE.md`, PR #11, knowledge graph, and canonical matrix;
+- removal of temporary proxy and four-profile integration machinery;
+- explicit retention of Draft state and the no-candidate boundary.
 
-The preceding integrated slice passed repository verification and the complete Chromium E2E before committing. This human-authored commit requires fresh exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence before the next slice or candidate preparation.
+The preceding exact checkpoint `a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4` passed CI `30416573442`, Browser E2E `30416573430`, Parity Documentation `30416573424`, and Visual Evidence `30416573395`.
+
+This human-authored synchronization commit requires the same four exact-Head checks before A-12 begins.
