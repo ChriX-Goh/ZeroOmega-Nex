@@ -7,7 +7,7 @@
 **Latest product integration:** run `30418355127`, passed repository verification and complete Chromium E2E, committed the product slice, and removed temporary integration machinery  
 **Estimated first stable replacement-release progress:** 97%
 
-The moving branch Head must be judged by PR #11 and its exact GitHub Actions runs. This file records the latest accepted product checkpoint and release boundary.
+The moving branch Head and exact workflow runs are recorded only in PR #11. This file records stable product checkpoints and release boundaries, so evidence bookkeeping does not repeatedly invalidate its own exact verification Head.
 
 ## Acceptance authority
 
@@ -113,7 +113,7 @@ The PAC target-capability integration passed:
 - complete Chromium E2E, including current-target support and injected unsupported-target behavior;
 - evidence upload, product commit, and temporary workflow/patch cleanup.
 
-The exact human-authored verification state is recorded in PR #11. Repository files intentionally avoid self-invalidating moving-Head artifact pointers.
+Exact workflow evidence is intentionally maintained in PR #11 rather than repeatedly committed into this file.
 
 ## Honest remaining parity work
 
