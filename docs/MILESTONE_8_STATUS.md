@@ -113,7 +113,7 @@ The PAC target-capability integration passed:
 - complete Chromium E2E, including current-target support and injected unsupported-target behavior;
 - evidence upload, product commit, and temporary workflow/patch cleanup.
 
-A human-authored reconciliation Head must now receive fresh exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence before the next product slice is treated as the current verified checkpoint.
+The exact human-authored verification state is recorded in PR #11. Repository files intentionally avoid self-invalidating moving-Head artifact pointers.
 
 ## Honest remaining parity work
 
@@ -141,4 +141,4 @@ Additional open rows:
 
 ## Current next action
 
-Proceed to B-03 Rename parity after exact-Head verification. Do not request installation of intermediate slices.
+Proceed to B-03 Rename parity. Do not request installation of intermediate slices.
