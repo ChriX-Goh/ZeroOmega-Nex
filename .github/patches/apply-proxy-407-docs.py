@@ -115,7 +115,7 @@ if text.count(old_reads) != 1:
 text = text.replace(old_reads, new_reads)
 
 insert = "requireAll('file PAC decision', decisions, [\n"
-extra = '''requireAll('proxy authentication permission boundary', proxyPermissionClient, [
+extra = r'''requireAll('proxy authentication permission boundary', proxyPermissionClient, [
   'profileSpecUsesProxyAuthentication',
   'runWithProxyAuthenticationPermission',
   "permissions: ['webRequest', 'webRequestAuthProvider']",
