@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/integrate-m8-switch-condition-matrix.yml
       - .github/patches/apply-m8-switch-condition-matrix.py
+      - .github/patches/fix-m8-switch-condition-validator.py
 
 permissions:
   contents: write
@@ -39,6 +40,9 @@ jobs:
 
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Repair validator generator
+        run: python .github/patches/fix-m8-switch-condition-validator.py
 
       - name: Apply source-backed Switch condition matrix
         run: python .github/patches/apply-m8-switch-condition-matrix.py
@@ -106,6 +110,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm -f .github/workflows/integrate-m8-switch-condition-matrix.yml
           git rm -f .github/patches/apply-m8-switch-condition-matrix.py
+          git rm -f .github/patches/fix-m8-switch-condition-validator.py
           git add apps/extension/src/lib/switch-condition-catalog.ts \
             apps/extension/src/lib/switch-condition-catalog.test.ts \
             apps/extension/src/lib/ui-messages.ts \
