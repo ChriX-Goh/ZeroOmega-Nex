@@ -1,0 +1,121 @@
+name: Integrate M8 four-profile creation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-m8-four-profile-creation.yml
+      - .github/patches/apply-m8-four-profile-creation.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-m8-four-profile-creation-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Make update-record anchor formatting-independent
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/patches/apply-m8-four-profile-creation.py')
+          text = path.read_text()
+          old = """update_anchor = '| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                    |'
+          if update_anchor not in lines:
+              raise SystemExit('matrix update-record anchor was not found')
+          anchor_index = lines.index(update_anchor)
+          """
+          new = """anchor_index = next(
+              (
+                  index
+                  for index, line in enumerate(lines)
+                  if line.startswith('| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH')
+              ),
+              -1,
+          )
+          if anchor_index == -1:
+              raise SystemExit('matrix update-record anchor was not found')
+          """
+          if text.count(old) != 1:
+              raise SystemExit(f'format-independent anchor patch mismatch: {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
+
+      - name: Apply four-profile acceptance slice
+        run: python .github/patches/apply-m8-four-profile-creation.py
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            scripts/e2e-chromium.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+
+      - name: Verify repository
+        run: pnpm verify
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Chromium E2E candidate
+        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+
+      - name: Run unified Chromium E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee four-profile-chromium.log
+
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-four-profile-creation-evidence
+          path: four-profile-chromium.log
+          if-no-files-found: warn
+
+      - name: Commit verified product slice and remove integration machinery
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/integrate-m8-four-profile-creation.yml
+          git rm .github/patches/apply-m8-four-profile-creation.py
+          git add scripts/e2e-chromium.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+          git commit -m 'test: verify all four normal profile creation flows'
+          git push origin HEAD:feat/m8-profile-workflow
