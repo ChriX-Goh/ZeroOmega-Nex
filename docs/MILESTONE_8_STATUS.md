@@ -2,12 +2,14 @@
 
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
-**PR state:** Draft; no installable replacement candidate  
-**Latest integrated product Head:** `f0a11300eba0958662e3b9fa4806ea3582bec8ca`  
-**Latest product integration:** run `30423585469`, passed repository verification, complete Chromium and Firefox E2E, committed the product slice, uploaded evidence, and removed all temporary integration machinery  
-**Estimated first stable replacement-release progress:** 97%
+**PR state:** Draft; consolidated owner-QC candidate declared, not release-accepted  
+**Latest integrated product Head:** `23272bd9efc4abbcec5ca99c86d31a1353714e8b`  
+**Latest product integration:** run `30456527030`, passed repository verification, complete Chromium and Firefox E2E, evidence upload, product commit, and temporary integration cleanup  
+**Exact verified candidate Head:** `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`  
+**Declared candidate:** `M8-OWNER-QC-1`, Artifact `8725915254`, QC status `NOT RUN`  
+**Estimated first stable replacement-release progress:** 98%
 
-The moving branch Head and exact workflow runs are recorded only in PR #11. This file records stable product checkpoints and release boundaries, so evidence bookkeeping does not repeatedly invalidate its own exact verification Head.
+The moving documentation Head and exact workflow runs are recorded in PR #11. The immutable owner-QC candidate remains fixed to the Head and artifact above; later documentation commits do not replace it.
 
 ## Acceptance authority
 
@@ -19,11 +21,12 @@ Milestone 8 is accepted against:
 - original artifact SHA-256: `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19`;
 - durable knowledge graph: `docs/ORIGINAL_KNOWLEDGE_GRAPH.md`;
 - canonical UI/function matrix: `docs/UI_AUDIT_MATRIX.md`;
+- Switch condition authority: `docs/SWITCH_CONDITION_MATRIX.md`;
 - architecture decisions: `docs/DECISIONS.md`;
 - Session 7 checkpoint: `docs/MILESTONE_8_SESSION_7_CHECKPOINT.md`;
-- candidate gate: `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
+- candidate identity and QC gate: `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
 
-All previously frozen Milestone 8 candidates and artifacts are obsolete. None may be installed or treated as completeness evidence.
+All candidates and artifacts preceding `M8-OWNER-QC-1` are obsolete and must not be installed or treated as current completeness evidence.
 
 ## Objective
 
@@ -42,7 +45,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 7. Failed compilation, permission, installation, confirmation, or rollback cannot silently replace the previous confirmed state.
 8. Chromium and Firefox remain separate capability targets with separate builds and browser tests.
 9. Temporary integration patches and generated diagnostic residue are removed after every verified product commit.
-10. PR #11 remains Draft until every `MUST_MATCH` row is `DONE + VERIFIED` or has an explicit source-backed scope decision, and repository-owner QC accepts one consolidated candidate.
+10. PR #11 remains Draft until repository-owner QC accepts one exact consolidated candidate.
 
 ## Verified delivered scope
 
@@ -52,16 +55,17 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Independent General, Interface, Import/Export, Theme, Snapshot History, Built-in Profiles, About, New Profile, and type-specific profile pages.
 - Fixed, Switch, PAC, and Virtual as the four normal creation types.
 - One isolated Chromium chain creates all four through the real New Profile dialog, verifies type-specific editors and typed Draft state, points Virtual at the new Fixed profile, and commits through normal Apply.
-- PAC creation now uses an explicit browser-target capability signal:
+- PAC creation uses an explicit browser-target capability signal:
   - writable `proxy.settings.get/set` supports PAC Profiles;
-  - original `proxy.register` or `proxy.registerProxyScript` targets disable PAC creation and display the original-style localized explanation;
+  - original `proxy.register` or `proxy.registerProxyScript` targets disable PAC creation with localized explanation;
   - targets without writable `proxy.settings` fail closed.
-- Component rendering covers supported and unsupported capability metadata; real Chromium Options injection proves the unsupported radio state and warning.
 - Imported and attached Rule List compatibility without exposing Rule List as a normal creation type.
-- Fixed fallback/HTTP/HTTPS/FTP table, all original protocol choices, target-specific transport/authentication/DNS capability matrix, legacy-inactive FTP request explanation, bypass, inherited placeholders, and background-owned credentials.
-- Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
+- Fixed fallback/HTTP/HTTPS/FTP table, all original protocol choices, target-specific transport/authentication/DNS matrix, legacy-inactive FTP explanation, bypass, inherited placeholders, and background-owned credentials.
+- Original Switch basic 4-item and advanced 10-item condition catalogs.
+- `TrueCondition` and `BypassCondition` remain import/source compatibility states rather than ordinary selectable types.
+- False annotation, combined IP/CIDR, HostWildcard warning, HostLevels ranges, Weekday checkboxes, Time ranges, invalid Draft retention, strict Apply rejection, correction, source round trip, reload, and Apply convergence.
 - Complete Virtual target and reference-replacement transaction.
-- Original profile-header Rename action and independent validated dialog, including Apply-before-dialog and attached Rule List/source rename transactions.
+- Original profile-header Rename action and validated independent dialog, including Apply-before-dialog and attached Rule List/source rename transactions.
 - Typed deletion blockers, general Replace Profile dialog, profile PAC export, and Switch Rule List export.
 
 ### Rule Source, PAC, import, and history
@@ -81,7 +85,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Proxy ownership blockers and Chromium external-profile import.
 - Inspect frame/link/media lifecycle, evaluated result badge/title, and headed native Chromium context-menu E2E.
 - Explicit-session bounded request diagnostics with strict privacy and storage limits.
-- Direct typed English, Simplified Chinese, and Traditional Chinese across all normal user-visible surfaces.
+- Direct typed English, Simplified Chinese, and Traditional Chinese across normal user-visible surfaces.
 - Locale inventory reports zero untranslated user-visible candidates.
 - Permanent visual workflow captures 24 images: light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network.
 
@@ -91,9 +95,9 @@ Integration run `30414496421`, rerun job `90458570753`, committed product Head `
 
 - A controlled proxy emits a genuine Basic `407 Proxy Authentication Required` and succeeds only after valid `Proxy-Authorization`.
 - The sentinel hostname is unresolvable, so direct navigation cannot fake success.
-- Chromium and Firefox both complete the real challenge through localized Fixed UI, Apply, Popup activation, permission acquisition, and background credential handling.
+- Chromium and Firefox complete the real challenge through localized Fixed UI, Apply, Popup activation, permission acquisition, and background credential handling.
 - Secret diagnostics redact `/secret/` entries; authorization material is never logged.
-- C-08 is closed for supported HTTP/HTTPS proxy authentication. Authenticated SOCKS is explicitly unsupported by the completed C-09 capability matrix and ADR-019.
+- Authenticated SOCKS remains explicitly unsupported under ADR-019 and the completed target capability matrix.
 
 ## Explicit scope decisions
 
@@ -105,37 +109,49 @@ Integration run `30414496421`, rerun job `90458570753`, committed product Head `
 
 ## Automated acceptance state
 
-The proxy protocol and browser-target capability integration passed:
+At exact candidate Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`:
 
-- architecture and UI compatibility guards;
-- canonical parity validation with C-05 and C-09 closed;
-- ESLint, Prettier, workspace type checks, warning-fatal Svelte checks, and all 450 tests;
-- unit, integration, and component-rendering tests for the protocol, slot, authentication, and DNS matrix;
-- dual-browser build, manifest, inspection, packaging, and staging checks;
-- complete Chromium E2E, including all four protocols in a real Fixed Draft and normal Apply workflow;
-- complete Firefox E2E, including target identification, all four protocol choices, and legacy-inactive FTP disclosure;
-- evidence upload, product commit, and removal of the temporary workflows, patch, and integration helper.
+- CI `30456863674` passed full verification, tests, dual-target builds, inspection, packaging, and Artifact upload.
+- Browser E2E `30456863926` passed Chromium, Firefox, and headed native Chromium Inspect. The initial Chromium attempt encountered the existing external-Profile popup timing race; the unchanged-job rerun passed.
+- Parity Documentation `30456863775` passed all 126 rows.
+- Visual Evidence `30456863885` passed all 24 captures.
+- Candidate Artifact `8725915254` was independently downloaded, archive-tested, and SHA-256 verified.
 
-Exact workflow evidence is intentionally maintained in PR #11 rather than repeatedly committed into this file.
-
-## Honest remaining parity work
+## Honest remaining parity state
 
 The canonical matrix contains 126 rows: `DONE=124`, `PARTIAL=2`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 
-No release-blocking `MUST_MATCH` rows remain. D-04 and D-05 are closed by `docs/SWITCH_CONDITION_MATRIX.md`, typed catalog tests, complete Chromium field/Apply/source acceptance, and independent Firefox target acceptance.
+No release-blocking `MUST_MATCH` row remains.
 
 The only open rows are non-blocking visual references:
 
-- A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
+- A-14 — exact original skin;
+- I-11 — exact Popup dimensions/pixels.
+
+These are reviewed during owner QC and do not invalidate candidate installation.
+
+## Current candidate
+
+`M8-OWNER-QC-1` is fixed to:
+
+- Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`;
+- Artifact `browser-builds`, ID `8725915254`;
+- outer ZIP SHA-256 `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c`;
+- inner tarball SHA-256 `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`;
+- expiry `2026-10-27T13:37:29Z`;
+- QC status `NOT RUN`.
+
+Exact extraction, installation, environment recording, owner-QC checklist, and defect format are in `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
 
 ## Remaining release gates
 
-- maintain a clean exact non-Actions-authored Head with green CI, Browser E2E, Parity Documentation, and Visual Evidence;
-- close or explicitly scope the two remaining `MUST_MATCH` rows without weakening acceptance;
-- produce one consolidated installable candidate with a fresh artifact digest and current QC checklist;
-- obtain repository-owner visual review and real complex-backup acceptance in Chromium and Firefox;
-- verify restart recovery, active route, theme, rollback, and authenticated routing on the consolidated candidate.
+- repository-owner visual review of the automation captures and installed extension;
+- real complex-backup import/export and configuration comparison in Chromium and Firefox;
+- authenticated HTTP/HTTPS route acceptance, permission denial, and recovery;
+- browser restart recovery for route, Applied state, theme, and history;
+- Snapshot History rollback on the exact candidate;
+- explicit `PASS`/`FAIL`/`NOT RUN` recording without silently replacing the artifact.
 
 ## Current next action
 
-Freeze one consolidated installable candidate, then perform repository-owner visual, real complex-backup, restart-recovery, rollback, and authenticated-route QC in Chromium and Firefox.
+Install and execute owner QC against `M8-OWNER-QC-1`. Any failure must be recorded against this exact candidate before deciding whether to correct code, add an explicit source-backed scope decision, or freeze a new candidate.
