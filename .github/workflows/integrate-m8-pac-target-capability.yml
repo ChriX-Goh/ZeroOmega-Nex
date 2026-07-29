@@ -40,7 +40,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Normalize moving prose and generated guard token
+      - name: Normalize moving prose and generated guard literals
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -56,14 +56,27 @@ jobs:
           )
           text = text[:start] + replacement + text[end:]
           lines = text.splitlines()
-          matches = [
+
+          selector_matches = [
               index
               for index, line in enumerate(lines)
               if line.strip().startswith('"locator(') and 'data-new-profile-kind' in line
           ]
-          if len(matches) != 1:
-              raise SystemExit(f'PAC validator token matches: {len(matches)}')
-          lines[matches[0]] = '  "\'data-new-profile-kind\'",'
+          if len(selector_matches) != 1:
+              raise SystemExit(f'PAC validator selector matches: {len(selector_matches)}')
+          lines[selector_matches[0]] = '  "\'data-new-profile-kind\'",'
+
+          split_matches = [
+              index
+              for index, line in enumerate(lines)
+              if 'const pacCapabilityRow = audit.split' in line
+          ]
+          if len(split_matches) != 1:
+              raise SystemExit(f'PAC validator split matches: {len(split_matches)}')
+          lines[split_matches[0]] = (
+              r"const pacCapabilityRow = audit.split('\\n').find((line) => line.startsWith('| A-12 '));"
+          )
+
           path.write_text('\n'.join(lines) + '\n')
           PY
 
