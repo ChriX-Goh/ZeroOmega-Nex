@@ -64,7 +64,7 @@ jobs:
           ]
           if len(selector_matches) != 1:
               raise SystemExit(f'PAC validator selector matches: {len(selector_matches)}')
-          lines[selector_matches[0]] = '  "\'data-new-profile-kind\'",'
+          lines[selector_matches[0]] = "  'data-new-profile-kind',"
 
           split_matches = [
               index
