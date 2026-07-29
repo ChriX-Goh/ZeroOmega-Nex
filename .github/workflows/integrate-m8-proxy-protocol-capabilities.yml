@@ -89,23 +89,20 @@ jobs:
 
           path = Path('scripts/e2e-chromium.mjs')
           text = path.read_text()
-          old = """  const createdProtocolMatrix = [
-            ['fallback', 'http', 'matrix-http.invalid', '8080'],
+          start_marker = '  const createdProtocolMatrix = ['
+          end_marker = '\n  ];'
+          start = text.find(start_marker)
+          end = text.find(end_marker, start)
+          if start == -1 or end == -1:
+              raise SystemExit(f'Chromium protocol matrix markers: start={start}, end={end}')
+          end += len(end_marker)
+          replacement = """  const createdProtocolMatrix = [
             ['http', 'https', 'matrix-https.invalid', '8443'],
             ['https', 'socks4', 'matrix-socks4.invalid', '1080'],
             ['ftp', 'socks5', 'matrix-socks5.invalid', '1081'],
-          ];
-          """
-          new = """  const createdProtocolMatrix = [
-            ['http', 'https', 'matrix-https.invalid', '8443'],
-            ['https', 'socks4', 'matrix-socks4.invalid', '1080'],
-            ['ftp', 'socks5', 'matrix-socks5.invalid', '1081'],
             ['fallback', 'http', 'matrix-http.invalid', '8080'],
-          ];
-          """
-          if text.count(old) != 1:
-              raise SystemExit(f'Chromium protocol matrix order matches: {text.count(old)}')
-          path.write_text(text.replace(old, new))
+          ];"""
+          path.write_text(text[:start] + replacement + text[end:])
           PY
 
       - name: Remove obsolete fixer workflow
