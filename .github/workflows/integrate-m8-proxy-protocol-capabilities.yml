@@ -82,6 +82,32 @@ jobs:
           path.write_text(text[:start] + replacement + text[end:])
           PY
 
+      - name: Keep advanced Fixed rows visible during Chromium E2E
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/e2e-chromium.mjs')
+          text = path.read_text()
+          old = """  const createdProtocolMatrix = [
+            ['fallback', 'http', 'matrix-http.invalid', '8080'],
+            ['http', 'https', 'matrix-https.invalid', '8443'],
+            ['https', 'socks4', 'matrix-socks4.invalid', '1080'],
+            ['ftp', 'socks5', 'matrix-socks5.invalid', '1081'],
+          ];
+          """
+          new = """  const createdProtocolMatrix = [
+            ['http', 'https', 'matrix-https.invalid', '8443'],
+            ['https', 'socks4', 'matrix-socks4.invalid', '1080'],
+            ['ftp', 'socks5', 'matrix-socks5.invalid', '1081'],
+            ['fallback', 'http', 'matrix-http.invalid', '8080'],
+          ];
+          """
+          if text.count(old) != 1:
+              raise SystemExit(f'Chromium protocol matrix order matches: {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
+
       - name: Remove obsolete fixer workflow
         run: git rm -f .github/workflows/fix-m8-protocol-component-wire.yml
 
