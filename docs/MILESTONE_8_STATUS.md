@@ -48,7 +48,7 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 
 - Full-tab Options with Settings, Profiles, and Actions.
 - Independent General, Interface, Import/Export, Theme, Snapshot History, Built-in Profiles, About, New Profile, and type-specific profile pages.
-- Fixed, Switch, PAC, and Virtual as the four normal creation types.
+- Fixed, Switch, PAC, and Virtual as the four normal creation types, with one isolated Chromium chain creating all four through the real New Profile dialog and committing them through normal Apply.
 - Imported and attached Rule List compatibility without exposing Rule List as a normal creation type.
 - Fixed fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned credentials.
 - Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
@@ -122,7 +122,6 @@ The matrix reconciliation must preserve genuine open items rather than convertin
 - original-style Rename action/dialog parity;
 - modern browser FTP/protocol capability edges;
 - final Switch condition-type and condition-field matrix acceptance;
-- complete real-browser creation coverage for all four normal profile types;
 - non-blocking reference-level visual differences such as exact Popup dimensions.
 
 ## Remaining release gates

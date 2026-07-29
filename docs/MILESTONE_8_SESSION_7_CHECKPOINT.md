@@ -32,7 +32,7 @@ The Chromium failure showed extension control and a PAC containing the expected 
 - `scripts/validate-parity-docs.mjs` now parses the Nex-status column relative to the classification column instead of counting status-like text across translation and evidence columns.
 - The validator no longer requires `PARTIAL`, `MISSING`, or `UNVERIFIED` rows to remain non-zero. A fully closed matrix is now representable.
 - `UI_AUDIT_MATRIX.md` now reports zero `BROKEN`, `MISSING`, and `UNVERIFIED` rows while preserving genuine open work.
-- The reconciled matrix retains six `MUST_MATCH` gaps: target-dependent PAC-disable wiring, Rename-dialog parity, protocol capability matrix, Switch condition-type matrix, Switch condition-field matrix, and unified four-type browser creation E2E.
+- The reconciled matrix now retains five `MUST_MATCH` gaps: target-dependent PAC-disable wiring, Rename-dialog parity, protocol capability matrix, Switch condition-type matrix, and Switch condition-field matrix.
 - It also retains one `UNCERTAIN` FTP capability row and two non-blocking `REFERENCE` visual rows.
 
 ### Real proxy traversal and authentication
@@ -49,6 +49,15 @@ The verified path now proves:
 - the authenticated route returns to Direct before the broad authentication permission is removed, preserving normal exit behavior and later fine-grained origin-permission tests.
 
 The integration passed repository verification, Chromium E2E, Firefox E2E, evidence upload, product commit, and nine-patch cleanup.
+
+### Unified four-type New Profile browser acceptance
+
+- Chromium opens a separate fresh extension profile with no imported fixture state.
+- The real New Profile dialog creates `Created Fixed`, `Created Switch`, `Created PAC`, and `Created Virtual` in sequence.
+- Each creation must select the requested radio kind, close the dialog, select the new profile, and render its type-specific editor.
+- The Virtual profile is pointed at the newly created Fixed profile; typed Draft state must contain the four exact kinds and reference.
+- The complete Draft commits through the normal Apply transaction and converges with Applied state.
+- J-04 is DONE; the release-blocking `MUST_MATCH` count falls from six to five.
 
 ### Control-plane reconciliation and cleanup
 

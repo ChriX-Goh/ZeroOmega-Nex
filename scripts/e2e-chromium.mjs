@@ -17,6 +17,7 @@ const remoteOnlineBackupText = await readFile(virtualMigrationBackupPath, 'utf8'
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-chromium-'));
 const conflictUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-user-'));
 const virtualUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-virtual-user-'));
+const creationUserDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-creation-user-'));
 const conflictExtensionPath = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-conflict-ext-'));
 await mkdir(conflictExtensionPath, { recursive: true });
 await writeFile(
@@ -109,6 +110,7 @@ const authProxy = await createBasicAuthProxyChallengeServer({
 let context;
 let conflictContext;
 let virtualContext;
+let creationContext;
 
 try {
   context = await chromium.launchPersistentContext(userDataDir, {
@@ -1740,6 +1742,135 @@ try {
   await virtualContext.close();
   virtualContext = undefined;
 
+  creationContext = await chromium.launchPersistentContext(creationUserDataDir, {
+    channel: 'chromium',
+    headless: true,
+    locale: 'zh-CN',
+    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+  });
+  let [creationWorker] = creationContext.serviceWorkers();
+  creationWorker ??= await creationContext.waitForEvent('serviceworker', { timeout: 15_000 });
+  const creationExtensionId = new URL(creationWorker.url()).host;
+  assert.match(
+    creationExtensionId,
+    /^[a-p]{32}$/u,
+    'Four-profile creation extension ID was not resolved',
+  );
+  const creationOptions = await creationContext.newPage();
+  await creationOptions.goto(`chrome-extension://${creationExtensionId}/options.html`);
+  await creationOptions.waitForLoadState('domcontentloaded');
+  await creationOptions.locator('[data-new-profile-action]').waitFor({
+    state: 'visible',
+    timeout: 20_000,
+  });
+
+  const createNormalProfile = async ({ name, kind, editor }) => {
+    await creationOptions.locator('[data-new-profile-action]').click();
+    const dialog = creationOptions.locator('.new-profile-dialog');
+    await dialog.waitFor({ state: 'visible', timeout: 20_000 });
+    const nameInput = dialog.locator('[data-new-profile-name-input]');
+    await assertEventually(
+      async () => nameInput.evaluate((element) => element === document.activeElement),
+      `${name} dialog did not focus the profile-name field`,
+    );
+    await nameInput.fill(name);
+    const kindInput = dialog.locator(`[data-new-profile-kind="${kind}"]`);
+    await kindInput.check();
+    assert.equal(await kindInput.isChecked(), true, `${name} kind was not selected`);
+    await dialog.locator('[data-new-profile-create]').click();
+    await dialog.waitFor({ state: 'detached', timeout: 20_000 });
+    const profileNameInput = creationOptions.getByLabel('情景模式名称');
+    await profileNameInput.waitFor({ state: 'visible', timeout: 20_000 });
+    assert.equal(await profileNameInput.inputValue(), name);
+    await editor().waitFor({ state: 'visible', timeout: 20_000 });
+  };
+
+  await createNormalProfile({
+    name: 'Created Fixed',
+    kind: 'fixed',
+    editor: () => creationOptions.locator('[data-fixed-proxy-table]'),
+  });
+  await createNormalProfile({
+    name: 'Created Switch',
+    kind: 'switch',
+    editor: () => creationOptions.locator('[data-switch-rules-table]'),
+  });
+  await createNormalProfile({
+    name: 'Created PAC',
+    kind: 'pac',
+    editor: () => creationOptions.locator('[data-pac-profile-editor][data-typed-locale="zh-CN"]'),
+  });
+  await createNormalProfile({
+    name: 'Created Virtual',
+    kind: 'virtual',
+    editor: () =>
+      creationOptions.locator('[data-virtual-profile-editor][data-typed-locale="zh-CN"]'),
+  });
+  await creationOptions
+    .getByLabel('虚拟情景模式目标', { exact: true })
+    .selectOption({ label: 'Created Fixed' });
+
+  const createdProfileIds = await assertEventuallyValue(async () => {
+    return creationWorker.evaluate(async () => {
+      const key = 'zeroomega-nex/profile-workflow/v1/state';
+      const workflow = (await chrome.storage.local.get(key))[key];
+      const names = ['Created Fixed', 'Created Switch', 'Created PAC', 'Created Virtual'];
+      const profiles = Object.fromEntries(
+        names.map((name) => [
+          name,
+          workflow?.draft?.profiles?.find((profile) => profile.name === name),
+        ]),
+      );
+      if (
+        profiles['Created Fixed']?.kind !== 'fixed' ||
+        profiles['Created Switch']?.kind !== 'switch' ||
+        profiles['Created PAC']?.kind !== 'pac' ||
+        profiles['Created Virtual']?.kind !== 'virtual' ||
+        profiles['Created Virtual'].targetRoute?.kind !== 'profile' ||
+        profiles['Created Virtual'].targetRoute.profileId !== profiles['Created Fixed'].id
+      ) {
+        return undefined;
+      }
+      return Object.fromEntries(
+        Object.entries(profiles).map(([name, profile]) => [name, profile.id]),
+      );
+    });
+  }, 'The four normal New Profile flows did not converge in Draft');
+  assert.deepEqual(Object.keys(createdProfileIds).sort(), [
+    'Created Fixed',
+    'Created PAC',
+    'Created Switch',
+    'Created Virtual',
+  ]);
+
+  const creationApply = creationOptions.getByRole('button', { name: '应用选项', exact: true });
+  await assertEventually(
+    async () => !(await creationApply.isDisabled()),
+    'Four-profile creation did not leave an applicable Draft',
+  );
+  await creationApply.click();
+  await assertEventually(
+    async () =>
+      creationWorker.evaluate(async (expectedIds) => {
+        const key = 'zeroomega-nex/profile-workflow/v1/state';
+        const workflow = (await chrome.storage.local.get(key))[key];
+        if (
+          !workflow ||
+          workflow.pendingApply !== undefined ||
+          JSON.stringify(workflow.draft) !== JSON.stringify(workflow.applied)
+        ) {
+          return false;
+        }
+        return Object.entries(expectedIds).every(([name, id]) =>
+          workflow.applied.profiles.some((profile) => profile.id === id && profile.name === name),
+        );
+      }, createdProfileIds),
+    'The four normal New Profile flows did not commit through normal Apply',
+    20_000,
+  );
+  await creationContext.close();
+  creationContext = undefined;
+
   conflictContext = await chromium.launchPersistentContext(conflictUserDataDir, {
     channel: 'chromium',
     headless: true,
@@ -1792,6 +1923,7 @@ try {
   console.log(`Chromium extension E2E passed for ${extensionId}.`);
 } finally {
   await conflictContext?.close();
+  await creationContext?.close();
   await virtualContext?.close();
   await context?.close();
   await new Promise((resolveClose) => ruleServer.close(resolveClose));
@@ -1799,6 +1931,7 @@ try {
   await rm(userDataDir, { recursive: true, force: true });
   await rm(conflictUserDataDir, { recursive: true, force: true });
   await rm(virtualUserDataDir, { recursive: true, force: true });
+  await rm(creationUserDataDir, { recursive: true, force: true });
   await rm(conflictExtensionPath, { recursive: true, force: true });
 }
 

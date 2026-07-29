@@ -560,3 +560,11 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - A controlled local HTTP proxy proves the complete browser data plane. It emits a real `407 Proxy Authentication Required` with a Basic challenge, accepts only the expected `Proxy-Authorization`, and returns a marked target document without forwarding or DNS. The helper records counts only and never stores or prints the authorization value.
 - Chromium and Firefox configure `127.0.0.1:<dynamic port>` through their real localized Fixed UI, save a secret, Apply, activate through Popup, navigate an ordinary HTTP target, observe at least one 407, and require a subsequent authorized target request.
 - The handler still fails closed for website authentication, unsupported schemes, ambiguous bindings, missing secrets, repeated attempts, and SOCKS authentication. SOCKS/target capability remains C-09 rather than weakening C-08 HTTP(S) closure.
+
+### Unified normal-profile creation acceptance
+
+- J-04 is accepted only as one isolated real-browser chain rather than a union of unrelated tests.
+- A fresh Chromium user-data directory opens the actual New Profile dialog four times and creates Fixed, Switch, PAC, and Virtual in sequence.
+- Every creation verifies the selected type, selected profile name, type-specific editor, and typed Draft record.
+- Virtual additionally targets the newly created Fixed profile. The final normal Apply must make Draft and Applied byte-equivalent while retaining all four IDs and kinds.
+- This chain complements, rather than replaces, the deeper per-type Fixed, Switch, PAC, and Virtual workflows elsewhere in Chromium and Firefox E2E.

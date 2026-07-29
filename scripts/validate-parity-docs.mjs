@@ -216,6 +216,21 @@ requireAll('controlled proxy challenge server', proxyChallengeServer, [
   'data-proxy-auth-success',
 ]);
 
+requireAll('unified four-profile creation', chromiumE2e, [
+  'creationUserDataDir',
+  "name: 'Created Fixed'",
+  "name: 'Created Switch'",
+  "name: 'Created PAC'",
+  "name: 'Created Virtual'",
+  'The four normal New Profile flows did not converge in Draft',
+  'The four normal New Profile flows did not commit through normal Apply',
+]);
+
+const fourProfileRow = audit.split('\n').find((line) => line.startsWith('| J-04 '));
+if (!fourProfileRow || !fourProfileRow.includes('| DONE') || !fourProfileRow.includes('Chromium')) {
+  failures.push('J-04 must remain DONE with unified Chromium creation evidence');
+}
+
 requireAll('Chromium real proxy challenge', chromiumE2e, [
   'createBasicAuthProxyChallengeServer',
   "permissions: ['webRequest', 'webRequestAuthProvider']",

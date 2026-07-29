@@ -176,7 +176,7 @@
 | J-01 | 原版源码固定证据                   | MUST_MATCH | DONE     | Artifact `8625759489`, v3.5.0                                                                                                                                                                 | 保留来源摘要               |
 | J-02 | 真实原版 `.bak` round-trip         | MUST_MATCH | DONE     | 固定 Artifact 中执行原版 v3.5.0 `default_options.coffee` 生成 fixture；单测与 Chromium export→clear→import→export 字节等价                                                                    | 保持 provenance 与永久守卫 |
 | J-03 | 多语言主题截图证据                 | MUST_MATCH | DONE     | 永久 workflow 生成 light/dark × zh-CN/zh-TW × 六个代表页面共 24 张 PNG；run `30407814012`、artifact `8707237406`，逐图与 manifest SHA-256 已独立复核                                          | Owner 视觉审阅             |
-| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | PARTIAL  | Chromium 真实创建 Virtual，Firefox 真实创建 Switch 与 PAC，Fixed 首次安装/编辑已覆盖；尚缺同一验收矩阵内四类均走完整浏览器 New Profile 创建链                                                 | 增加四类统一 E2E           |
+| J-04 | 四类原版新建流程 E2E               | MUST_MATCH | DONE     | Chromium 在独立全新工作区内依次通过真实 New Profile 模态框创建 Fixed、Switch、PAC、Virtual，逐类验证专属编辑器、Draft 类型、Virtual→Fixed 目标及最终正常 Apply 收敛                           | 保持统一创建链回归         |
 | J-05 | Scheme/auth Fixed E2E              | MUST_MATCH | DONE     | Chromium 覆盖 fallback、继承 placeholder、scheme、秘密保存；Chromium/Firefox 进一步通过真实 Basic 407、权限、Apply、Popup 激活及授权重试                                                      | 保持真实 407 回归          |
 | J-06 | Switch 表格/附属 RuleList E2E      | MUST_MATCH | DONE     | Chromium 覆盖完整附属生命周期/source-mode/拖放；Firefox 真实创建 Switch、附加 Rule List、请求 optional host 并下载持久化缓存                                                                  | 保持双浏览器回归           |
 | J-07 | PAC URL/download/header E2E        | MUST_MATCH | DONE     | Chromium 覆盖下载/Clear/header/auth；Firefox 覆盖 optional-host、远程 PAC 缓存、Apply、Popup 激活与 `raw-pac/1`；Fixed HTTP(S) 真实 407 已双浏览器闭环，PAC `auth.all` 保持结构与秘密边界守卫 | 保持 PAC/407 回归          |
@@ -188,25 +188,26 @@
 ## 当前结论
 
 - **BROKEN / MISSING / UNVERIFIED：0。** 先前关于辅助页面翻译、在线恢复、视觉证据和真实 407 的结论已过期并完成纠正。
-- **仍开放的 MUST_MATCH：6 项。** A-12 PAC unsupported 能力接线、B-03 Rename 对话框、C-09 协议能力矩阵、D-04 条件类型矩阵、D-05 条件字段矩阵、J-04 四类统一浏览器创建 E2E。
+- **仍开放的 MUST_MATCH：5 项。** A-12 PAC unsupported 能力接线、B-03 Rename 对话框、C-09 协议能力矩阵、D-04 条件类型矩阵、D-05 条件字段矩阵。
 - **UNCERTAIN：1 项。** C-05 FTP scheme 的现代双浏览器能力。
 - **REFERENCE：2 项保持 PARTIAL。** A-14 原版像素皮肤与 I-11 Popup 精确尺寸不阻断功能闭环，但进入 owner 视觉评审。
 - PR #11 必须继续保持 Draft，直到开放 MUST_MATCH 完成或形成明确范围决定，并由仓库所有者接受一个全新 consolidated candidate。
 
 ## 更新记录
 
-| 日期       | 变更                                                                                                                          |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                                 |
-| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                                          |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                                    |
-| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                                      |
-| 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern                |
-| 2026-07-27 | 恢复 Switch 附属 Rule List 核心生命周期、隐藏关系、URL 缓存、请求头 Draft 语义、复制/删除事务与原版备份重建                   |
-| 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁 |
-| 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环               |
-| 2026-07-29 | 完成 Temporary Rules/Network、正常 Options/Virtual、导入、History、Popup 与动态状态的 typed 三语闭环                          |
-| 2026-07-29 | 完成 Rule Source/PAC 稳定失败码、Firefox optional-host 下载、schema-v1/WPAD、在线恢复及 Gist/WebDAV/browser-sync 范围决定     |
-| 2026-07-29 | 生成并完整哈希 24 张 light/dark × zh-CN/zh-TW 视觉证据                                                                        |
-| 2026-07-29 | 完成 Chromium/Firefox 真实 Basic 407、用户手势权限、后台凭据、重试成功、秘密脱敏与临时补丁清理                                |
-| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                     |
+| 日期       | 变更                                                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                                                 |
+| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                                                          |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                                                    |
+| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                                                      |
+| 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern                                |
+| 2026-07-27 | 恢复 Switch 附属 Rule List 核心生命周期、隐藏关系、URL 缓存、请求头 Draft 语义、复制/删除事务与原版备份重建                                   |
+| 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁                 |
+| 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环                               |
+| 2026-07-29 | 完成 Temporary Rules/Network、正常 Options/Virtual、导入、History、Popup 与动态状态的 typed 三语闭环                                          |
+| 2026-07-29 | 完成 Rule Source/PAC 稳定失败码、Firefox optional-host 下载、schema-v1/WPAD、在线恢复及 Gist/WebDAV/browser-sync 范围决定                     |
+| 2026-07-29 | 生成并完整哈希 24 张 light/dark × zh-CN/zh-TW 视觉证据                                                                                        |
+| 2026-07-29 | 完成 Chromium/Firefox 真实 Basic 407、用户手势权限、后台凭据、重试成功、秘密脱敏与临时补丁清理                                                |
+| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                                     |
+| 2026-07-29 | 完成独立全新 Chromium 工作区内 Fixed/Switch/PAC/Virtual 四类统一 New Profile 创建、专属编辑器、Draft 与 Apply 闭环；开放 MUST_MATCH 降至 5 项 |
