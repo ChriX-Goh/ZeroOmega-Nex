@@ -14,6 +14,7 @@ on:
       - .github/patches/fix-proxy-407-target-sentinel.py
       - .github/patches/diagnose-proxy-407-chromium.py
       - .github/patches/fix-firefox-proxy-407-draft-and-redaction.py
+      - .github/patches/fix-proxy-407-test-hostname.py
 
 permissions:
   contents: write
@@ -58,6 +59,7 @@ jobs:
             python .github/patches/fix-proxy-407-target-sentinel.py
             python .github/patches/diagnose-proxy-407-chromium.py
             python .github/patches/fix-firefox-proxy-407-draft-and-redaction.py
+            python .github/patches/fix-proxy-407-test-hostname.py
           } 2>&1 | tee proxy-407-apply.log
 
       - name: Format and refresh locale inventory
@@ -117,6 +119,7 @@ jobs:
             .github/patches/fix-proxy-407-target-sentinel.py \
             .github/patches/diagnose-proxy-407-chromium.py \
             .github/patches/fix-firefox-proxy-407-draft-and-redaction.py \
+            .github/patches/fix-proxy-407-test-hostname.py \
             proxy-407-apply.log \
             proxy-407-format.log \
             proxy-407-inventory.log \
