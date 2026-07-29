@@ -40,6 +40,30 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Isolate Rename parity guard variable names
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/patches/apply-m8-profile-rename-parity.py')
+          text = path.read_text()
+          replacements = {
+              'renameDialog, optionsApp, componentRendering] =':
+                  'renameDialog, renameOptionsApp, renameComponentRendering] =',
+              "requireAll('Profile Rename Options wiring', optionsApp, [":
+                  "requireAll('Profile Rename Options wiring', renameOptionsApp, [",
+              "if (optionsApp.includes('onchange={(event) => updateProfileName')) {":
+                  "if (renameOptionsApp.includes('onchange={(event) => updateProfileName')) {",
+              "requireAll('Profile Rename component rendering', componentRendering, [":
+                  "requireAll('Profile Rename component rendering', renameComponentRendering, [",
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'Rename guard normalization mismatch for {old!r}: {text.count(old)}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+
       - name: Apply Profile Rename parity slice
         run: python .github/patches/apply-m8-profile-rename-parity.py
 
