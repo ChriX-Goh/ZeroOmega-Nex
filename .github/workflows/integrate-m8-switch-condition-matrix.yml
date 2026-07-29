@@ -10,6 +10,7 @@ on:
       - .github/patches/fix-m8-switch-condition-validator.py
       - .github/patches/fix-m8-switch-e2e-escapes.py
       - .github/patches/fix-m8-switch-catalog-types.py
+      - .github/patches/fix-m8-switch-invalid-apply-assertion.py
 
 permissions:
   contents: write
@@ -54,6 +55,9 @@ jobs:
 
       - name: Fix Switch condition membership typing
         run: python .github/patches/fix-m8-switch-catalog-types.py
+
+      - name: Correct invalid Apply assertion
+        run: python .github/patches/fix-m8-switch-invalid-apply-assertion.py
 
       - name: Regenerate locale inventory
         run: pnpm locale:inventory
@@ -121,6 +125,7 @@ jobs:
           git rm -f .github/patches/fix-m8-switch-condition-validator.py
           git rm -f .github/patches/fix-m8-switch-e2e-escapes.py
           git rm -f .github/patches/fix-m8-switch-catalog-types.py
+          git rm -f .github/patches/fix-m8-switch-invalid-apply-assertion.py
           git add apps/extension/src/lib/switch-condition-catalog.ts \
             apps/extension/src/lib/switch-condition-catalog.test.ts \
             apps/extension/src/lib/ui-messages.ts \
