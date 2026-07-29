@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/integrate-m8-proxy-protocol-capabilities.yml
       - .github/patches/apply-m8-proxy-protocol-capabilities.py
+      - .github/workflows/fix-m8-protocol-component-wire.yml
 
 permissions:
   contents: write
@@ -40,7 +41,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Align patch with current PAC capability traversal
+      - name: Align patch with current repository shape
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -181,16 +182,28 @@ jobs:
           path.write_text('\n'.join(lines) + '\n')
           PY
 
-      - name: Wire target into Fixed component rendering
+      - name: Wire target into original Fixed component rendering test
         run: |
           python - <<'PY'
           from pathlib import Path
 
           path = Path('apps/extension/src/component-rendering.component.spec.ts')
           lines = path.read_text().splitlines()
-          renders = [index for index, line in enumerate(lines) if 'render(FixedProfileEditor' in line]
+          test_markers = [
+              index
+              for index, line in enumerate(lines)
+              if 'renders the original Fixed Profile proxy table and collapsed advanced rows' in line
+          ]
+          if len(test_markers) != 1:
+              raise SystemExit(f'Fixed component test markers: {len(test_markers)}')
+          test_start = test_markers[0]
+          renders = [
+              index
+              for index in range(test_start, min(test_start + 30, len(lines)))
+              if 'render(FixedProfileEditor' in lines[index]
+          ]
           if len(renders) != 1:
-              raise SystemExit(f'FixedProfileEditor render matches: {len(renders)}')
+              raise SystemExit(f'FixedProfileEditor target render matches: {len(renders)}')
           start = renders[0]
           generation_matches = [
               index
@@ -273,6 +286,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm -f .github/workflows/integrate-m8-proxy-protocol-capabilities.yml
           git rm -f .github/patches/apply-m8-proxy-protocol-capabilities.py
+          git rm -f .github/workflows/fix-m8-protocol-component-wire.yml
           git add packages/pac-compiler/src/proxy-capabilities.ts \
             packages/pac-compiler/src/proxy-capabilities.test.ts \
             packages/pac-compiler/src/index.ts \
