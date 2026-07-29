@@ -3,23 +3,11 @@
 **Branch:** `feat/m8-profile-workflow`  
 **Pull request:** #11  
 **PR state:** Draft; no installable replacement candidate  
-**Integrated product Head:** `febb7dcd8a5455bd31c499a88bf450039bc4a67b`  
-**Exact verified Head:** `a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`  
-**Estimated first replacement-release progress:** 96%  
-**Current-head rule:** use PR #11 and exact GitHub Actions runs for the moving branch Head; this document records the latest accepted checkpoint.
+**Latest integrated product Head:** `4233e45340ea0d1185e87270aa9c10cfcd2c7b6b`  
+**Latest product integration:** run `30418355127`, passed repository verification and complete Chromium E2E, committed the product slice, and removed temporary integration machinery  
+**Estimated first stable replacement-release progress:** 97%
 
-## Exact verification evidence
-
-At Head `a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`:
-
-- CI `30416573442` passed full verification, tests, dual-target builds, inspection, packaging, and artifact upload.
-- Browser E2E `30416573430` passed Chromium, Firefox, and headed native Chromium Inspect.
-- Parity Documentation `30416573424` passed 126 rows: `DONE=118`, `PARTIAL=8`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
-- Milestone 8 Visual Evidence `30416573395` passed all 24 light/dark × zh-CN/zh-TW captures.
-- Build artifact `browser-builds`, ID `8710375259`, digest `sha256:a61770c9e6e1860e8acb5692282984bf72257713b06c85b1abd95b45f5c0b34c`.
-- Visual artifact `m8-visual-evidence-a168d78fe53b6cbd4cae92d15ccb2366e90cb4f4`, ID `8710369376`, digest `sha256:67a660e2ee1421590759e310347a5a17a34065a2446042570b5d8e5bb61743c6`.
-
-These are verification artifacts only. No consolidated owner-QC candidate is declared while `MUST_MATCH` rows remain open.
+The moving branch Head must be judged by PR #11 and its exact GitHub Actions runs. This file records the latest accepted product checkpoint and release boundary.
 
 ## Acceptance authority
 
@@ -32,9 +20,10 @@ Milestone 8 is accepted against:
 - durable knowledge graph: `docs/ORIGINAL_KNOWLEDGE_GRAPH.md`;
 - canonical UI/function matrix: `docs/UI_AUDIT_MATRIX.md`;
 - architecture decisions: `docs/DECISIONS.md`;
-- Session 7 checkpoint: `docs/MILESTONE_8_SESSION_7_CHECKPOINT.md`.
+- Session 7 checkpoint: `docs/MILESTONE_8_SESSION_7_CHECKPOINT.md`;
+- candidate gate: `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
 
-All previously frozen Milestone 8 candidates and artifacts are obsolete. None may be installed or used as completeness evidence.
+All previously frozen Milestone 8 candidates and artifacts are obsolete. None may be installed or treated as completeness evidence.
 
 ## Objective
 
@@ -44,16 +33,16 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 
 ## Non-negotiable invariants
 
-1. Options uses the original Settings / Profiles / Actions information architecture with independent right-hand pages.
+1. Options retains the original Settings / Profiles / Actions information architecture with independent right-hand pages.
 2. Draft, candidate, Applied revision, verified snapshot, installed state, and browser-confirmed active state remain distinct.
 3. Popup switching uses Applied state only.
 4. Selecting or reviewing a backup never changes traffic.
-5. Secret values remain background-owned and never enter ProfileSpec, ordinary exports, diagnostics, logs, command responses, or rendered UI.
-6. Production diagnostics never auto-start and never collect headers, bodies, cookies, credentials, query strings, fragments, or response content.
+5. Secrets remain background-owned and never enter ProfileSpec, ordinary exports, diagnostics, logs, command responses, or rendered UI.
+6. Diagnostics never auto-start and never collect headers, bodies, cookies, credentials, query strings, fragments, or response content.
 7. Failed compilation, permission, installation, confirmation, or rollback cannot silently replace the previous confirmed state.
-8. Chromium and Firefox remain independent capability targets with separate builds and browser tests.
-9. Temporary integration patches and generated diagnostic residue are removed after each verified product commit.
-10. PR #11 remains Draft until every `MUST_MATCH` row is `DONE + VERIFIED` or receives an explicit documented scope decision, and repository-owner QC accepts one consolidated candidate.
+8. Chromium and Firefox remain separate capability targets with separate builds and browser tests.
+9. Temporary integration patches and generated diagnostic residue are removed after every verified product commit.
+10. PR #11 remains Draft until every `MUST_MATCH` row is `DONE + VERIFIED` or has an explicit source-backed scope decision, and repository-owner QC accepts one consolidated candidate.
 
 ## Verified delivered scope
 
@@ -63,6 +52,11 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Independent General, Interface, Import/Export, Theme, Snapshot History, Built-in Profiles, About, New Profile, and type-specific profile pages.
 - Fixed, Switch, PAC, and Virtual as the four normal creation types.
 - One isolated Chromium chain creates all four through the real New Profile dialog, verifies type-specific editors and typed Draft state, points Virtual at the new Fixed profile, and commits through normal Apply.
+- PAC creation now uses an explicit browser-target capability signal:
+  - writable `proxy.settings.get/set` supports PAC Profiles;
+  - original `proxy.register` or `proxy.registerProxyScript` targets disable PAC creation and display the original-style localized explanation;
+  - targets without writable `proxy.settings` fail closed.
+- Component rendering covers supported and unsupported capability metadata; real Chromium Options injection proves the unsupported radio state and warning.
 - Imported and attached Rule List compatibility without exposing Rule List as a normal creation type.
 - Fixed fallback/HTTP/HTTPS/FTP table, advanced protocols, bypass, inherited placeholders, and background-owned credentials.
 - Switch compact rule table, grouped conditions, Draft/Apply validation boundary, source mode, reload restoration, and persisted drag ordering.
@@ -79,70 +73,72 @@ An experienced ZeroOmega/SwitchyOmega user should retain the familiar navigation
 - Original schema-v1 upgrade, referenced Auto Detect → WPAD PAC migration, and disabled sync-runtime cleanup.
 - Typed Snapshot History with real Chromium rollback converging browser, Applied, Draft, and UI state.
 
-### Popup and auxiliary surfaces
+### Popup, auxiliary surfaces, localization, and evidence
 
 - Applied-only Popup switching and result-profile selection.
-- Permanent current-site conditions.
-- Browser-session-only temporary rules and temporary-rule manager.
+- Permanent current-site conditions and browser-session-only temporary rules.
 - Proxy ownership blockers and Chromium external-profile import.
 - Inspect frame/link/media lifecycle, evaluated result badge/title, and headed native Chromium context-menu E2E.
 - Explicit-session bounded request diagnostics with strict privacy and storage limits.
-
-### Localization and visual evidence
-
-- Direct typed English, Simplified Chinese, and Traditional Chinese across normal Options, profiles, Popup, Temporary Rules, Network, Import, History, Theme, dialogs, dynamic messages, placeholders, titles, and ARIA.
-- Locale inventory reports zero untranslated user-visible candidates and is guarded by verification.
-- Permanent visual workflow captures light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network.
+- Direct typed English, Simplified Chinese, and Traditional Chinese across all normal user-visible surfaces.
+- Locale inventory reports zero untranslated user-visible candidates.
+- Permanent visual workflow captures 24 images: light/dark × zh-CN/zh-TW across Options General, Fixed Profile, Import/Export, Popup, Temporary Rules, and Network.
 
 ### Real Chromium and Firefox proxy authentication
 
-Integration run `30414496421`, rerun job `90458570753`, verified and committed Head `8c0d4ce735d0f59cec80442667442a8160dfc182`.
+Integration run `30414496421`, rerun job `90458570753`, committed product Head `8c0d4ce735d0f59cec80442667442a8160dfc182`.
 
-- A controlled proxy emits a genuine Basic `407 Proxy Authentication Required` and returns the success page only after valid `Proxy-Authorization`.
-- The sentinel hostname is intentionally unresolvable, so direct navigation cannot fake success.
-- Chromium requests `webRequest` + `webRequestAuthProvider` and HTTP(S) origins, then completes 407 retry through the real localized Fixed UI, Apply transaction, Popup activation, and background credential handler.
-- Firefox requests `webRequest` + `webRequestBlocking` and HTTP(S) origins directly inside the original Apply user gesture. It does not await `permissions.contains` first, because that consumed user activation.
-- Firefox returns to Direct before revoking the broad authentication permission, then continues fine-grained origin-permission tests.
-- Secret diagnostics redact `/secret/` storage entries; the proxy records bounded counts only and never prints authorization material.
-- C-08 is closed for supported HTTP/HTTPS proxy authentication. Authenticated SOCKS remains explicitly unsupported under C-09.
+- A controlled proxy emits a genuine Basic `407 Proxy Authentication Required` and succeeds only after valid `Proxy-Authorization`.
+- The sentinel hostname is unresolvable, so direct navigation cannot fake success.
+- Chromium and Firefox both complete the real challenge through localized Fixed UI, Apply, Popup activation, permission acquisition, and background credential handling.
+- Secret diagnostics redact `/secret/` entries; authorization material is never logged.
+- C-08 is closed for supported HTTP/HTTPS proxy authentication. Authenticated SOCKS remains unsupported under C-09.
 
 ## Explicit scope decisions
 
 - ADR-015: preserve and round-trip `file:` PAC URLs and warnings, but do not read or activate local files in the browser-only release.
-- ADR-016: GitHub Gist synchronization is `NOT_PORTING` for the first release and requires a dedicated later remote-sync milestone.
-- ADR-017: WebDAV synchronization is `NOT_PORTING` for the first release and requires a separate crash-safe, HTTPS-oriented design.
-- ADR-018: original credential-bearing browser `storage.sync` behavior is an `INTENTIONAL_DIVERGENCE`; Nex does not propagate Gist tokens or WebDAV passwords through browser sync.
+- ADR-016: GitHub Gist synchronization is `NOT_PORTING` for the first release.
+- ADR-017: WebDAV synchronization is `NOT_PORTING` for the first release.
+- ADR-018: original credential-bearing browser `storage.sync` is an `INTENTIONAL_DIVERGENCE`.
+
+## Automated acceptance state
+
+The PAC target-capability integration passed:
+
+- architecture and UI compatibility guards;
+- canonical parity validation;
+- ESLint, Prettier, workspace type checks, and warning-fatal Svelte checks;
+- unit, integration, and component-rendering tests;
+- dual-browser build, manifest, inspection, packaging, and staging checks;
+- complete Chromium E2E, including current-target support and injected unsupported-target behavior;
+- evidence upload, product commit, and temporary workflow/patch cleanup.
+
+A human-authored reconciliation Head must now receive fresh exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence before the next product slice is treated as the current verified checkpoint.
 
 ## Honest remaining parity work
 
-Eight rows remain `PARTIAL`:
+The canonical matrix contains 126 rows: `DONE=119`, `PARTIAL=7`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
 
-### Five release-blocking `MUST_MATCH` rows
+Four release-blocking `MUST_MATCH` rows remain:
 
-1. A-12 — connect target-dependent PAC unsupported state to the New Profile dialog and prove it in-browser.
-2. B-03 — restore original-style Rename action/dialog parity or record a justified product decision.
-3. C-09 — finish the protocol/target capability matrix.
-4. D-04 — complete the original Switch condition-type matrix acceptance.
-5. D-05 — complete condition-specific field/control and Draft/Apply browser acceptance.
+1. B-03 — original-style Rename action and dialog parity.
+2. C-09 — protocol/target capability matrix.
+3. D-04 — Switch condition-type matrix acceptance.
+4. D-05 — condition-specific fields and Draft/Apply browser acceptance.
 
-### One `UNCERTAIN` row
+Additional open rows:
 
-- C-05 — modern Chromium/Firefox FTP scheme behavior.
-
-### Two non-blocking `REFERENCE` rows
-
-- A-14 — exact original skin.
-- I-11 — exact Popup dimensions and pixels.
+- C-05 remains `UNCERTAIN` for modern Chromium/Firefox FTP behavior.
+- A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
 
 ## Remaining release gates
 
-- close or explicitly scope the five remaining `MUST_MATCH` rows without weakening acceptance;
-- maintain exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence;
-- produce one consolidated installable candidate with fresh artifact digest and current QC checklist;
-- obtain repository-owner review of the consolidated visual artifact;
-- obtain repository-owner acceptance of a real complex ZeroOmega backup in Chromium and Firefox;
+- maintain a clean exact human-authored Head with green CI, Browser E2E, Parity Documentation, and Visual Evidence;
+- close or explicitly scope the four remaining `MUST_MATCH` rows without weakening acceptance;
+- produce one consolidated installable candidate with a fresh artifact digest and current QC checklist;
+- obtain repository-owner visual review and real complex-backup acceptance in Chromium and Firefox;
 - verify restart recovery, active route, theme, rollback, and authenticated routing on the consolidated candidate.
 
 ## Current next action
 
-Close A-12, then proceed through B-03, C-09, D-04, and D-05. Do not request installation of intermediate slices.
+Proceed to B-03 Rename parity after exact-Head verification. Do not request installation of intermediate slices.
