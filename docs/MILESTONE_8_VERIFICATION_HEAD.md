@@ -1,30 +1,44 @@
-# Milestone 8 Exact Verification Head
+# Milestone 8 Verification Boundary
 
-Exact moving-Head workflow evidence is maintained in PR #11. This file defines the stable product, candidate, and acceptance boundary that each human-authored documentation Head must contain.
+This branch is in full Original ↔ Nex parity re-audit.
 
-The current boundary includes:
+There is no active candidate and no verified release-completeness Head.
 
-- integrated Milestone 8 product Head `23272bd9efc4abbcec5ca99c86d31a1353714e8b`;
-- genuine Chromium/Firefox Basic 407 authentication with background-owned secrets and bounded optional permissions;
-- unified fresh-workspace creation of Fixed, Switch, PAC, and Virtual through the real New Profile dialog;
-- source-backed PAC browser-target creation capability and fail-closed unsupported-target behavior;
-- original Profile-header Rename action, independent validated dialog, Apply-before-dialog, Draft isolation, stable IDs, and transactional attached Rule List/source rename;
-- original Fixed fallback/HTTP/HTTPS/FTP slots, full protocol choices, browser-target capability disclosure, modern FTP boundary, SOCKS DNS differences, and explicit SOCKS authentication rejection;
-- original Switch basic 4-item and advanced 10-item condition catalogs, with `true` and `bypass` retained only as source/import compatibility states;
-- False annotation, combined IP/CIDR, HostWildcard warning, HostLevels, Weekday, Time, invalid-regex Draft retention, strict Apply rejection, correction, source round trip, reload, and Apply convergence;
-- permanent unit, component, parity, localization, Chromium, Firefox, build, and visual evidence gates;
-- canonical matrix state `DONE=124`, `PARTIAL=2`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`;
-- no remaining release-blocking `MUST_MATCH` rows;
-- only A-14 exact original skin and I-11 exact Popup dimensions/pixels remain as non-blocking `REFERENCE` rows;
-- declared candidate `M8-OWNER-QC-1`, fixed to Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a` and Artifact `8725915254`;
-- candidate outer ZIP SHA-256 `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c` and inner tarball SHA-256 `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`;
-- exact candidate CI `30456863674`, Browser E2E `30456863926`, Parity `30456863775`, and Visual Evidence `30456863885` all passed;
-- synchronized stable status, Session 7 checkpoint, candidate gate, knowledge graph, locale inventory, Switch condition authority, and canonical matrix;
-- removal of all temporary proxy, creation, capability, Rename, protocol, Switch-condition, and candidate-metadata integration machinery;
-- explicit distinction between candidate declaration and release acceptance: owner QC state remains `NOT RUN` and PR #11 remains Draft.
+The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`, failed repository-owner trial on 2026-07-30. Its green workflows prove only that the incomplete automated contract passed; they do not prove original-compatible delivery.
 
-Switch condition integration run `30456527030` passed full repository verification, complete Chromium E2E, complete Firefox E2E, evidence upload, product commit, and temporary integration cleanup.
+## Current boundary
 
-Candidate metadata synchronization run `30457974506` passed full repository verification, synchronized the canonical matrix, knowledge graph, Session checkpoint, status, and candidate gate, then removed its temporary workflow and patch helper.
+Every future product change must be governed by:
 
-Later documentation Heads do not replace `M8-OWNER-QC-1`. Any candidate defect must remain attached to the fixed Head and artifact; a replacement requires a new product Head, full exact automation, fresh artifact hashes, and a new candidate ID. The next executable work is repository-owner visual, real complex-backup, authenticated-route, restart-recovery, rollback, and Chromium/Firefox QC.
+- `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`;
+- `docs/MILESTONE_8_STATUS.md`;
+- `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
+
+The branch must not claim a verified completion Head until:
+
+- the original product graph is completely captured;
+- the current Nex graph is independently captured;
+- every required node is explicitly mapped;
+- representative original exports import directly and work immediately;
+- every visible Nex-only element has original provenance or owner-approved necessary-divergence evidence;
+- complete user journeys pass in Chromium and Firefox;
+- the repository owner accepts the exact behavior.
+
+## Automation interpretation
+
+CI, Browser E2E, parity documentation and visual workflows remain required engineering gates, but none is sufficient by itself.
+
+A green workflow means only that its stated contract passed. It does not upgrade `IMPLEMENTED` to `OWNER_ACCEPTED`, and it cannot override real original-export failure or repository-owner findings.
+
+## No-invention boundary
+
+No patch may add or preserve user-visible pages, dialogs, descriptions, help boxes, terminology, state taxonomies or workflow steps without:
+
+1. original source/runtime evidence; or
+2. minimized necessary-divergence evidence and explicit owner approval.
+
+Unknown original behavior remains `UNKNOWN`.
+
+## Exact-Head rule
+
+When a future mapped product slice is integrated, its exact Head and workflow evidence may be recorded in PR #11. That evidence remains slice-level until the complete owner-facing comparison order and final owner acceptance are satisfied.
