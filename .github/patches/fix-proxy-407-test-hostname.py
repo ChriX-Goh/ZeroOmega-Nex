@@ -52,9 +52,10 @@ new_args = """    args: [
       `--host-resolver-rules=MAP ${PROXY_AUTH_TARGET_HOST} 127.0.0.1`,
     ],
 """
-if text.count(old_args) != 1:
-    raise SystemExit(f'Chromium launch args mismatch: {text.count(old_args)}')
-chromium.write_text(text.replace(old_args, new_args))
+if text.count(old_args) < 1:
+    raise SystemExit('Chromium launch args anchor is missing')
+text = text.replace(old_args, new_args, 1)
+chromium.write_text(text)
 
 firefox = Path('scripts/e2e-firefox.mjs')
 text = firefox.read_text()
