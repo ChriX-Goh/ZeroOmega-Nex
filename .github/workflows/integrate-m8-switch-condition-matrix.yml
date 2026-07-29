@@ -1,0 +1,125 @@
+name: Integrate M8 Switch condition matrix
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/integrate-m8-switch-condition-matrix.yml
+      - .github/patches/apply-m8-switch-condition-matrix.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-m8-switch-condition-matrix-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrate:
+    if: github.head_ref == 'feat/m8-profile-workflow' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout branch Head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply source-backed Switch condition matrix
+        run: python .github/patches/apply-m8-switch-condition-matrix.py
+
+      - name: Regenerate locale inventory
+        run: pnpm locale:inventory
+
+      - name: Format changed files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/lib/switch-condition-catalog.ts \
+            apps/extension/src/lib/switch-condition-catalog.test.ts \
+            apps/extension/src/lib/ui-messages.ts \
+            apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/SWITCH_CONDITION_MATRIX.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/LOCALE_INVENTORY.json
+
+      - name: Verify repository
+        run: pnpm verify
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build both browser E2E candidates
+        run: |
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm build:firefox
+
+      - name: Run Chromium Switch condition E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium 2>&1 | tee switch-condition-chromium.log
+
+      - name: Run Firefox Switch condition E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox 2>&1 | tee switch-condition-firefox.log
+
+      - name: Upload integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-switch-condition-matrix-evidence
+          path: |
+            switch-condition-chromium.log
+            switch-condition-firefox.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit verified product slice and remove integration machinery
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/integrate-m8-switch-condition-matrix.yml
+          git rm -f .github/patches/apply-m8-switch-condition-matrix.py
+          git add apps/extension/src/lib/switch-condition-catalog.ts \
+            apps/extension/src/lib/switch-condition-catalog.test.ts \
+            apps/extension/src/lib/ui-messages.ts \
+            apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/validate-parity-docs.mjs \
+            docs/SWITCH_CONDITION_MATRIX.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/MILESTONE_8_RELEASE_CANDIDATE.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/LOCALE_INVENTORY.json
+          git commit -m 'feat: complete Switch condition matrix parity'
+          git push origin HEAD:feat/m8-profile-workflow
