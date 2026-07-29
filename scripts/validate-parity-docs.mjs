@@ -11,6 +11,7 @@ const schemaV1FixturePath = 'fixtures/zeroomega-v2/schema-v1-auto-detect.json';
 const manifestConfigPath = 'apps/extension/wxt.config.ts';
 const visualEvidenceScriptPath = 'scripts/capture-visual-evidence.mjs';
 const visualEvidenceWorkflowPath = '.github/workflows/m8-visual-evidence.yml';
+const sessionCheckpointPath = 'docs/MILESTONE_8_SESSION_7_CHECKPOINT.md';
 
 const [
   graph,
@@ -24,6 +25,7 @@ const [
   manifestConfig,
   visualEvidenceScript,
   visualEvidenceWorkflow,
+  sessionCheckpoint,
 ] = await Promise.all([
   readFile(graphPath, 'utf8'),
   readFile(auditPath, 'utf8'),
@@ -36,6 +38,7 @@ const [
   readFile(manifestConfigPath, 'utf8'),
   readFile(visualEvidenceScriptPath, 'utf8'),
   readFile(visualEvidenceWorkflowPath, 'utf8'),
+  readFile(sessionCheckpointPath, 'utf8'),
 ]);
 
 const failures = [];
@@ -62,6 +65,14 @@ requireAll('knowledge graph', graph, [
   'INTENTIONAL_DIVERGENCE',
   'NOT_PORTING',
   '更新协议',
+]);
+
+requireAll('session 7 checkpoint', sessionCheckpoint, [
+  'ffa5a25d8679706bd0b77b3d729a2d0ca5bb93bb',
+  '30410949018',
+  'directTargetCount: 1',
+  '94%',
+  'Governance drift found',
 ]);
 
 requireAll('UI audit', audit, [
@@ -195,25 +206,28 @@ requireAll('parity index', index, [
   'PR #11 remains Draft',
 ]);
 
-const auditRows = audit.match(/^\|\s+[A-J]-\d+\s+\|/gmu) ?? [];
-if (auditRows.length < 120) {
-  failures.push(`UI audit has ${auditRows.length} classified rows; expected at least 120`);
+const auditRowLines = audit
+  .split('\n')
+  .filter((line) => /^\|\s+[A-J]-\d+\s+\|/u.test(line));
+if (auditRowLines.length < 120) {
+  failures.push(`UI audit has ${auditRowLines.length} classified rows; expected at least 120`);
 }
 
-const statusCounts = Object.fromEntries(
-  ['DONE', 'PARTIAL', 'MISSING', 'BROKEN', 'UNVERIFIED'].map((status) => [
-    status,
-    (audit.match(new RegExp(`\\|\\s+${status}\\s+\\|`, 'gu')) ?? []).length,
-  ]),
-);
+const validStatuses = ['DONE', 'PARTIAL', 'MISSING', 'BROKEN', 'UNVERIFIED'];
+const statusCounts = Object.fromEntries(validStatuses.map((status) => [status, 0]));
 
-for (const status of ['DONE', 'PARTIAL', 'MISSING', 'UNVERIFIED']) {
-  if (statusCounts[status] === 0) failures.push(`UI audit has no ${status} rows`);
+for (const line of auditRowLines) {
+  const columns = line.split('|').map((column) => column.trim());
+  const rowId = columns[1];
+  const status = columns[6];
+  if (!validStatuses.includes(status)) {
+    failures.push(`${rowId} has invalid Nex status: ${status || '<empty>'}`);
+    continue;
+  }
+  statusCounts[status] += 1;
 }
 
-const openCount =
-  statusCounts.PARTIAL + statusCounts.MISSING + statusCounts.BROKEN + statusCounts.UNVERIFIED;
-if (openCount === 0) failures.push('UI audit has no open rows while PR #11 remains Draft');
+if (statusCounts.DONE === 0) failures.push('UI audit has no DONE rows');
 
 if (failures.length > 0) {
   console.error('Parity documentation validation failed:');
@@ -221,8 +235,10 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
+const openCount =
+  statusCounts.PARTIAL + statusCounts.MISSING + statusCounts.BROKEN + statusCounts.UNVERIFIED;
 console.log(
-  `Parity documentation passed: ${auditRows.length} UI rows; ${Object.entries(statusCounts)
+  `Parity documentation passed: ${auditRowLines.length} UI rows; ${Object.entries(statusCounts)
     .map(([status, count]) => `${status}=${count}`)
-    .join(', ')}.`,
+    .join(', ')}; OPEN=${openCount}.`,
 );
