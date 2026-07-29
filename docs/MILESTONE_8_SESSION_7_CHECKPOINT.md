@@ -84,12 +84,12 @@ No further Milestone 9 expansion should occur before Milestone 8 closes.
 
 ## Current progress model
 
-| Area                                                             | Weight | Completion | Weighted result |
-| ---------------------------------------------------------------- | -----: | ---------: | --------------: |
-| Milestones 0–7 foundation and engines                            |    35% |       100% |           35.0% |
-| Milestone 8 product and original-compatible workflow             |    45% |        99% |           44.6% |
-| Real-environment, documentation, owner-QC, and candidate closure |    20% |        87% |           17.4% |
-| **Total**                                                        | **100%** |          |       **97.0%** |
+| Area                                                             |   Weight | Completion | Weighted result |
+| ---------------------------------------------------------------- | -------: | ---------: | --------------: |
+| Milestones 0–7 foundation and engines                            |      35% |       100% |           35.0% |
+| Milestone 8 product and original-compatible workflow             |      45% |        99% |           44.6% |
+| Real-environment, documentation, owner-QC, and candidate closure |      20% |        87% |           17.4% |
+| **Total**                                                        | **100%** |            |       **97.0%** |
 
 Rounded progress toward the first stable replacement release is **97%**. Pure engineering implementation is approximately 99%; formal closure remains lower because four canonical `MUST_MATCH` rows, one consolidated candidate, and repository-owner visual/real-backup acceptance remain release gates.
 
