@@ -70,7 +70,7 @@ jobs:
           end = text.find(end_marker, start)
           if start == -1 or end == -1:
               raise SystemExit(f'endpoint traversal markers missing: start={start}, end={end}')
-          replacement = '''replace_once(
+          traversal_replacement = '''replace_once(
               capabilities,
               """  const visitEndpoint = (endpointId: string, path: string): void => {
               if (visitedEndpoints.has(endpointId)) return;
@@ -132,7 +132,27 @@ jobs:
           """,
               'target-aware Fixed slot traversal',
           )'''
-          path.write_text(text[:start] + replacement + text[end:])
+          text = text[:start] + traversal_replacement + text[end:]
+
+          app_start = text.find("app = Path('apps/extension/src/entrypoints/options/App.svelte')")
+          app_end = text.find('\n\n# Typed direct strings.', app_start)
+          if app_start == -1 or app_end == -1:
+              raise SystemExit(f'Fixed editor wiring markers missing: start={app_start}, end={app_end}')
+          app_replacement = '''app = Path('apps/extension/src/entrypoints/options/App.svelte')
+          replace_once(
+              app,
+              """        <FixedProfileEditor
+                {locale}
+                spec={state.draft}
+          """,
+              """        <FixedProfileEditor
+                {locale}
+                browserTarget={browserTargetCapabilities.target}
+                spec={state.draft}
+          """,
+              'Fixed editor browser target wiring',
+          )'''
+          path.write_text(text[:app_start] + app_replacement + text[app_end:])
           PY
 
       - name: Apply proxy protocol capability slice
