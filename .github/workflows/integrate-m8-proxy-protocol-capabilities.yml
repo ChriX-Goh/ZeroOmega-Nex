@@ -40,16 +40,17 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Align patch with current PAC capability imports
+      - name: Align patch with current PAC capability traversal
         run: |
           python - <<'PY'
           from pathlib import Path
 
           path = Path('.github/patches/apply-m8-proxy-protocol-capabilities.py')
           text = path.read_text()
-          old = '''"""import { PAC_COMPILER_VERSION } from './contracts.js';
+
+          old_import = '''"""import { PAC_COMPILER_VERSION } from './contracts.js';
           """'''
-          new = '''"""import {
+          new_import = '''"""import {
             PAC_COMPILER_VERSION,
             type PacCapability,
             type PacCapabilityAnalysis,
@@ -57,9 +58,89 @@ jobs:
             type PacTarget,
           } from './contracts.js';
           """'''
-          if text.count(old) != 1:
-              raise SystemExit(f'PAC capability import patch anchor mismatch: {text.count(old)}')
-          path.write_text(text.replace(old, new))
+          if text.count(old_import) != 1:
+              raise SystemExit(f'PAC capability import patch anchor mismatch: {text.count(old_import)}')
+          text = text.replace(old_import, new_import)
+
+          old_call_patch = '''replace_once(
+              capabilities,
+              """        endpointCapability(endpoint, `${path}/proxyByScheme/${slot}`, addIssue);
+          """,
+              """        endpointCapability(
+                endpoint,
+                `${path}/proxyByScheme/${slot}`,
+                target,
+                slot as FixedProxySlot,
+                addIssue,
+              );
+          """,
+              'target-aware endpoint analysis call',
+          )'''
+          new_call_patch = '''replace_once(
+              capabilities,
+              """  const visitEndpoint = (endpointId: string, path: string): void => {
+              if (visitedEndpoints.has(endpointId)) return;
+              visitedEndpoints.add(endpointId);
+              const endpoint = endpointById.get(endpointId);
+              if (!endpoint) {
+                addIssue({
+                  code: 'endpoint.missing',
+                  path,
+                  capability: 'unsupported',
+                  severity: 'error',
+                  blocking: true,
+                  message: `Referenced proxy endpoint ${endpointId} does not exist.`,
+                });
+                return;
+              }
+              reachableEndpointIds.push(endpointId);
+              endpointCapability(
+                endpoint,
+                `/proxyEndpoints/${spec.proxyEndpoints.indexOf(endpoint)}`,
+                addIssue,
+              );
+            };
+          """,
+              """  const visitEndpoint = (
+              endpointId: string,
+              path: string,
+              slot: FixedProxySlot,
+            ): void => {
+              const endpoint = endpointById.get(endpointId);
+              if (!endpoint) {
+                addIssue({
+                  code: 'endpoint.missing',
+                  path,
+                  capability: 'unsupported',
+                  severity: 'error',
+                  blocking: true,
+                  message: `Referenced proxy endpoint ${endpointId} does not exist.`,
+                });
+                return;
+              }
+              endpointCapability(endpoint, path, target, slot, addIssue);
+              if (visitedEndpoints.has(endpointId)) return;
+              visitedEndpoints.add(endpointId);
+              reachableEndpointIds.push(endpointId);
+            };
+          """,
+              'target-aware endpoint traversal',
+          )
+          replace_once(
+              capabilities,
+              """            visitEndpoint(endpointId, `${profilePath}/proxyByScheme/${slot}`);
+          """,
+              """            visitEndpoint(
+                endpointId,
+                `${profilePath}/proxyByScheme/${slot}`,
+                slot as FixedProxySlot,
+              );
+          """,
+              'target-aware Fixed slot traversal',
+          )'''
+          if text.count(old_call_patch) != 1:
+              raise SystemExit(f'endpoint traversal patch anchor mismatch: {text.count(old_call_patch)}')
+          path.write_text(text.replace(old_call_patch, new_call_patch))
           PY
 
       - name: Apply proxy protocol capability slice
