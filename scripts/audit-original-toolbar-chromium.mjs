@@ -123,7 +123,8 @@ try {
     return options.evaluate(async (targetUrl) => {
       const tabs = await chrome.tabs.query({});
       const tab = tabs.find((candidate) => candidate.url === targetUrl);
-      if (tab?.id === undefined) throw new Error(`Could not resolve original audit tab: ${targetUrl}`);
+      if (tab?.id === undefined)
+        throw new Error(`Could not resolve original audit tab: ${targetUrl}`);
       return tab.id;
     }, url);
   }
@@ -219,9 +220,7 @@ try {
     if (tabs[0]?.id === undefined) throw new Error('Could not resolve internal audit tab');
     return tabs[0].id;
   });
-  states.push(
-    await captureTab('system-internal-page', internalTabId, 'chrome://version/', false),
-  );
+  states.push(await captureTab('system-internal-page', internalTabId, 'chrome://version/', false));
 
   await options.bringToFront();
   await options.screenshot({ path: resolve(outputPath, 'options-zh-CN.png'), fullPage: true });
