@@ -11,6 +11,8 @@ This document is simultaneously:
 
 The project goal is not to design a new proxy-extension product inspired by ZeroOmega. The goal is to **rewrite the complete underlying implementation while preserving the original user-facing product contract as closely as modern browser APIs permit**.
 
+The repository owner reconfirmed this contract on 2026-07-30: the entire project, not merely the failed candidate, must be judged against the original. Existing UI, behavior, labels, descriptions and workflows cannot be trusted merely because they were already implemented.
+
 ### 0.1 Non-negotiable outcome
 
 The finished product must allow an experienced ZeroOmega user to switch without relearning the product:
