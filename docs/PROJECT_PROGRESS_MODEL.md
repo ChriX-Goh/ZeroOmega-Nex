@@ -10,6 +10,8 @@ The percentage is not derived from code volume, commit count, old matrix row cou
 
 **Provisional total progress: 46%.**
 
+**Unrounded score: 46.1%.**
+
 **Confidence band: 42%–50%.**
 
 The confidence band remains wider until the complete Original and Nex surface inventories are captured. Audit findings may legitimately move the percentage downward when previously hidden scope is discovered. This is correction of the denominator, not lost implementation.
@@ -47,16 +49,16 @@ No journey may receive owner-acceptance points from inference, silence, generate
 
 ## Current scored baseline
 
-| Order |   Weight | Current journey completion | Earned project points | Basis                                                                                                                                                                                                     |
-| ----: | -------: | -------------------------: | --------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|     1 |      12% |                        25% |                   3.0 | Core original toolbar source, exact Ω geometry, 18-row mapping and two pure source-derived implementation slices exist; installed original runtime capture, per-tab adapter and owner review remain open. |
-|     2 |      20% |                        35% |                   7.0 | Legacy decoding and typed import foundations exist, but the owner’s real original export is not directly usable and no accepted real-export corpus exists.                                                |
-|     3 |      12% |                        46% |                   5.5 | Substantial Popup/runtime implementation and browser checks exist, but the complete original hierarchy, density and all states have not passed side-by-side owner review.                                 |
-|     4 |      16% |                        51% |                   8.1 | Options and Draft/Applied foundations are substantial; project-wide layout, extra descriptions, dialogs and interaction parity remain untrusted.                                                          |
-|     5 |      22% |                        60% |                  13.2 | Fixed/Switch/PAC/Virtual and lifecycle implementation is broad, but old `DONE` rows require complete journey re-audit and real migrated-data verification.                                                |
-|     6 |      10% |                        52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; original-facing lifecycle and real imported configuration verification remain incomplete.                                            |
-|     7 |       8% |                        44% |                   3.5 | Typed localization and generated Nex visual checks exist; original installed runtime comparison, density cleanup and owner acceptance remain open.                                                        |
-|       | **100%** |                            |        **45.5 → 46%** | Rounded to the nearest whole percentage point.                                                                                                                                                            |
+| Order |   Weight | Current journey completion | Earned project points | Basis                                                                                                                                                                                                                                                |
+| ----: | -------: | -------------------------: | --------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     1 |      12% |                        30% |                   3.6 | Core source, exact official Chromium/Firefox packages, Ω geometry, 18-row mapping, color-state and Badge models exist; installed runtime capture, full state model, per-tab adapter and owner review remain open.                                     |
+|     2 |      20% |                        35% |                   7.0 | Legacy decoding and typed import foundations exist, but the owner’s real original export is not directly usable and no accepted real-export corpus exists.                                                                                           |
+|     3 |      12% |                        46% |                   5.5 | Substantial Popup/runtime implementation and browser checks exist, but the complete original hierarchy, density and all states have not passed side-by-side owner review.                                                                            |
+|     4 |      16% |                        51% |                   8.1 | Options and Draft/Applied foundations are substantial; project-wide layout, extra descriptions, dialogs and interaction parity remain untrusted.                                                                                                     |
+|     5 |      22% |                        60% |                  13.2 | Fixed/Switch/PAC/Virtual and lifecycle implementation is broad, but old `DONE` rows require complete journey re-audit and real migrated-data verification.                                                                                           |
+|     6 |      10% |                        52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; original-facing lifecycle and real imported configuration verification remain incomplete.                                                                                       |
+|     7 |       8% |                        44% |                   3.5 | Typed localization and generated Nex visual checks exist; original installed runtime comparison, density cleanup and owner acceptance remain open.                                                                                                   |
+|       | **100%** |                            |        **46.1 → 46%** | Rounded to the nearest whole percentage point.                                                                                                                                                                                                       |
 
 ## Reporting rules
 
