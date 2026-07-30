@@ -8,21 +8,30 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 
 ## Current audit checkpoint
 
-- Provisional total progress: **46%**.
-- Unrounded score: **46.1%**.
+- Provisional total progress: **47%**.
+- Unrounded score: **46.7%**.
 - Confidence band: **42%–50%**.
-- Active journey: Order 1 — installation/startup/toolbar, **30%**.
-- Current formatted audit Head before this checkpoint: `60f2a0372227b9db3fdc13a9f3fd56380bf2cee2`.
-- `60f2a037…` was authored by GitHub Actions after exact Prettier formatting, so its PR workflows were marked `action_required`; this connected-account checkpoint exists to trigger the permanent gates on the same tree plus this boundary record.
+- Active journey: Order 1 — installation/startup/toolbar, **35%**.
+- Current formatted audit Head before this checkpoint: `1c329ac9f9257a8c5bd2d523588184c23dde2c83`.
+- `1c329ac9…` was authored by GitHub Actions after exact Prettier formatting, so this connected-account checkpoint exists to trigger the permanent gates on the same tree plus this boundary record.
 
 Current source-certain toolbar slices:
 
 - exact original Ω geometry and dynamic size contract;
 - original static/inclusive/Direct icon color decisions;
 - original result-Badge preference, localized built-in label and four-code-unit truncation;
+- pure per-tab icon/title-placeholder/Badge/detail-prefix composition;
 - exact official v3.5.0 Chromium and Firefox package identities and manifests.
 
+Head `5b60bba3e1e66718a01171034582a606cf2334bb` already passed all four permanent gates for the per-tab pure model. The current checkpoint also includes synchronized progress and status documents.
+
 These are slice-level implementation and evidence only. No `TB-*` row, `KG-ICON-001`, journey or release is closed.
+
+## Confirmed integration boundary
+
+Current `inspect-runtime.ts` directly mutates tab-specific title and Badge state. The original-compatible per-tab coordinator must become the sole browser Action writer; Inspect, temporary rules, profile activation and ownership state must provide inputs rather than competing mutations.
+
+No browser Action integration should be accepted until the official original packages are run and the Chromium/Firefox state differences are recorded.
 
 ## Current boundary
 
