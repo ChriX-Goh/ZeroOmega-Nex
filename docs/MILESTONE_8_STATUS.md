@@ -5,7 +5,7 @@
 **PR state:** Draft  
 **Active candidate:** none  
 **Last candidate:** `M8-OWNER-QC-1` — `FAILED` on 2026-07-30  
-**Completion percentage:** unknown pending full Original ↔ Nex parity audit
+**Provisional total progress:** 46% (confidence band 42%–50%)
 
 ## Canonical product goal
 
@@ -26,12 +26,13 @@ The required end state is:
 The highest authority is:
 
 - `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
+- `docs/PROJECT_PROGRESS_MODEL.md`
 
 That file is the product contract, detailed comparison graph, defect register, implementation order and owner-facing delivery order.
 
 ## Status correction
 
-Milestone 8 is not 100% complete and is not currently close enough to release for a defensible percentage estimate.
+Milestone 8 is not 100% complete and is not release-ready. The current audit-weighted progress baseline is 46%, with a 42%–50% confidence band while the complete Original and Nex inventories remain open.
 
 The previous `98%` estimate and `DONE=124 / PARTIAL=2` summary measured only an incomplete automated contract. They did not measure actual product equivalence, direct migration or owner acceptance.
 
