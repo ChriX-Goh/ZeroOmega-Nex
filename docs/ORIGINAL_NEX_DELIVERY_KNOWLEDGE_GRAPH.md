@@ -101,7 +101,7 @@ The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 co
 
 ## 2. Current state
 
-- Product completion: **unknown pending full parity audit**.
+- Provisional total progress: **46%** with a **42%–50% confidence band**, calculated by `docs/PROJECT_PROGRESS_MODEL.md`.
 - Previous `DONE=124 / PARTIAL=2` summary: **invalid as a product-completeness measure**.
 - Active installable candidate: **none**.
 - Previous candidate `M8-OWNER-QC-1`: **FAILED**.
@@ -111,17 +111,17 @@ The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 co
 
 ## 3. Status vocabulary
 
-| Status | Meaning |
-| --- | --- |
-| `SOURCE_CAPTURED` | Original source, runtime behavior, UI and data evidence are captured. |
-| `NEX_CAPTURED` | Current Nex code and real browser behavior are captured independently. |
-| `MAPPED` | Original and Nex nodes have an explicit relationship and gap classification. |
-| `IMPLEMENTED` | Code exists, but equivalence has not passed acceptance. |
-| `VERIFIED_AUTOMATION` | Automated checks pass against the explicit original contract. |
-| `VERIFIED_REAL_DATA` | Real original exports and real browser journeys pass. |
-| `OWNER_ACCEPTED` | Repository owner has reviewed and accepted the exact behavior/build. |
-| `FAILED` | A demonstrated mismatch or defect exists. |
-| `UNKNOWN` | Evidence is incomplete; it must never be treated as done. |
+| Status                | Meaning                                                                      |
+| --------------------- | ---------------------------------------------------------------------------- |
+| `SOURCE_CAPTURED`     | Original source, runtime behavior, UI and data evidence are captured.        |
+| `NEX_CAPTURED`        | Current Nex code and real browser behavior are captured independently.       |
+| `MAPPED`              | Original and Nex nodes have an explicit relationship and gap classification. |
+| `IMPLEMENTED`         | Code exists, but equivalence has not passed acceptance.                      |
+| `VERIFIED_AUTOMATION` | Automated checks pass against the explicit original contract.                |
+| `VERIFIED_REAL_DATA`  | Real original exports and real browser journeys pass.                        |
+| `OWNER_ACCEPTED`      | Repository owner has reviewed and accepted the exact behavior/build.         |
+| `FAILED`              | A demonstrated mismatch or defect exists.                                    |
+| `UNKNOWN`             | Evidence is incomplete; it must never be treated as done.                    |
 
 Only `OWNER_ACCEPTED` is delivery-complete.
 
@@ -237,28 +237,28 @@ Internal architecture nodes are recorded separately and never count as user-faci
 
 ### 5.3 Mapping edge types
 
-| Edge | Meaning |
-| --- | --- |
-| `EXACT_EQUIVALENT` | Same observable behavior and compatible data result. |
-| `MODERNIZED_EQUIVALENT` | Implementation changed, but the user contract and mental model remain equivalent. |
-| `INTENTIONAL_DIVERGENCE` | Difference is necessary, evidenced, minimized and owner accepted. |
-| `MISSING_IN_NEX` | Original behavior is absent. |
-| `BROKEN_IN_NEX` | Behavior exists but fails or produces incompatible state. |
-| `EXTRA_IN_NEX` | Nex adds visible behavior not present in the original. |
-| `UNJUSTIFIED_INVENTION` | Nex behavior or UI was created without original evidence or owner approval. |
-| `UNKNOWN` | Evidence is insufficient. |
+| Edge                     | Meaning                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| `EXACT_EQUIVALENT`       | Same observable behavior and compatible data result.                              |
+| `MODERNIZED_EQUIVALENT`  | Implementation changed, but the user contract and mental model remain equivalent. |
+| `INTENTIONAL_DIVERGENCE` | Difference is necessary, evidenced, minimized and owner accepted.                 |
+| `MISSING_IN_NEX`         | Original behavior is absent.                                                      |
+| `BROKEN_IN_NEX`          | Behavior exists but fails or produces incompatible state.                         |
+| `EXTRA_IN_NEX`           | Nex adds visible behavior not present in the original.                            |
+| `UNJUSTIFIED_INVENTION`  | Nex behavior or UI was created without original evidence or owner approval.       |
+| `UNKNOWN`                | Evidence is insufficient.                                                         |
 
 ## 6. Reopened defect register
 
-| ID | Area | Original contract | Observed Nex result | Status | Delivery requirement |
-| --- | --- | --- | --- | --- | --- |
-| `KG-ICON-001` | Browser toolbar | Icon, title and visible toolbar state follow the current profile/runtime situation. | No complete toolbar state controller; icon and Popup identity differ. | `FAILED` | Capture and implement every original state transition in Chromium and Firefox. |
-| `KG-IMPORT-001` | Original export migration | Original exported files import directly and become immediately usable. | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures. | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations. |
-| `KG-UI-001` | UI structure | Navigation, layout, density, dialogs and actions remain familiar. | Broad structural and interaction differences remain. | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish. |
-| `KG-EXTRA-001` | Extra descriptions | Normal workflows contain only original or necessary accepted guidance. | Many unnecessary description/help boxes change density and workflow. | `FAILED` | Inventory and remove/collapse/relocate every unjustified block. |
-| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown. | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped. | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it. |
-| `KG-FLOW-001` | General behavior | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples. | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows. |
-| `KG-GOV-001` | Acceptance governance | Completion reflects actual parity and owner acceptance. | Automation closure was promoted incorrectly to product completion. | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
+| ID                 | Area                      | Original contract                                                                      | Observed Nex result                                                                                  | Status   | Delivery requirement                                                                          |
+| ------------------ | ------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `KG-ICON-001`      | Browser toolbar           | Icon, title and visible toolbar state follow the current profile/runtime situation.    | No complete toolbar state controller; icon and Popup identity differ.                                | `FAILED` | Capture and implement every original state transition in Chromium and Firefox.                |
+| `KG-IMPORT-001`    | Original export migration | Original exported files import directly and become immediately usable.                 | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures.  | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations.     |
+| `KG-UI-001`        | UI structure              | Navigation, layout, density, dialogs and actions remain familiar.                      | Broad structural and interaction differences remain.                                                 | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish.      |
+| `KG-EXTRA-001`     | Extra descriptions        | Normal workflows contain only original or necessary accepted guidance.                 | Many unnecessary description/help boxes change density and workflow.                                 | `FAILED` | Inventory and remove/collapse/relocate every unjustified block.                               |
+| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown.                   | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped. | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it.     |
+| `KG-FLOW-001`      | General behavior          | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples.                                       | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows.                         |
+| `KG-GOV-001`       | Acceptance governance     | Completion reflects actual parity and owner acceptance.                                | Automation closure was promoted incorrectly to product completion.                                   | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
 
 ## 7. Delivery order
 
@@ -369,4 +369,4 @@ The project is 100% complete only when:
 - unnecessary descriptions and extra workflow are removed;
 - the repository owner marks one exact final candidate `PASS`.
 
-Until then, completion must be reported as **unknown pending full parity audit**, never inferred from code volume, test counts or matrix row counts.
+Until the complete audit narrows the confidence band, every substantive report must provide the provisional audit-weighted percentage from `PROJECT_PROGRESS_MODEL.md`, its confidence band and the evidence delta. The percentage must never be inferred from code volume, test counts or old matrix row counts, and it must never be described as release readiness.
