@@ -57,6 +57,35 @@ jobs:
           fi
           tail -n 60 pnpm-verify.log
 
+      - name: Prepare formatted parity documents
+        if: failure()
+        shell: bash
+        run: |
+          pnpm exec prettier --write \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/PROJECT_PROGRESS_MODEL.md
+          tar -czf formatted-parity-docs.tar.gz \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/MILESTONE_8_SESSION_7_CHECKPOINT.md \
+            docs/PROJECT_PROGRESS_MODEL.md
+
+      - name: Upload formatted parity documents
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-parity-docs
+          path: formatted-parity-docs.tar.gz
+          if-no-files-found: error
+
       - name: Preserve verification failure log
         if: failure()
         uses: actions/upload-artifact@v4
