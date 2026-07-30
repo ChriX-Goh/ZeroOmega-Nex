@@ -1,0 +1,39 @@
+name: Format toolbar progress
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/format-toolbar-progress.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up and format
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec prettier --write \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/PROJECT_PROGRESS_MODEL.md
+          rm .github/workflows/format-toolbar-progress.yml
+
+      - name: Commit exact formatting
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/ACTIVE_PARITY_AUDIT_INDEX.md docs/PROJECT_PROGRESS_MODEL.md .github/workflows/format-toolbar-progress.yml
+          git commit -m "style: format verified toolbar progress"
+          git push origin HEAD:feat/m8-profile-workflow
