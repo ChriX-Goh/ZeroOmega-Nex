@@ -39,11 +39,12 @@ Owner trial found:
 Read in this order before further work:
 
 1. `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
-2. `docs/MILESTONE_8_STATUS.md`
-3. `docs/MILESTONE_8_RELEASE_CANDIDATE.md`
-4. `docs/MILESTONE_8_VERIFICATION_HEAD.md`
+2. `docs/ACTIVE_PARITY_AUDIT_INDEX.md`
+3. `docs/MILESTONE_8_STATUS.md`
+4. `docs/MILESTONE_8_RELEASE_CANDIDATE.md`
+5. `docs/MILESTONE_8_VERIFICATION_HEAD.md`
 
-The first document is the product contract, detailed knowledge graph, defect register, work order and owner-facing delivery order.
+The first document is the product contract, detailed knowledge graph, defect register, work order and owner-facing delivery order. The moving audit index records the current real position.
 
 ## Hard rules
 
@@ -65,18 +66,35 @@ The first document is the product contract, detailed knowledge graph, defect reg
 - `KG-FLOW-001`
 - `KG-GOV-001`
 
+## Active Order 1
+
+- `docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md`
+- `docs/AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md`
+
+The original toolbar core source, exact Ω geometry, static assets, main locale strings and 18-row Original ↔ Nex mapping are now captured. Current Nex lacks the corresponding complete subsystem. Original Chromium/Firefox runtime screenshots remain open.
+
+## Historical Session 7 record — retained but invalidated
+
+The following anchors are preserved because they are real historical audit facts and are required by the permanent documentation guard. They must not be interpreted as current completion evidence.
+
+- Initial audited Head: `ffa5a25d8679706bd0b77b3d729a2d0ca5bb93bb`.
+- Initial real proxy challenge integration run: `30410949018`.
+- The failed initial route showed `directTargetCount: 1`, proving the acceptance route could reach the origin directly rather than proving proxy authentication.
+- Session 7 initially estimated replacement-release progress at `94%`.
+- Session 7 contained a section named `Governance drift found and corrected`.
+- Later historical estimates rose to 97%/98%, and the old matrix reached `DONE=124 / PARTIAL=2`.
+- Historical candidate `M8-OWNER-QC-1` was frozen after those checks.
+
+These historical figures measured a self-referential automated contract. Repository-owner trial on 2026-07-30 demonstrated that the contract omitted substantial original UI, migration, toolbar and interaction requirements. The estimates and matrix closure are therefore invalid as product-completeness claims, while the underlying run and commit records remain immutable history.
+
 ## Next execution phase
 
-Do not start by patching isolated owner observations.
+Continue complete Order 1 capture and implementation only where the original contract is source-certain:
 
-Start with complete Order 1 capture:
+1. reproduce original toolbar states in Chromium and Firefox;
+2. preserve unknown runtime differences explicitly;
+3. implement the exact renderer and pure toolbar state model;
+4. integrate per-tab behavior only after source/runtime mapping;
+5. proceed to real original-export migration as Order 2.
 
-1. installation/startup and toolbar;
-2. Popup;
-3. Options and dialogs;
-4. profile types and lifecycle;
-5. rules, conditions and Rule Lists;
-6. original import/export and runtime state;
-7. visual density and localization.
-
-Then capture current Nex independently and construct the owner-readable Original ↔ Nex mapping before accepting product changes.
+Current product changes must be tied to an active delivery row. No candidate may be generated.
