@@ -5,7 +5,8 @@
 **PR state:** Draft  
 **Active candidate:** none  
 **Last candidate:** `M8-OWNER-QC-1` — `FAILED` on 2026-07-30  
-**Provisional total progress:** 46% (confidence band 42%–50%)
+**Provisional total progress:** 47% (unrounded 46.7%; confidence band 42%–50%)  
+**Active journey:** Order 1 — installation/startup/toolbar, 35%
 
 ## Canonical product goal
 
@@ -27,12 +28,13 @@ The highest authority is:
 
 - `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
 - `docs/PROJECT_PROGRESS_MODEL.md`
+- `docs/ACTIVE_PARITY_AUDIT_INDEX.md`
 
-That file is the product contract, detailed comparison graph, defect register, implementation order and owner-facing delivery order.
+These files define the product contract, weighted progress, detailed comparison graph, defect register, implementation order and owner-facing delivery order.
 
 ## Status correction
 
-Milestone 8 is not 100% complete and is not release-ready. The current audit-weighted progress baseline is 46%, with a 42%–50% confidence band while the complete Original and Nex inventories remain open.
+Milestone 8 is not 100% complete and is not release-ready. The current audit-weighted progress is 47%, with a 42%–50% confidence band while the complete Original and Nex inventories remain open.
 
 The previous `98%` estimate and `DONE=124 / PARTIAL=2` summary measured only an incomplete automated contract. They did not measure actual product equivalence, direct migration or owner acceptance.
 
@@ -69,6 +71,28 @@ These are implementation inventory only. None is presumed original-compatible un
 - repository-owner review.
 
 No old broad `DONE` row is owner-complete by inheritance.
+
+## Active Order 1 checkpoint
+
+Captured evidence:
+
+- exact original toolbar source and 18-row Original ↔ Nex map;
+- exact official Chromium and Firefox v3.5.0 packages and hashes;
+- exact Ω geometry and dynamic size contract;
+- original static/inclusive/Direct icon color decisions;
+- original result-Badge preference, localized built-in labels and four-code-unit truncation;
+- pure per-tab presentation composition without Nex-only state.
+
+Verified slice Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
+
+- CI `30509677377`;
+- Browser E2E `30509677387`;
+- Parity Documentation `30509677380`;
+- Milestone 8 Visual Evidence `30509677378`.
+
+These gates verify only the mapped pure-model slice. Installed original runtime screenshots, browser-action integration, tab event coordination and owner acceptance remain open.
+
+A structural Nex conflict is confirmed: current Inspect runtime directly mutates title and Badge state. It must become an input to one unified per-tab action coordinator rather than competing with it.
 
 ## Non-invention rule
 
@@ -116,21 +140,14 @@ All are release-blocking.
 
 ## Immediate work order
 
-### 1. Capture the original product completely
+### 1. Complete Order 1 runtime capture and integration
 
-Capture source, runtime, UI and data evidence for:
-
-- installation and startup;
-- toolbar icon/badge/title transitions;
-- Popup dimensions, states and actions;
-- Options navigation, pages, dialogs, wording and Apply/Discard;
-- every profile lifecycle and editor;
-- every condition and Rule List behavior;
-- import/export schema, generated/runtime fields and credentials;
-- startup profile, active profile and Quick Switch state;
-- visual density, terminology and localization.
-
-No unknown node may be omitted or guessed.
+- install the exact official Chromium and Firefox packages;
+- capture toolbar icon/title/Badge states and browser differences;
+- implement one browser-action adapter and per-tab coordinator;
+- convert Inspect from direct Action mutation to coordinator state input;
+- verify two tabs, route changes, temporary rules, Inspect and restart behavior;
+- require owner review before closing `KG-ICON-001`.
 
 ### 2. Capture current Nex independently
 
@@ -186,4 +203,4 @@ No new candidate may be declared until:
 
 ## Current next action
 
-Begin Order 1: capture the original product completely and produce the first owner-facing comparison order for installation/startup/toolbar state and real original-export migration. No product patch should be accepted before its original contract is mapped.
+Complete installed original Chromium/Firefox toolbar runtime capture, then implement the unified browser-action adapter and coordinator against that evidence. No candidate is permitted.
