@@ -74,3 +74,5 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 90
+
+# Registered first, then changed so the push trigger executes this audit.
