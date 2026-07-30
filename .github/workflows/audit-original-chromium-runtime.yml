@@ -6,6 +6,11 @@ on:
       - feat/m8-profile-workflow
     paths:
       - .github/workflows/audit-original-chromium-runtime.yml
+      - scripts/audit-original-toolbar-chromium.mjs
+  pull_request:
+    paths:
+      - .github/workflows/audit-original-chromium-runtime.yml
+      - scripts/audit-original-toolbar-chromium.mjs
 
 permissions:
   contents: write
@@ -44,12 +49,27 @@ jobs:
           unzip -q original-release/chromium-release.zip -d original-release/chromium
 
       - name: Run original Chromium runtime audit
+        id: runtime-audit
         env:
           ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
           ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/chromium
-        run: node scripts/audit-original-toolbar-chromium.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/audit-original-toolbar-chromium.mjs \
+            2>&1 | tee original-runtime/chromium/audit.log
+
+      - name: Upload runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-zeroomega-v3.5.0-chromium-runtime-diagnostics
+          path: original-runtime/chromium
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Write durable runtime evidence
+        if: success()
         run: |
           python - <<'PY'
           import json
@@ -103,15 +123,8 @@ jobs:
             scripts/audit-original-toolbar-chromium.mjs \
             docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md
 
-      - name: Upload original Chromium runtime evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: original-zeroomega-v3.5.0-chromium-runtime
-          path: original-runtime/chromium
-          if-no-files-found: error
-          retention-days: 90
-
       - name: Commit evidence and remove one-time workflow
+        if: success() && github.event_name == 'push'
         run: |
           rm .github/workflows/audit-original-chromium-runtime.yml
           git config user.name github-actions[bot]
@@ -122,5 +135,3 @@ jobs:
             .github/workflows/audit-original-chromium-runtime.yml
           git commit -m 'docs: capture original Chromium toolbar runtime'
           git push origin HEAD:feat/m8-profile-workflow
-
-# Updated after registration so the one-time audit runs.
