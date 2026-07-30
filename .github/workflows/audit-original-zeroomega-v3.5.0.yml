@@ -8,13 +8,19 @@ on:
       - .github/workflows/audit-original-zeroomega-v3.5.0.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   capture:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
       - name: Download official release assets
         run: |
           set -euo pipefail
@@ -59,12 +65,61 @@ jobs:
                   'background': data.get('background'),
                   'options_page': data.get('options_page'),
                   'options_ui': data.get('options_ui'),
+                  'browser_specific_settings': data.get('browser_specific_settings'),
               }
               Path(f'original-release/{target}-manifest-summary.json').write_text(
                   json.dumps(summary, ensure_ascii=False, indent=2) + '\n',
                   encoding='utf-8',
               )
           PY
+
+      - name: Write durable release evidence
+        run: |
+          set -euo pipefail
+          chromium_sha=$(awk '/chromium-release.zip/ {print $1}' original-release/SHA256SUMS)
+          firefox_sha=$(awk '/firefox-release.zip/ {print $1}' original-release/SHA256SUMS)
+          chromium_count=$(wc -l < original-release/chromium-files.txt)
+          firefox_count=$(wc -l < original-release/firefox-files.txt)
+          chromium_size=$(stat -c '%s' original-release/chromium-release.zip)
+          firefox_size=$(stat -c '%s' original-release/firefox-release.zip)
+          cat > docs/AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md <<EOF
+          # Audit Evidence 01B — Official ZeroOmega v3.5.0 Release Packages
+
+          ## Authority
+
+          - Repository: \`zero-peak/ZeroOmega\`.
+          - Release tag: \`v3.5.0\`.
+          - Download source: official GitHub release assets only.
+          - Capture runner: Ubuntu 24.04 GitHub-hosted runner.
+
+          ## Exact packages
+
+          | Target | Asset | Bytes | SHA-256 | Extracted files |
+          | --- | --- | ---: | --- | ---: |
+          | Chromium | \`chromium-release.zip\` | ${chromium_size} | \`${chromium_sha}\` | ${chromium_count} |
+          | Firefox | \`firefox-release.zip\` | ${firefox_size} | \`${firefox_sha}\` | ${firefox_count} |
+
+          Both ZIP integrity tests passed before extraction.
+
+          ## Manifest evidence
+
+          ### Chromium
+
+          \`\`\`json
+          $(cat original-release/chromium-manifest-summary.json)
+          \`\`\`
+
+          ### Firefox
+
+          \`\`\`json
+          $(cat original-release/firefox-manifest-summary.json)
+          \`\`\`
+
+          ## Acceptance boundary
+
+          These are the exact official installable packages required for runtime reference. Package integrity and manifest identity are source-captured. Installed toolbar screenshots, per-tab transitions and browser-specific runtime observations remain open and must not be inferred from package inspection alone.
+          EOF
+          sed -i 's/^          //' docs/AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md
 
       - name: Upload immutable original release evidence
         uses: actions/upload-artifact@v4
@@ -75,4 +130,14 @@ jobs:
           compression-level: 0
           retention-days: 90
 
-# Registered first, then changed so the push trigger executes this audit.
+      - name: Commit evidence and remove temporary workflow
+        run: |
+          set -euo pipefail
+          rm .github/workflows/audit-original-zeroomega-v3.5.0.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md .github/workflows/audit-original-zeroomega-v3.5.0.yml
+          git commit -m "docs: capture official original v3.5.0 release packages"
+          git push origin HEAD:feat/m8-profile-workflow
+
+# The update after registration triggers this one-time audit.
