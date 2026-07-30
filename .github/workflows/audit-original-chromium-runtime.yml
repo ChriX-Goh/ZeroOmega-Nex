@@ -122,3 +122,5 @@ jobs:
             .github/workflows/audit-original-chromium-runtime.yml
           git commit -m 'docs: capture original Chromium toolbar runtime'
           git push origin HEAD:feat/m8-profile-workflow
+
+# Updated after registration so the one-time audit runs.
