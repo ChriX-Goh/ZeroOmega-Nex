@@ -19,7 +19,7 @@ The project is not authorized to redesign the user experience merely because the
 - PR #11 remains Draft.
 - Active candidate: none.
 - `M8-OWNER-QC-1`: failed owner trial on 2026-07-30.
-- Completion percentage: unknown pending full Original ↔ Nex audit.
+- Provisional total progress: 46% with a 42%–50% confidence band under `PROJECT_PROGRESS_MODEL.md`.
 - Previous `98%` and `DONE=124 / PARTIAL=2`: invalid product-completeness measures.
 - Merge, release and new candidate generation: prohibited.
 
@@ -39,10 +39,11 @@ Owner trial found:
 Read in this order before further work:
 
 1. `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
-2. `docs/ACTIVE_PARITY_AUDIT_INDEX.md`
-3. `docs/MILESTONE_8_STATUS.md`
-4. `docs/MILESTONE_8_RELEASE_CANDIDATE.md`
-5. `docs/MILESTONE_8_VERIFICATION_HEAD.md`
+2. `docs/PROJECT_PROGRESS_MODEL.md`
+3. `docs/ACTIVE_PARITY_AUDIT_INDEX.md`
+4. `docs/MILESTONE_8_STATUS.md`
+5. `docs/MILESTONE_8_RELEASE_CANDIDATE.md`
+6. `docs/MILESTONE_8_VERIFICATION_HEAD.md`
 
 The first document is the product contract, detailed knowledge graph, defect register, work order and owner-facing delivery order. The moving audit index records the current real position.
 
