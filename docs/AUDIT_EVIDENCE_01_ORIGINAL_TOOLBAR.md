@@ -114,12 +114,12 @@ Color argument order is source-defined and must not be renamed from visual intui
 
 The original manifest references action assets from `omega-web/img/icons`.
 
-| Size | Path | Blob SHA |
-| ---: | --- | --- |
-| 16 | `omega-web/img/icons/omega-action-16.png` | `46f3348f339c800d44e3e471dbd258077118ad99` |
-| 19 | `omega-web/img/icons/omega-action-19.png` | `3498aa0da88481a723b78612581c6d7e32ae16c2` |
-| 24 | `omega-web/img/icons/omega-action-24.png` | `adfe35604052905261307953a2b51789e8cd0a02` |
-| 32 | `omega-web/img/icons/omega-action-32.png` | `07e41189b4e5bd8860d7ed5e5f0be359c63ee12d` |
+| Size | Path                                      | Blob SHA                                   |
+| ---: | ----------------------------------------- | ------------------------------------------ |
+|   16 | `omega-web/img/icons/omega-action-16.png` | `46f3348f339c800d44e3e471dbd258077118ad99` |
+|   19 | `omega-web/img/icons/omega-action-19.png` | `3498aa0da88481a723b78612581c6d7e32ae16c2` |
+|   24 | `omega-web/img/icons/omega-action-24.png` | `adfe35604052905261307953a2b51789e8cd0a02` |
+|   32 | `omega-web/img/icons/omega-action-32.png` | `07e41189b4e5bd8860d7ed5e5f0be359c63ee12d` |
 
 Decoded inspection shows the familiar light-blue Ω/ring fallback with transparent center/background. This is materially different from the current Nex green square/white Ω static asset.
 
@@ -150,12 +150,12 @@ The archived exact PO files provide the following toolbar text.
 
 ### 7.1 Loading/default title
 
-| Locale | `manifest_icon_default_title` |
-| --- | --- |
-| en_US | `Loading…` |
-| zh_CN | `正在加载……` |
-| zh_TW | `正在載入……` |
-| zh_Hant | `載入中…` |
+| Locale  | `manifest_icon_default_title` |
+| ------- | ----------------------------- |
+| en_US   | `Loading…`                    |
+| zh_CN   | `正在加载……`                  |
+| zh_TW   | `正在載入……`                  |
+| zh_Hant | `載入中…`                     |
 
 ### 7.2 Result title
 
@@ -170,14 +170,14 @@ The source passes current profile name and detailed matching trace. It does not 
 
 ### 7.3 Result detail tokens
 
-| Key | en_US | zh_CN | zh_TW |
-| --- | --- | --- | --- |
+| Key                                | en_US                                                                | zh_CN                                  | zh_TW                                  |
+| ---------------------------------- | -------------------------------------------------------------------- | -------------------------------------- | -------------------------------------- |
 | `browserAction_titleExternalProxy` | `Note: The proxy settings are currently controlled by other app(s).` | `注意：其他应用正在控制当前代理设置。` | `注意：其他應用正在控制目前代理設定。` |
-| `browserAction_titleInspect` | `[Inspect] $URL$` | `[检查] $URL$` | `[檢查] $URL$` |
-| `browserAction_defaultRuleDetails` | `(default)` | `(默认)` | `(預設)` |
-| `browserAction_directResult` | `DIRECT` | `直接连接` | `直接連線` |
-| `browserAction_attachedPrefix` | `(RL) ` | `(列表) ` | `(清單) ` |
-| `browserAction_tempRulePrefix` | `(TEMP) ` | `(临时) ` | `(臨時) ` |
+| `browserAction_titleInspect`       | `[Inspect] $URL$`                                                    | `[检查] $URL$`                         | `[檢查] $URL$`                         |
+| `browserAction_defaultRuleDetails` | `(default)`                                                          | `(默认)`                               | `(預設)`                               |
+| `browserAction_directResult`       | `DIRECT`                                                             | `直接连接`                             | `直接連線`                             |
+| `browserAction_attachedPrefix`     | `(RL) `                                                              | `(列表) `                              | `(清單) `                              |
+| `browserAction_tempRulePrefix`     | `(TEMP) `                                                            | `(临时) `                              | `(臨時) `                              |
 
 ### 7.4 Badge preference
 
@@ -217,21 +217,21 @@ Original Inspect:
 
 ## 9. Evidence status after this capture
 
-| Evidence component | Status |
-| --- | --- |
-| Exact tag/source paths and blobs | `SOURCE_CAPTURED` |
-| Exact Ω geometry | `SOURCE_CAPTURED` |
-| Dynamic size/cache/fallback behavior | `SOURCE_CAPTURED` |
-| Static action asset identities | `SOURCE_CAPTURED` |
-| Static asset decoded visual inspection | `SOURCE_CAPTURED` |
-| en_US / zh_CN / zh_TW key toolbar strings | `SOURCE_CAPTURED` |
-| Per-tab/state transition implementation | `SOURCE_CAPTURED` |
-| Running original Chromium screenshots for all states | `UNKNOWN` |
-| Running original Firefox screenshots for all states | `UNKNOWN` |
-| Exact dynamic two-color pixel output against a running original | `UNKNOWN` |
-| Modern-browser divergence requirement | `UNKNOWN` |
-| Nex corrected implementation | `NOT STARTED` |
-| Owner acceptance of corrected implementation | `NOT RUN` |
+| Evidence component                                              | Status            |
+| --------------------------------------------------------------- | ----------------- |
+| Exact tag/source paths and blobs                                | `SOURCE_CAPTURED` |
+| Exact Ω geometry                                                | `SOURCE_CAPTURED` |
+| Dynamic size/cache/fallback behavior                            | `SOURCE_CAPTURED` |
+| Static action asset identities                                  | `SOURCE_CAPTURED` |
+| Static asset decoded visual inspection                          | `SOURCE_CAPTURED` |
+| en_US / zh_CN / zh_TW key toolbar strings                       | `SOURCE_CAPTURED` |
+| Per-tab/state transition implementation                         | `SOURCE_CAPTURED` |
+| Running original Chromium screenshots for all states            | `UNKNOWN`         |
+| Running original Firefox screenshots for all states             | `UNKNOWN`         |
+| Exact dynamic two-color pixel output against a running original | `UNKNOWN`         |
+| Modern-browser divergence requirement                           | `UNKNOWN`         |
+| Nex corrected implementation                                    | `NOT STARTED`     |
+| Owner acceptance of corrected implementation                    | `NOT RUN`         |
 
 ## 10. Next gate
 
