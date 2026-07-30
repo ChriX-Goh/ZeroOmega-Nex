@@ -12,21 +12,23 @@ It records the current real audit position. Historical matrix counts, implementa
 - PR: #11, Draft.
 - Active candidate: none.
 - Failed candidate: `M8-OWNER-QC-1`.
-- Completion percentage: unknown pending complete parity audit.
+- Provisional total progress: 46% (confidence band 42%–50%).
 - Merge/release/candidate generation: prohibited.
-- Current audit/implementation Head: `c6415a357522c61a505515466bc3140f06c7d0e9` before this documentation sync.
+- Progress authority: `docs/PROJECT_PROGRESS_MODEL.md`.
+- Active journey: Order 1 at 25%.
+- Current implementation includes exact original Ω geometry and source-derived color-state decisions; neither closes the toolbar journey.
 
 ## Active delivery sequence
 
-| Order | Journey | Contract/order | Evidence | Current state | Next gate |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | Installation / startup / toolbar | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md` | Original core source captured; 18-row Original ↔ Nex mapping complete; Nex subsystem confirmed missing; exact source-certain Ω geometry port and tests committed; runtime screenshots still absent | Complete current CI, reproduce exact v3.5.0 in Chromium/Firefox, capture visible states, then build the pure state model/browser adapter without inventing runtime differences |
-| 2 | Real original export → direct Nex use | pending | pending real-export corpus | `FAILED`; owner’s real original export did not become directly usable | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
-| 3 | Popup | pending | original Popup source is archived but runtime evidence incomplete | broad mismatch reported | Capture original dimensions, hierarchy, all states and compare independently with Nex |
-| 4 | Options / Apply / Discard | pending | historical source notes only | broad mismatch reported | Page/control/dialog/help-text inventory before code changes |
-| 5 | Complete profile journeys | pending | historical implementation inventory only | untrusted pending re-audit | Fixed → Switch → PAC → Virtual → Rule List complete journey maps |
-| 6 | Export / restart / rollback / ownership / authentication | pending | partial implementation/tests exist | not owner-complete | Revalidate against original-facing behavior and real imported data |
-| 7 | Localization / density / visual alignment | pending | generated Nex screenshots are not original comparison evidence | broad mismatch reported | Original runtime captures and side-by-side owner order |
+| Order | Journey                                                  | Contract/order                       | Evidence                                                          | Current state                                                                                                                                                                                                         | Next gate                                                                                                                                                                      |
+| ----: | -------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md`                           | Original core source captured; 18-row Original ↔ Nex mapping complete; Nex subsystem confirmed missing; exact source-certain Ω geometry and color-state models with tests committed; runtime screenshots still absent | Complete current CI, reproduce exact v3.5.0 in Chromium/Firefox, capture visible states, then build the pure state model/browser adapter without inventing runtime differences |
+|     2 | Real original export → direct Nex use                    | pending                              | pending real-export corpus                                        | `FAILED`; owner’s real original export did not become directly usable                                                                                                                                                 | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison                                           |
+|     3 | Popup                                                    | pending                              | original Popup source is archived but runtime evidence incomplete | broad mismatch reported                                                                                                                                                                                               | Capture original dimensions, hierarchy, all states and compare independently with Nex                                                                                          |
+|     4 | Options / Apply / Discard                                | pending                              | historical source notes only                                      | broad mismatch reported                                                                                                                                                                                               | Page/control/dialog/help-text inventory before code changes                                                                                                                    |
+|     5 | Complete profile journeys                                | pending                              | historical implementation inventory only                          | untrusted pending re-audit                                                                                                                                                                                            | Fixed → Switch → PAC → Virtual → Rule List complete journey maps                                                                                                               |
+|     6 | Export / restart / rollback / ownership / authentication | pending                              | partial implementation/tests exist                                | not owner-complete                                                                                                                                                                                                    | Revalidate against original-facing behavior and real imported data                                                                                                             |
+|     7 | Localization / density / visual alignment                | pending                              | generated Nex screenshots are not original comparison evidence    | broad mismatch reported                                                                                                                                                                                               | Original runtime captures and side-by-side owner order                                                                                                                         |
 
 ## Order 1 checkpoint
 
@@ -51,8 +53,11 @@ It records the current real audit position. Historical matrix counts, implementa
 
 - `apps/extension/src/lib/original-toolbar-icon.ts` ports the exact normalized geometry from original blob `aa5ef9cfac1ef7b46dbe0df03b1adc3d5a2faf43`;
 - `apps/extension/src/lib/original-toolbar-icon.test.ts` locks the original 16/19/24/32/38 size set, outer radius `0.375`, inner radius `0.25`, line width `0.25`, two-color fill and one-color `destination-out` behavior;
+- `apps/extension/src/lib/original-toolbar-icon-state.ts` and its test lock the original static, inclusive and Direct outer/inner color decisions from `actionForUrl`;
 - product code commit: `27544be77b1125d5054c26aebb7d10c4e9fc8e32`;
-- test commit: `40c3a64c23b730bf9c738a70c4e739f86ebb3071`;
+- geometry test commit: `40c3a64c23b730bf9c738a70c4e739f86ebb3071`;
+- color-state product commit: `fc56da9d33dfb71e3c979bb5ab9f502dbdc05b55`;
+- color-state test commit: `09a9a587723ebbc1967c804e40f77e8cba1e7b4b`;
 - no manifest, toolbar state, permission or browser action behavior has been changed yet;
 - this does not close any `TB-*` row or `KG-ICON-001`.
 
