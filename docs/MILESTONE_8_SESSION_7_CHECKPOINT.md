@@ -1,155 +1,82 @@
-# Milestone 8 Session 7 Checkpoint
+# Milestone 8 Session 7 Checkpoint — Parity Reset
 
-**Recorded:** 2026-07-29  
-**Audited branch:** `feat/m8-profile-workflow`  
-**Initial audited Head:** `ffa5a25d8679706bd0b77b3d729a2d0ca5bb93bb`  
-**Latest integrated product Head:** `4233e45340ea0d1185e87270aa9c10cfcd2c7b6b`  
-**Pull request:** #11, Draft  
-**Initial estimated first replacement-release progress:** 94%  
-**Current estimated first replacement-release progress:** 97%
+## Project definition
 
-## Purpose
+ZeroOmega Nex is a complete bottom-layer rewrite whose user-facing contract must remain as close to ZeroOmega v3.5.0 as modern browser APIs permit.
 
-This checkpoint records the verified Session 7 delta to `ORIGINAL_KNOWLEDGE_GRAPH.md`, `UI_AUDIT_MATRIX.md`, `MILESTONE_8_STATUS.md`, and PR #11. It does not replace the ZeroOmega v3.5.0 source baseline or the canonical acceptance matrix.
+The required migration experience is:
 
-## Initial repository state
+- an original user exports the original configuration;
+- installs Nex;
+- imports the file directly;
+- immediately uses the equivalent configuration;
+- does not materially relearn toolbar, Popup, Options, dialogs, profiles or normal workflows.
 
-At initial audited Head `ffa5a25d8679706bd0b77b3d729a2d0ca5bb93bb`:
+The project is not authorized to redesign the user experience merely because the underlying architecture has changed.
 
-- CI run `30410949026` passed.
-- Browser E2E run `30410949038` passed.
-- Parity Documentation run `30410949016` passed.
-- Milestone 8 Visual Evidence run `30410949036` passed.
-- Real proxy challenge integration run `30410949018` failed during Chromium before Firefox executed.
+## Current reality
 
-The initial failure showed extension control and a PAC containing the expected proxy, but the sentinel target reached the origin directly: `directTargetCount: 1`, `targetUnauthorizedCount: 0`, and `targetAuthorizedCount: 0`. This exposed an invalid acceptance route rather than proving an authentication product defect.
+- PR #11 remains Draft.
+- Active candidate: none.
+- `M8-OWNER-QC-1`: failed owner trial on 2026-07-30.
+- Completion percentage: unknown pending full Original ↔ Nex audit.
+- Previous `98%` and `DONE=124 / PARTIAL=2`: invalid product-completeness measures.
+- Merge, release and new candidate generation: prohibited.
 
-## Governance drift found and corrected
+## Why the reset occurred
 
-- `scripts/validate-parity-docs.mjs` now parses the Nex-status column relative to the classification column instead of counting status-like text in unrelated columns.
-- The validator no longer forces `PARTIAL`, `MISSING`, or `UNVERIFIED` rows to stay non-zero.
-- The canonical matrix now honestly reports `DONE=122`, `PARTIAL=4`, `MISSING=0`, `BROKEN=0`, `UNVERIFIED=0`.
-- PR #11, status, candidate gate, matrix, knowledge graph, and this checkpoint are synchronized by exact product checkpoints rather than stale moving Heads.
-- Obsolete candidate pointers and one-off integration machinery are removed after verified product commits.
+Owner trial found:
 
-## Session 7 completed product closures
+- missing toolbar icon/runtime-state parity;
+- real original export not directly usable after import;
+- broad UI and interaction divergence;
+- excessive and unnecessary explanatory UI;
+- visible behavior inferred or invented without strict original evidence;
+- further project-wide mismatches beyond a focused defect pass.
 
-### Real proxy traversal and authentication
+## Canonical authority
 
-Integration run `30414496421`, rerun job `90458570753`, committed product Head `8c0d4ce735d0f59cec80442667442a8160dfc182`.
+Read in this order before further work:
 
-The verified path proves:
+1. `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
+2. `docs/MILESTONE_8_STATUS.md`
+3. `docs/MILESTONE_8_RELEASE_CANDIDATE.md`
+4. `docs/MILESTONE_8_VERIFICATION_HEAD.md`
 
-- an unresolvable sentinel can succeed only through the controlled proxy;
-- Chromium and Firefox receive a genuine Basic 407, acquire the correct permissions, supply background-owned credentials, and succeed on retry;
-- Firefox permission acquisition stays inside the original Apply gesture;
-- secret storage diagnostics redact `/secret/` entries;
-- authenticated routes return to Direct before broad authentication permission removal.
+The first document is the product contract, detailed knowledge graph, defect register, work order and owner-facing delivery order.
 
-### Unified four-type New Profile acceptance
+## Hard rules
 
-Integration run `30416441326` committed product Head `febb7dcd8a5455bd31c499a88bf450039bc4a67b`.
+- Original source and runtime behavior are the default authority.
+- Unknown behavior stays `UNKNOWN`; it is never filled by design assumptions.
+- Every Nex-only visible element needs original provenance or owner-approved necessary-divergence evidence.
+- Internal architecture improvements should remain hidden behind the original-facing interaction model.
+- Synthetic fixtures and green tests do not prove real original-export compatibility.
+- No old broad `DONE` row is trusted without revalidation.
+- Only owner `PASS` on an exact final candidate counts as delivery completion.
 
-- A separate fresh Chromium extension workspace creates Fixed, Switch, PAC, and Virtual through the real localized New Profile dialog.
-- Every creation verifies the selected type, profile name, and type-specific editor.
-- Typed Draft state contains all four exact kinds; Virtual points to the newly created Fixed profile.
-- Normal Apply converges Draft and Applied state.
-- J-04 is `DONE`.
+## Reopened blockers
 
-### PAC browser-target capability acceptance
+- `KG-ICON-001`
+- `KG-IMPORT-001`
+- `KG-UI-001`
+- `KG-EXTRA-001`
+- `KG-INVENTION-001`
+- `KG-FLOW-001`
+- `KG-GOV-001`
 
-Integration run `30418355127` committed product Head `4233e45340ea0d1185e87270aa9c10cfcd2c7b6b`.
+## Next execution phase
 
-- A pure browser-target capability module accepts PAC creation only when writable `proxy.settings.get/set` is available.
-- The original ZeroOmega unsupported branch is preserved: `proxy.register` or `proxy.registerProxyScript` disables PAC creation and shows the localized explanation.
-- Unknown targets without writable `proxy.settings` fail closed.
-- Unit tests cover current, original unsupported, and missing-settings targets.
-- Component tests cover supported/unsupported metadata and localized rendering.
-- Chromium injects `chrome.proxy.registerProxyScript` before Options loads, then verifies the PAC radio is disabled and the original-style warning is shown.
-- Repository verification and complete Chromium E2E passed before commit; the temporary workflow and patch self-deleted.
-- A-12 is `DONE`; release-blocking `MUST_MATCH` rows fall from five to four.
+Do not start by patching isolated owner observations.
 
-### Original Profile Rename acceptance
+Start with complete Order 1 capture:
 
-- The Profile header restores the source-backed Rename action; the inline profile-name editor is removed.
-- Dirty editor state commits first and the user explicitly accepts normal Apply before the Rename dialog opens.
-- The independent typed dialog initializes and focuses the current name, then enforces the same empty, reserved, case-insensitive conflict, and hidden-name rules as New Profile.
-- Rename changes remain in Draft until normal Apply; profile identity IDs and route references do not change.
-- A Switch rename transaction also updates its hidden attached Rule List name and associated Rule Source name.
-- Chromium verifies Apply-before-dialog, all validation branches, Draft isolation, navigation/header updates, and final Apply. Firefox verifies the independent dialog and final Apply.
-- B-03 is `DONE`; release-blocking `MUST_MATCH` rows fall from four to three.
+1. installation/startup and toolbar;
+2. Popup;
+3. Options and dialogs;
+4. profile types and lifecycle;
+5. rules, conditions and Rule Lists;
+6. original import/export and runtime state;
+7. visual density and localization.
 
-### Proxy protocol and browser-target capability acceptance
-
-- A typed PAC-compiler matrix covers every original protocol across Chromium, Firefox, and cross-browser analysis.
-- HTTP and HTTPS map to `PROXY` and `HTTPS` and use the bounded 407 authentication adapter.
-- SOCKS4 and SOCKS5 map to their native PAC directives, reject credentials before browser mutation, and expose target-specific DNS behavior rather than claiming false cross-browser identity.
-- All original protocol choices remain available in every Fixed row; the URL slot and proxy transport remain separate concepts as in original ZeroOmega.
-- The original `ftp` slot is preserved for import/export and deterministic PAC round-trip, while ADR-019 records that modern Chromium and Firefox no longer issue browser FTP requests.
-- Unit, compiler, component, Chromium, Firefox, and permanent parity guards cover the matrix.
-- C-05 and C-09 are `DONE`; release-blocking `MUST_MATCH` rows fall from three to two.
-
-## Direction and scope assessment
-
-No major product or architectural drift was found. Milestone 8 still rebuilds the familiar ZeroOmega v3.5.0 workflow on typed ProfileSpec, deterministic PAC, immutable snapshots, and atomic browser adapters.
-
-The following partially pulled-forward Milestone 9 capabilities remain justified dependencies:
-
-- bounded Rule Source and PAC downloads;
-- scheduled refresh and retained-cache failure behavior;
-- optional-origin permission boundaries;
-- bounded session-only request diagnostics.
-
-No further Milestone 9 expansion should occur before Milestone 8 closes.
-
-## Current progress model
-
-| Area                                                             |   Weight | Completion | Weighted result |
-| ---------------------------------------------------------------- | -------: | ---------: | --------------: |
-| Milestones 0–7 foundation and engines                            |      35% |       100% |           35.0% |
-| Milestone 8 product and original-compatible workflow             |      45% |        99% |           44.6% |
-| Real-environment, documentation, owner-QC, and candidate closure |      20% |        87% |           17.4% |
-| **Total**                                                        | **100%** |            |       **97.0%** |
-
-Rounded progress toward the first stable replacement release is **97%**. Pure engineering implementation is approximately 99%; formal closure remains lower because four canonical `MUST_MATCH` rows, one consolidated candidate, and repository-owner visual/real-backup acceptance remain release gates.
-
-## Remaining canonical work
-
-Two release-blocking `MUST_MATCH` rows remain:
-
-1. D-04 — Switch condition-type matrix acceptance.
-2. D-05 — condition-specific fields and Draft/Apply browser acceptance.
-
-A-14 and I-11 remain non-blocking visual `REFERENCE` rows.
-
-## Ordered next actions
-
-1. Establish a human-authored exact verification Head after the PAC capability product commit.
-2. Require exact-Head CI, Browser E2E, Parity Documentation, and Visual Evidence to pass.
-3. Complete or explicitly scope C-09, D-04, and D-05 without weakening acceptance criteria.
-4. Freeze one consolidated candidate with fresh artifact digest and owner-QC checklist.
-5. Require repository-owner visual review, real complex-backup acceptance, authenticated-route acceptance, restart recovery, and final browser checks before PR #11 leaves Draft.
-
-## Session 7 acceptance boundary
-
-Automation alone does not declare a replacement candidate. A valid release requires corrected canonical documentation, proven real browser behavior, a clean exact human-authored Head, no temporary integration residue, and repository-owner acceptance of one consolidated visual artifact and a real complex backup.
-
-## Switch condition matrix closure
-
-- Source-backed ordinary Switch selectors contain exactly 4 basic and 10 advanced entries.
-- `TrueCondition` and `BypassCondition` remain model/source compatibility states, not ordinary selectable UI entries.
-- False annotation, combined IP/CIDR, HostWildcard warning, host-level range, weekday checkboxes, and time range match the original field shapes.
-- Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
-- Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
-- D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.
-
-## Consolidated owner-QC candidate freeze — `M8-OWNER-QC-1`
-
-- Product integration run `30456527030` produced product Head `23272bd9efc4abbcec5ca99c86d31a1353714e8b` and removed all temporary Switch-condition machinery.
-- Human-authored candidate Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a` passed CI `30456863674`, Browser E2E `30456863926`, Parity `30456863775`, and Visual Evidence `30456863885`.
-- The initial exact-head Chromium attempt hit the existing external-Profile popup timing race; the unchanged-job rerun passed. Firefox and native Inspect passed.
-- Candidate Artifact `browser-builds` ID `8725915254` was independently downloaded and archive-tested.
-- Outer ZIP SHA-256 `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c` matches GitHub Actions; inner tarball SHA-256 is `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`.
-- Matrix state is `DONE=124`, `PARTIAL=2`, with no release-blocking `MUST_MATCH` row.
-- Candidate QC state remains `NOT RUN`; PR #11 remains Draft.
-- Next step is repository-owner QC on this exact artifact, not additional feature work or an untracked rebuild.
+Then capture current Nex independently and construct the owner-readable Original ↔ Nex mapping before accepting product changes.
