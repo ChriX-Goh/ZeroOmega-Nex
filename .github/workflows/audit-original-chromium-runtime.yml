@@ -31,11 +31,12 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install locked dependencies
+      - name: Install locked dependencies and Chromium
         run: |
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
           pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
 
       - name: Download exact official Chromium package
         run: |
