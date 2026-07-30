@@ -6,11 +6,31 @@ There is no active candidate and no verified release-completeness Head.
 
 The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`, failed repository-owner trial on 2026-07-30. Its green workflows prove only that the incomplete automated contract passed; they do not prove original-compatible delivery.
 
+## Current audit checkpoint
+
+- Provisional total progress: **46%**.
+- Unrounded score: **46.1%**.
+- Confidence band: **42%–50%**.
+- Active journey: Order 1 — installation/startup/toolbar, **30%**.
+- Current formatted audit Head before this checkpoint: `60f2a0372227b9db3fdc13a9f3fd56380bf2cee2`.
+- `60f2a037…` was authored by GitHub Actions after exact Prettier formatting, so its PR workflows were marked `action_required`; this connected-account checkpoint exists to trigger the permanent gates on the same tree plus this boundary record.
+
+Current source-certain toolbar slices:
+
+- exact original Ω geometry and dynamic size contract;
+- original static/inclusive/Direct icon color decisions;
+- original result-Badge preference, localized built-in label and four-code-unit truncation;
+- exact official v3.5.0 Chromium and Firefox package identities and manifests.
+
+These are slice-level implementation and evidence only. No `TB-*` row, `KG-ICON-001`, journey or release is closed.
+
 ## Current boundary
 
 Every future product change must be governed by:
 
 - `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`;
+- `docs/PROJECT_PROGRESS_MODEL.md`;
+- `docs/ACTIVE_PARITY_AUDIT_INDEX.md`;
 - `docs/MILESTONE_8_STATUS.md`;
 - `docs/MILESTONE_8_RELEASE_CANDIDATE.md`.
 
@@ -41,4 +61,4 @@ Unknown original behavior remains `UNKNOWN`.
 
 ## Exact-Head rule
 
-When a future mapped product slice is integrated, its exact Head and workflow evidence may be recorded in PR #11. That evidence remains slice-level until the complete owner-facing comparison order and final owner acceptance are satisfied.
+When a mapped product slice is integrated, its exact Head and workflow evidence may be recorded in PR #11. That evidence remains slice-level until the complete owner-facing comparison order and final owner acceptance are satisfied.
