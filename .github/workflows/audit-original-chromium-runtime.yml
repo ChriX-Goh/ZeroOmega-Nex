@@ -1,0 +1,124 @@
+name: Audit original Chromium toolbar runtime
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/audit-original-chromium-runtime.yml
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Download exact official Chromium package
+        run: |
+          set -euo pipefail
+          mkdir -p original-release/chromium original-runtime/chromium
+          curl --fail --location --retry 3 \
+            --output original-release/chromium-release.zip \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  original-release/chromium-release.zip' \
+            | sha256sum --check
+          unzip -q original-release/chromium-release.zip -d original-release/chromium
+
+      - name: Run original Chromium runtime audit
+        env:
+          ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
+          ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/chromium
+        run: node scripts/audit-original-toolbar-chromium.mjs
+
+      - name: Write durable runtime evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('original-runtime/chromium/runtime.json').read_text(encoding='utf-8'))
+          lines = [
+              '# Audit Evidence 01C — Original ZeroOmega v3.5.0 Chromium Runtime',
+              '',
+              '## Authority',
+              '',
+              '- Package: official `chromium-release.zip` from release `v3.5.0`.',
+              '- Package SHA-256: `4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce`.',
+              f"- Runtime browser: Chromium `{data['browserVersion']}` on Ubuntu 24.04 GitHub runner.",
+              f"- Resolved extension ID: `{data['extensionId']}`.",
+              '',
+              '## Captured Action states',
+              '',
+              '| State | URL | Title | Badge | Popup |',
+              '| --- | --- | --- | --- | --- |',
+          ]
+          for state in data['states']:
+              action = state['action']
+              title = str(action.get('title', '')).replace('|', '\\|').replace('\n', '<br>')
+              badge = str(action.get('badgeText', '')).replace('|', '\\|')
+              popup = str(action.get('popup', '')).replace('|', '\\|')
+              url = str(state.get('url', '')).replace('|', '\\|')
+              lines.append(f"| `{state['label']}` | `{url}` | {title} | `{badge}` | `{popup}` |")
+          popup = data['popup']
+          viewport = popup['viewport']
+          lines.extend([
+              '',
+              '## Installed UI capture',
+              '',
+              f"- Options title: `{data['options']['title']}`.",
+              f"- Popup title: `{popup['title']}`.",
+              f"- Popup direct-page viewport: `{viewport['innerWidth']} × {viewport['innerHeight']}`.",
+              f"- Popup document extent: `{viewport['scrollWidth']} × {viewport['scrollHeight']}`.",
+              '- Screenshots: `options-zh-CN.png` and `popup-iframe-zh-CN.png` in the workflow Artifact.',
+              '',
+              '## Acceptance boundary',
+              '',
+              'This is real execution of the exact official Chromium package. It captures runtime title/Badge/Popup state and installed extension pages. Headless execution does not provide an operating-system screenshot of the browser toolbar icon itself; exact icon geometry/assets remain covered by source and package evidence. User-profile, Switch/PAC result, temporary-rule, Inspect and external-control states remain open.',
+              '',
+          ])
+          Path('docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md').write_text(
+              '\n'.join(lines), encoding='utf-8'
+          )
+          PY
+          pnpm exec prettier --write \
+            scripts/audit-original-toolbar-chromium.mjs \
+            docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md
+
+      - name: Upload original Chromium runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-zeroomega-v3.5.0-chromium-runtime
+          path: original-runtime/chromium
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Commit evidence and remove one-time workflow
+        run: |
+          rm .github/workflows/audit-original-chromium-runtime.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            scripts/audit-original-toolbar-chromium.mjs \
+            docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md \
+            .github/workflows/audit-original-chromium-runtime.yml
+          git commit -m 'docs: capture original Chromium toolbar runtime'
+          git push origin HEAD:feat/m8-profile-workflow
