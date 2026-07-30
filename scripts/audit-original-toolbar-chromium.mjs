@@ -32,8 +32,8 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 
 let context;
 
-async function pauseForOriginalUpdate() {
-  await new Promise((resolvePause) => setTimeout(resolvePause, 900));
+async function pauseForOriginalUpdate(delay = 900) {
+  await new Promise((resolvePause) => setTimeout(resolvePause, delay));
 }
 
 try {
@@ -49,85 +49,112 @@ try {
   const extensionId = new URL(worker.url()).host;
   assert.match(extensionId, /^[a-p]{32}$/u, 'Original Chromium extension ID was not resolved');
 
-  const first = await context.newPage();
-  await first.goto(`${baseUrl}/alpha`);
-  await first.bringToFront();
-  await pauseForOriginalUpdate();
-
-  const firstTabId = await worker.evaluate(async (url) => {
-    const tabs = await chrome.tabs.query({});
-    const tab = tabs.find((candidate) => candidate.url === url);
-    if (tab?.id === undefined) throw new Error(`Could not resolve original audit tab: ${url}`);
-    return tab.id;
-  }, `${baseUrl}/alpha`);
+  // Original runtime messages are sent by extension pages. A service worker does
+  // not act as a sender to its own onMessage listener, so keep one real Options
+  // page as the audit bridge and as the installed-UI capture target.
+  const options = await context.newPage();
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  await options.waitForLoadState('domcontentloaded');
 
   async function sendOriginalMessage(method, args = [], noReply = false) {
-    return worker.evaluate(
-      async ({ method: requestMethod, args: requestArgs, noReply: requestNoReply }) => {
-        if (requestNoReply) {
-          chrome.runtime.sendMessage({
-            method: requestMethod,
-            args: requestArgs,
-            noReply: true,
-            refreshActivePage: false,
-          });
-          return null;
-        }
-        return new Promise((resolveMessage, rejectMessage) => {
-          chrome.runtime.sendMessage(
-            { method: requestMethod, args: requestArgs },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                rejectMessage(new Error(chrome.runtime.lastError.message));
-                return;
-              }
-              if (response?.error) {
-                rejectMessage(new Error(String(response.error.message ?? response.error)));
-                return;
-              }
-              resolveMessage(response?.result ?? null);
-            },
-          );
-        });
-      },
-      { method, args, noReply },
-    );
+    let lastError;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      try {
+        return await options.evaluate(
+          async ({ method: requestMethod, args: requestArgs, noReply: requestNoReply }) => {
+            if (requestNoReply) {
+              chrome.runtime.sendMessage({
+                method: requestMethod,
+                args: requestArgs,
+                noReply: true,
+                refreshActivePage: false,
+              });
+              await new Promise((resolvePause) => setTimeout(resolvePause, 50));
+              return null;
+            }
+            return new Promise((resolveMessage, rejectMessage) => {
+              chrome.runtime.sendMessage(
+                { method: requestMethod, args: requestArgs },
+                (response) => {
+                  if (chrome.runtime.lastError) {
+                    rejectMessage(new Error(chrome.runtime.lastError.message));
+                    return;
+                  }
+                  if (response?.error) {
+                    rejectMessage(new Error(String(response.error.message ?? response.error)));
+                    return;
+                  }
+                  resolveMessage(response?.result ?? null);
+                },
+              );
+            });
+          },
+          { method, args, noReply },
+        );
+      } catch (error) {
+        lastError = error;
+        await pauseForOriginalUpdate(100);
+      }
+    }
+    throw lastError ?? new Error(`Original runtime message ${method} failed`);
   }
 
-  async function captureTab(label, tabId, url) {
-    return worker.evaluate(
+  async function readOriginalRuntimeState() {
+    return sendOriginalMessage('getState', [
+      {
+        currentProfileName: '',
+        isSystemProfile: false,
+        firstRun: '',
+      },
+    ]);
+  }
+
+  async function waitForProfile(predicate, label) {
+    let latest;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      latest = await readOriginalRuntimeState();
+      if (predicate(latest)) return latest;
+      await pauseForOriginalUpdate(100);
+    }
+    throw new Error(`Original profile state did not reach ${label}: ${JSON.stringify(latest)}`);
+  }
+
+  async function resolveTabId(url) {
+    return options.evaluate(async (targetUrl) => {
+      const tabs = await chrome.tabs.query({});
+      const tab = tabs.find((candidate) => candidate.url === targetUrl);
+      if (tab?.id === undefined) throw new Error(`Could not resolve original audit tab: ${targetUrl}`);
+      return tab.id;
+    }, url);
+  }
+
+  async function captureTab(label, tabId, url, includePageInfo = true) {
+    let pageInfo = null;
+    if (includePageInfo) {
+      try {
+        pageInfo = await sendOriginalMessage('getPageInfo', [{ tabId, url }]);
+      } catch (error) {
+        pageInfo = {
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+
+    const captured = await options.evaluate(
       async ({ captureLabel, captureTabId, captureUrl }) => {
         const manifest = chrome.runtime.getManifest();
-        const action = {
-          title: await chrome.action.getTitle({ tabId: captureTabId }),
-          badgeText: await chrome.action.getBadgeText({ tabId: captureTabId }),
-          badgeBackgroundColor: await chrome.action.getBadgeBackgroundColor({
-            tabId: captureTabId,
-          }),
-          popup: await chrome.action.getPopup({ tabId: captureTabId }),
-        };
-        const pageInfo = await new Promise((resolveMessage, rejectMessage) => {
-          chrome.runtime.sendMessage(
-            { method: 'getPageInfo', args: [{ tabId: captureTabId, url: captureUrl }] },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                rejectMessage(new Error(chrome.runtime.lastError.message));
-                return;
-              }
-              if (response?.error) {
-                rejectMessage(new Error(String(response.error.message ?? response.error)));
-                return;
-              }
-              resolveMessage(response?.result ?? null);
-            },
-          );
-        });
         return {
           label: captureLabel,
           tabId: captureTabId,
           url: captureUrl,
-          action,
-          pageInfo,
+          action: {
+            title: await chrome.action.getTitle({ tabId: captureTabId }),
+            badgeText: await chrome.action.getBadgeText({ tabId: captureTabId }),
+            badgeBackgroundColor: await chrome.action.getBadgeBackgroundColor({
+              tabId: captureTabId,
+            }),
+            popup: await chrome.action.getPopup({ tabId: captureTabId }),
+          },
           manifest: {
             name: manifest.name,
             version: manifest.version,
@@ -141,16 +168,37 @@ try {
       },
       { captureLabel: label, captureTabId: tabId, captureUrl: url },
     );
+    return {
+      ...captured,
+      pageInfo,
+      runtimeState: await readOriginalRuntimeState(),
+    };
   }
+
+  await waitForProfile(
+    (state) => state?.isSystemProfile === true || typeof state?.currentProfileName === 'string',
+    'initialized',
+  );
+
+  const first = await context.newPage();
+  await first.goto(`${baseUrl}/alpha`);
+  await first.bringToFront();
+  await pauseForOriginalUpdate();
+  const firstTabId = await resolveTabId(`${baseUrl}/alpha`);
 
   const states = [];
   states.push(await captureTab('initial-web-page', firstTabId, `${baseUrl}/alpha`));
 
   await sendOriginalMessage('applyProfile', ['direct'], true);
+  await waitForProfile(
+    (state) => state?.currentProfileName === 'direct' && state?.isSystemProfile !== true,
+    'direct',
+  );
   await pauseForOriginalUpdate();
   states.push(await captureTab('direct-web-page', firstTabId, `${baseUrl}/alpha`));
 
   await sendOriginalMessage('applyProfile', ['system'], true);
+  await waitForProfile((state) => state?.isSystemProfile === true, 'system');
   await pauseForOriginalUpdate();
   states.push(await captureTab('system-web-page', firstTabId, `${baseUrl}/alpha`));
 
@@ -158,12 +206,7 @@ try {
   await second.goto(`${baseUrl}/beta`);
   await second.bringToFront();
   await pauseForOriginalUpdate();
-  const secondTabId = await worker.evaluate(async (url) => {
-    const tabs = await chrome.tabs.query({});
-    const tab = tabs.find((candidate) => candidate.url === url);
-    if (tab?.id === undefined) throw new Error(`Could not resolve original audit tab: ${url}`);
-    return tab.id;
-  }, `${baseUrl}/beta`);
+  const secondTabId = await resolveTabId(`${baseUrl}/beta`);
   states.push(await captureTab('system-second-tab', secondTabId, `${baseUrl}/beta`));
   states.push(await captureTab('system-first-tab-inactive', firstTabId, `${baseUrl}/alpha`));
 
@@ -171,16 +214,16 @@ try {
   await internal.goto('chrome://version/');
   await internal.bringToFront();
   await pauseForOriginalUpdate();
-  const internalTabId = await worker.evaluate(async () => {
+  const internalTabId = await options.evaluate(async () => {
     const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     if (tabs[0]?.id === undefined) throw new Error('Could not resolve internal audit tab');
     return tabs[0].id;
   });
-  states.push(await captureTab('system-internal-page', internalTabId, 'chrome://version/'));
+  states.push(
+    await captureTab('system-internal-page', internalTabId, 'chrome://version/', false),
+  );
 
-  const options = await context.newPage();
-  await options.goto(`chrome-extension://${extensionId}/options.html`);
-  await options.waitForLoadState('domcontentloaded');
+  await options.bringToFront();
   await options.screenshot({ path: resolve(outputPath, 'options-zh-CN.png'), fullPage: true });
 
   const popup = await context.newPage();
