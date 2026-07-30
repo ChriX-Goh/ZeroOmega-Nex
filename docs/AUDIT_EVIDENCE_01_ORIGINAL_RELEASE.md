@@ -9,10 +9,10 @@
 
 ## Exact packages
 
-| Target | Asset | Bytes | SHA-256 | Extracted files |
-| --- | --- | ---: | --- | ---: |
-| Chromium | `chromium-release.zip` | 1900340 | `4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce` | 353 |
-| Firefox | `firefox-release.zip` | 1900377 | `666ce976022ed379601b896f9138ada82a29aabfe0154bf2bf1ae779e3319cda` | 353 |
+| Target   | Asset                  |   Bytes | SHA-256                                                            | Extracted files |
+| -------- | ---------------------- | ------: | ------------------------------------------------------------------ | --------------: |
+| Chromium | `chromium-release.zip` | 1900340 | `4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce` |             353 |
+| Firefox  | `firefox-release.zip`  | 1900377 | `666ce976022ed379601b896f9138ada82a29aabfe0154bf2bf1ae779e3319cda` |             353 |
 
 Both ZIP integrity tests passed before extraction.
 
@@ -46,9 +46,7 @@ Both ZIP integrity tests passed before extraction.
     "webRequestAuthProvider",
     "contextMenus"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "commands": {
     "_execute_action": {
       "suggested_key": {
@@ -98,9 +96,7 @@ Both ZIP integrity tests passed before extraction.
     "webRequestBlocking",
     "contextMenus"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "commands": {
     "_execute_action": {
       "suggested_key": {
@@ -109,9 +105,7 @@ Both ZIP integrity tests passed before extraction.
     }
   },
   "background": {
-    "scripts": [
-      "x-background.js"
-    ],
+    "scripts": ["x-background.js"],
     "type": "module"
   },
   "options_page": null,
