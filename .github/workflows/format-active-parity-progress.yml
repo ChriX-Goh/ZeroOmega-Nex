@@ -1,0 +1,47 @@
+name: Format active parity progress
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/format-active-parity-progress.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Format exact documents
+        run: |
+          pnpm exec prettier --write \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/PROJECT_PROGRESS_MODEL.md
+          rm .github/workflows/format-active-parity-progress.yml
+
+      - name: Commit formatting and remove workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/ACTIVE_PARITY_AUDIT_INDEX.md docs/PROJECT_PROGRESS_MODEL.md .github/workflows/format-active-parity-progress.yml
+          git commit -m "style: format active parity progress"
+          git push origin HEAD:feat/m8-profile-workflow
