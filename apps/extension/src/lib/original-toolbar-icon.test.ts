@@ -38,7 +38,14 @@ class RecordingContext implements OriginalOmegaDrawingContext {
     endAngle: number,
     counterclockwise?: boolean,
   ): void {
-    this.arcs.push({ x, y, radius, startAngle, endAngle, counterclockwise });
+    this.arcs.push({
+      x,
+      y,
+      radius,
+      startAngle,
+      endAngle,
+      ...(counterclockwise === undefined ? {} : { counterclockwise }),
+    });
   }
 
   closePath(): void {
