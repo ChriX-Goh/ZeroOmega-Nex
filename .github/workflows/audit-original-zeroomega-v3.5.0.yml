@@ -1,0 +1,76 @@
+name: Audit original ZeroOmega v3.5.0 release
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/audit-original-zeroomega-v3.5.0.yml
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download official release assets
+        run: |
+          set -euo pipefail
+          mkdir -p original-release/chromium original-release/firefox
+          curl --fail --location --retry 3 \
+            --output original-release/chromium-release.zip \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip
+          curl --fail --location --retry 3 \
+            --output original-release/firefox-release.zip \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/firefox-release.zip
+
+      - name: Verify and inventory exact packages
+        run: |
+          set -euo pipefail
+          sha256sum \
+            original-release/chromium-release.zip \
+            original-release/firefox-release.zip \
+            | tee original-release/SHA256SUMS
+          unzip -t original-release/chromium-release.zip | tee original-release/chromium-zip-test.txt
+          unzip -t original-release/firefox-release.zip | tee original-release/firefox-zip-test.txt
+          unzip -q original-release/chromium-release.zip -d original-release/chromium
+          unzip -q original-release/firefox-release.zip -d original-release/firefox
+          find original-release/chromium -type f -printf '%P\n' | sort > original-release/chromium-files.txt
+          find original-release/firefox -type f -printf '%P\n' | sort > original-release/firefox-files.txt
+          find original-release/chromium -name manifest.json -print -exec cp '{}' original-release/chromium-manifest.json \;
+          find original-release/firefox -name manifest.json -print -exec cp '{}' original-release/firefox-manifest.json \;
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for target in ('chromium', 'firefox'):
+              path = Path(f'original-release/{target}-manifest.json')
+              data = json.loads(path.read_text(encoding='utf-8'))
+              summary = {
+                  'target': target,
+                  'name': data.get('name'),
+                  'version': data.get('version'),
+                  'manifest_version': data.get('manifest_version'),
+                  'action': data.get('action'),
+                  'permissions': data.get('permissions'),
+                  'host_permissions': data.get('host_permissions'),
+                  'commands': data.get('commands'),
+                  'background': data.get('background'),
+                  'options_page': data.get('options_page'),
+                  'options_ui': data.get('options_ui'),
+              }
+              Path(f'original-release/{target}-manifest-summary.json').write_text(
+                  json.dumps(summary, ensure_ascii=False, indent=2) + '\n',
+                  encoding='utf-8',
+              )
+          PY
+
+      - name: Upload immutable original release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-zeroomega-v3.5.0-release-evidence
+          path: original-release
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
