@@ -14,12 +14,13 @@ It records the current real audit position. Historical matrix counts, implementa
 - Failed candidate: `M8-OWNER-QC-1`.
 - Completion percentage: unknown pending complete parity audit.
 - Merge/release/candidate generation: prohibited.
+- Current audit/implementation Head: `c6415a357522c61a505515466bc3140f06c7d0e9` before this documentation sync.
 
 ## Active delivery sequence
 
 | Order | Journey | Contract/order | Evidence | Current state | Next gate |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | Installation / startup / toolbar | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md` | Original core source captured; 18-row Original ↔ Nex mapping complete; Nex subsystem confirmed missing; runtime screenshots still absent | Reproduce exact v3.5.0 in Chromium/Firefox, capture visible states, then implement source-certain pure model/renderer/adapter without inventing runtime differences |
+| 1 | Installation / startup / toolbar | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md` | Original core source captured; 18-row Original ↔ Nex mapping complete; Nex subsystem confirmed missing; exact source-certain Ω geometry port and tests committed; runtime screenshots still absent | Complete current CI, reproduce exact v3.5.0 in Chromium/Firefox, capture visible states, then build the pure state model/browser adapter without inventing runtime differences |
 | 2 | Real original export → direct Nex use | pending | pending real-export corpus | `FAILED`; owner’s real original export did not become directly usable | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
 | 3 | Popup | pending | original Popup source is archived but runtime evidence incomplete | broad mismatch reported | Capture original dimensions, hierarchy, all states and compare independently with Nex |
 | 4 | Options / Apply / Discard | pending | historical source notes only | broad mismatch reported | Page/control/dialog/help-text inventory before code changes |
@@ -43,14 +44,28 @@ It records the current real audit position. Historical matrix counts, implementa
 
 - current manifest uses a different green static icon and incomplete original size/permission/shortcut contract;
 - current background has no complete toolbar state controller;
-- no original-compatible renderer, per-tab result coordinator or action-state convergence exists;
+- no per-tab result coordinator or action-state convergence exists;
 - existing route, temporary-rule, Inspect and ownership modules do not currently produce the original toolbar contract.
+
+### Source-certain implementation started
+
+- `apps/extension/src/lib/original-toolbar-icon.ts` ports the exact normalized geometry from original blob `aa5ef9cfac1ef7b46dbe0df03b1adc3d5a2faf43`;
+- `apps/extension/src/lib/original-toolbar-icon.test.ts` locks the original 16/19/24/32/38 size set, outer radius `0.375`, inner radius `0.25`, line width `0.25`, two-color fill and one-color `destination-out` behavior;
+- product code commit: `27544be77b1125d5054c26aebb7d10c4e9fc8e32`;
+- test commit: `40c3a64c23b730bf9c738a70c4e739f86ebb3071`;
+- no manifest, toolbar state, permission or browser action behavior has been changed yet;
+- this does not close any `TB-*` row or `KG-ICON-001`.
 
 ### Evidence correction
 
 Artifact `original-zeroomega-ui-evidence-v3.5.0`, ID `8625759489`, SHA-256 `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19`, was independently downloaded and inspected.
 
 It contains 124 source/locale files and no installed original runtime screenshot set. It is valid source evidence, but previous treatment of it as complete visual evidence was incorrect.
+
+### Verification checkpoint
+
+- Parity Documentation run `30506663843`: passed after restoring historical Session 7 anchors as explicitly invalidated history.
+- CI, Browser E2E and Visual Evidence for the current documentation Head were still running at the time of this sync.
 
 ## Active blockers
 
