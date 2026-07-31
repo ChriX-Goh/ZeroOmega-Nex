@@ -304,7 +304,8 @@ try {
   const initialButtons = initialPopup.locator('.profile-list button');
   assert.match(await initialButtons.nth(0).innerText(), /直接连接/u);
   assert.match(await initialButtons.nth(1).innerText(), /系统代理/u);
-  assert.equal(await initialButtons.nth(0).isDisabled(), true);
+  assert.equal(await initialButtons.nth(0).isDisabled(), false);
+  assert.equal(await initialButtons.nth(1).isDisabled(), true);
   assert.equal(await initialPopup.locator('html').getAttribute('data-theme'), 'dark');
   assert.equal((await initialPopup.locator('[data-profile-kind]').count()) >= 3, true);
   await initialPopup.close();
