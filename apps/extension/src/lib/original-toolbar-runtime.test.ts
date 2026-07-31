@@ -180,9 +180,9 @@ describe('registered original toolbar runtime', () => {
   it('owns tab listeners and writes repository-backed base state', async () => {
     const { action, updated, activated, removed, runtime } = harness();
 
-    expect(updated.listeners).toHaveLength(1);
-    expect(activated.listeners).toHaveLength(1);
-    expect(removed.listeners).toHaveLength(1);
+    expect(updated.listeners.size).toBe(1);
+    expect(activated.listeners.size).toBe(1);
+    expect(removed.listeners.size).toBe(1);
 
     await runtime.refreshAll({ clearIconCache: true });
 
@@ -194,9 +194,9 @@ describe('registered original toolbar runtime', () => {
     expect(action.popups.at(-1)).toEqual({ tabId: 7, popup: 'popup-iframe.html' });
 
     runtime.dispose();
-    expect(updated.listeners).toHaveLength(0);
-    expect(activated.listeners).toHaveLength(0);
-    expect(removed.listeners).toHaveLength(0);
+    expect(updated.listeners.size).toBe(0);
+    expect(activated.listeners.size).toBe(0);
+    expect(removed.listeners.size).toBe(0);
   });
 
   it('applies Inspect through the same executor and discards it for a closed tab', async () => {
