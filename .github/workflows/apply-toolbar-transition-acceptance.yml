@@ -9,6 +9,7 @@ on:
       - scripts/fix-toolbar-transition-proxy-endpoint.py
       - scripts/fix-firefox-internal-tab-creation.py
       - scripts/fix-firefox-action-wait-boundary.py
+      - scripts/fix-inspect-base-action-settle.py
 
 permissions:
   contents: write
@@ -37,6 +38,7 @@ jobs:
           python scripts/fix-toolbar-transition-proxy-endpoint.py
           python scripts/fix-firefox-internal-tab-creation.py
           python scripts/fix-firefox-action-wait-boundary.py
+          python scripts/fix-inspect-base-action-settle.py
           pnpm exec prettier --write \
             scripts/e2e-chromium-toolbar.mjs \
             scripts/e2e-firefox.mjs \
@@ -69,6 +71,7 @@ jobs:
             scripts/apply-toolbar-transition-acceptance.py \
             scripts/fix-toolbar-transition-proxy-endpoint.py \
             scripts/fix-firefox-internal-tab-creation.py \
-            scripts/fix-firefox-action-wait-boundary.py
+            scripts/fix-firefox-action-wait-boundary.py \
+            scripts/fix-inspect-base-action-settle.py
           git commit -m 'test: cover toolbar fallback transitions and Inspect isolation'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
