@@ -5,7 +5,7 @@ text = path.read_text(encoding="utf-8")
 old = """  await options.getByRole('button', { name: '配置历史' }).click();
   await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
   await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();"""
-new = """  const historyResponse = await worker.evaluate(async () =>
+new = """  const historyResponse = await options.evaluate(async () =>
     chrome.runtime.sendMessage({
       channel: 'zeroomega-nex/profile-workflow/v1',
       action: 'get-snapshot-history',
