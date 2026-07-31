@@ -3,17 +3,17 @@ import {
   type OriginalToolbarActionApi,
   type OriginalToolbarActionIconPaths,
 } from './original-toolbar-action-adapter';
-import {
-  OriginalToolbarActionExecutor,
-  type OriginalToolbarCoordinatorExecutor,
-} from './original-toolbar-action-executor';
+import { OriginalToolbarActionExecutor } from './original-toolbar-action-executor';
 import {
   currentOriginalToolbarCanvasFactory,
   OriginalToolbarIconRenderer,
   type OriginalToolbarCanvasFactory,
 } from './original-toolbar-icon-renderer';
 import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
-import type { OriginalToolbarTabsApi } from './original-toolbar-tab-coordinator';
+import type {
+  OriginalToolbarCoordinatorExecutor,
+  OriginalToolbarTabsApi,
+} from './original-toolbar-tab-coordinator';
 
 export const ORIGINAL_TOOLBAR_BADGE_BACKGROUND_COLOR = '#d90000';
 export const ORIGINAL_TOOLBAR_RUNTIME_POPUP = 'popup-iframe.html';
