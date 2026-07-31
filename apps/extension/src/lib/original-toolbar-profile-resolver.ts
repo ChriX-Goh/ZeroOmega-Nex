@@ -50,7 +50,9 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     this.#i18n = options.i18n;
   }
 
-  async resolve() {
+  async resolve(input: { readonly tabId: number; readonly url: string }) {
+    if (input.url.length === 0) return undefined;
+
     const state = await this.#repository.read();
     if (state === undefined) return undefined;
 
