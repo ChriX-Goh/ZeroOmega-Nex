@@ -34,12 +34,16 @@ jobs:
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-runtime.ts \
             apps/extension/src/lib/original-toolbar-runtime.test.ts \
-            apps/extension/src/entrypoints/background.ts
+            apps/extension/src/entrypoints/background.ts \
+            scripts/e2e-firefox.mjs \
+            package.json
           pnpm verify
           pnpm build:firefox
-          for iteration in 1 2 3 4 5; do
-            echo ">>>>> FIREFOX ACTION ITERATION ${iteration}"
-            pnpm test:e2e:firefox
+          echo ">>>>> FULL FIREFOX E2E"
+          pnpm test:e2e:firefox
+          for iteration in 1 2 3 4 5 6 7 8 9 10; do
+            echo ">>>>> FIREFOX TOOLBAR ACTION ITERATION ${iteration}"
+            pnpm test:e2e:firefox-toolbar
           done
       - name: Commit
         run: |
@@ -48,6 +52,8 @@ jobs:
           git add \
             apps/extension/src/lib/original-toolbar-runtime.ts \
             apps/extension/src/lib/original-toolbar-runtime.test.ts \
-            apps/extension/src/entrypoints/background.ts
+            apps/extension/src/entrypoints/background.ts \
+            scripts/e2e-firefox.mjs \
+            package.json
           git commit -m 'fix: refresh toolbar before navigations commit'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
