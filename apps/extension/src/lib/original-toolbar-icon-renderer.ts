@@ -23,10 +23,7 @@ export interface OriginalToolbarCanvas {
   ): OriginalToolbarCanvasContext | null;
 }
 
-export type OriginalToolbarCanvasFactory = (
-  width: number,
-  height: number,
-) => OriginalToolbarCanvas;
+export type OriginalToolbarCanvasFactory = (width: number, height: number) => OriginalToolbarCanvas;
 
 export interface OriginalToolbarIconRendererOptions {
   readonly onFirstError?: (error: unknown) => void;
