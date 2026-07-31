@@ -29,6 +29,7 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Synchronize and verify
         run: |
+          python scripts/fix-switch-fixed-knowledge-sync.py
           python scripts/sync-switch-fixed-toolbar-knowledge.py
           pnpm exec prettier --write \
             docs/MILESTONE_8_VERIFICATION_HEAD.md \
@@ -51,6 +52,8 @@ jobs:
             docs/MILESTONE_8_STATUS.md \
             docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md
-          git rm scripts/sync-switch-fixed-toolbar-knowledge.py
+          git rm \
+            scripts/sync-switch-fixed-toolbar-knowledge.py \
+            scripts/fix-switch-fixed-knowledge-sync.py
           git commit -m 'docs: record exact Switch to Fixed toolbar traces'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
