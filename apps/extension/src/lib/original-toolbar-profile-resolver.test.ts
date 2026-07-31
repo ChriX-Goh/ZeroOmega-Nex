@@ -32,6 +32,7 @@ class ToolbarI18n implements OriginalToolbarI18nApi {
     const messages: Readonly<Record<string, string>> = {
       routeDirect: 'Direct',
       routeSystem: 'System Proxy',
+      browserAction_defaultRuleDetails: '(default)',
       browserAction_directResult: '(not using any proxy)',
       browserAction_titleExternalProxy: '(controlled by other extensions or environment)',
     };
@@ -103,20 +104,66 @@ describe('original toolbar profile resolver', () => {
     });
   });
 
+  it('derives a one-color static Fixed proxy result', async () => {
+    const result = await resolver(state(true), {
+      activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    }).resolve({ tabId: 7, url: 'https://example.test/' });
+
+    expect(result).toEqual({
+      icon: { mode: 'single-color', outerCircleColor: '#64b5f6' },
+      titleArguments: {
+        currentProfileName: 'Proxy',
+        resultProfileName: 'Proxy',
+        details: '(default)',
+      },
+      badgeText: 'Prox',
+    });
+  });
+
+  it('derives a Direct result when the active Fixed profile bypasses the URL', async () => {
+    const result = await resolver(state(true), {
+      activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    }).resolve({ tabId: 9, url: 'http://localhost/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#bdbdbd',
+        innerCircleColor: '#64b5f6',
+      },
+      titleArguments: {
+        currentProfileName: 'Proxy',
+        resultProfileName: '[Direct]',
+        details: '(not using any proxy)',
+      },
+      badgeText: 'Dire',
+    });
+  });
+
   it('returns default state for unsupported or missing runtime state', async () => {
+    const uncolored = state();
+    const profile = uncolored.applied.profiles[0];
+    if (!profile || profile.kind !== 'fixed') throw new Error('missing default Fixed profile');
+    delete profile.color;
+
+    await expect(
+      resolver(uncolored, {
+        activeRoute: { kind: 'profile', profileId: profile.id },
+      }).resolve({ tabId: 11, url: 'https://example.test/' }),
+    ).resolves.toBeUndefined();
     await expect(
       resolver(state(), {
         activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
-      }).resolve({ tabId: 7, url: 'https://example.test/' }),
+      }).resolve({ tabId: 13, url: 'about:support' }),
     ).resolves.toBeUndefined();
     await expect(
       resolver(undefined, { activeRoute: { kind: 'direct' } }).resolve({
-        tabId: 11,
+        tabId: 15,
         url: 'https://example.test/',
       }),
     ).resolves.toBeUndefined();
     await expect(
-      resolver(state(), {}).resolve({ tabId: 13, url: 'https://example.test/' }),
+      resolver(state(), {}).resolve({ tabId: 17, url: 'https://example.test/' }),
     ).resolves.toBeUndefined();
   });
 });
