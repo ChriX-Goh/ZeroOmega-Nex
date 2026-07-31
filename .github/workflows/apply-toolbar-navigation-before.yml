@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/apply-toolbar-navigation-before.yml
       - scripts/apply-toolbar-navigation-before.py
+      - scripts/fix-global-toolbar-executor-lint.py
 
 permissions:
   contents: write
@@ -31,6 +32,7 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/apply-toolbar-navigation-before.py
+          python scripts/fix-global-toolbar-executor-lint.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-action-adapter.ts \
             apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
