@@ -16,7 +16,7 @@ This document is the first executable child order of `ORIGINAL_NEX_DELIVERY_KNOW
 - Current delivery status: `FAILED`.
 - Owner result: `FAIL` from the 2026-07-30 trial; corrected build `NOT RUN`.
 
-The current Nex branch has source-derived pure models for original Ω geometry, icon color decisions, result Badge behavior and per-tab presentation composition. It now also has an isolated browser Action adapter and an exact original-compatible OffscreenCanvas renderer. These slices are tested but not connected to browser runtime state. The per-tab coordinator and complete runtime convergence remain absent.
+The current Nex branch now has the source-derived pure models, exact OffscreenCanvas renderer, browser Action adapter, compiled original localization adapter, Action executor, race-safe per-tab coordinator, exact target manifest/static assets, a real browser API construction boundary and a narrow successful-activation notification. A repository-backed resolver is verified for Direct, System and source-certain Fixed-to-proxy results. None of these slices is registered as the sole background Action owner yet; Fixed bypass/Direct and all inclusive-profile traces remain fail-closed until the original `matchProfile.results` display trace is reproduced.
 
 No candidate may be generated from this order until the exact corrected build receives repository-owner `PASS`.
 
@@ -107,32 +107,51 @@ Basic runtime states have been captured independently in both targets:
 
 Firefox evidence additionally proves that its manifest declares `popup/index.html`, while per-tab `action.getPopup()` returned `popup-iframe.html`. Nex must follow observed target behavior rather than flattening both targets into one inferred manifest contract.
 
+### 3.4 Exact `actionForUrl` result-trace contract
+
+The original Chromium target source at tag `v3.5.0` proves that visible details are generated from the full `options.matchProfile(request)` result trace, not merely from the final route:
+
+- a default transition appends localized `(default)` plus `=> <result profile>`;
+- an empty Direct result appends the localized Direct-result detail and marks the result as Direct;
+- a string trace appends `<source string> => <result>`;
+- a condition trace appends `<condition pattern/string> => <result>`;
+- temporary rules prepend the localized temporary-rule prefix;
+- attached hidden Rule Lists prepend the localized attached-rule prefix;
+- if no trace detail exists, the original prints the current profile itself;
+- title substitutions remain current name, result name and the complete multiline details string.
+
+Consequences for Nex:
+
+1. final route equality is insufficient to reconstruct the original title;
+2. Fixed bypass, Switch, attached Rule List, temporary-rule and Virtual traces must retain display-capable condition/source data;
+3. unsupported trace shapes must return unresolved/default state rather than simplified invented wording;
+4. current source-certain resolver coverage is limited to Direct, System and Fixed profiles whose evaluated result remains that Fixed profile's proxy endpoint.
+
 ## 4. Current Nex graph
 
 ```mermaid
 graph TD
-  M[Nex manifest and static assets] --> B[Nex background]
-  B --> WF[profile workflow]
-  B --> TEMP[temporary rules]
-  B --> OWN[ownership]
-  B --> INSPECT[Inspect runtime]
-  PURE[Pure original toolbar models] --> RENDER[Exact OffscreenCanvas renderer]
-  RENDER --> ACTION[Browser Action adapter]
-  ACTION -. not connected .-> COORD[Per-tab coordinator]
-  WF -. not converged .-> COORD
-  TEMP -. not converged .-> COORD
-  OWN -. not converged .-> COORD
-  INSPECT -. currently writes Action directly .-> ACTION
+  M[Target manifest / locale / exact static assets] --> B[Nex background]
+  API[Real browser Action / i18n / tabs construction] --> EXEC[Verified Action executor]
+  PURE[Pure original toolbar models] --> EXEC
+  EXEC --> COORD[Race-safe per-tab coordinator]
+  WF[Profile workflow] --> NOTICE[Successful activation notification]
+  NOTICE -. not connected .-> COORD
+  RES[Repository-backed resolver: Direct / System / Fixed proxy] --> COORD
+  B -. coordinator not registered .-> COORD
+  TEMP[Temporary rules] -. trace not converged .-> COORD
+  OWN[Ownership / external control] -. trace not converged .-> COORD
+  INSPECT[Inspect runtime] -. still writes Action directly .-> EXEC
 ```
 
-Confirmed Nex gaps:
+Confirmed remaining gaps:
 
-- manifest/static fallback still differs from the original contract;
-- the Action adapter and renderer exist only as isolated tested boundaries and are not connected to `browser.action` runtime state;
-- no per-tab coordinator exists;
-- no unified result-input model connects route matching, temporary rules, Rule Lists, Virtual profiles, Inspect and ownership;
-- Inspect directly mutates title/Badge and can conflict with normal state;
-- tab URL, tab activation and profile-change refresh paths are not implemented against the original contract.
+- the verified browser API boundary and coordinator are not registered in `background.ts`;
+- activation notification exists but is not connected to `refreshAll({ clearIconCache: true })`;
+- Direct and System are source/runtime-backed; a static Fixed profile is resolved only when the final route remains its proxy endpoint;
+- Fixed bypass/Direct, Switch, Rule List, Virtual, PAC, temporary-rule and Inspect details still lack a complete original `matchProfile.results` display adapter;
+- Inspect remains a competing direct title/Badge writer;
+- no Nex real-browser acceptance yet asserts per-tab Action title/icon/Badge transitions.
 
 ## 5. Original ↔ Nex state matrix
 
@@ -219,7 +238,7 @@ Exact geometry, the original single `300 × 300` OffscreenCanvas pipeline, five-
 
 ### `TO-04` — browser Action adapter
 
-Status: `PARTIAL`.
+Status: `PARTIAL`, construction boundary complete but not registered.
 
 Implemented and tested:
 
@@ -227,45 +246,55 @@ Implemented and tested:
 - every application rewrites all tab-visible fields to clear stale state;
 - rejected dynamic ImageData falls back to the supplied original static icon paths;
 - exact original default/result/detail localization keys with the original three-substitution title order and fail-closed missing-message behavior;
-- one isolated executor that composes pure tab state → original localization → exact renderer → Action presentation while injecting target Popup, Badge background and fallback assets.
+- one isolated executor that composes pure tab state → original localization → exact renderer → Action presentation;
+- real `browser.action`, `browser.i18n`, `browser.tabs` and OffscreenCanvas construction using the exact Badge color, runtime Popup and fallback paths;
+- exact compiled locale messages, target-specific manifest hook, static Action assets, permission and shortcut contract.
 
 Remaining:
 
-- bind the adapter to the real target-specific `browser.action` API;
-- add the exact source-captured locale messages to the target locale packs;
-- supply exact target Popup/default constants and original static assets;
-- invoke the executor through the per-tab coordinator.
+- register one background owner for the constructed executor;
+- invoke it only through the per-tab coordinator;
+- remove competing Inspect writes after Inspect becomes a resolver input;
+- prove visible target Action mutations in Chromium and Firefox.
 
 No browser API mutation occurs inside the pure state model.
 
 ### `TO-05` — per-tab coordinator
 
-Status: `PARTIAL`.
+Status: `PARTIAL`, isolated implementation and resolver slices verified.
 
-Implemented and tested in isolation:
+Implemented and tested:
 
 - idempotent registration and removal of URL-update and tab-activation listeners;
-- per-tab promise queues and monotonically increasing refresh sequences;
-- lifecycle epochs that invalidate in-flight work after stop;
+- per-tab promise queues, refresh sequences and lifecycle invalidation;
 - stale async result suppression before Action mutation;
-- missing/internal URL and unresolved-state fallback to the localized default state;
+- unresolved-state fallback to the localized default state;
 - resolver/Action error reporting with tab and URL context;
 - all-tab refresh with optional icon-cache invalidation;
-- omission of tabs without an ID.
+- omission of tabs without an ID;
+- repository-backed Direct/System state resolution;
+- source-certain static Fixed-to-proxy resolution using the existing reference interpreter;
+- explicit fail-closed behavior for Fixed bypass and unsupported profile trace shapes.
 
 Remaining:
 
-- adapt the real `browser.tabs` API to the coordinator interfaces;
-- supply the real source-derived resolver for profile/result/title/Badge state;
-- bind startup, profile changes and recovery paths to all-tab refresh;
-- represent Inspect as a coordinator input instead of direct Action writes;
+- reproduce the original multiline `matchProfile.results` display trace;
+- support Fixed bypass, Switch, Rule List, Virtual, PAC and temporary-rule results without simplified wording;
+- bind the real coordinator to startup, tab events, successful activation and recovery;
+- represent Inspect and external control as coordinator inputs;
 - prove tab isolation and stale-state clearing against visible Action state in Chromium and Firefox.
 
 ### `TO-06` — workflow/runtime integration
 
-Status: `NOT STARTED`.
+Status: `PARTIAL`, notification seam implemented but not connected.
 
-Inputs must include startup restoration, Options Apply, Popup activation, temporary rules, Inspect, ownership/external control, rollback and recovery.
+Implemented and tested:
+
+- profile-workflow runtime emits a narrow callback only after a successful command returns `appliedSnapshotId`;
+- Draft edits, reads and failed commands do not trigger toolbar refresh;
+- real browser API construction and state resolver can be composed without registering another Action writer.
+
+Remaining inputs include startup restoration, successful activation refresh, temporary rules, Inspect, ownership/external control, rollback and recovery. Background registration remains intentionally blocked until the result-trace adapter and single-writer transition are safe.
 
 ### `TO-07` — acceptance automation and real browsers
 
@@ -281,22 +310,22 @@ Only owner `PASS` closes `KG-ICON-001`.
 
 ## 8. Verification checkpoint
 
-Exact engineering checkpoint Head `1045d538a17d8a24e0b80ca67054b54c7fb10aa8` passed:
+Exact clean engineering checkpoint Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8` passed:
 
-- CI `30600481721`;
-- Browser E2E `30600481704`, including Firefox `153.0`;
-- Parity Documentation `30600481717`;
-- Milestone 8 Visual Evidence `30600481719`.
+- CI `30615270403`;
+- Browser E2E `30615270448`, including Chromium, Firefox and native Inspect;
+- Parity Documentation `30615270389`;
+- Milestone 8 Visual Evidence `30615270430`.
 
-This validates the isolated Action adapter, exact Canvas renderer, original localization adapter, pure Action executor and race-safe per-tab coordinator. It does not close a `TB-*` row because target constants, real browser binding, source-derived resolution and owner acceptance remain open.
+This checkpoint validates the target manifest/locales/assets, real browser API construction, activation notification seam, exact renderer/executor/coordinator and the conservative Direct/System/Fixed-proxy resolver. It intentionally leaves Fixed bypass and inclusive-profile traces unresolved. It does not close a `TB-*` row because the coordinator is not registered against visible Action state and no repository-owner acceptance exists.
 
 ## 9. Current next action
 
-1. Add exact target locale messages, Popup/default constants and original fallback assets before real Action binding.
-2. Adapt real `browser.action`, `browser.i18n` and `browser.tabs` APIs behind the verified boundaries.
-3. Build the source-derived resolver for Direct/System/Fixed and default/internal-page states before advanced Switch/PAC inputs.
-4. Bind startup, tab events and profile-change refresh through the coordinator.
-5. Convert Inspect direct writes into coordinator input.
-6. Verify two-target, two-tab and state-transition behavior before repository-owner review.
+1. Preserve the original `matchProfile.results` trace data needed for visible details: default transitions, condition strings, attached Rule Lists and temporary-rule prefixes.
+2. Build a pure trace-to-title/result adapter and test Fixed bypass before expanding Switch/Rule List/Virtual coverage.
+3. Keep PAC and auto-detect target-dependent results unresolved until an exact result source exists.
+4. Establish a single Action owner by converting Inspect and external-control state into coordinator inputs.
+5. Register startup/tab/activation refresh only after unsupported states can no longer overwrite valid visible state.
+6. Add Chromium/Firefox two-tab Action assertions, then request repository-owner review.
 
 Overall status remains `FAILED`, release-blocking, with no candidate permitted.

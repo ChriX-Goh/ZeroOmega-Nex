@@ -641,3 +641,38 @@ Action 静态尺寸 = 16 / 19 / 24 / 32
 - 精确静态资产、三套编译词条、两个 Popup 兼容入口和 manifest 目标常量在本切片接入。
 - 该切片只修正安装后的默认 Action 契约；每标签页结果仍需真实协调器、解析器和 `browser.action` 绑定。
 - 不因 manifest 绿色测试关闭 `KG-ICON-001` 或任何 `TB-*` 行。
+
+## Session 8 — 工具栏运行时检查点（2026-07-31）
+
+### 已验证节点
+
+- 原版编译后 Action manifest、三套 locale、16/19/24/32 静态图标、目标 Popup、默认标题、`tabs` 权限与 `Alt+Shift+O` 已进入永久构建审计。
+- `browser.action` / `browser.i18n` / `browser.tabs` / OffscreenCanvas 的真实构造边界已通过 CI 与双浏览器构建，但尚未在后台注册。
+- Profile workflow 仅在成功响应携带 `appliedSnapshotId` 时发出激活通知；Draft 编辑、查询和失败命令不会误触发全标签页刷新。
+- 仓库状态 resolver 已验证 Direct、System，以及静态 Fixed 最终仍落到自身代理 endpoint 的状态。
+- Fixed bypass/Direct 被主动保留为 unresolved；不得用简化 Direct 文案代替原版条件 trace。
+
+### 原版结果详情约束
+
+原版 `actionForUrl` 从完整 `matchProfile.results` 生成多行详情。默认规则、匹配条件、附属 Rule List、临时规则和 Direct 结果分别拥有不同字符串结构与前缀。仅知道最终 route 不足以还原标题。因此后续图谱新增硬边：
+
+```mermaid
+graph LR
+  MATCH[matchProfile results trace] --> DETAIL[原版多行详情]
+  DETAIL --> TITLE[三参数 Action 标题]
+  MATCH --> RESULT[结果 Profile / Direct]
+  RESULT --> COLOR[结果色 + 当前色]
+  MATCH --> PREFIX[临时规则 / 附属规则前缀]
+  PREFIX --> DETAIL
+```
+
+### 当前禁止边
+
+- 禁止在 trace 未完整时启用 coordinator 覆盖全部 Profile 状态。
+- 禁止让 coordinator 与 Inspect 同时直接写 Action。
+- 禁止把 Fixed bypass、Switch、Rule List、Virtual、PAC 的最终 route 当作完整原版详情。
+- 禁止因隔离单测和永久门禁绿色而上调产品完成度；总进度仍为 47%，Order 1 仍为 35%。
+
+### 精确检查点
+
+Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E `30615270448`、Parity `30615270389`、Visual `30615270430` 全部通过。
