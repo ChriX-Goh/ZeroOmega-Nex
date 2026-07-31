@@ -72,7 +72,7 @@ The following original states remain `UNKNOWN` in one or both targets:
 
 - current manifest uses a different green static icon and incomplete original size/permission/shortcut contract;
 - current background has no complete toolbar state controller;
-- the tested Action adapter and Canvas renderer are not connected to runtime state;
+- the tested Action adapter, Canvas renderer, original localization adapter and pure executor are not connected to runtime state;
 - no per-tab result coordinator or Action-state convergence exists;
 - current `inspect-runtime.ts` directly writes and clears title/Badge state, including a Nex-specific fallback title, so it conflicts with a future per-tab coordinator unless Action mutation is centralized;
 - existing route, temporary-rule, Inspect and ownership modules do not currently converge into the original toolbar contract.
@@ -90,19 +90,21 @@ The following original states remain `UNKNOWN` in one or both targets:
 - Firefox runtime audit script: `scripts/audit-original-toolbar-firefox.mjs`;
 - `original-toolbar-action-adapter.ts` and its test centralize all per-tab Action writes and static fallback;
 - `original-toolbar-icon-renderer.ts` and its test reproduce the original one-canvas, five-size, cached ImageData pipeline and privacy fallback signal;
-- no manifest, toolbar permission, per-tab coordinator or tab-event product behavior has been changed yet;
+- `original-toolbar-i18n.ts` and its test lock the original default/result/detail keys, three-substitution order and fail-closed missing-message behavior;
+- `original-toolbar-action-executor.ts` and its test compose pure tab state, original localization, rendered ImageData and target constants into one Action presentation;
+- no manifest, locale pack, toolbar permission, per-tab coordinator or tab-event product behavior has been changed yet;
 - this does not close any `TB-*` row or `KG-ICON-001`.
 
 ### Last fully green engineering slice
 
-Head `326c49ac30efc76d3884e63791dce3bbfb69722a` passed:
+Head `36f75cc616e92c8e8c0dac503548a4a3780e825b` passed:
 
-- CI `30598899116`;
-- Browser E2E `30598899117`, including Firefox `153.0` through WebDriver BiDi navigation for all extension pages;
-- Parity Documentation `30598899120`;
-- Milestone 8 Visual Evidence `30598899111`.
+- CI `30599857786`;
+- Browser E2E `30599857787`, including Firefox `153.0`;
+- Parity Documentation `30599857743`;
+- Milestone 8 Visual Evidence `30599857785`.
 
-The slice validates the isolated Action adapter, exact icon renderer and permanent Firefox 153 E2E harness. It does not close a toolbar row or authorize a candidate.
+The slice validates the isolated Action adapter, exact icon renderer, original localization adapter and pure executor. It does not close a toolbar row or authorize a candidate.
 
 ### Evidence correction and official packages
 

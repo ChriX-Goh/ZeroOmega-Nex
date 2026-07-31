@@ -224,13 +224,16 @@ Implemented and tested:
 
 - one browser-API boundary for `setIcon`, `setTitle`, `setBadgeText`, `setBadgeBackgroundColor` and `setPopup`;
 - every application rewrites all tab-visible fields to clear stale state;
-- rejected dynamic ImageData falls back to the supplied original static icon paths.
+- rejected dynamic ImageData falls back to the supplied original static icon paths;
+- exact original default/result/detail localization keys with the original three-substitution title order and fail-closed missing-message behavior;
+- one isolated executor that composes pure tab state → original localization → exact renderer → Action presentation while injecting target Popup, Badge background and fallback assets.
 
 Remaining:
 
 - bind the adapter to the real target-specific `browser.action` API;
+- add the exact source-captured locale messages to the target locale packs;
 - supply exact target Popup/default constants and original static assets;
-- connect derived tab state, localization and rendered ImageData through the coordinator.
+- invoke the executor through the per-tab coordinator.
 
 No browser API mutation occurs inside the pure state model.
 
@@ -267,20 +270,20 @@ Only owner `PASS` closes `KG-ICON-001`.
 
 ## 8. Verification checkpoint
 
-Exact engineering checkpoint Head `326c49ac30efc76d3884e63791dce3bbfb69722a` passed:
+Exact engineering checkpoint Head `36f75cc616e92c8e8c0dac503548a4a3780e825b` passed:
 
-- CI `30598899116`;
-- Browser E2E `30598899117`, including Firefox `153.0` through BiDi extension-page navigation;
-- Parity Documentation `30598899120`;
-- Milestone 8 Visual Evidence `30598899111`.
+- CI `30599857786`;
+- Browser E2E `30599857787`, including Firefox `153.0`;
+- Parity Documentation `30599857743`;
+- Milestone 8 Visual Evidence `30599857785`.
 
-This validates the isolated Action adapter, exact Canvas renderer and Firefox 153 E2E harness correction. It does not close a `TB-*` row because no product runtime integration or owner acceptance exists yet.
+This validates the isolated Action adapter, exact Canvas renderer, original localization adapter and pure Action executor. It does not close a `TB-*` row because no product runtime integration or owner acceptance exists yet.
 
 ## 9. Current next action
 
-1. Capture the exact original title/localization templates and target Popup/default constants; do not hard-code English.
-2. Compose pure tab state → exact renderer → Action adapter in a runtime executor.
-3. Implement `TO-05` per-tab coordinator.
+1. Implement `TO-05` as an isolated, race-safe per-tab coordinator around the verified executor.
+2. Add exact target locale messages, Popup/default constants and original fallback assets before real Action binding.
+3. Bind the coordinator to `tabs.onUpdated`, `tabs.onActivated` and profile-change refresh only after its event semantics are tested.
 4. Convert Inspect direct writes into coordinator input.
 5. Verify two-target, two-tab and state-transition behavior.
 6. Deliver the exact build for repository-owner review.
