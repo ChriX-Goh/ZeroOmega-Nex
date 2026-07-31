@@ -8,6 +8,13 @@ import {
   registerInspectRuntime,
   type RegisteredInspectRuntime,
 } from '../lib/inspect-runtime';
+import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar-browser-runtime';
+import {
+  registerOriginalToolbarRuntime,
+  type OriginalToolbarTabRemovedListener,
+  type RegisteredOriginalToolbarRuntime,
+} from '../lib/original-toolbar-runtime';
+import type { OriginalToolbarEvent } from '../lib/original-toolbar-tab-coordinator';
 import { BrowserProfileWorkflowActivationDriver } from '../lib/profile-workflow-activation';
 import {
   currentProfileWorkflowRuntimeApi,
@@ -38,6 +45,7 @@ import {
 
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
 let inspectRuntime: RegisteredInspectRuntime | undefined;
+let originalToolbarRuntime: RegisteredOriginalToolbarRuntime | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
@@ -90,6 +98,7 @@ export default defineBackground(() => {
   );
 
   inspectRuntime?.dispose();
+  originalToolbarRuntime?.dispose();
   requestDiagnosticsRuntime?.dispose();
   proxyOwnershipRuntime?.dispose();
   popupTemporaryRuleRuntime?.dispose();
@@ -106,9 +115,30 @@ export default defineBackground(() => {
     baseActivationDriver,
   );
   const activationDriver = temporaryRuleCoordinator ?? baseActivationDriver;
+  const toolbarRuntime = registerOriginalToolbarRuntime({
+    api: currentOriginalToolbarBrowserRuntimeApi(),
+    repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
+    runtime: {
+      inspectRuntime: async () => (await activationDriver.inspectRuntime?.()) ?? {},
+    },
+    tabRemoved: browser.tabs.onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
+    onError: (error, context) => {
+      console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
+    },
+  });
+  originalToolbarRuntime = toolbarRuntime;
+  const refreshToolbar = (reason: string, clearIconCache = true): void => {
+    void toolbarRuntime
+      .refreshAll(clearIconCache ? { clearIconCache: true } : {})
+      .catch((error: unknown) => {
+        console.error(`[${productIdentity.name}] toolbar refresh failed after ${reason}:`, error);
+      });
+  };
+
   profileWorkflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
     activationDriver,
     authentication: authenticationManager,
+    onActivationSucceeded: () => refreshToolbar('profile activation'),
   });
   popupTemporaryRuleRuntime = temporaryRuleCoordinator
     ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
@@ -117,11 +147,15 @@ export default defineBackground(() => {
   requestDiagnosticsRuntime = registerRequestDiagnosticsRuntime(
     currentRequestDiagnosticsRuntimeApi(),
   );
-  inspectRuntime = registerInspectRuntime(currentInspectRuntimeApi());
+  const inspectApi = currentInspectRuntimeApi();
+  inspectRuntime = registerInspectRuntime({
+    ...inspectApi,
+    action: toolbarRuntime.inspectAction,
+  });
 
-  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator).catch(
-    (error: unknown) => {
+  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator)
+    .then(() => refreshToolbar('startup recovery'))
+    .catch((error: unknown) => {
       console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
-    },
-  );
+    });
 });
