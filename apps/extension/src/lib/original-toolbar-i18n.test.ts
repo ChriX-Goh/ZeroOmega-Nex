@@ -78,8 +78,6 @@ describe('original toolbar localization adapter', () => {
 
     expect(() =>
       localizeOriginalToolbarDetail(api, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult),
-    ).toThrowError(
-      'Missing original toolbar locale message: browserAction_directResult',
-    );
+    ).toThrowError('Missing original toolbar locale message: browserAction_directResult');
   });
 });
