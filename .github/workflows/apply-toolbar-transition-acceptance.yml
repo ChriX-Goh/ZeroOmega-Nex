@@ -7,6 +7,7 @@ on:
       - .github/workflows/apply-toolbar-transition-acceptance.yml
       - scripts/apply-toolbar-transition-acceptance.py
       - scripts/fix-toolbar-transition-proxy-endpoint.py
+      - scripts/fix-firefox-internal-tab-creation.py
 
 permissions:
   contents: write
@@ -33,6 +34,7 @@ jobs:
         run: |
           python scripts/apply-toolbar-transition-acceptance.py
           python scripts/fix-toolbar-transition-proxy-endpoint.py
+          python scripts/fix-firefox-internal-tab-creation.py
           pnpm exec prettier --write \
             scripts/e2e-chromium-toolbar.mjs \
             scripts/e2e-firefox.mjs \
@@ -63,6 +65,7 @@ jobs:
           git rm \
             .github/workflows/apply-toolbar-transition-acceptance.yml \
             scripts/apply-toolbar-transition-acceptance.py \
-            scripts/fix-toolbar-transition-proxy-endpoint.py
+            scripts/fix-toolbar-transition-proxy-endpoint.py \
+            scripts/fix-firefox-internal-tab-creation.py
           git commit -m 'test: cover toolbar fallback transitions and Inspect isolation'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
