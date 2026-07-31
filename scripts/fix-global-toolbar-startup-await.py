@@ -8,6 +8,185 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
+runtime_path = Path("apps/extension/src/lib/profile-workflow-runtime.ts")
+runtime = runtime_path.read_text(encoding="utf-8")
+runtime = replace_once(
+    runtime,
+    """  readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => void;""",
+    """  readonly onActivationSucceeded?: (
+    event: ProfileWorkflowActivationEvent,
+  ) => Promise<void> | void;""",
+    "async activation callback contract",
+)
+runtime = replace_once(
+    runtime,
+    """export function notifyProfileWorkflowActivation(
+  command: ProfileWorkflowCommand,
+  response: ProfileWorkflowCommandResponse,
+  listener: ProfileWorkflowRuntimeOptions['onActivationSucceeded'],
+): void {
+  if (!response.ok || response.appliedSnapshotId === undefined || listener === undefined) return;
+  listener({
+    command,
+    response: {
+      ...response,
+      appliedSnapshotId: response.appliedSnapshotId,
+    },
+  });
+}""",
+    """export async function notifyProfileWorkflowActivation(
+  command: ProfileWorkflowCommand,
+  response: ProfileWorkflowCommandResponse,
+  listener: ProfileWorkflowRuntimeOptions['onActivationSucceeded'],
+): Promise<void> {
+  if (!response.ok || response.appliedSnapshotId === undefined || listener === undefined) return;
+  await listener({
+    command,
+    response: {
+      ...response,
+      appliedSnapshotId: response.appliedSnapshotId,
+    },
+  });
+}""",
+    "await activation notification",
+)
+runtime = replace_once(
+    runtime,
+    """    ).then((response) => {
+      notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
+      return response;
+    });""",
+    """    ).then(async (response) => {
+      await notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
+      return response;
+    });""",
+    "await activation callback before command response",
+)
+runtime_path.write_text(runtime, encoding="utf-8")
+
+
+runtime_test_path = Path("apps/extension/src/lib/profile-workflow-runtime.test.ts")
+runtime_test = runtime_test_path.read_text(encoding="utf-8")
+runtime_test = replace_once(
+    runtime_test,
+    """  it('notifies only after a successful command returns an applied snapshot', () => {
+    const listener = vi.fn();
+    const apply = command('apply');
+
+    notifyProfileWorkflowActivation(apply, success('snapshot-7'), listener);
+
+    expect(listener).toHaveBeenCalledOnce();
+    expect(listener).toHaveBeenCalledWith({
+      command: apply,
+      response: {
+        ok: true,
+        state,
+        view,
+        appliedSnapshotId: 'snapshot-7',
+      },
+    });
+  });""",
+    """  it('notifies only after a successful command returns an applied snapshot', async () => {
+    const listener = vi.fn();
+    const apply = command('apply');
+
+    await notifyProfileWorkflowActivation(apply, success('snapshot-7'), listener);
+
+    expect(listener).toHaveBeenCalledOnce();
+    expect(listener).toHaveBeenCalledWith({
+      command: apply,
+      response: {
+        ok: true,
+        state,
+        view,
+        appliedSnapshotId: 'snapshot-7',
+      },
+    });
+  });
+
+  it('waits for asynchronous activation follow-up before resolving', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const listener = vi.fn(() => gate);
+    const notification = notifyProfileWorkflowActivation(
+      command('apply'),
+      success('snapshot-8'),
+      listener,
+    );
+    let resolved = false;
+    void notification.then(() => {
+      resolved = true;
+    });
+
+    expect(listener).toHaveBeenCalledOnce();
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    release();
+    await notification;
+    expect(resolved).toBe(true);
+  });
+
+  it('propagates activation follow-up failures', async () => {
+    const failure = new Error('toolbar refresh failed');
+
+    await expect(
+      notifyProfileWorkflowActivation(command('apply'), success('snapshot-9'), () =>
+        Promise.reject(failure),
+      ),
+    ).rejects.toBe(failure);
+  });""",
+    "async activation notification tests",
+)
+runtime_test = replace_once(
+    runtime_test,
+    """  it('does not notify for successful commands that did not activate a snapshot', () => {
+    const listener = vi.fn();
+
+    notifyProfileWorkflowActivation(command('get'), success(), listener);
+
+    expect(listener).not.toHaveBeenCalled();
+  });""",
+    """  it('does not notify for successful commands that did not activate a snapshot', async () => {
+    const listener = vi.fn();
+
+    await notifyProfileWorkflowActivation(command('get'), success(), listener);
+
+    expect(listener).not.toHaveBeenCalled();
+  });""",
+    "async no-snapshot notification test",
+)
+runtime_test = replace_once(
+    runtime_test,
+    """  it('does not notify for failed commands', () => {
+    const listener = vi.fn();
+
+    notifyProfileWorkflowActivation(
+      command('apply'),
+      { ok: false, code: 'apply-failed', message: 'failed', state, view },
+      listener,
+    );
+
+    expect(listener).not.toHaveBeenCalled();
+  });""",
+    """  it('does not notify for failed commands', async () => {
+    const listener = vi.fn();
+
+    await notifyProfileWorkflowActivation(
+      command('apply'),
+      { ok: false, code: 'apply-failed', message: 'failed', state, view },
+      listener,
+    );
+
+    expect(listener).not.toHaveBeenCalled();
+  });""",
+    "async failed-command notification test",
+)
+runtime_test_path.write_text(runtime_test, encoding="utf-8")
+
+
 background_path = Path("apps/extension/src/entrypoints/background.ts")
 background = background_path.read_text(encoding="utf-8")
 background = replace_once(
@@ -27,6 +206,7 @@ background = replace_once(
       await toolbarRuntime.refreshAll(clearIconCache ? { clearIconCache: true } : {});
     } catch (error) {
       console.error(`[${productIdentity.name}] toolbar refresh failed after ${reason}:`, error);
+      throw error;
     }
   };""",
     "awaitable toolbar refresh",
@@ -34,10 +214,8 @@ background = replace_once(
 background = replace_once(
     background,
     """    onActivationSucceeded: () => refreshToolbar('profile activation'),""",
-    """    onActivationSucceeded: () => {
-      void refreshToolbar('profile activation');
-    },""",
-    "activation refresh wrapper",
+    """    onActivationSucceeded: () => refreshToolbar('profile activation'),""",
+    "activation refresh callback",
 )
 background = replace_once(
     background,
@@ -48,10 +226,8 @@ background = replace_once(
       refreshToolbar('initial startup activation');""",
     """        await restoreProxyRuntime(authentication, temporaryRuleCoordinator);
         await refreshToolbar('startup recovery');
-        return;
-      }
-      await refreshToolbar('initial startup activation');""",
-    "await startup toolbar refresh",
+      }""",
+    "single awaited startup toolbar path",
 )
 background_path.write_text(background, encoding="utf-8")
 
