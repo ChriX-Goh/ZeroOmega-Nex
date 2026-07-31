@@ -97,11 +97,22 @@ try {
     const directName = chrome.i18n.getMessage('routeDirect');
     const externalDetail = chrome.i18n.getMessage('browserAction_titleExternalProxy');
     const directDetail = chrome.i18n.getMessage('browserAction_directResult');
+    const defaultDetail = chrome.i18n.getMessage('browserAction_defaultRuleDetails');
     return {
       system: resultTitle(`[${systemName}]`, `[${systemName}]`, externalDetail),
       direct: resultTitle(`[${directName}]`, `[${directName}]`, directDetail),
       fixedProxy: resultTitle('Toolbar Proxy', 'Toolbar Proxy', `PROXY 127.0.0.1:${proxyPort}\n`),
       fixedBypass: resultTitle('Toolbar Proxy', 'Toolbar Proxy', `localhost => ${directDetail}\n`),
+      switchMatched: resultTitle(
+        'Toolbar Switch',
+        'Toolbar Proxy',
+        `toolbar-a.test => Toolbar Proxy\nPROXY 127.0.0.1:${proxyPort}\n`,
+      ),
+      switchDefault: resultTitle(
+        'Toolbar Switch',
+        'Toolbar Proxy',
+        `${defaultDetail} => Toolbar Proxy\nPROXY 127.0.0.1:${proxyPort}\n`,
+      ),
       default: chrome.i18n.getMessage('manifest_icon_default_title'),
     };
   }, address.port);
@@ -227,6 +238,99 @@ try {
     proxyTabId,
     { title: expectedTitles.fixedProxy, badgeText: 'Tool', popup },
     'Same-tab bypass-to-proxy Action transition failed',
+  );
+
+  const switchCurrent = await sendWorkflowCommand(extensionPage, { channel, action: 'get' });
+  assert.equal(
+    switchCurrent?.ok,
+    true,
+    `Switch workflow refresh failed: ${JSON.stringify(switchCurrent)}`,
+  );
+  const switchDraft = structuredClone(switchCurrent.state.draft);
+  const switchFixed = switchDraft.profiles.find((candidate) => candidate.id === proxyProfileId);
+  assert.equal(switchFixed?.kind, 'fixed', 'Switch target Fixed Profile was not found');
+  switchFixed.bypass = [];
+  switchDraft.profiles.push({
+    id: 'profile-toolbar-switch',
+    name: 'Toolbar Switch',
+    color: '#ffb74d',
+    kind: 'switch',
+    rules: [
+      {
+        id: 'rule-toolbar-a',
+        condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
+        route: { kind: 'profile', profileId: proxyProfileId },
+      },
+    ],
+    defaultRoute: { kind: 'profile', profileId: proxyProfileId },
+  });
+  switchDraft.settings.quickSwitch.routes.push({
+    kind: 'profile',
+    profileId: 'profile-toolbar-switch',
+  });
+  const switchReplaced = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'replace-draft',
+    expectedGeneration: switchCurrent.state.generation,
+    draft: switchDraft,
+  });
+  assert.equal(
+    switchReplaced?.ok,
+    true,
+    `Switch draft replacement failed: ${JSON.stringify(switchReplaced)}`,
+  );
+  const switchApplied = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'apply',
+    expectedGeneration: switchReplaced.state.generation,
+  });
+  assert.equal(switchApplied?.ok, true, `Switch Apply failed: ${JSON.stringify(switchApplied)}`);
+  const switchActivated = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'activate-route',
+    expectedAppliedRevisionId: switchApplied.state.applied.revision.id,
+    route: { kind: 'profile', profileId: 'profile-toolbar-switch' },
+  });
+  assert.equal(
+    switchActivated?.ok,
+    true,
+    `Switch activation failed: ${JSON.stringify(switchActivated)}`,
+  );
+
+  const switchMatchedState = { title: expectedTitles.switchMatched, badgeText: 'Tool', popup };
+  const switchDefaultState = { title: expectedTitles.switchDefault, badgeText: 'Tool', popup };
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    switchMatchedState,
+    'Switch matched-rule Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    bypassTabId,
+    switchDefaultState,
+    'Switch default Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    internalTabId,
+    { title: expectedTitles.default, badgeText: '', popup },
+    'Switch internal-page fallback Action state failed',
+  );
+
+  await proxyPage.goto(sameTabBypassUrl, { waitUntil: 'domcontentloaded' });
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    switchDefaultState,
+    'Switch same-tab matched-to-default transition failed',
+  );
+  await proxyPage.goto(sameTabProxyUrl, { waitUntil: 'domcontentloaded' });
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    switchMatchedState,
+    'Switch same-tab default-to-matched transition failed',
   );
 
   console.log(`Chromium toolbar Action E2E passed for ${extensionId}.`);

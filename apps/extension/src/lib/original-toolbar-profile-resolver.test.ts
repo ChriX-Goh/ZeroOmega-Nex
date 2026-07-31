@@ -155,6 +155,115 @@ describe('original toolbar profile resolver', () => {
     expect(result?.titleArguments.details).toBe('http => PROXY 127.0.0.1:7890\n');
   });
 
+  it('reproduces an exact Switch matched-rule trace into a Fixed result', async () => {
+    const workflowState = state(true);
+    const fixed = workflowState.applied.profiles[0];
+    if (!fixed || fixed.kind !== 'fixed') throw new Error('missing default Fixed profile');
+    fixed.bypass = [];
+    workflowState.applied.profiles.push({
+      id: 'profile-switch',
+      name: 'Automatic',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-toolbar',
+          condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
+          route: { kind: 'profile', profileId: fixed.id },
+        },
+      ],
+      defaultRoute: { kind: 'profile', profileId: fixed.id },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-switch' },
+    }).resolve({ tabId: 19, url: 'http://toolbar-a.test/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#64b5f6',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Automatic',
+        resultProfileName: 'Proxy',
+        details: 'toolbar-a.test => Proxy\nPROXY 127.0.0.1:7890\n',
+      },
+      badgeText: 'Prox',
+    });
+  });
+
+  it('reproduces an exact Switch default trace into a Fixed result', async () => {
+    const workflowState = state();
+    const fixed = workflowState.applied.profiles[0];
+    if (!fixed || fixed.kind !== 'fixed') throw new Error('missing default Fixed profile');
+    fixed.bypass = [];
+    workflowState.applied.profiles.push({
+      id: 'profile-switch',
+      name: 'Automatic',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-toolbar',
+          condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
+          route: { kind: 'profile', profileId: fixed.id },
+        },
+      ],
+      defaultRoute: { kind: 'profile', profileId: fixed.id },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-switch' },
+    }).resolve({ tabId: 21, url: 'http://other.test/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#64b5f6',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Automatic',
+        resultProfileName: 'Proxy',
+        details: '(default) => Proxy\nPROXY 127.0.0.1:7890\n',
+      },
+    });
+  });
+
+  it('fails closed for Switch trace shapes outside the exact Fixed slice', async () => {
+    const workflowState = state();
+    const fixed = workflowState.applied.profiles[0];
+    if (!fixed || fixed.kind !== 'fixed') throw new Error('missing default Fixed profile');
+    workflowState.applied.profiles.push({
+      id: 'profile-switch',
+      name: 'Automatic',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [],
+      defaultRoute: { kind: 'direct' },
+    });
+
+    await expect(
+      resolver(workflowState, {
+        activeRoute: { kind: 'profile', profileId: 'profile-switch' },
+      }).resolve({ tabId: 23, url: 'http://other.test/' }),
+    ).resolves.toBeUndefined();
+
+    const profile = workflowState.applied.profiles.find(
+      (candidate) => candidate.id === 'profile-switch',
+    );
+    if (!profile || profile.kind !== 'switch') throw new Error('missing Switch profile');
+    profile.defaultRoute = { kind: 'profile', profileId: fixed.id };
+    profile.attachedRuleListProfileId = 'profile-attached-list';
+    await expect(
+      resolver(workflowState, {
+        activeRoute: { kind: 'profile', profileId: profile.id },
+      }).resolve({ tabId: 25, url: 'http://other.test/' }),
+    ).resolves.toBeUndefined();
+  });
+
   it('returns default state for unsupported or missing runtime state', async () => {
     const uncolored = state();
     const profile = uncolored.applied.profiles[0];

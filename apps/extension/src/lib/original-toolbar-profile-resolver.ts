@@ -1,8 +1,13 @@
+import type { Condition, FixedProfile, SwitchProfile } from '@zeroomega-nex/profile-spec';
 import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
 } from '@zeroomega-nex/profile-workflow';
-import { evaluateProfileGraph, type ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
+import {
+  evaluateProfileGraph,
+  type GraphDecision,
+  type ReferenceRequest,
+} from '@zeroomega-nex/reference-interpreter';
 
 import {
   localizeOriginalToolbarDetail,
@@ -26,6 +31,8 @@ const PAC_PROTOCOLS = {
   socks4: 'SOCKS',
   socks5: 'SOCKS5',
 } as const;
+const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+const WEEKDAY_MARKERS = 'SMTWtFs';
 
 export interface OriginalToolbarProfileStateRepository {
   read(): Promise<ProfileWorkflowState | undefined>;
@@ -69,6 +76,41 @@ function originalPacResult(endpoint: {
   return `${PAC_PROTOCOLS[endpoint.protocol]} ${endpoint.host}:${endpoint.port}`;
 }
 
+function originalSwitchConditionDisplay(condition: Condition): string | undefined {
+  const singleLine = (value: string): string | undefined =>
+    value.length > 0 && !value.includes('\n') && !value.includes('\r') ? value : undefined;
+
+  switch (condition.kind) {
+    case 'url-regex':
+    case 'host-regex':
+      return condition.flags === undefined ? singleLine(condition.pattern) : undefined;
+    case 'url-wildcard':
+    case 'host-wildcard':
+    case 'bypass':
+    case 'keyword':
+      return singleLine(condition.pattern);
+    case 'true':
+      return 'True:';
+    case 'false':
+      return condition.annotation === undefined || condition.annotation.length === 0
+        ? 'False:'
+        : singleLine(condition.annotation);
+    case 'ip':
+      return `Ip: ${condition.address}/${condition.prefixLength}`;
+    case 'host-levels':
+      return `HostLevels: ${condition.min}~${condition.max}`;
+    case 'weekday': {
+      const selected = new Set(condition.days);
+      const value = WEEKDAYS.map((day, index) =>
+        selected.has(day) ? WEEKDAY_MARKERS[index] : '-',
+      ).join('');
+      return `Weekday: ${value}`;
+    }
+    case 'time':
+      return `Time: ${condition.startHour}~${condition.endHour}`;
+  }
+}
+
 /**
  * Resolve source- and runtime-proven built-in and static Fixed Action states
  * from the applied profile workflow. The Fixed details reproduce the original
@@ -110,12 +152,17 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     }
 
     const profile = state.applied.profiles.find((candidate) => candidate.id === route.profileId);
-    if (profile?.kind !== 'fixed' || profile.color === undefined) return undefined;
+    if (profile === undefined || profile.color === undefined) return undefined;
 
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
     const decision = evaluateProfileGraph(state.applied, route, request);
-    if (decision.status !== 'resolved') return undefined;
+    if (decision.status !== 'resolved' || decision.support !== 'exact') return undefined;
+
+    if (profile.kind === 'switch') {
+      return this.resolveSwitchFixedProxy(state, profile, decision, request, directColor);
+    }
+    if (profile.kind !== 'fixed') return undefined;
 
     if (decision.route.kind === 'proxy') {
       const scheme = request.scheme as 'http' | 'https' | 'ftp';
@@ -181,6 +228,114 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
       badge: {
         enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
         resultProfileName: profileName,
+        resultProfileBuiltin: false,
+      },
+    });
+  }
+
+  private resolveSwitchFixedProxy(
+    state: ProfileWorkflowState,
+    profile: SwitchProfile,
+    decision: GraphDecision,
+    request: ReferenceRequest,
+    directColor: string,
+  ) {
+    if (
+      profile.color === undefined ||
+      profile.attachedRuleListProfileId !== undefined ||
+      decision.status !== 'resolved' ||
+      decision.support !== 'exact' ||
+      decision.route.kind !== 'proxy'
+    ) {
+      return undefined;
+    }
+
+    const allowedActions = new Set([
+      'enter-profile',
+      'switch-rule',
+      'switch-default',
+      'fixed-bypass',
+      'fixed-endpoint',
+    ]);
+    if (decision.trace.some((entry) => !allowedActions.has(entry.action))) return undefined;
+
+    const enteredProfiles = decision.trace
+      .filter((entry) => entry.action === 'enter-profile')
+      .map((entry) => entry.profileId);
+    if (enteredProfiles.length !== 2 || enteredProfiles[0] !== profile.id) return undefined;
+
+    const endpointEntry = decision.trace.findLast((entry) => entry.action === 'fixed-endpoint');
+    if (
+      endpointEntry?.action !== 'fixed-endpoint' ||
+      endpointEntry.profileId !== enteredProfiles[1] ||
+      endpointEntry.endpointId !== decision.route.endpointId
+    ) {
+      return undefined;
+    }
+
+    const resultProfile = state.applied.profiles.find(
+      (candidate): candidate is FixedProfile =>
+        candidate.id === endpointEntry.profileId &&
+        candidate.kind === 'fixed' &&
+        candidate.color !== undefined,
+    );
+    if (resultProfile === undefined || resultProfile.color === undefined) return undefined;
+
+    const switchEntries = decision.trace.filter((entry) => entry.action === 'switch-rule');
+    if (switchEntries.some((entry) => entry.profileId !== profile.id)) return undefined;
+    const matchedEntries = switchEntries.filter((entry) => entry.matched === true);
+    const defaultEntries = decision.trace.filter((entry) => entry.action === 'switch-default');
+
+    let selectionDetail: string;
+    if (matchedEntries.length === 1 && defaultEntries.length === 0) {
+      const matchedEntry = matchedEntries[0];
+      const rule = profile.rules.find((candidate) => candidate.id === matchedEntry?.ruleId);
+      if (
+        rule === undefined ||
+        rule.route.kind !== 'profile' ||
+        rule.route.profileId !== resultProfile.id
+      ) {
+        return undefined;
+      }
+      const condition = originalSwitchConditionDisplay(rule.condition);
+      if (condition === undefined) return undefined;
+      selectionDetail = `${condition} => ${resultProfile.name}\n`;
+    } else if (matchedEntries.length === 0 && defaultEntries.length === 1) {
+      if (
+        profile.defaultRoute.kind !== 'profile' ||
+        profile.defaultRoute.profileId !== resultProfile.id
+      ) {
+        return undefined;
+      }
+      const defaultDetail = localizeOriginalToolbarDetail(
+        this.#i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
+      );
+      selectionDetail = `${defaultDetail} => ${resultProfile.name}\n`;
+    } else {
+      return undefined;
+    }
+
+    const scheme = request.scheme as 'http' | 'https' | 'ftp';
+    const hasSpecificEndpoint = resultProfile.proxyByScheme[scheme] !== undefined;
+    const pacResult = originalPacResult(decision.route.endpoint);
+    const details = `${selectionDetail}${hasSpecificEndpoint ? `${scheme} => ` : ''}${pacResult}\n`;
+
+    return deriveOriginalToolbarTabState({
+      currentProfileName: profile.name,
+      resultProfileName: resultProfile.name,
+      details,
+      icon: {
+        currentProfileColor: profile.color,
+        matchedProfileColor: resultProfile.color,
+        directProfileColor: directColor,
+        directResult: false,
+        currentProfileStatic: false,
+        matchedProfileIsCurrent: false,
+      },
+      badge: {
+        enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+        resultProfileName: resultProfile.name,
         resultProfileBuiltin: false,
       },
     });

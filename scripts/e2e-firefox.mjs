@@ -633,6 +633,126 @@ try {
       'Firefox focused same-tab bypass-to-proxy transition failed',
     );
 
+    const switchCurrent = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'get',
+    });
+    assert.equal(
+      switchCurrent?.ok,
+      true,
+      `Firefox Switch workflow refresh failed: ${JSON.stringify(switchCurrent)}`,
+    );
+    const switchDraft = structuredClone(switchCurrent.state.draft);
+    const switchFixed = switchDraft.profiles.find(
+      (candidate) => candidate.id === 'profile-default-proxy',
+    );
+    assert.equal(switchFixed?.kind, 'fixed', 'Firefox Switch target Fixed Profile was not found');
+    switchFixed.bypass = [];
+    switchDraft.profiles.push({
+      id: 'profile-toolbar-switch',
+      name: 'Toolbar Switch',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-toolbar-a',
+          condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
+          route: { kind: 'profile', profileId: 'profile-default-proxy' },
+        },
+      ],
+      defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    });
+    switchDraft.settings.quickSwitch.routes.push({
+      kind: 'profile',
+      profileId: 'profile-toolbar-switch',
+    });
+    const switchReplaced = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'replace-draft',
+      expectedGeneration: switchCurrent.state.generation,
+      draft: switchDraft,
+    });
+    assert.equal(
+      switchReplaced?.ok,
+      true,
+      `Firefox Switch draft replacement failed: ${JSON.stringify(switchReplaced)}`,
+    );
+    const switchApplied = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'apply',
+      expectedGeneration: switchReplaced.state.generation,
+    });
+    assert.equal(
+      switchApplied?.ok,
+      true,
+      `Firefox Switch Apply failed: ${JSON.stringify(switchApplied)}`,
+    );
+    const switchActivated = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'activate-route',
+      expectedAppliedRevisionId: switchApplied.state.applied.revision.id,
+      route: { kind: 'profile', profileId: 'profile-toolbar-switch' },
+    });
+    assert.equal(
+      switchActivated?.ok,
+      true,
+      `Firefox Switch activation failed: ${JSON.stringify(switchActivated)}`,
+    );
+
+    const defaultDetail = await driver.executeScript(
+      "return browser.i18n.getMessage('browserAction_defaultRuleDetails');",
+    );
+    const switchMatchedAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Switch',
+        'Toolbar Proxy',
+        `toolbar-a.test => Toolbar Proxy\nPROXY 127.0.0.1:${sourceAddress.port}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    const switchDefaultAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Switch',
+        'Toolbar Proxy',
+        `${defaultDetail} => Toolbar Proxy\nPROXY 127.0.0.1:${sourceAddress.port}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      switchMatchedAction,
+      'Firefox focused Switch matched-rule Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarBypassTabId,
+      switchDefaultAction,
+      'Firefox focused Switch default Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarInternalTabId,
+      defaultAction,
+      'Firefox focused Switch internal-page fallback Action state failed',
+    );
+
+    await driver.switchTo().window(toolbarProxyWindow);
+    await driver.get(sameTabBypassUrl);
+    await driver.switchTo().window(optionsWindow);
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      switchDefaultAction,
+      'Firefox focused Switch same-tab matched-to-default transition failed',
+    );
+    await driver.switchTo().window(toolbarProxyWindow);
+    await driver.get(sameTabProxyUrl);
+    await driver.switchTo().window(optionsWindow);
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      switchMatchedAction,
+      'Firefox focused Switch same-tab default-to-matched transition failed',
+    );
+
     assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);
     assert.notEqual(toolbarInternalWindow, toolbarProxyWindow);
     console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);
