@@ -72,8 +72,8 @@ The following original states remain `UNKNOWN` in one or both targets:
 
 - current manifest uses a different green static icon and incomplete original size/permission/shortcut contract;
 - current background has no complete toolbar state controller;
-- the tested Action adapter, Canvas renderer, original localization adapter and pure executor are not connected to runtime state;
-- no per-tab result coordinator or Action-state convergence exists;
+- the tested Action adapter, Canvas renderer, original localization adapter, pure executor and race-safe per-tab coordinator are not connected to real browser/runtime state;
+- no source-derived result resolver or real Action-state convergence exists;
 - current `inspect-runtime.ts` directly writes and clears title/Badge state, including a Nex-specific fallback title, so it conflicts with a future per-tab coordinator unless Action mutation is centralized;
 - existing route, temporary-rule, Inspect and ownership modules do not currently converge into the original toolbar contract.
 
@@ -92,19 +92,20 @@ The following original states remain `UNKNOWN` in one or both targets:
 - `original-toolbar-icon-renderer.ts` and its test reproduce the original one-canvas, five-size, cached ImageData pipeline and privacy fallback signal;
 - `original-toolbar-i18n.ts` and its test lock the original default/result/detail keys, three-substitution order and fail-closed missing-message behavior;
 - `original-toolbar-action-executor.ts` and its test compose pure tab state, original localization, rendered ImageData and target constants into one Action presentation;
-- no manifest, locale pack, toolbar permission, per-tab coordinator or tab-event product behavior has been changed yet;
+- `original-toolbar-tab-coordinator.ts` and its test provide per-tab serialization, stale-result suppression, lifecycle invalidation, default fallback, all-tab refresh and icon-cache invalidation;
+- no manifest, locale pack, toolbar permission, real browser binding, source-derived resolver or tab-event product behavior has been changed yet;
 - this does not close any `TB-*` row or `KG-ICON-001`.
 
 ### Last fully green engineering slice
 
-Head `36f75cc616e92c8e8c0dac503548a4a3780e825b` passed:
+Head `1045d538a17d8a24e0b80ca67054b54c7fb10aa8` passed:
 
-- CI `30599857786`;
-- Browser E2E `30599857787`, including Firefox `153.0`;
-- Parity Documentation `30599857743`;
-- Milestone 8 Visual Evidence `30599857785`.
+- CI `30600481721`;
+- Browser E2E `30600481704`, including Firefox `153.0`;
+- Parity Documentation `30600481717`;
+- Milestone 8 Visual Evidence `30600481719`.
 
-The slice validates the isolated Action adapter, exact icon renderer, original localization adapter and pure executor. It does not close a toolbar row or authorize a candidate.
+The slice validates the isolated Action adapter, exact icon renderer, original localization adapter, pure executor and race-safe per-tab coordinator. It does not close a toolbar row or authorize a candidate.
 
 ### Evidence correction and official packages
 

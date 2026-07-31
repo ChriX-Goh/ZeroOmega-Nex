@@ -239,16 +239,26 @@ No browser API mutation occurs inside the pure state model.
 
 ### `TO-05` — per-tab coordinator
 
-Status: `NOT STARTED`.
+Status: `PARTIAL`.
 
-Required behavior:
+Implemented and tested in isolation:
 
-- tab URL update and activation listeners;
-- current-tab result calculation;
-- dirty/stale state handling;
-- internal URL fallback;
-- tab-isolated result and Inspect state;
-- profile-change invalidation and reset.
+- idempotent registration and removal of URL-update and tab-activation listeners;
+- per-tab promise queues and monotonically increasing refresh sequences;
+- lifecycle epochs that invalidate in-flight work after stop;
+- stale async result suppression before Action mutation;
+- missing/internal URL and unresolved-state fallback to the localized default state;
+- resolver/Action error reporting with tab and URL context;
+- all-tab refresh with optional icon-cache invalidation;
+- omission of tabs without an ID.
+
+Remaining:
+
+- adapt the real `browser.tabs` API to the coordinator interfaces;
+- supply the real source-derived resolver for profile/result/title/Badge state;
+- bind startup, profile changes and recovery paths to all-tab refresh;
+- represent Inspect as a coordinator input instead of direct Action writes;
+- prove tab isolation and stale-state clearing against visible Action state in Chromium and Firefox.
 
 ### `TO-06` — workflow/runtime integration
 
@@ -270,22 +280,22 @@ Only owner `PASS` closes `KG-ICON-001`.
 
 ## 8. Verification checkpoint
 
-Exact engineering checkpoint Head `36f75cc616e92c8e8c0dac503548a4a3780e825b` passed:
+Exact engineering checkpoint Head `1045d538a17d8a24e0b80ca67054b54c7fb10aa8` passed:
 
-- CI `30599857786`;
-- Browser E2E `30599857787`, including Firefox `153.0`;
-- Parity Documentation `30599857743`;
-- Milestone 8 Visual Evidence `30599857785`.
+- CI `30600481721`;
+- Browser E2E `30600481704`, including Firefox `153.0`;
+- Parity Documentation `30600481717`;
+- Milestone 8 Visual Evidence `30600481719`.
 
-This validates the isolated Action adapter, exact Canvas renderer, original localization adapter and pure Action executor. It does not close a `TB-*` row because no product runtime integration or owner acceptance exists yet.
+This validates the isolated Action adapter, exact Canvas renderer, original localization adapter, pure Action executor and race-safe per-tab coordinator. It does not close a `TB-*` row because target constants, real browser binding, source-derived resolution and owner acceptance remain open.
 
 ## 9. Current next action
 
-1. Implement `TO-05` as an isolated, race-safe per-tab coordinator around the verified executor.
-2. Add exact target locale messages, Popup/default constants and original fallback assets before real Action binding.
-3. Bind the coordinator to `tabs.onUpdated`, `tabs.onActivated` and profile-change refresh only after its event semantics are tested.
-4. Convert Inspect direct writes into coordinator input.
-5. Verify two-target, two-tab and state-transition behavior.
-6. Deliver the exact build for repository-owner review.
+1. Add exact target locale messages, Popup/default constants and original fallback assets before real Action binding.
+2. Adapt real `browser.action`, `browser.i18n` and `browser.tabs` APIs behind the verified boundaries.
+3. Build the source-derived resolver for Direct/System/Fixed and default/internal-page states before advanced Switch/PAC inputs.
+4. Bind startup, tab events and profile-change refresh through the coordinator.
+5. Convert Inspect direct writes into coordinator input.
+6. Verify two-target, two-tab and state-transition behavior before repository-owner review.
 
 Overall status remains `FAILED`, release-blocking, with no candidate permitted.
