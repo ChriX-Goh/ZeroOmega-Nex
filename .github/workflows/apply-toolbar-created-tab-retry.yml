@@ -1,11 +1,11 @@
-name: Apply toolbar created-tab retry
+name: Apply toolbar webNavigation refresh
 
 on:
   pull_request:
     branches: [main]
     paths:
       - .github/workflows/apply-toolbar-created-tab-retry.yml
-      - scripts/apply-toolbar-created-tab-retry.py
+      - scripts/apply-toolbar-web-navigation.py
 
 permissions:
   contents: write
@@ -30,10 +30,13 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Apply and verify
         run: |
-          python scripts/apply-toolbar-created-tab-retry.py
+          python scripts/apply-toolbar-web-navigation.py
           pnpm exec prettier --write \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts
+            apps/extension/src/lib/original-toolbar-runtime.ts \
+            apps/extension/src/lib/original-toolbar-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts \
+            apps/extension/wxt.config.ts \
+            scripts/inspect-manifests.mjs
           pnpm verify
           pnpm build:firefox
           pnpm test:e2e:firefox
@@ -42,7 +45,10 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts
-          git commit -m 'fix: retry transient new-tab toolbar URLs'
+            apps/extension/src/lib/original-toolbar-runtime.ts \
+            apps/extension/src/lib/original-toolbar-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts \
+            apps/extension/wxt.config.ts \
+            scripts/inspect-manifests.mjs
+          git commit -m 'fix: refresh toolbar from top-level navigation commits'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
