@@ -1,0 +1,49 @@
+name: Apply cross-document revision history
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-cross-document-revision-history.yml
+      - scripts/apply-cross-document-revision-history.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Apply and verify
+        run: |
+          python scripts/apply-cross-document-revision-history.py
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/revision-history.ts \
+            packages/profile-workflow/src/revision-history.test.ts
+          pnpm verify
+          ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm test:e2e:chromium
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            packages/profile-workflow/src/revision-history.ts \
+            packages/profile-workflow/src/revision-history.test.ts
+          git commit -m 'fix: isolate revision history by document'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
