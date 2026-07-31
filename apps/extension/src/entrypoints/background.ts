@@ -105,9 +105,10 @@ export default defineBackground(() => {
   profileWorkflowRuntime?.dispose();
   authenticationManager?.dispose();
 
-  authenticationManager = new ProxyAuthenticationRuntimeManager(currentProxyAuthenticationApi());
+  const authentication = new ProxyAuthenticationRuntimeManager(currentProxyAuthenticationApi());
+  authenticationManager = authentication;
   const baseActivationDriver = new BrowserProfileWorkflowActivationDriver({
-    authentication: authenticationManager,
+    authentication,
   });
   const temporaryRuleApi = currentPopupTemporaryRuleRuntimeApi();
   const temporaryRuleCoordinator = createPopupTemporaryRuleCoordinator(
@@ -136,11 +137,12 @@ export default defineBackground(() => {
       });
   };
 
-  profileWorkflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
+  const workflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
     activationDriver,
-    authentication: authenticationManager,
+    authentication,
     onActivationSucceeded: () => refreshToolbar('profile activation'),
   });
+  profileWorkflowRuntime = workflowRuntime;
   popupTemporaryRuleRuntime = temporaryRuleCoordinator
     ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
     : undefined;
@@ -154,8 +156,19 @@ export default defineBackground(() => {
     action: toolbarRuntime.inspectAction,
   });
 
-  void restoreProxyRuntime(authenticationManager, temporaryRuleCoordinator)
-    .then(() => refreshToolbar('startup recovery'))
+  void workflowRuntime
+    .initialize()
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error('profile workflow initialization command failed');
+      }
+      if (response.appliedSnapshotId === undefined) {
+        await restoreProxyRuntime(authentication, temporaryRuleCoordinator);
+        refreshToolbar('startup recovery');
+        return;
+      }
+      refreshToolbar('initial startup activation');
+    })
     .catch((error: unknown) => {
       console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
     });

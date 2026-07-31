@@ -9,6 +9,7 @@ import {
   createDefaultProfileSpec,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,
+  PROFILE_WORKFLOW_MESSAGE_CHANNEL,
   listProfileWorkflowRevisionHistory,
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
@@ -75,6 +76,7 @@ export interface ProfileWorkflowRuntimeOptions {
 }
 
 export interface RegisteredProfileWorkflowRuntime {
+  initialize(): Promise<ProfileWorkflowCommandResponse>;
   dispose(): void;
 }
 
@@ -223,12 +225,13 @@ export function registerProfileWorkflowRuntime(
           revisions: repository,
           authentication: options.authentication,
         });
-  const listener = (message: unknown): Promise<ProfileWorkflowCommandResponse> | undefined => {
-    if (!isProfileWorkflowCommand(message)) return undefined;
-    return executeProfileWorkflowCommand(
+  let disposed = false;
+  let initialization: Promise<ProfileWorkflowCommandResponse> | undefined;
+  const executeCommand = (command: ProfileWorkflowCommand) =>
+    executeProfileWorkflowCommand(
       repository,
       initializer,
-      message,
+      command,
       applyService,
       importService,
       historyService,
@@ -237,13 +240,31 @@ export function registerProfileWorkflowRuntime(
       externalProfileService,
       ruleSourceUpdateService,
     ).then((response) => {
-      notifyProfileWorkflowActivation(message, response, options.onActivationSucceeded);
+      notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
       return response;
     });
+  const listener = (message: unknown): Promise<ProfileWorkflowCommandResponse> | undefined => {
+    if (!isProfileWorkflowCommand(message)) return undefined;
+    return executeCommand(message);
   };
   api.runtime.onMessage.addListener(listener);
   return {
+    initialize() {
+      if (disposed) {
+        return Promise.reject(new Error('profile workflow runtime is disposed'));
+      }
+      initialization ??= executeCommand({
+        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+        action: 'get',
+      }).catch((error: unknown) => {
+        initialization = undefined;
+        throw error;
+      });
+      return initialization;
+    },
     dispose() {
+      if (disposed) return;
+      disposed = true;
       ruleSourceScheduler?.dispose();
       api.runtime.onMessage.removeListener(listener);
     },
