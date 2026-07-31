@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/apply-toolbar-transition-acceptance.yml
       - scripts/apply-toolbar-transition-acceptance.py
+      - scripts/fix-toolbar-transition-proxy-endpoint.py
 
 permissions:
   contents: write
@@ -31,6 +32,7 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/apply-toolbar-transition-acceptance.py
+          python scripts/fix-toolbar-transition-proxy-endpoint.py
           pnpm exec prettier --write \
             scripts/e2e-chromium-toolbar.mjs \
             scripts/e2e-firefox.mjs \
@@ -60,6 +62,7 @@ jobs:
             .github/workflows/browser-e2e.yml
           git rm \
             .github/workflows/apply-toolbar-transition-acceptance.yml \
-            scripts/apply-toolbar-transition-acceptance.py
+            scripts/apply-toolbar-transition-acceptance.py \
+            scripts/fix-toolbar-transition-proxy-endpoint.py
           git commit -m 'test: cover toolbar fallback transitions and Inspect isolation'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
