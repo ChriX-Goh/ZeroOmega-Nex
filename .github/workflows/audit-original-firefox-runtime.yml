@@ -7,9 +7,15 @@ on:
     paths:
       - .github/workflows/audit-original-firefox-runtime.yml
       - scripts/audit-original-toolbar-firefox.mjs
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/audit-original-firefox-runtime.yml
+      - scripts/audit-original-toolbar-firefox.mjs
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -19,7 +25,8 @@ jobs:
       - name: Checkout exact Head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,6 +38,9 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
           pnpm install --frozen-lockfile
+
+      - name: Format audit source
+        run: pnpm exec prettier --write scripts/audit-original-toolbar-firefox.mjs
 
       - name: Show Firefox version
         run: firefox --version
@@ -56,11 +66,80 @@ jobs:
           node scripts/audit-original-toolbar-firefox.mjs \
             2>&1 | tee original-runtime/firefox/audit.log
 
+      - name: Write durable runtime evidence
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('original-runtime/firefox/runtime.json').read_text(encoding='utf-8'))
+          lines = [
+              '# Audit Evidence 01D — Original ZeroOmega v3.5.0 Firefox Runtime',
+              '',
+              '## Authority',
+              '',
+              '- Package: official `firefox-release.zip` from release `v3.5.0`.',
+              '- Package SHA-256: `666ce976022ed379601b896f9138ada82a29aabfe0154bf2bf1ae779e3319cda`.',
+              f"- Runtime browser: Firefox `{data['browserVersion']}` on Ubuntu 24.04 GitHub runner.",
+              f"- Add-on ID: `{data['addonId']}`.",
+              f"- Audit runtime UUID: `{data['extensionUuid']}`.",
+              '',
+              '## Captured Action states',
+              '',
+              '| State | URL | Title | Badge | Popup |',
+              '| --- | --- | --- | --- | --- |',
+          ]
+          for state in data['states']:
+              action = state['action']
+              title = str(action.get('title', '')).replace('|', '\\|').replace('\n', '<br>')
+              badge = str(action.get('badgeText', '')).replace('|', '\\|')
+              popup = str(action.get('popup', '')).replace('|', '\\|')
+              url = str(state.get('url', '')).replace('|', '\\|')
+              lines.append(f"| `{state['label']}` | `{url}` | {title} | `{badge}` | `{popup}` |")
+          popup = data['popup']
+          viewport = popup['viewport']
+          lines.extend([
+              '',
+              '## Installed UI capture',
+              '',
+              f"- Options title: `{data['options']['title']}`.",
+              f"- Popup title: `{popup['title']}`.",
+              f"- Popup viewport: `{viewport['innerWidth']} × {viewport['innerHeight']}`.",
+              f"- Popup document extent: `{viewport['scrollWidth']} × {viewport['scrollHeight']}`.",
+              '- Screenshots: `options-zh-CN.png` and `popup-zh-CN.png` in the workflow Artifact.',
+              '',
+              '## Acceptance boundary',
+              '',
+              'This is real execution of the exact official Firefox package through Selenium WebDriver and WebDriver BiDi installation. It captures runtime title/Badge/Popup state and installed extension pages. Headless execution does not provide an operating-system screenshot of the browser toolbar icon itself; exact icon geometry/assets remain covered by source and package evidence. User-profile, Switch/PAC result, temporary-rule, Inspect and external-control states remain open.',
+              '',
+          ])
+          Path('docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md').write_text(
+              '\n'.join(lines), encoding='utf-8'
+          )
+          PY
+          pnpm exec prettier --write \
+            scripts/audit-original-toolbar-firefox.mjs \
+            docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md
+
       - name: Upload runtime evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: original-zeroomega-v3.5.0-firefox-runtime-${{ github.sha }}
+          name: original-zeroomega-v3.5.0-firefox-runtime-${{ github.event.pull_request.head.sha || github.sha }}
           path: original-runtime/firefox
           if-no-files-found: error
           retention-days: 90
+
+      - name: Commit evidence and remove one-time workflow
+        if: success() && github.event_name == 'push'
+        run: |
+          rm .github/workflows/audit-original-firefox-runtime.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            scripts/audit-original-toolbar-firefox.mjs \
+            docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md \
+            .github/workflows/audit-original-firefox-runtime.yml
+          git commit -m 'docs: capture original Firefox toolbar runtime'
+          git push origin HEAD:feat/m8-profile-workflow
