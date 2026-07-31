@@ -70,8 +70,8 @@ jobs:
               lambda match: f"await navigateExtensionPage('{match.group(1)}');",
               text,
           )
-          if count not in (0, 18):
-            raise SystemExit(f'Expected 18 extension navigations, replaced {count}')
+          if count not in (0, 10):
+            raise SystemExit(f'Expected 10 extension navigations, replaced {count}')
           if 'await driver.get(`moz-extension://${extensionUuid}/' in text:
             raise SystemExit('Direct Marionette extension navigation remains')
 
