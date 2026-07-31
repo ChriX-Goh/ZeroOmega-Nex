@@ -73,9 +73,10 @@ class RecordingExecutor implements OriginalToolbarCoordinatorExecutor {
 
 class RecordingResolver implements OriginalToolbarTabStateResolver {
   readonly calls: Array<{ readonly tabId: number; readonly url: string }> = [];
-  implementation: (
-    input: { readonly tabId: number; readonly url: string },
-  ) => Promise<OriginalToolbarTabState | undefined> | OriginalToolbarTabState | undefined = () =>
+  implementation: (input: {
+    readonly tabId: number;
+    readonly url: string;
+  }) => Promise<OriginalToolbarTabState | undefined> | OriginalToolbarTabState | undefined = () =>
     undefined;
 
   resolve(input: {

@@ -65,10 +65,7 @@ export interface OriginalToolbarTabCoordinatorOptions {
   readonly tabs: OriginalToolbarTabsApi;
   readonly resolver: OriginalToolbarTabStateResolver;
   readonly executor: OriginalToolbarCoordinatorExecutor;
-  readonly onError?: (
-    error: unknown,
-    context: OriginalToolbarCoordinatorErrorContext,
-  ) => void;
+  readonly onError?: (error: unknown, context: OriginalToolbarCoordinatorErrorContext) => void;
 }
 
 export interface OriginalToolbarRefreshAllOptions {
@@ -88,10 +85,7 @@ export class OriginalToolbarTabCoordinator {
   readonly #tabs: OriginalToolbarTabsApi;
   readonly #resolver: OriginalToolbarTabStateResolver;
   readonly #executor: OriginalToolbarCoordinatorExecutor;
-  readonly #onError: (
-    error: unknown,
-    context: OriginalToolbarCoordinatorErrorContext,
-  ) => void;
+  readonly #onError: (error: unknown, context: OriginalToolbarCoordinatorErrorContext) => void;
   readonly #sequences = new Map<number, number>();
   readonly #queues = new Map<number, Promise<void>>();
   #lifecycleEpoch = 0;
@@ -193,11 +187,7 @@ export class OriginalToolbarTabCoordinator {
       tabs.flatMap((tab) =>
         tab.id === undefined
           ? []
-          : [
-              tab.url === undefined
-                ? this.refreshTab(tab.id)
-                : this.refreshTab(tab.id, tab.url),
-            ],
+          : [tab.url === undefined ? this.refreshTab(tab.id) : this.refreshTab(tab.id, tab.url)],
       ),
     );
   }
