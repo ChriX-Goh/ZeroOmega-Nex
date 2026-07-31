@@ -8,203 +8,439 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-runtime_path = Path("apps/extension/src/lib/original-toolbar-runtime.ts")
-runtime = runtime_path.read_text(encoding="utf-8")
-runtime = replace_once(
-    runtime,
-    """export type OriginalToolbarNavigationCommittedListener = (
-  details: OriginalToolbarNavigationDetails,
-) => void;
-""",
-    """export type OriginalToolbarNavigationListener = (
-  details: OriginalToolbarNavigationDetails,
-) => void;
+adapter_path = Path("apps/extension/src/lib/original-toolbar-action-adapter.ts")
+adapter = adapter_path.read_text(encoding="utf-8")
+adapter = replace_once(
+    adapter,
+    """interface OriginalToolbarActionIconDetails {
+  readonly tabId: number;
+  readonly imageData?: OriginalToolbarActionImageDataSet;
+  readonly path?: OriginalToolbarActionIconPaths;
+}""",
+    """interface OriginalToolbarActionIconDetails {
+  readonly tabId?: number;
+  readonly imageData?: OriginalToolbarActionImageDataSet;
+  readonly path?: OriginalToolbarActionIconPaths;
+}""",
+    "optional Action icon tab",
+)
+adapter = replace_once(
+    adapter,
+    """  setTitle(details: { readonly tabId: number; readonly title: string }): Promise<void> | void;
+  setBadgeText(details: { readonly tabId: number; readonly text: string }): Promise<void> | void;
+  setBadgeBackgroundColor(details: {
+    readonly tabId: number;
+    readonly color: string;
+  }): Promise<void> | void;
+  setPopup(details: { readonly tabId: number; readonly popup: string }): Promise<void> | void;
+}""",
+    """  setTitle(details: { readonly tabId?: number; readonly title: string }): Promise<void> | void;
+  setBadgeText(details: { readonly tabId?: number; readonly text: string }): Promise<void> | void;
+  setBadgeBackgroundColor(details: {
+    readonly tabId?: number;
+    readonly color: string;
+  }): Promise<void> | void;
+  setPopup(details: { readonly tabId?: number; readonly popup: string }): Promise<void> | void;
+}""",
+    "optional Action field tabs",
+)
+adapter = replace_once(
+    adapter,
+    """export interface OriginalToolbarActionPresentation {
+  readonly tabId: number;""",
+    """export interface OriginalToolbarActionPresentation {
+  readonly tabId?: number;""",
+    "optional presentation tab",
+)
+adapter = replace_once(
+    adapter,
+    """  async apply(presentation: OriginalToolbarActionPresentation): Promise<void> {
+    await this.applyIcon(presentation);
 
-export type OriginalToolbarNavigationBeforeListener = OriginalToolbarNavigationListener;
-export type OriginalToolbarNavigationCommittedListener = OriginalToolbarNavigationListener;
-""",
-    "navigation listener aliases",
+    await Promise.all([
+      Promise.resolve(
+        this.action.setTitle({ tabId: presentation.tabId, title: presentation.title }),
+      ),
+      Promise.resolve(
+        this.action.setBadgeBackgroundColor({
+          tabId: presentation.tabId,
+          color: presentation.badgeBackgroundColor,
+        }),
+      ),
+      Promise.resolve(
+        this.action.setBadgeText({
+          tabId: presentation.tabId,
+          text: presentation.badgeText ?? '',
+        }),
+      ),
+      Promise.resolve(
+        this.action.setPopup({ tabId: presentation.tabId, popup: presentation.popup }),
+      ),
+    ]);
+  }""",
+    """  async apply(presentation: OriginalToolbarActionPresentation): Promise<void> {
+    const target = presentation.tabId === undefined ? {} : { tabId: presentation.tabId };
+    await this.applyIcon(presentation, target);
+
+    await Promise.all([
+      Promise.resolve(this.action.setTitle({ ...target, title: presentation.title })),
+      Promise.resolve(
+        this.action.setBadgeBackgroundColor({
+          ...target,
+          color: presentation.badgeBackgroundColor,
+        }),
+      ),
+      Promise.resolve(
+        this.action.setBadgeText({
+          ...target,
+          text: presentation.badgeText ?? '',
+        }),
+      ),
+      Promise.resolve(this.action.setPopup({ ...target, popup: presentation.popup })),
+    ]);
+  }""",
+    "Action target omission",
 )
-runtime = replace_once(
-    runtime,
-    """  readonly tabRemoved?: OriginalToolbarEvent<OriginalToolbarTabRemovedListener>;
-  readonly navigationCommitted?: OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>;
-  readonly browserRuntime?: OriginalToolbarBrowserRuntimeOptions;""",
-    """  readonly tabRemoved?: OriginalToolbarEvent<OriginalToolbarTabRemovedListener>;
-  readonly navigationBefore?: OriginalToolbarEvent<OriginalToolbarNavigationBeforeListener>;
-  readonly navigationCommitted?: OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>;
-  readonly browserRuntime?: OriginalToolbarBrowserRuntimeOptions;""",
-    "navigation before option",
+adapter = replace_once(
+    adapter,
+    """  private async applyIcon(presentation: OriginalToolbarActionPresentation): Promise<void> {
+    if (presentation.imageData === undefined) {
+      await Promise.resolve(
+        this.action.setIcon({
+          tabId: presentation.tabId,
+          path: presentation.fallbackIconPaths,
+        }),
+      );""",
+    """  private async applyIcon(
+    presentation: OriginalToolbarActionPresentation,
+    target: Readonly<{ tabId?: number }>,
+  ): Promise<void> {
+    if (presentation.imageData === undefined) {
+      await Promise.resolve(
+        this.action.setIcon({
+          ...target,
+          path: presentation.fallbackIconPaths,
+        }),
+      );""",
+    "Action icon target",
 )
-runtime = replace_once(
-    runtime,
-    """  const navigationCommittedListener: OriginalToolbarNavigationCommittedListener = (details) => {
-    if (details.frameId !== 0 || details.tabId < 0 || details.url.length === 0) return;
-    void coordinator.refreshTab(details.tabId, details.url);
-  };""",
-    """  const navigationListener: OriginalToolbarNavigationListener = (details) => {
-    if (details.frameId !== 0 || details.tabId < 0 || details.url.length === 0) return;
-    void coordinator.refreshTab(details.tabId, details.url);
-  };""",
-    "shared navigation listener",
+adapter = replace_once(
+    adapter,
+    """        this.action.setIcon({
+          tabId: presentation.tabId,
+          imageData: presentation.imageData,
+        }),""",
+    """        this.action.setIcon({
+          ...target,
+          imageData: presentation.imageData,
+        }),""",
+    "dynamic icon target",
 )
-runtime = replace_once(
-    runtime,
-    """  coordinator.start();
-  options.tabRemoved?.addListener(tabRemovedListener);
-  options.navigationCommitted?.addListener(navigationCommittedListener);""",
-    """  coordinator.start();
-  options.tabRemoved?.addListener(tabRemovedListener);
-  options.navigationBefore?.addListener(navigationListener);
-  options.navigationCommitted?.addListener(navigationListener);""",
-    "navigation registration",
+adapter = replace_once(
+    adapter,
+    """        this.action.setIcon({
+          tabId: presentation.tabId,
+          path: presentation.fallbackIconPaths,
+        }),""",
+    """        this.action.setIcon({
+          ...target,
+          path: presentation.fallbackIconPaths,
+        }),""",
+    "fallback icon target",
 )
-runtime = replace_once(
-    runtime,
-    """      options.tabRemoved?.removeListener(tabRemovedListener);
-      options.navigationCommitted?.removeListener(navigationCommittedListener);""",
-    """      options.tabRemoved?.removeListener(tabRemovedListener);
-      options.navigationBefore?.removeListener(navigationListener);
-      options.navigationCommitted?.removeListener(navigationListener);""",
-    "navigation removal",
-)
-runtime_path.write_text(runtime, encoding="utf-8")
+adapter_path.write_text(adapter, encoding="utf-8")
 
 
-background_path = Path("apps/extension/src/entrypoints/background.ts")
-background = background_path.read_text(encoding="utf-8")
-background = replace_once(
-    background,
-    """  registerOriginalToolbarRuntime,
-  type OriginalToolbarNavigationCommittedListener,
-  type OriginalToolbarTabRemovedListener,""",
-    """  registerOriginalToolbarRuntime,
-  type OriginalToolbarNavigationBeforeListener,
-  type OriginalToolbarNavigationCommittedListener,
-  type OriginalToolbarTabRemovedListener,""",
-    "background before import",
+executor_path = Path("apps/extension/src/lib/original-toolbar-action-executor.ts")
+executor = executor_path.read_text(encoding="utf-8")
+executor = replace_once(
+    executor,
+    """  async apply(tabId: number, state: OriginalToolbarTabState): Promise<void> {""",
+    """  async apply(tabId: number | undefined, state: OriginalToolbarTabState): Promise<void> {""",
+    "executor optional tab",
 )
-background = replace_once(
-    background,
-    """    tabRemoved: browser.tabs
-      .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
-    navigationCommitted:""",
-    """    tabRemoved: browser.tabs
-      .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
-    navigationBefore: browser.webNavigation
-      .onBeforeNavigate as unknown as OriginalToolbarEvent<OriginalToolbarNavigationBeforeListener>,
-    navigationCommitted:""",
-    "background before boundary",
+executor = replace_once(
+    executor,
+    """  async applyDefault(tabId: number): Promise<void> {
+    await this.#action.apply(
+      this.presentation({
+        tabId,
+        title: localizeOriginalToolbarDefaultTitle(this.#i18n),
+      }),
+    );
+  }
+
+  clearIconCache(): void {""",
+    """  async applyGlobal(state: OriginalToolbarTabState): Promise<void> {
+    await this.apply(undefined, state);
+  }
+
+  async applyDefault(tabId?: number): Promise<void> {
+    await this.#action.apply(
+      this.presentation({
+        ...(tabId === undefined ? {} : { tabId }),
+        title: localizeOriginalToolbarDefaultTitle(this.#i18n),
+      }),
+    );
+  }
+
+  async applyGlobalDefault(): Promise<void> {
+    await this.applyDefault();
+  }
+
+  clearIconCache(): void {""",
+    "executor global methods",
 )
-background_path.write_text(background, encoding="utf-8")
+executor = replace_once(
+    executor,
+    """  private presentation(input: {
+    readonly tabId: number;""",
+    """  private presentation(input: {
+    readonly tabId?: number;""",
+    "executor optional presentation input",
+)
+executor = replace_once(
+    executor,
+    """    return {
+      tabId: input.tabId,
+      title: input.title,""",
+    """    return {
+      ...(input.tabId === undefined ? {} : { tabId: input.tabId }),
+      title: input.title,""",
+    "executor omit global tab",
+)
+executor_path.write_text(executor, encoding="utf-8")
 
 
-test_path = Path("apps/extension/src/lib/original-toolbar-runtime.test.ts")
-test = test_path.read_text(encoding="utf-8")
-test = replace_once(
-    test,
-    """  registerOriginalToolbarRuntime,
-  type OriginalToolbarNavigationCommittedListener,
-  type OriginalToolbarTabRemovedListener,""",
-    """  registerOriginalToolbarRuntime,
-  type OriginalToolbarNavigationBeforeListener,
-  type OriginalToolbarNavigationCommittedListener,
-  type OriginalToolbarTabRemovedListener,""",
-    "runtime test before import",
+coordinator_path = Path("apps/extension/src/lib/original-toolbar-tab-coordinator.ts")
+coordinator = coordinator_path.read_text(encoding="utf-8")
+coordinator = replace_once(
+    coordinator,
+    """export interface OriginalToolbarCoordinatorExecutor {
+  apply(tabId: number, state: OriginalToolbarTabState): Promise<void>;
+  applyDefault(tabId: number): Promise<void>;
+  clearIconCache(): void;
+}""",
+    """export interface OriginalToolbarCoordinatorExecutor {
+  apply(tabId: number, state: OriginalToolbarTabState): Promise<void>;
+  applyDefault(tabId: number): Promise<void>;
+  applyGlobal(state: OriginalToolbarTabState): Promise<void>;
+  applyGlobalDefault(): Promise<void>;
+  clearIconCache(): void;
+}""",
+    "coordinator global executor",
 )
-test = replace_once(
-    test,
-    """  const removed = new ListenerEvent<OriginalToolbarTabRemovedListener>();
-  const navigation = new ListenerEvent<OriginalToolbarNavigationCommittedListener>();""",
-    """  const removed = new ListenerEvent<OriginalToolbarTabRemovedListener>();
-  const navigationBefore = new ListenerEvent<OriginalToolbarNavigationBeforeListener>();
-  const navigationCommitted = new ListenerEvent<OriginalToolbarNavigationCommittedListener>();""",
-    "runtime test navigation events",
+coordinator = replace_once(
+    coordinator,
+    """  | 'apply-state'
+  | 'apply-default';""",
+    """  | 'apply-state'
+  | 'apply-default'
+  | 'resolve-global'
+  | 'apply-global'
+  | 'apply-global-default';""",
+    "coordinator global phases",
 )
-test = replace_once(
-    test,
-    """    tabRemoved: removed,
-    navigationCommitted: navigation,
-    browserRuntime:""",
-    """    tabRemoved: removed,
-    navigationBefore,
-    navigationCommitted,
-    browserRuntime:""",
-    "runtime test navigation options",
-)
-test = replace_once(
-    test,
-    """  return { action, updated, activated, created, removed, navigation, runtime };""",
-    """  return {
-    action,
-    updated,
-    activated,
-    created,
-    removed,
-    navigationBefore,
-    navigationCommitted,
-    runtime,
-  };""",
-    "runtime test navigation return",
-)
-test = replace_once(
-    test,
-    """    const { action, updated, activated, created, removed, navigation, runtime } = harness();""",
-    """    const {
-      action,
-      updated,
-      activated,
-      created,
-      removed,
-      navigationBefore,
-      navigationCommitted,
-      runtime,
-    } = harness();""",
-    "runtime test navigation destructure",
-)
-test = replace_once(
-    test,
-    """    expect(removed.listeners.size).toBe(1);
-    expect(navigation.listeners.size).toBe(1);
+coordinator = replace_once(
+    coordinator,
+    """  async refreshAll(options: OriginalToolbarRefreshAllOptions = {}): Promise<void> {
+    if (options.clearIconCache === true) this.#executor.clearIconCache();
 
-    for (const listener of navigation.listeners) {
-      listener({ tabId: 11, frameId: 1, url: 'https://frame.test/' });
-      listener({ tabId: 13, frameId: 0, url: 'https://navigation.test/' });
+    let tabs:""",
+    """  async refreshAll(options: OriginalToolbarRefreshAllOptions = {}): Promise<void> {
+    if (options.clearIconCache === true) this.#executor.clearIconCache();
+    await this.refreshGlobal();
+
+    let tabs:""",
+    "refresh global before tabs",
+)
+coordinator = replace_once(
+    coordinator,
+    """  private async applyDefault(
+    tabId: number,""",
+    """  private async refreshGlobal(): Promise<void> {
+    let state: OriginalToolbarTabState | undefined;
+    try {
+      state = await this.#resolver.resolve({ tabId: -1, url: 'about:blank' });
+    } catch (error) {
+      this.report(error, { phase: 'resolve-global', url: 'about:blank' });
+      await this.applyGlobalDefault();
+      return;
     }
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    expect(action.titles.at(-1)).toEqual({
-      tabId: 13,
-      title: 'ZeroOmega:: [Direct]\\nDIRECT',
-    });""",
-    """    expect(removed.listeners.size).toBe(1);
-    expect(navigationBefore.listeners.size).toBe(1);
-    expect(navigationCommitted.listeners.size).toBe(1);
 
-    for (const listener of navigationBefore.listeners) {
-      listener({ tabId: 11, frameId: 1, url: 'https://frame.test/' });
-      listener({ tabId: 13, frameId: 0, url: 'https://before.test/' });
+    if (state === undefined) {
+      await this.applyGlobalDefault();
+      return;
     }
-    for (const listener of navigationCommitted.listeners) {
-      listener({ tabId: -1, frameId: 0, url: 'https://invalid.test/' });
-      listener({ tabId: 17, frameId: 0, url: 'https://committed.test/' });
+
+    try {
+      await this.#executor.applyGlobal(state);
+    } catch (error) {
+      this.report(error, { phase: 'apply-global', url: 'about:blank' });
+      await this.applyGlobalDefault();
     }
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    expect(action.titles.slice(-2)).toEqual([
-      { tabId: 13, title: 'ZeroOmega:: [Direct]\\nDIRECT' },
-      { tabId: 17, title: 'ZeroOmega:: [Direct]\\nDIRECT' },
-    ]);""",
-    "runtime navigation assertions",
+  }
+
+  private async applyGlobalDefault(): Promise<void> {
+    try {
+      await this.#executor.applyGlobalDefault();
+    } catch (error) {
+      this.report(error, { phase: 'apply-global-default' });
+    }
+  }
+
+  private async applyDefault(
+    tabId: number,""",
+    "coordinator global refresh",
 )
-test = replace_once(
-    test,
-    """    expect(removed.listeners.size).toBe(0);
-    expect(navigation.listeners.size).toBe(0);""",
-    """    expect(removed.listeners.size).toBe(0);
-    expect(navigationBefore.listeners.size).toBe(0);
-    expect(navigationCommitted.listeners.size).toBe(0);""",
-    "runtime navigation removal",
+coordinator_path.write_text(coordinator, encoding="utf-8")
+
+
+adapter_test_path = Path("apps/extension/src/lib/original-toolbar-action-adapter.test.ts")
+adapter_test = adapter_test_path.read_text(encoding="utf-8")
+adapter_test = replace_once(
+    adapter_test,
+    """  it('clears stale Badge text when the derived state has no Badge', async () => {""",
+    """  it('omits tabId when writing the global Action baseline', async () => {
+    const action = new RecordingActionApi();
+    const adapter = new OriginalToolbarActionAdapter(action);
+
+    await adapter.apply({
+      title: 'ZeroOmega:: [System Proxy]',
+      badgeBackgroundColor: '#d90000',
+      popup: 'popup-iframe.html',
+      fallbackIconPaths,
+    });
+
+    expect(action.calls).toEqual([
+      { method: 'setIcon', details: { path: fallbackIconPaths } },
+      { method: 'setTitle', details: { title: 'ZeroOmega:: [System Proxy]' } },
+      { method: 'setBadgeBackgroundColor', details: { color: '#d90000' } },
+      { method: 'setBadgeText', details: { text: '' } },
+      { method: 'setPopup', details: { popup: 'popup-iframe.html' } },
+    ]);
+  });
+
+  it('clears stale Badge text when the derived state has no Badge', async () => {""",
+    "adapter global test",
 )
-test_path.write_text(test, encoding="utf-8")
+adapter_test_path.write_text(adapter_test, encoding="utf-8")
+
+
+executor_test_path = Path("apps/extension/src/lib/original-toolbar-action-executor.test.ts")
+executor_test = executor_test_path.read_text(encoding="utf-8")
+executor_test = replace_once(
+    executor_test,
+    """  it('applies the localized default state without invoking the dynamic renderer', async () => {""",
+    """  it('writes a global derived state without a tabId', async () => {
+    const { action, renderer, executor } = createHarness();
+    renderer.result = renderedIcon;
+
+    await executor.applyGlobal(tabState());
+
+    expect(action.presentations).toEqual([
+      {
+        title: 'ZeroOmega:: [Auto Switch]\\n(default)',
+        badgeText: 'DIR',
+        badgeBackgroundColor: '#d90000',
+        popup: 'popup-iframe.html',
+        imageData: renderedIcon,
+        fallbackIconPaths,
+      },
+    ]);
+  });
+
+  it('applies the localized default state without invoking the dynamic renderer', async () => {""",
+    "executor global state test",
+)
+executor_test = replace_once(
+    executor_test,
+    """  it('forwards explicit icon cache invalidation to the original renderer', () => {""",
+    """  it('applies the global default without a tabId', async () => {
+    const { action, executor } = createHarness();
+
+    await executor.applyGlobalDefault();
+
+    expect(action.presentations).toEqual([
+      {
+        title: '正在加载……',
+        badgeBackgroundColor: '#d90000',
+        popup: 'popup-iframe.html',
+        fallbackIconPaths,
+      },
+    ]);
+  });
+
+  it('forwards explicit icon cache invalidation to the original renderer', () => {""",
+    "executor global default test",
+)
+executor_test_path.write_text(executor_test, encoding="utf-8")
+
+
+coordinator_test_path = Path("apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts")
+coordinator_test = coordinator_test_path.read_text(encoding="utf-8")
+coordinator_test = replace_once(
+    coordinator_test,
+    """    | { readonly type: 'default'; readonly tabId: number }
+    | { readonly type: 'clear-cache' }""",
+    """    | { readonly type: 'default'; readonly tabId: number }
+    | { readonly type: 'global'; readonly state: OriginalToolbarTabState }
+    | { readonly type: 'global-default' }
+    | { readonly type: 'clear-cache' }""",
+    "coordinator test global call types",
+)
+coordinator_test = replace_once(
+    coordinator_test,
+    """  async applyDefault(tabId: number): Promise<void> {
+    this.calls.push({ type: 'default', tabId });
+  }
+
+  clearIconCache(): void {""",
+    """  async applyDefault(tabId: number): Promise<void> {
+    this.calls.push({ type: 'default', tabId });
+  }
+
+  async applyGlobal(state: OriginalToolbarTabState): Promise<void> {
+    this.calls.push({ type: 'global', state });
+    if (this.applyError !== undefined) throw this.applyError;
+  }
+
+  async applyGlobalDefault(): Promise<void> {
+    this.calls.push({ type: 'global-default' });
+  }
+
+  clearIconCache(): void {""",
+    "coordinator test global methods",
+)
+coordinator_test = replace_once(
+    coordinator_test,
+    """    expect(executor.calls).toEqual([
+      { type: 'clear-cache' },
+      { type: 'apply', tabId: 19, state: state('https://first.test/') },""",
+    """    expect(executor.calls).toEqual([
+      { type: 'clear-cache' },
+      { type: 'global', state: state('about:blank') },
+      { type: 'apply', tabId: 19, state: state('https://first.test/') },""",
+    "coordinator refresh-all global assertion",
+)
+coordinator_test = replace_once(
+    coordinator_test,
+    """  it('falls back to default and reports resolver or Action failures with tab context', async () => {""",
+    """  it('uses a global loading fallback when the active route has no source-certain baseline', async () => {
+    const { tabs, resolver, executor, coordinator } = createHarness();
+    tabs.queryResult = [];
+    resolver.implementation = () => undefined;
+
+    await coordinator.refreshAll();
+
+    expect(resolver.calls).toEqual([{ tabId: -1, url: 'about:blank' }]);
+    expect(executor.calls).toEqual([{ type: 'global-default' }]);
+  });
+
+  it('falls back to default and reports resolver or Action failures with tab context', async () => {""",
+    "coordinator global fallback test",
+)
+coordinator_test_path.write_text(coordinator_test, encoding="utf-8")
 
 
 firefox_path = Path("scripts/e2e-firefox.mjs")
