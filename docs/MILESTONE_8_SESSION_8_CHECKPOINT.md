@@ -66,9 +66,22 @@ Permanent test commit `adf53faa98825729d5a6c5782dd21c61864e3087` adds the missin
 
 The dedicated transaction `30670819111` passed full `pnpm verify`, Chromium toolbar acceptance, three Firefox toolbar transition iterations and native Inspect set/clear/isolation. Clean authenticated Head `d201d203cd0fd64a14342414935a48c3c295e60c` then passed CI `30671118969`, Browser E2E `30671118975`, Parity Documentation `30671118993` and Milestone 8 Visual Evidence `30671118990`.
 
+## Exact Switch → Fixed toolbar trace
+
+Product commit `b55b2b61404f9cdaf4cf3d8f5d664f5b7d1e22b9` adds a deliberately narrow original-backed inclusive-profile slice:
+
+- active profile is one colored Switch profile without an attached Rule List;
+- exactly one matched rule or the Switch default directly targets one colored Fixed profile;
+- the graph decision must be exact and end in that Fixed proxy endpoint;
+- visible details preserve the original order: condition or localized `(default)` transition to the result profile, followed by the final PAC-result line;
+- current/result names, two-color icon inputs, optional four-code-unit result Badge and per-tab Popup follow the original `actionForUrl` contract;
+- Switch results into Direct/System, nested profiles, attached Rule Lists, PAC, Virtual, temporary-rule or external-control traces remain fail-closed.
+
+The resolver gained three focused tests, bringing the unit total to `520`. Dedicated transaction `30672598304` passed full `pnpm verify`, Chromium real Action acceptance and three consecutive Firefox focused Action journeys covering matched, default, internal fallback and same-tab matched ↔ default transitions. Clean Head `5ce5a21a865a569e327a78062d7d255fe0f76126` then passed CI `30672861182`, Browser E2E `30672861154`, Parity Documentation `30672861161` and Milestone 8 Visual Evidence `30672861171`.
+
 ## Remaining Order 1 work
 
-- complete Switch/PAC default and matched-result traces;
+- Switch results into Direct/System, nested or attached Rule Lists, plus PAC default and matched-result traces;
 - Virtual and attached Rule List traces;
 - temporary-rule and external-control transitions through the single writer;
 - forced dynamic-render failure/static-fallback evidence where feasible;
@@ -77,7 +90,7 @@ The dedicated transaction `30670819111` passed full `pnpm verify`, Chromium tool
 
 ## Next gate
 
-1. Preserve and integrate the complete original `matchProfile.results` traces for Switch/PAC/Virtual/attached Rule List/temporary-rule/external-control states.
+1. Preserve and integrate the remaining original `matchProfile.results` traces for Switch→Direct/System, nested/attached Rule Lists, PAC/Virtual/temporary-rule/external-control states.
 2. Force dynamic-render failure/static fallback where feasible and capture headed toolbar pixels only where Action API state is insufficient.
 3. Run focused repository-owner acceptance for startup/System, Direct, user Fixed, two-tab isolation, Popup and Inspect.
 4. Keep progress at 47% / 35% until the remaining real-browser and owner-acceptance gates close.
