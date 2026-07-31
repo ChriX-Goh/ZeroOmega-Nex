@@ -124,17 +124,19 @@ describe('original toolbar Action executor', () => {
   it('passes a one-color state without inventing an inner color', async () => {
     const { action, renderer, executor } = createHarness();
     renderer.result = renderedIcon;
+    const state: OriginalToolbarTabState = {
+      icon: {
+        mode: 'single-color',
+        outerCircleColor: '#32a8e6',
+      },
+      titleArguments: {
+        currentProfileName: '[Direct]',
+        resultProfileName: '[Direct]',
+        details: '(not using any proxy)',
+      },
+    };
 
-    await executor.apply(
-      23,
-      tabState({
-        icon: {
-          mode: 'single-color',
-          outerCircleColor: '#32a8e6',
-        },
-        badgeText: undefined,
-      }),
-    );
+    await executor.apply(23, state);
 
     expect(renderer.calls).toEqual([['#32a8e6', undefined]]);
     expect(action.presentations[0]).not.toHaveProperty('badgeText');
