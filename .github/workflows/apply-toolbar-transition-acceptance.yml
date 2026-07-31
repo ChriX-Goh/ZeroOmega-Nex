@@ -5,11 +5,6 @@ on:
     branches: [main]
     paths:
       - .github/workflows/apply-toolbar-transition-acceptance.yml
-      - scripts/apply-toolbar-transition-acceptance.py
-      - scripts/fix-toolbar-transition-proxy-endpoint.py
-      - scripts/fix-firefox-internal-tab-creation.py
-      - scripts/fix-firefox-action-wait-boundary.py
-      - scripts/fix-inspect-base-action-settle.py
 
 permissions:
   contents: write
@@ -57,17 +52,15 @@ jobs:
             xvfb-run -a -s "-screen 0 1280x800x24 -ac +extension RANDR" \
               pnpm test:e2e:inspect-native
           '
-      - name: Commit and clean
+      - name: Commit ordinary files
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add \
             scripts/e2e-chromium-toolbar.mjs \
             scripts/e2e-firefox.mjs \
-            scripts/e2e-inspect-native-menu.mjs \
-            .github/workflows/browser-e2e.yml
+            scripts/e2e-inspect-native-menu.mjs
           git rm \
-            .github/workflows/apply-toolbar-transition-acceptance.yml \
             scripts/apply-toolbar-transition-acceptance.py \
             scripts/fix-toolbar-transition-proxy-endpoint.py \
             scripts/fix-firefox-internal-tab-creation.py \
