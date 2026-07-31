@@ -34,6 +34,7 @@ jobs:
           pnpm exec prettier --write \
             packages/profile-workflow/src/commands.ts \
             packages/profile-workflow/src/commands.test.ts \
+            packages/profile-workflow/src/commands-quick-switch.test.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
             apps/extension/src/lib/profile-workflow-runtime.test.ts
           pnpm verify
@@ -44,6 +45,7 @@ jobs:
           git add \
             packages/profile-workflow/src/commands.ts \
             packages/profile-workflow/src/commands.test.ts \
+            packages/profile-workflow/src/commands-quick-switch.test.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
             apps/extension/src/lib/profile-workflow-runtime.test.ts
           git commit -m 'fix: restore original System startup route'
