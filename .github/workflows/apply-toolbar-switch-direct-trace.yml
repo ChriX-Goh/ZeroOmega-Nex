@@ -31,6 +31,7 @@ jobs:
         run: |
           python scripts/apply-toolbar-switch-direct-trace.py
           python scripts/fix-toolbar-switch-direct-unused.py
+          python scripts/fix-toolbar-switch-direct-terminal.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-profile-resolver.ts \
             apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
@@ -57,6 +58,7 @@ jobs:
           git rm \
             scripts/apply-toolbar-switch-direct-trace.py \
             scripts/fix-toolbar-switch-direct-unused.py \
+            scripts/fix-toolbar-switch-direct-terminal.py \
             scripts/audit-original-toolbar-switch-results.mjs
           git commit -m 'feat: resolve exact Switch to Direct toolbar traces'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
