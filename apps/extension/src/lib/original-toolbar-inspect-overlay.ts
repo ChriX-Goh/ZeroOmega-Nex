@@ -79,6 +79,11 @@ export class OriginalToolbarInspectOverlayManager {
     this.scheduleRefresh(tabId);
   }
 
+  discard(tabId: number): void {
+    this.#overlays.delete(tabId);
+    this.#pendingRefreshes.delete(tabId);
+  }
+
   dispose(): void {
     this.#disposed = true;
     this.#refreshListener = undefined;
