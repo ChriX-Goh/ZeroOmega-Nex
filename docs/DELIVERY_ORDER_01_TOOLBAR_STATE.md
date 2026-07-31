@@ -15,7 +15,7 @@ This document is the first executable child order of `ORIGINAL_NEX_DELIVERY_KNOW
 - Current delivery status: `FAILED`.
 - Owner result: `FAIL` from the 2026-07-30 trial; corrected build `NOT RUN`.
 
-The current Nex branch has source-derived pure models for original Ω geometry, icon color decisions, result Badge behavior and per-tab presentation composition. It still lacks the browser Action adapter, per-tab coordinator and complete runtime convergence required by the original user-facing contract.
+The current Nex branch has source-derived pure models for original Ω geometry, icon color decisions, result Badge behavior and per-tab presentation composition. It now also has an isolated browser Action adapter and an exact original-compatible OffscreenCanvas renderer. These slices are tested but not connected to browser runtime state. The per-tab coordinator and complete runtime convergence remain absent.
 
 No candidate may be generated from this order until the exact corrected build receives repository-owner `PASS`.
 
@@ -115,8 +115,9 @@ graph TD
   B --> TEMP[temporary rules]
   B --> OWN[ownership]
   B --> INSPECT[Inspect runtime]
-  PURE[Pure original toolbar models] -. not connected .-> ACTION[Browser Action adapter]
-  ACTION -. missing .-> COORD[Per-tab coordinator]
+  PURE[Pure original toolbar models] --> RENDER[Exact OffscreenCanvas renderer]
+  RENDER --> ACTION[Browser Action adapter]
+  ACTION -. not connected .-> COORD[Per-tab coordinator]
   WF -. not converged .-> COORD
   TEMP -. not converged .-> COORD
   OWN -. not converged .-> COORD
@@ -126,7 +127,7 @@ graph TD
 Confirmed Nex gaps:
 
 - manifest/static fallback still differs from the original contract;
-- no complete Action adapter exists;
+- the Action adapter and renderer exist only as isolated tested boundaries and are not connected to `browser.action` runtime state;
 - no per-tab coordinator exists;
 - no unified result-input model connects route matching, temporary rules, Rule Lists, Virtual profiles, Inspect and ownership;
 - Inspect directly mutates title/Badge and can conflict with normal state;
@@ -213,23 +214,25 @@ Remaining:
 
 Status: `PARTIAL`.
 
-Exact geometry and size contract are implemented as pure code. Browser Action ImageData generation, cache, fallback and target verification remain open.
+Exact geometry, the original single `300 × 300` OffscreenCanvas pipeline, five-size ImageData generation, color-pair caching, first-error reporting and anti-fingerprinting fallback signal are implemented and tested. Browser Action integration and target-visible icon verification remain open.
 
 ### `TO-04` — browser Action adapter
 
-Status: `NOT STARTED` under the corrected contract. This is the next implementation slice after remaining state inputs are bounded.
+Status: `PARTIAL`.
 
-Required operations:
+Implemented and tested:
 
-- `setIcon`;
-- `setTitle`;
-- `setBadgeText`;
-- `setBadgeBackgroundColor`;
-- clear/restore tab-specific state;
-- target-specific Popup/default handling;
-- static fallback.
+- one browser-API boundary for `setIcon`, `setTitle`, `setBadgeText`, `setBadgeBackgroundColor` and `setPopup`;
+- every application rewrites all tab-visible fields to clear stale state;
+- rejected dynamic ImageData falls back to the supplied original static icon paths.
 
-No browser API mutation may occur inside the pure state model.
+Remaining:
+
+- bind the adapter to the real target-specific `browser.action` API;
+- supply exact target Popup/default constants and original static assets;
+- connect derived tab state, localization and rendered ImageData through the coordinator.
+
+No browser API mutation occurs inside the pure state model.
 
 ### `TO-05` — per-tab coordinator
 
@@ -264,19 +267,19 @@ Only owner `PASS` closes `KG-ICON-001`.
 
 ## 8. Verification checkpoint
 
-Last fully green pure-model Head `5b60bba3e1e66718a01171034582a606cf2334bb`:
+Exact engineering checkpoint Head `326c49ac30efc76d3884e63791dce3bbfb69722a` passed:
 
-- CI `30509677377`;
-- Browser E2E `30509677387`;
-- Parity Documentation `30509677380`;
-- Milestone 8 Visual Evidence `30509677378`.
+- CI `30598899116`;
+- Browser E2E `30598899117`, including Firefox `153.0` through BiDi extension-page navigation;
+- Parity Documentation `30598899120`;
+- Milestone 8 Visual Evidence `30598899111`.
 
-Current runtime/documentation changes require a new Exact-Head permanent-gate record after synchronization settles.
+This validates the isolated Action adapter, exact Canvas renderer and Firefox 153 E2E harness correction. It does not close a `TB-*` row because no product runtime integration or owner acceptance exists yet.
 
 ## 9. Current next action
 
-1. Freeze the remaining original state inputs without inventing behavior.
-2. Implement `TO-04` browser Action adapter.
+1. Capture the exact original title/localization templates and target Popup/default constants; do not hard-code English.
+2. Compose pure tab state → exact renderer → Action adapter in a runtime executor.
 3. Implement `TO-05` per-tab coordinator.
 4. Convert Inspect direct writes into coordinator input.
 5. Verify two-target, two-tab and state-transition behavior.
