@@ -56,11 +56,12 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
 }
 
 /**
- * Resolve source- and runtime-proven built-in and static Fixed Action states
- * from the applied profile workflow. Switch, Rule List, Virtual, PAC and
- * auto-detect title traces remain deliberately unsupported in this slice;
- * returning undefined keeps the coordinator on the localized Loading fallback
- * instead of inventing original-facing details.
+ * Resolve source- and runtime-proven built-in and static Fixed proxy Action
+ * states from the applied profile workflow. Fixed bypass/Direct, Switch, Rule
+ * List, Virtual, PAC and auto-detect title traces remain deliberately
+ * unsupported until the original `matchProfile.results` display trace is
+ * reproduced. Returning undefined keeps the coordinator on the localized
+ * Loading fallback instead of inventing original-facing details.
  */
 export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateResolver {
   readonly #repository: OriginalToolbarProfileStateRepository;
@@ -100,51 +101,27 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
     const decision = evaluateProfileGraph(state.applied, route, request);
-    if (decision.status !== 'resolved') return undefined;
+    if (decision.status !== 'resolved' || decision.route.kind !== 'proxy') return undefined;
 
-    if (decision.route.kind === 'proxy') {
-      return deriveOriginalToolbarTabState({
-        currentProfileName: profile.name,
-        resultProfileName: profile.name,
-        details: localizeOriginalToolbarDetail(
-          this.#i18n,
-          ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
-        ),
-        icon: {
-          currentProfileColor: profile.color,
-          matchedProfileColor: profile.color,
-          directProfileColor: directColor,
-          directResult: false,
-          currentProfileStatic: true,
-          matchedProfileIsCurrent: true,
-        },
-        badge: {
-          enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
-          resultProfileName: profile.name,
-          resultProfileBuiltin: false,
-        },
-      });
-    }
-
-    if (decision.route.kind !== 'direct') return undefined;
-    const directName = this.requireRouteName('direct');
     return deriveOriginalToolbarTabState({
       currentProfileName: profile.name,
-      resultProfileName: `[${directName}]`,
-      details: localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult),
+      resultProfileName: profile.name,
+      details: localizeOriginalToolbarDetail(
+        this.#i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
+      ),
       icon: {
         currentProfileColor: profile.color,
         matchedProfileColor: profile.color,
         directProfileColor: directColor,
-        directResult: true,
+        directResult: false,
         currentProfileStatic: true,
-        matchedProfileIsCurrent: false,
+        matchedProfileIsCurrent: true,
       },
       badge: {
         enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
-        resultProfileName: directName,
-        resultProfileBuiltin: true,
-        builtinBadgeText: directName,
+        resultProfileName: profile.name,
+        resultProfileBuiltin: false,
       },
     });
   }
