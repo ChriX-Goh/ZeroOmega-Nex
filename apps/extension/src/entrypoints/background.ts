@@ -121,7 +121,8 @@ export default defineBackground(() => {
     runtime: {
       inspectRuntime: async () => (await activationDriver.inspectRuntime?.()) ?? {},
     },
-    tabRemoved: browser.tabs.onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
+    tabRemoved: browser.tabs
+      .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
     onError: (error, context) => {
       console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
     },
