@@ -1,0 +1,69 @@
+name: Apply original toolbar target contract
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-original-toolbar-target-contract.yml
+      - scripts/apply-original-toolbar-target-contract.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Apply exact target contract
+        run: |
+          python scripts/apply-original-toolbar-target-contract.py
+          pnpm locale:inventory
+          pnpm exec prettier --write \
+            apps/extension/public/_locales/en/messages.json \
+            apps/extension/public/_locales/zh_CN/messages.json \
+            apps/extension/public/_locales/zh_TW/messages.json \
+            apps/extension/wxt.config.ts \
+            scripts/inspect-manifests.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md
+
+      - name: Verify target contract before commit
+        run: pnpm verify
+
+      - name: Commit target contract
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            apps/extension/public/_locales \
+            apps/extension/wxt.config.ts \
+            scripts/inspect-manifests.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/LOCALE_INVENTORY.md
+          git commit -m 'feat: restore original toolbar target contract'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
