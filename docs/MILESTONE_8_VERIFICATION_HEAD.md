@@ -13,16 +13,16 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 - Confidence band: **42%–50%**.
 - Active journey: Order 1 — installation/startup/toolbar, **35%**.
 
-Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
+Clean Head `d201d203cd0fd64a14342414935a48c3c295e60c` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30666472249`;
-- Browser E2E `30666473257`;
-- Parity Documentation `30666472570`;
-- Milestone 8 Visual Evidence `30666472029`.
+- CI `30671118969`;
+- Browser E2E `30671118975`;
+- Parity Documentation `30671118993`;
+- Milestone 8 Visual Evidence `30671118990`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
+The permanent Browser E2E run passed the Chromium full journey, Chromium toolbar Action, Firefox full journey, the permanent focused Firefox toolbar Action job and native Chromium Inspect acceptance. Chromium and Firefox now directly verify System, Direct, simultaneous Fixed proxy / Fixed bypass state, browser-internal/default fallback and same-tab proxy ↔ bypass transitions. Native Inspect directly captures tab-local set, current-page clear, base-state restoration and cross-tab isolation. The dedicated pre-commit transaction also passed full verification and three consecutive focused Firefox toolbar transition journeys.
 
-The runtime now establishes a browser-level Action baseline before per-tab overrides, serializes profile-workflow commands so concurrent startup reads cannot observe half-initialized proxy state, and repairs missing persisted proxy runtime from the saved startup route. Top-level navigation remains an exact-guarded coordinator input rather than a second writer.
+The runtime now establishes a browser-level Action baseline before per-tab overrides, serializes profile-workflow commands so concurrent startup reads cannot observe half-initialized proxy state, and repairs missing persisted proxy runtime from the saved startup route. Top-level navigation remains an exact-guarded coordinator input rather than a second writer. Permanent acceptance now exercises the coordinator across internal/default fallback, same-tab URL result changes and Inspect overlay set/clear/isolation rather than only static two-tab snapshots.
 
 This is an exact engineering and evidence checkpoint, not a release-completeness Head. It proves the mapped toolbar slice and permanent gates only.
 
@@ -32,7 +32,7 @@ The background now registers one real browser Action writer composed from the re
 
 Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy and Fixed bypass per-tab title/Badge/Popup state on two real tabs. Firefox 152.0.6 additionally verifies the `about:blank` → committed web navigation path. Inspect no longer competes as a second title/Badge writer.
 
-Still outside the verified slice are complete Switch/PAC/Virtual/Rule List/temporary-rule/external-control traces, explicit internal-page and same-tab transition assertions, direct Inspect set/clear Action capture, forced renderer fallback and repository-owner PASS.
+Still outside the verified slice are complete Switch/PAC/Virtual/Rule List/temporary-rule/external-control traces, forced renderer fallback, headed toolbar pixels where browser-readable state is insufficient and repository-owner PASS.
 
 ## Current boundary
 

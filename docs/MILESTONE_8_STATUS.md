@@ -81,21 +81,21 @@ Current verified Nex runtime:
 
 ### Exact verified checkpoint
 
-Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
+Clean Head `d201d203cd0fd64a14342414935a48c3c295e60c` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30666472249`;
-- Browser E2E `30666473257`;
-- Parity Documentation `30666472570`;
-- Milestone 8 Visual Evidence `30666472029`.
+- CI `30671118969`;
+- Browser E2E `30671118975`;
+- Parity Documentation `30671118993`;
+- Milestone 8 Visual Evidence `30671118990`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
+The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, simultaneous Fixed proxy / Fixed bypass, internal/default fallback and same-tab proxy ↔ bypass transitions. Native Inspect verifies target-tab set, current-page clear, base restoration and cross-tab isolation. Dedicated transaction `30670819111` also passed full verification and three consecutive focused Firefox toolbar transition journeys.
 
 The `webNavigation` listener is a refresh input to the existing coordinator, not a second Action writer. Both built manifests require the permission through the exact manifest guard and retain no required global host access.
 
 Still open:
 
 - complete Switch/PAC/Virtual/attached Rule List/temporary-rule/external-control result traces;
-- explicit internal-page, same-tab URL-transition, Inspect set/clear and forced renderer-fallback Action evidence;
+- forced renderer-fallback Action evidence and headed toolbar pixels where browser-readable state is insufficient;
 - headed toolbar pixels where browser-readable state is insufficient;
 - repository-owner acceptance of the corrected Order 1 journey.
 
@@ -147,11 +147,10 @@ All are release-blocking.
 - connect temporary-rule and external-control transitions to the single writer;
 - preserve the original multiline `matchProfile.results` wording and fail closed on unsupported trace shapes.
 
-### 2. Expand direct real-browser Action acceptance
+### 2. Finish the remaining renderer evidence
 
-- add explicit internal-page fallback and same-tab proxy↔bypass transition assertions;
-- capture Inspect set/clear/isolation through the real Action API;
-- force renderer failure and verify static fallback where feasible.
+- force renderer failure and verify static fallback where feasible;
+- capture headed toolbar pixels only where browser-readable Action state cannot establish equivalence.
 
 ### 3. Run focused owner acceptance
 
@@ -170,4 +169,4 @@ No new candidate may be declared until the complete comparison graph is mapped, 
 
 ## Current next action
 
-Complete the remaining original result traces plus explicit internal-page, same-tab and Inspect Action assertions, then run focused Order 1 owner acceptance. No candidate is permitted.
+Complete the remaining original result traces plus renderer fallback/pixel evidence where needed, then run focused Order 1 owner acceptance. No candidate is permitted.

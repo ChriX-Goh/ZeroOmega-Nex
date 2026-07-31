@@ -17,13 +17,13 @@ It records the current real audit position. Historical matrix counts, implementa
 - Progress authority: `docs/PROJECT_PROGRESS_MODEL.md`.
 - Active journey: Order 1 at 35%.
 - Current implementation registers one background owner for real browser Action writes and composes the repository resolver, global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Startup establishes a browser-level System/Direct Action baseline, serializes profile-workflow commands through activation follow-up, repairs missing proxy runtime from the saved startup route and refreshes all tabs after activation or recovery. Top-level `webNavigation.onCommitted` remains a final-URL coordinator input.
-- Exact official Chromium and Firefox packages cover the basic original reference states. Nex now has direct Chromium and Firefox Action acceptance for System, Direct, Fixed proxy, Fixed bypass, two-tab isolation, runtime-localized title and per-tab Popup; Chromium also verifies four-code-unit Badge truncation. Advanced traces and owner acceptance remain open.
+- Exact official Chromium and Firefox packages cover the basic original reference states. Nex now has direct Chromium and Firefox Action acceptance for System, Direct, Fixed proxy, Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass, two-tab isolation, runtime-localized title and per-tab Popup; Chromium also verifies four-code-unit Badge truncation, while native Inspect verifies set/clear/base restoration/isolation. Advanced traces and owner acceptance remain open.
 
 ## Active delivery sequence
 
 | Order | Journey                                                  | Contract/order                       | Evidence                                                                                    | Current state                                                                                                                                                                                                                                                                                                              | Next gate                                                                                                                            |
 | ----: | -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | Original source/package/runtime evidence plus permanent Nex Chromium and Firefox Action E2E | Background single-writer runtime, durable global Action baseline, serialized original System startup, Direct/System/Fixed resolver, top-level navigation refresh, Inspect overlay and real two-tab Action state are verified in both targets; Switch/PAC/Virtual/Rule List/temp/external traces and owner PASS remain open | Complete the remaining original trace inputs and explicit internal/same-tab/Inspect assertions, then run focused owner acceptance    |
+|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | Original source/package/runtime evidence plus permanent Nex Chromium and Firefox Action E2E | Background single-writer runtime, durable global Action baseline, serialized original System startup, Direct/System/Fixed resolver, top-level navigation refresh, Inspect overlay and real two-tab Action state are verified in both targets; Switch/PAC/Virtual/Rule List/temp/external traces and owner PASS remain open | Complete the remaining original trace inputs, renderer fallback/pixel evidence where needed, then run focused owner acceptance       |
 |     2 | Real original export → direct Nex use                    | pending                              | pending real-export corpus                                                                  | `FAILED`; owner’s real original export did not become directly usable                                                                                                                                                                                                                                                      | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
 |     3 | Popup                                                    | pending                              | original Popup source and basic Chromium/Firefox runtime surfaces captured                  | broad mismatch reported; complete state hierarchy remains open                                                                                                                                                                                                                                                             | Capture original dimensions, hierarchy and all states; compare independently with Nex                                                |
 |     4 | Options / Apply / Discard                                | pending                              | source notes and basic installed Chromium/Firefox Options surfaces                          | broad mismatch reported                                                                                                                                                                                                                                                                                                    | Page/control/dialog/help-text inventory before code changes                                                                          |
@@ -77,13 +77,13 @@ Confirmed real runtime:
 - the race-safe coordinator owns the global baseline, tab creation, URL updates, activation, all-tab refresh, stale-result suppression and cache invalidation; top-level `webNavigation.onCommitted` supplies the committed URL when Firefox tab events are incomplete;
 - clean installations proactively initialize to System without opening Popup or Options; command serialization prevents half-initialized concurrent reads, and missing proxy runtime is repaired from the saved startup route;
 - Inspect is an overlay input to the same executor rather than a competing title/Badge writer;
-- permanent Chromium and Firefox Action E2E read two tab IDs through the target Action API across System → Direct → Fixed proxy / Fixed bypass transitions;
+- permanent Chromium and Firefox Action E2E read real tab IDs across System → Direct → Fixed proxy / Fixed bypass, internal/default fallback and same-tab proxy ↔ bypass transitions; native Chromium Inspect captures set/clear/base restoration/isolation;
 - cross-document revision archives are filtered by current `documentId` before current-document validation.
 
 Remaining gap:
 
 - Switch, PAC, Virtual, attached Rule List, temporary-rule and external-control states still lack the complete original result trace;
-- explicit internal-page, same-tab URL-transition, Inspect set/clear Action capture and forced renderer-fallback evidence remain open;
+- forced renderer-fallback evidence and headed toolbar pixels remain open where browser-readable Action state is insufficient;
 - no toolbar row is owner-complete until focused repository-owner acceptance passes.
 
 ### Source-certain implementation
@@ -97,21 +97,22 @@ Remaining gap:
 - single-writer Inspect overlay;
 - proactive System initialization, serialized workflow commands and missing-runtime recovery;
 - permanent Chromium toolbar Action E2E in `scripts/e2e-chromium-toolbar.mjs`;
-- permanent Firefox toolbar Action acceptance integrated into `scripts/e2e-firefox.mjs`;
+- permanent Firefox toolbar Action acceptance integrated into `scripts/e2e-firefox.mjs`, including internal/default fallback and same-tab proxy ↔ bypass transitions;
+- native Inspect Action set/clear/base restoration/isolation in `scripts/e2e-inspect-native-menu.mjs`;
 - regression coverage for cross-document revision history isolation.
 
 These close implementation and automation slices only. They do not close `KG-ICON-001` or authorize a candidate.
 
 ### Last fully green engineering slice
 
-Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
+Clean Head `d201d203cd0fd64a14342414935a48c3c295e60c` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30666472249`;
-- Browser E2E `30666473257`;
-- Parity Documentation `30666472570`;
-- Milestone 8 Visual Evidence `30666472029`.
+- CI `30671118969`;
+- Browser E2E `30671118975`;
+- Parity Documentation `30671118993`;
+- Milestone 8 Visual Evidence `30671118990`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
+The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, simultaneous Fixed proxy / Fixed bypass, internal/default fallback and same-tab proxy ↔ bypass transitions. Native Inspect verifies tab-local set/clear/base restoration/isolation. Dedicated transaction `30670819111` also passed full verification and three consecutive focused Firefox toolbar transition journeys.
 
 The listener only requests a coordinator refresh for top-level commits; it never writes Action state directly. The exact manifest audit requires `webNavigation` in both targets and still forbids global host access.
 

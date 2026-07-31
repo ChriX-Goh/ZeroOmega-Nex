@@ -40,9 +40,9 @@ Temporary applicators, diagnostics and the one-time workflow were removed atomic
 
 ## Verification boundary
 
-Authenticated clean checkpoint `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all four permanent gates: CI `30666472249`, Browser E2E `30666473257`, Parity Documentation `30666472570` and Milestone 8 Visual Evidence `30666472029`. Browser E2E passed Firefox, Chromium toolbar Action and native Chromium Inspect jobs. This remains slice-level engineering evidence only.
+Authenticated clean checkpoint `d201d203cd0fd64a14342414935a48c3c295e60c` passed all four permanent gates: CI `30671118969`, Browser E2E `30671118975`, Parity Documentation `30671118993` and Milestone 8 Visual Evidence `30671118990`. Browser E2E passed Firefox, Chromium toolbar Action and native Chromium Inspect jobs. This remains slice-level engineering evidence only.
 
-The authoritative knowledge graph, audit index, Delivery Order 1, Milestone 8 status and Verification Head were synchronized to that exact checkpoint in `16fdd72ca32e109778f54b0eb2a61993059ba60c`; the temporary synchronization files were removed in `7eb7077ba11c500ebc12829f822da9dd67f246ad`.
+That earlier synchronization checkpoint is superseded by the transition/Inspect acceptance below. The progress model remains unchanged because automation does not replace owner acceptance.
 
 ## Firefox acceptance stabilization
 
@@ -54,20 +54,30 @@ Test commit `b23d0be3223a371891364564f7390fe138bc3d0c` removes two timing-only f
 
 Before that commit, the exact modified tree passed CI `30667693473`, Browser E2E `30667693463`, Parity Documentation `30667693502` and Milestone 8 Visual Evidence `30667693470`. The dedicated transaction also passed full verification and three consecutive complete Firefox extension journeys.
 
+## Toolbar transition and Inspect acceptance
+
+Permanent test commit `adf53faa98825729d5a6c5782dd21c61864e3087` adds the missing source-certain browser assertions:
+
+- Chromium verifies System behavior on a real `chrome://version/` tab, Fixed fallback to the localized default Action, and same-tab Fixed proxy → bypass → proxy transitions;
+- Firefox verifies the equivalent contract on a real `about:blank` browser tab and same-tab proxy ↔ bypass transitions; the dedicated transaction passed three consecutive focused Firefox journeys;
+- Firefox Action waits now accept a final sample that reaches the exact expected state at the timeout boundary instead of rethrowing a stale WebDriver timeout;
+- native Chromium Inspect now waits for the target and isolation tabs to settle to the same System baseline, captures `#`/Inspect title on the target tab, clears the overlay by selecting the current page URL, restores the base Action and proves the isolation tab remains unchanged;
+- permanent Browser E2E now runs the focused Firefox toolbar Action job and uploads its diagnostics separately.
+
+The dedicated transaction `30670819111` passed full `pnpm verify`, Chromium toolbar acceptance, three Firefox toolbar transition iterations and native Inspect set/clear/isolation. Clean authenticated Head `d201d203cd0fd64a14342414935a48c3c295e60c` then passed CI `30671118969`, Browser E2E `30671118975`, Parity Documentation `30671118993` and Milestone 8 Visual Evidence `30671118990`.
+
 ## Remaining Order 1 work
 
 - complete Switch/PAC default and matched-result traces;
 - Virtual and attached Rule List traces;
 - temporary-rule and external-control transitions through the single writer;
-- explicit internal-page fallback and same-tab proxy↔bypass assertions;
-- direct Inspect set/clear/isolation Action capture;
 - forced dynamic-render failure/static-fallback evidence where feasible;
 - headed toolbar pixels where browser-readable state is insufficient;
 - focused repository-owner acceptance and explicit `PASS`.
 
 ## Next gate
 
-1. Require all four permanent gates on this authenticated post-stabilization Head.
-2. Update PR #11 and the Session 8 PR checkpoint to the exact successful Head and run IDs.
-3. Continue with internal-page, same-tab transition and direct Inspect Action acceptance.
-4. Keep progress at 47% / 35% until their real-browser and owner-acceptance gates close.
+1. Preserve and integrate the complete original `matchProfile.results` traces for Switch/PAC/Virtual/attached Rule List/temporary-rule/external-control states.
+2. Force dynamic-render failure/static fallback where feasible and capture headed toolbar pixels only where Action API state is insufficient.
+3. Run focused repository-owner acceptance for startup/System, Direct, user Fixed, two-tab isolation, Popup and Inspect.
+4. Keep progress at 47% / 35% until the remaining real-browser and owner-acceptance gates close.
