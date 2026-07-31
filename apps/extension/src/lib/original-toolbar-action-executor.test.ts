@@ -23,6 +23,7 @@ class RecordingActionWriter implements OriginalToolbarActionWriter {
 
 class RecordingRenderer implements OriginalToolbarIconRendererApi {
   readonly calls: Array<readonly [string, string | undefined]> = [];
+  clearCacheCalls = 0;
   result: OriginalToolbarActionImageDataSet | undefined;
 
   render(
@@ -31,6 +32,10 @@ class RecordingRenderer implements OriginalToolbarIconRendererApi {
   ): OriginalToolbarActionImageDataSet | undefined {
     this.calls.push([outerCircleColor, innerCircleColor]);
     return this.result;
+  }
+
+  clearCache(): void {
+    this.clearCacheCalls += 1;
   }
 }
 
@@ -175,5 +180,13 @@ describe('original toolbar Action executor', () => {
         fallbackIconPaths,
       },
     ]);
+  });
+
+  it('forwards explicit icon cache invalidation to the original renderer', () => {
+    const { renderer, executor } = createHarness();
+
+    executor.clearIconCache();
+
+    expect(renderer.clearCacheCalls).toBe(1);
   });
 });
