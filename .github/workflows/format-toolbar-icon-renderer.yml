@@ -1,0 +1,50 @@
+name: Format toolbar icon renderer
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/format-toolbar-icon-renderer.yml
+      - apps/extension/src/lib/original-toolbar-icon-renderer.ts
+      - apps/extension/src/lib/original-toolbar-icon-renderer.test.ts
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact Head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Format renderer files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/lib/original-toolbar-icon-renderer.ts \
+            apps/extension/src/lib/original-toolbar-icon-renderer.test.ts
+
+      - name: Upload formatted renderer files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-toolbar-icon-renderer-${{ github.event.pull_request.head.sha }}
+          path: |
+            apps/extension/src/lib/original-toolbar-icon-renderer.ts
+            apps/extension/src/lib/original-toolbar-icon-renderer.test.ts
+          if-no-files-found: error
+          retention-days: 7
