@@ -26,6 +26,7 @@ import {
 } from './original-toolbar-runtime';
 import type {
   OriginalToolbarActivatedListener,
+  OriginalToolbarCreatedListener,
   OriginalToolbarEvent,
   OriginalToolbarTabsApi,
   OriginalToolbarUpdatedListener,
@@ -154,10 +155,12 @@ function harness() {
   const action = new RecordingAction();
   const updated = new ListenerEvent<OriginalToolbarUpdatedListener>();
   const activated = new ListenerEvent<OriginalToolbarActivatedListener>();
+  const created = new ListenerEvent<OriginalToolbarCreatedListener>();
   const removed = new ListenerEvent<OriginalToolbarTabRemovedListener>();
   const tabs: OriginalToolbarTabsApi = {
     onUpdated: updated,
     onActivated: activated,
+    onCreated: created,
     async get(tabId) {
       return { id: tabId, url: 'https://example.test/' };
     },
@@ -173,15 +176,16 @@ function harness() {
     tabRemoved: removed,
     browserRuntime: { canvasFactory: () => canvas },
   });
-  return { action, updated, activated, removed, runtime };
+  return { action, updated, activated, created, removed, runtime };
 }
 
 describe('registered original toolbar runtime', () => {
   it('owns tab listeners and writes repository-backed base state', async () => {
-    const { action, updated, activated, removed, runtime } = harness();
+    const { action, updated, activated, created, removed, runtime } = harness();
 
     expect(updated.listeners.size).toBe(1);
     expect(activated.listeners.size).toBe(1);
+    expect(created.listeners.size).toBe(1);
     expect(removed.listeners.size).toBe(1);
 
     await runtime.refreshAll({ clearIconCache: true });
@@ -196,6 +200,7 @@ describe('registered original toolbar runtime', () => {
     runtime.dispose();
     expect(updated.listeners.size).toBe(0);
     expect(activated.listeners.size).toBe(0);
+    expect(created.listeners.size).toBe(0);
     expect(removed.listeners.size).toBe(0);
   });
 

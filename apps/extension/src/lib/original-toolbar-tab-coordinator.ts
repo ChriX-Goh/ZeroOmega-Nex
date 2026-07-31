@@ -7,6 +7,7 @@ export interface OriginalToolbarCoordinatorTab {
 
 export interface OriginalToolbarCoordinatorTabChangeInfo {
   readonly url?: string;
+  readonly status?: 'loading' | 'complete';
 }
 
 export interface OriginalToolbarCoordinatorActiveInfo {
@@ -23,6 +24,8 @@ export type OriginalToolbarActivatedListener = (
   activeInfo: OriginalToolbarCoordinatorActiveInfo,
 ) => void;
 
+export type OriginalToolbarCreatedListener = (tab: OriginalToolbarCoordinatorTab) => void;
+
 export interface OriginalToolbarEvent<Listener> {
   addListener(listener: Listener): void;
   removeListener(listener: Listener): void;
@@ -31,6 +34,7 @@ export interface OriginalToolbarEvent<Listener> {
 export interface OriginalToolbarTabsApi {
   readonly onUpdated: OriginalToolbarEvent<OriginalToolbarUpdatedListener>;
   readonly onActivated: OriginalToolbarEvent<OriginalToolbarActivatedListener>;
+  readonly onCreated: OriginalToolbarEvent<OriginalToolbarCreatedListener>;
   get(tabId: number): Promise<OriginalToolbarCoordinatorTab>;
   query(queryInfo: Record<string, never>): Promise<readonly OriginalToolbarCoordinatorTab[]>;
 }
@@ -91,9 +95,15 @@ export class OriginalToolbarTabCoordinator {
   #lifecycleEpoch = 0;
   #started = false;
 
-  readonly #updatedListener: OriginalToolbarUpdatedListener = (tabId, changeInfo) => {
-    if (changeInfo.url === undefined) return;
-    void this.refreshTab(tabId, changeInfo.url);
+  readonly #updatedListener: OriginalToolbarUpdatedListener = (tabId, changeInfo, tab) => {
+    if (changeInfo.url === undefined && changeInfo.status !== 'complete') return;
+    const url = changeInfo.url ?? tab.url;
+    void (url === undefined ? this.refreshTab(tabId) : this.refreshTab(tabId, url));
+  };
+
+  readonly #createdListener: OriginalToolbarCreatedListener = (tab) => {
+    if (tab.id === undefined) return;
+    void (tab.url === undefined ? this.refreshTab(tab.id) : this.refreshTab(tab.id, tab.url));
   };
 
   readonly #activatedListener: OriginalToolbarActivatedListener = ({ tabId }) => {
@@ -112,6 +122,7 @@ export class OriginalToolbarTabCoordinator {
     this.#started = true;
     this.#tabs.onUpdated.addListener(this.#updatedListener);
     this.#tabs.onActivated.addListener(this.#activatedListener);
+    this.#tabs.onCreated.addListener(this.#createdListener);
   }
 
   stop(): void {
@@ -119,6 +130,7 @@ export class OriginalToolbarTabCoordinator {
     this.#started = false;
     this.#tabs.onUpdated.removeListener(this.#updatedListener);
     this.#tabs.onActivated.removeListener(this.#activatedListener);
+    this.#tabs.onCreated.removeListener(this.#createdListener);
     this.#lifecycleEpoch += 1;
     this.#sequences.clear();
     this.#queues.clear();

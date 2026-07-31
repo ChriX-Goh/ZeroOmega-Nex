@@ -6,6 +6,7 @@ import {
   type OriginalToolbarActivatedListener,
   type OriginalToolbarCoordinatorExecutor,
   type OriginalToolbarCoordinatorTab,
+  type OriginalToolbarCreatedListener,
   type OriginalToolbarEvent,
   type OriginalToolbarTabStateResolver,
   type OriginalToolbarTabsApi,
@@ -31,6 +32,7 @@ class RecordingEvent<Listener> implements OriginalToolbarEvent<Listener> {
 class RecordingTabsApi implements OriginalToolbarTabsApi {
   readonly onUpdated = new RecordingEvent<OriginalToolbarUpdatedListener>();
   readonly onActivated = new RecordingEvent<OriginalToolbarActivatedListener>();
+  readonly onCreated = new RecordingEvent<OriginalToolbarCreatedListener>();
   readonly getCalls: number[] = [];
   readonly queryCalls: Array<Record<string, never>> = [];
   readonly tabs = new Map<number, OriginalToolbarCoordinatorTab>();
@@ -131,34 +133,45 @@ function createHarness() {
 }
 
 describe('original toolbar tab coordinator', () => {
-  it('registers one URL-update and activation listener and removes both on stop', async () => {
+  it('registers creation, URL-update and activation listeners and removes all on stop', async () => {
     const { tabs, resolver, executor, coordinator } = createHarness();
     resolver.implementation = ({ url }) => state(url);
     tabs.tabs.set(7, { id: 7, url: 'https://activated.test/' });
 
     coordinator.start();
     coordinator.start();
+    expect(tabs.onCreated.listeners.size).toBe(1);
     expect(tabs.onUpdated.listeners.size).toBe(1);
     expect(tabs.onActivated.listeners.size).toBe(1);
 
+    tabs.onCreated.emit((listener) => listener({ id: 3, url: 'https://created.test/' }));
+    tabs.onCreated.emit((listener) => listener({ url: 'https://without-id.test/' }));
     tabs.onUpdated.emit((listener) =>
       listener(5, { url: 'https://updated.test/' }, { id: 5, url: 'https://updated.test/' }),
+    );
+    tabs.onUpdated.emit((listener) =>
+      listener(6, { status: 'complete' }, { id: 6, url: 'https://completed.test/' }),
     );
     tabs.onUpdated.emit((listener) => listener(5, {}, { id: 5, url: 'https://ignored.test/' }));
     tabs.onActivated.emit((listener) => listener({ tabId: 7 }));
     await flushEvents();
 
     expect(resolver.calls).toEqual([
+      { tabId: 3, url: 'https://created.test/' },
       { tabId: 5, url: 'https://updated.test/' },
+      { tabId: 6, url: 'https://completed.test/' },
       { tabId: 7, url: 'https://activated.test/' },
     ]);
     expect(executor.calls).toEqual([
+      { type: 'apply', tabId: 3, state: state('https://created.test/') },
       { type: 'apply', tabId: 5, state: state('https://updated.test/') },
+      { type: 'apply', tabId: 6, state: state('https://completed.test/') },
       { type: 'apply', tabId: 7, state: state('https://activated.test/') },
     ]);
 
     coordinator.stop();
     coordinator.stop();
+    expect(tabs.onCreated.listeners.size).toBe(0);
     expect(tabs.onUpdated.listeners.size).toBe(0);
     expect(tabs.onActivated.listeners.size).toBe(0);
   });

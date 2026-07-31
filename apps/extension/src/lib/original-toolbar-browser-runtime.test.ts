@@ -103,6 +103,10 @@ function createTabs(): OriginalToolbarTabsApi {
       addListener(): void {},
       removeListener(): void {},
     },
+    onCreated: {
+      addListener(): void {},
+      removeListener(): void {},
+    },
     async get(tabId) {
       return { id: tabId, url: 'https://example.test/' };
     },
