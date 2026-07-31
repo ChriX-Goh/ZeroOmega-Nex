@@ -14,14 +14,14 @@
 
 ## Captured Action states
 
-| State | URL | Title | Badge | Runtime popup |
-| --- | --- | --- | --- | --- |
-| `initial-web-page` | local `/alpha` page | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
-| `direct-web-page` | local `/alpha` page | `ZeroOmega:: [Direct]` + direct explanation | empty | `popup-iframe.html` |
-| `system-web-page` | local `/alpha` page | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
-| `system-second-tab` | local `/beta` page | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
+| State                       | URL                          | Title                                                       | Badge | Runtime popup       |
+| --------------------------- | ---------------------------- | ----------------------------------------------------------- | ----- | ------------------- |
+| `initial-web-page`          | local `/alpha` page          | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
+| `direct-web-page`           | local `/alpha` page          | `ZeroOmega:: [Direct]` + direct explanation                 | empty | `popup-iframe.html` |
+| `system-web-page`           | local `/alpha` page          | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
+| `system-second-tab`         | local `/beta` page           | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
 | `system-first-tab-inactive` | inactive local `/alpha` page | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
-| `system-internal-page` | `about:support` | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
+| `system-internal-page`      | `about:support`              | `ZeroOmega:: [System Proxy]` + external-control explanation | empty | `popup-iframe.html` |
 
 For all captured states, the Action Badge background color was `[217, 0, 0, 255]`. The result-profile Badge preference was disabled in the captured original storage, so empty Badge text is expected.
 
