@@ -109,16 +109,18 @@ The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 co
 - Required mode: complete Original capture, independent Nex capture, explicit mapping, then journey-level correction.
 - PR #11 remains Draft; merge and release are prohibited.
 
-### Exact verified checkpoint — 2026-07-31
+### Exact verified checkpoint — 2026-08-01
 
-Clean Head `dbb237ffd0c65358fbe9bd483ae85bc9538f6976` passed all permanent gates:
+Clean Head `c37f56e818bb73806f2a42a70dc941d5e5d76e9a` passed all permanent gates after the Firefox new-tab Action fix and temporary-file cleanup:
 
-- CI run `30632153986`;
-- Browser E2E run `30632154001`;
-- Parity Documentation run `30632154009`;
-- Milestone 8 Visual Evidence run `30632153953`.
+- CI `30659255772`;
+- Browser E2E `30659255691`;
+- Parity Documentation `30659255845`;
+- Milestone 8 Visual Evidence `30659255790`.
 
-The permanent Chromium browser job now executes a separate real Action acceptance script after the existing full extension journey. It reads `chrome.action.getTitle`, `getBadgeText` and `getPopup` for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions, localized titles from the runtime extension locale, four-code-unit Badge text and per-tab Popup state. Firefox and native Chromium Inspect also passed in the same Browser E2E run.
+The permanent Browser E2E run directly verifies per-tab title, Badge and Popup in both Chromium and Firefox for System → Direct → Fixed proxy / Fixed bypass. Firefox additionally proves that newly created tabs and completed navigations receive computed Action state instead of remaining at the manifest loading title. Native Chromium Inspect passed in the same run.
+
+The checkpoint remains slice-level evidence and does not alter the 47% / 35% progress model.
 
 ## 3. Status vocabulary
 

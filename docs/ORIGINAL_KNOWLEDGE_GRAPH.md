@@ -47,6 +47,15 @@ graph TD
 | `omega-pac`    | 情景模式、条件、引用、PAC 生成         | Nex 可采用新 schema，但必须维护可逆的原版语义映射              |
 | 浏览器 target  | Proxy API、权限、认证、外部控制状态    | 可按 Chromium/Firefox 能力差异实现，但差异必须显式显示         |
 
+## 2.1 当前 Nex 工具栏映射检查点（不反向定义原版）
+
+- clean Head：`c37f56e818bb73806f2a42a70dc941d5e5d76e9a`；CI `30659255772`、Browser E2E `30659255691`、Parity `30659255845`、Visual `30659255790` 全绿。
+- Chromium 与 Firefox 均直接读取每标签页 Action title、Badge、Popup，并通过 System → Direct → Fixed proxy / Fixed bypass 双标签验收。
+- Firefox 实跑暴露新标签长期停在 manifest loading title；Nex 已加入 `tabs.onCreated` 与 `status: complete` 且 URL 仅存在于 tab 对象时的刷新路径。
+- 该兼容性修复只保证原版可观察的“新标签应得到当前状态”，不是新增原版概念。
+- Switch/PAC/Virtual/Rule List/临时规则/外部控制完整 trace、内部页、同标签 URL 切换、Inspect Action set/clear 和 owner PASS 仍未完成。
+- 总进度仍为 47%，Order 1 仍为 35%，不得据此生成候选。
+
 ## 3. 情景模式分类图
 
 ```mermaid

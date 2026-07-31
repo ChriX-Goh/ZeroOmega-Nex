@@ -73,27 +73,26 @@ Current verified Nex runtime:
 - one registered background owner performs all real Action writes;
 - real `browser.action`, `browser.i18n`, `browser.tabs` and OffscreenCanvas boundaries are constructed in the background;
 - the repository resolver covers Direct, System, Fixed proxy and Fixed bypass;
-- the per-tab coordinator handles URL updates, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh;
+- the per-tab coordinator handles tab creation, URL updates, Firefox completion events, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh;
 - clean installations proactively initialize to the original System route without opening UI; existing state follows restore/recovery without duplicate activation;
 - Inspect feeds a single-writer overlay and no longer mutates title/Badge independently;
-- permanent Chromium Action E2E directly verifies two tab IDs through `getTitle`, `getBadgeText` and `getPopup` across System → Direct → Fixed proxy / Fixed bypass;
+- permanent Chromium and Firefox Action E2E directly verify two tab IDs through the target Action API across System → Direct → Fixed proxy / Fixed bypass;
 - cross-document revision history is isolated by current `documentId` before validation.
 
 ### Exact verified checkpoint
 
-Clean Head `e03e76e7edf310ddd6f947e77453febf0de07f58` passed all permanent gates after the knowledge-graph sync and temporary-file cleanup:
+Clean Head `c37f56e818bb73806f2a42a70dc941d5e5d76e9a` passed all permanent gates after the Firefox new-tab Action fix and temporary-file cleanup:
 
-- CI `30657732067`;
-- Browser E2E `30657732048`;
-- Parity Documentation `30657732107`;
-- Milestone 8 Visual Evidence `30657732880`.
+- CI `30659255772`;
+- Browser E2E `30659255691`;
+- Parity Documentation `30659255845`;
+- Milestone 8 Visual Evidence `30659255790`.
 
-The permanent Chromium browser job includes the separate real toolbar Action E2E. It reads per-tab title, Badge and Popup for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions. Firefox and native Chromium Inspect passed in the same Browser E2E run.
+The permanent Browser E2E run directly verifies per-tab title, Badge and Popup in both Chromium and Firefox for System → Direct → Fixed proxy / Fixed bypass. Firefox additionally proves that newly created tabs and completed navigations receive computed Action state instead of remaining at the manifest loading title. Native Chromium Inspect passed in the same run.
 
 Still open:
 
 - complete Switch/PAC/Virtual/attached Rule List/temporary-rule/external-control result traces;
-- direct equivalent Firefox Action API acceptance;
 - explicit internal-page, same-tab URL-transition, Inspect set/clear and forced renderer-fallback Action evidence;
 - headed toolbar pixels where browser-readable state is insufficient;
 - repository-owner acceptance of the corrected Order 1 journey.
@@ -102,7 +101,7 @@ No `TB-*` row or `KG-ICON-001` is owner-complete.
 
 ## Runtime harness boundary
 
-Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and passes on Firefox 153.0. Historical original-package evidence remains fixed to Firefox 152.0.6; rerunning that separate original audit still requires the same BiDi migration or a pinned runtime.
+Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and directly verifies Action title/Badge/Popup on Firefox 153.0. The coordinator handles `tabs.onCreated` and completed updates whose URL is available only on the tab object, preventing new Firefox tabs from remaining at the manifest loading title. Historical original-package evidence remains fixed to Firefox 152.0.6; rerunning that separate original audit still requires the same BiDi migration or a pinned runtime.
 
 The browser Action architecture now has one writer. Inspect, profile activation and startup recovery are integrated inputs. Temporary rules, inclusive-profile traces and external-control transitions remain explicit missing inputs rather than permission to add simplified invented wording.
 
@@ -148,7 +147,6 @@ All are release-blocking.
 
 ### 2. Expand direct real-browser Action acceptance
 
-- add direct Firefox title/Badge/Popup acceptance;
 - add explicit internal-page fallback and same-tab proxy↔bypass transition assertions;
 - capture Inspect set/clear/isolation through the real Action API;
 - force renderer failure and verify static fallback where feasible.
@@ -170,4 +168,4 @@ No new candidate may be declared until the complete comparison graph is mapped, 
 
 ## Current next action
 
-Complete the remaining original result traces and direct Firefox Action acceptance, then run focused Order 1 owner acceptance. No candidate is permitted.
+Complete the remaining original result traces plus explicit internal-page, same-tab and Inspect Action assertions, then run focused Order 1 owner acceptance. No candidate is permitted.
