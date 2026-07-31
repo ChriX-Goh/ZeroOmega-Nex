@@ -1,0 +1,92 @@
+name: Patch Firefox 153 extension navigation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/patch-firefox-153-extension-navigation.yml
+      - scripts/e2e-firefox.mjs
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Patch extension navigation through WebDriver BiDi
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          path = Path('scripts/e2e-firefox.mjs')
+          text = path.read_text(encoding='utf-8')
+
+          marker = "async function runtimeDiagnostics() {"
+          helper = """async function navigateExtensionPage(relativeUrl) {
+            const context = await driver.getWindowHandle();
+            const url = `moz-extension://${extensionUuid}/${relativeUrl}`;
+            const result = await bidiCommand('browsingContext.navigate', {
+              context,
+              url,
+              wait: 'complete',
+            });
+            assert.equal(result?.url, url, `Firefox BiDi navigated to an unexpected extension URL`);
+            await driver.wait(async () => (await driver.getCurrentUrl()) === url, 20_000);
+          }
+
+          """
+
+          if 'async function navigateExtensionPage(relativeUrl)' not in text:
+            if marker not in text:
+              raise SystemExit('Could not locate Firefox E2E helper insertion point')
+            text = text.replace(marker, helper + marker, 1)
+
+          pattern = re.compile(
+              r"await driver\.get\(`moz-extension://\$\{extensionUuid\}/([^`]*)`\);"
+          )
+          text, count = pattern.subn(
+              lambda match: f"await navigateExtensionPage('{match.group(1)}');",
+              text,
+          )
+          if count not in (0, 18):
+            raise SystemExit(f'Expected 18 extension navigations, replaced {count}')
+          if 'await driver.get(`moz-extension://${extensionUuid}/' in text:
+            raise SystemExit('Direct Marionette extension navigation remains')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+          pnpm exec prettier --write scripts/e2e-firefox.mjs
+
+      - name: Commit harness fix
+        run: |
+          if git diff --quiet -- scripts/e2e-firefox.mjs; then
+            echo 'Firefox E2E navigation is already patched.'
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/e2e-firefox.mjs
+          git commit -m 'test: navigate Firefox extension pages through BiDi'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
