@@ -10,6 +10,7 @@ on:
       - scripts/fix-global-toolbar-overlay-contract.py
       - scripts/fix-global-toolbar-startup-await.py
       - scripts/fix-profile-workflow-command-serialization.py
+      - scripts/fix-firefox-toolbar-focused-mode.py
 
 permissions:
   contents: write
@@ -39,6 +40,7 @@ jobs:
           python scripts/fix-global-toolbar-overlay-contract.py
           python scripts/fix-global-toolbar-startup-await.py
           python scripts/fix-profile-workflow-command-serialization.py
+          python scripts/fix-firefox-toolbar-focused-mode.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-action-adapter.ts \
             apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
