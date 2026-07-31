@@ -86,7 +86,7 @@ try {
   const extensionPage = await context.newPage();
   await extensionPage.goto(`chrome-extension://${extensionId}/options.html`);
   await extensionPage.waitForLoadState('domcontentloaded');
-  const expectedTitles = await extensionPage.evaluate(() => {
+  const expectedTitles = await extensionPage.evaluate((proxyPort) => {
     const resultTitle = (currentProfileName, resultProfileName, details) =>
       chrome.i18n.getMessage('browserAction_titleWithResult', [
         currentProfileName,
@@ -100,10 +100,16 @@ try {
     return {
       system: resultTitle(`[${systemName}]`, `[${systemName}]`, externalDetail),
       direct: resultTitle(`[${directName}]`, `[${directName}]`, directDetail),
-      fixedProxy: resultTitle('Toolbar Proxy', 'Toolbar Proxy', 'PROXY 127.0.0.1:7890\n'),
+      fixedProxy: resultTitle('Toolbar Proxy', 'Toolbar Proxy', `PROXY 127.0.0.1:${proxyPort}\n`),
       fixedBypass: resultTitle('Toolbar Proxy', 'Toolbar Proxy', `localhost => ${directDetail}\n`),
+      default: chrome.i18n.getMessage('manifest_icon_default_title'),
     };
-  });
+  }, address.port);
+
+  const internalPage = await context.newPage();
+  await internalPage.goto('chrome://version/');
+  const internalUrl = internalPage.url();
+  const internalTabId = await tabIdForUrl(extensionPage, internalUrl);
 
   const proxyPage = await context.newPage();
   const proxyUrl = `http://toolbar-a.test:${address.port}/alpha`;
@@ -117,6 +123,12 @@ try {
   const systemState = { title: expectedTitles.system, badgeText: '', popup };
   await waitForActionState(extensionPage, proxyTabId, systemState, 'System Action state failed');
   await waitForActionState(extensionPage, bypassTabId, systemState, 'System two-tab state failed');
+  await waitForActionState(
+    extensionPage,
+    internalTabId,
+    systemState,
+    'System internal-page Action state failed',
+  );
 
   const initial = await sendWorkflowCommand(extensionPage, { channel, action: 'get' });
   assert.equal(initial?.ok, true, `Initial workflow failed: ${JSON.stringify(initial)}`);
@@ -147,7 +159,7 @@ try {
       name: 'Toolbar E2E endpoint',
       protocol: 'http',
       host: '127.0.0.1',
-      port: 7890,
+      port: address.port,
     },
   ];
   draft.settings.interface.showResultProfileOnActionBadgeText = true;
@@ -192,6 +204,29 @@ try {
       popup,
     },
     'Fixed bypass Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    internalTabId,
+    { title: expectedTitles.default, badgeText: '', popup },
+    'Fixed internal-page fallback Action state failed',
+  );
+
+  const sameTabBypassUrl = `http://localhost:${address.port}/same-tab-bypass`;
+  await proxyPage.goto(sameTabBypassUrl, { waitUntil: 'domcontentloaded' });
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    { title: expectedTitles.fixedBypass, badgeText: 'Tool', popup },
+    'Same-tab proxy-to-bypass Action transition failed',
+  );
+  const sameTabProxyUrl = `http://toolbar-a.test:${address.port}/same-tab-proxy`;
+  await proxyPage.goto(sameTabProxyUrl, { waitUntil: 'domcontentloaded' });
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    { title: expectedTitles.fixedProxy, badgeText: 'Tool', popup },
+    'Same-tab bypass-to-proxy Action transition failed',
   );
 
   console.log(`Chromium toolbar Action E2E passed for ${extensionId}.`);

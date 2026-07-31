@@ -308,9 +308,8 @@ async function waitForFirefoxActionState(tabId, expected, label) {
       actual = await readFirefoxActionState(tabId);
       return JSON.stringify(actual) === JSON.stringify(expected);
     }, 20_000);
-  } catch (error) {
+  } catch {
     assert.deepEqual(actual, expected, label);
-    throw error;
   }
 }
 
@@ -335,9 +334,8 @@ async function waitForFirefoxGlobalActionState(expected, label) {
       actual = await readFirefoxGlobalActionState();
       return JSON.stringify(actual) === JSON.stringify(expected);
     }, 20_000);
-  } catch (error) {
+  } catch {
     assert.deepEqual(actual, expected, label);
-    throw error;
   }
 }
 
@@ -437,17 +435,42 @@ try {
     systemAction,
     'Firefox global System Action baseline failed before new-tab creation',
   );
+  const defaultAction = {
+    title: await driver.executeScript(
+      "return browser.i18n.getMessage('manifest_icon_default_title');",
+    ),
+    badgeText: '',
+    popup: toolbarPopup,
+  };
 
   const toolbarProxyUrl = `http://toolbar-a.test:${sourceAddress.port}/toolbar-a`;
   const toolbarBypassUrl = `http://localhost:${sourceAddress.port}/toolbar-b`;
   await driver.switchTo().newWindow('tab');
   await driver.get(toolbarProxyUrl);
+  const toolbarProxyWindow = await driver.getWindowHandle();
   await driver.switchTo().newWindow('tab');
   await driver.get(toolbarBypassUrl);
+  const toolbarBypassWindow = await driver.getWindowHandle();
+  await driver.switchTo().newWindow('tab');
+  const toolbarInternalWindow = await driver.getWindowHandle();
   await driver.switchTo().window(optionsWindow);
 
   const toolbarProxyTabId = await firefoxTabIdForUrl(toolbarProxyUrl);
   const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);
+  const toolbarInternalTabId = await driver.wait(
+    async () => {
+      const tabId = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        browser.tabs.query({}).then(
+          (tabs) => done(tabs.find((tab) => tab.url === 'about:blank')?.id),
+          (error) => done({ error: String(error) }),
+        );
+      `);
+      return typeof tabId === 'number' ? tabId : false;
+    },
+    10_000,
+    'Firefox about:blank internal tab ID was not resolved',
+  );
   await waitForFirefoxActionState(
     toolbarProxyTabId,
     systemAction,
@@ -457,6 +480,11 @@ try {
     toolbarBypassTabId,
     systemAction,
     'Firefox System bypass-tab Action state failed',
+  );
+  await waitForFirefoxActionState(
+    toolbarInternalTabId,
+    systemAction,
+    'Firefox System internal-page Action state failed',
   );
 
   const initialWorkflow = await sendFirefoxWorkflowCommand({
@@ -515,7 +543,7 @@ try {
         name: 'Toolbar E2E endpoint',
         protocol: 'http',
         host: '127.0.0.1',
-        port: 7890,
+        port: sourceAddress.port,
       },
     ];
     draft.settings.interface.showResultProfileOnActionBadgeText = true;
@@ -553,7 +581,7 @@ try {
       ...(await literalFirefoxActionState(
         'Toolbar Proxy',
         'Toolbar Proxy',
-        'PROXY 127.0.0.1:7890\n',
+        `PROXY 127.0.0.1:${sourceAddress.port}\n`,
         toolbarPopup,
       )),
       badgeText: 'Tool',
@@ -580,7 +608,33 @@ try {
       fixedBypassAction,
       'Firefox focused Fixed bypass Action state failed',
     );
+    await waitForFirefoxActionState(
+      toolbarInternalTabId,
+      defaultAction,
+      'Firefox focused internal-page fallback Action state failed',
+    );
 
+    const sameTabBypassUrl = `http://localhost:${sourceAddress.port}/toolbar-same-tab-bypass`;
+    await driver.switchTo().window(toolbarProxyWindow);
+    await driver.get(sameTabBypassUrl);
+    await driver.switchTo().window(optionsWindow);
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      fixedBypassAction,
+      'Firefox focused same-tab proxy-to-bypass transition failed',
+    );
+    const sameTabProxyUrl = `http://toolbar-a.test:${sourceAddress.port}/toolbar-same-tab-proxy`;
+    await driver.switchTo().window(toolbarProxyWindow);
+    await driver.get(sameTabProxyUrl);
+    await driver.switchTo().window(optionsWindow);
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      fixedProxyAction,
+      'Firefox focused same-tab bypass-to-proxy transition failed',
+    );
+
+    assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);
+    assert.notEqual(toolbarInternalWindow, toolbarProxyWindow);
     console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);
     throw toolbarOnlyComplete;
   }

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -11,6 +12,27 @@ const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-inspect-native-')
 const workflowStorageKey = 'zeroomega-nex/profile-workflow/v1/state';
 const inspectStorageKey = 'zeroomega-nex/inspect/v1/state';
 const targetUrl = 'https://cdn.example.test/native-menu.js';
+const sourceServer = createServer((request, response) => {
+  response.writeHead(200, {
+    'content-type': 'text/html; charset=utf-8',
+    'cache-control': 'no-store',
+  });
+  const currentUrl = `http://127.0.0.1:${sourceServer.address().port}${request.url}`;
+  response.end(`<!doctype html><html><body style="font: 20px sans-serif; padding: 80px">
+    <a id="inspect-target" href="${targetUrl}">Native Inspect target</a>
+    <a id="inspect-clear" href="${currentUrl}">Clear Inspect using current page URL</a>
+  </body></html>`);
+});
+await new Promise((resolveListen, rejectListen) => {
+  sourceServer.once('error', rejectListen);
+  sourceServer.listen(0, '127.0.0.1', resolveListen);
+});
+const sourceAddress = sourceServer.address();
+if (!sourceAddress || typeof sourceAddress === 'string') {
+  throw new Error('Inspect source server failed');
+}
+const pageUrl = `http://127.0.0.1:${sourceAddress.port}/inspect`;
+const isolationUrl = `http://127.0.0.1:${sourceAddress.port}/isolation`;
 let context;
 
 function run(command, args, options = {}) {
@@ -72,10 +94,45 @@ try {
   await bootstrapPage.close();
 
   const page = await context.newPage();
-  await page.setContent(`<!doctype html>
-    <html><body style="font: 20px sans-serif; padding: 80px">
-      <a id="inspect-target" href="${targetUrl}">Native Inspect target</a>
-    </body></html>`);
+  await page.goto(pageUrl, { waitUntil: 'domcontentloaded' });
+  const isolationPage = await context.newPage();
+  await isolationPage.goto(isolationUrl, { waitUntil: 'domcontentloaded' });
+  const tabIds = await eventually(
+    () =>
+      worker.evaluate(
+        async ({ target, isolation }) => {
+          const tabs = await chrome.tabs.query({});
+          return {
+            target: tabs.find((tab) => tab.url === target)?.id,
+            isolation: tabs.find((tab) => tab.url === isolation)?.id,
+          };
+        },
+        { target: pageUrl, isolation: isolationUrl },
+      ),
+    'Inspect target and isolation tab IDs were not resolved',
+  );
+  assert.equal(typeof tabIds.target, 'number');
+  assert.equal(typeof tabIds.isolation, 'number');
+  const baseActions = await eventually(
+    () =>
+      worker.evaluate(async ({ target, isolation }) => {
+        const read = async (tabId) => ({
+          badge: await chrome.action.getBadgeText({ tabId }),
+          title: await chrome.action.getTitle({ tabId }),
+        });
+        const loadingTitle = chrome.i18n.getMessage('manifest_icon_default_title');
+        const globalTitle = await chrome.action.getTitle({});
+        const actions = { target: await read(target), isolation: await read(isolation) };
+        return globalTitle !== loadingTitle &&
+          actions.target.badge === '' &&
+          actions.isolation.badge === '' &&
+          actions.target.title === globalTitle &&
+          actions.isolation.title === globalTitle
+          ? actions
+          : undefined;
+      }, tabIds),
+    'Inspect target and isolation Action baselines did not settle',
+  );
   await page.bringToFront();
   await new Promise((resolveWait) => setTimeout(resolveWait, 500));
 
@@ -107,6 +164,7 @@ try {
     Number.isInteger(tabId) && tabId >= 0,
     `Inspect state had an invalid tab ID: ${matched[0]}`,
   );
+  assert.equal(tabId, tabIds.target, 'Inspect overlay was stored on the wrong tab');
   const action = await worker.evaluate(async (id) => {
     const [badge, title] = await Promise.all([
       chrome.action.getBadgeText({ tabId: id }),
@@ -116,11 +174,53 @@ try {
   }, tabId);
   assert.equal(action.badge, '#');
   assert.match(action.title, /^\[Inspect\] cdn\.example\.test/mu);
-  console.log(`[native-inspect] success ${JSON.stringify({ tabId, stored, action })}`);
+  const isolatedAfterSet = await worker.evaluate(
+    async (id) => ({
+      badge: await chrome.action.getBadgeText({ tabId: id }),
+      title: await chrome.action.getTitle({ tabId: id }),
+    }),
+    tabIds.isolation,
+  );
+  assert.deepEqual(isolatedAfterSet, baseActions.isolation, 'Inspect leaked into another tab');
+
+  await page.bringToFront();
+  await page.locator('#inspect-clear').click({ button: 'right' });
+  await new Promise((resolveWait) => setTimeout(resolveWait, 800));
+  await run('xdotool', ['key', '--clearmodifiers', 'End', 'Up', 'Return']);
+  const cleared = await eventually(
+    async () =>
+      worker.evaluate(
+        async ({ key, target, expected }) => {
+          const values = await chrome.storage.session.get(key);
+          const entry = values[key]?.entries?.[String(target)];
+          const action = {
+            badge: await chrome.action.getBadgeText({ tabId: target }),
+            title: await chrome.action.getTitle({ tabId: target }),
+          };
+          return entry === undefined && JSON.stringify(action) === JSON.stringify(expected)
+            ? { entry, action }
+            : undefined;
+        },
+        { key: inspectStorageKey, target: tabIds.target, expected: baseActions.target },
+      ),
+    'Inspect clear did not remove the overlay and restore the base Action',
+  );
+  const isolatedAfterClear = await worker.evaluate(
+    async (id) => ({
+      badge: await chrome.action.getBadgeText({ tabId: id }),
+      title: await chrome.action.getTitle({ tabId: id }),
+    }),
+    tabIds.isolation,
+  );
+  assert.deepEqual(isolatedAfterClear, baseActions.isolation, 'Inspect clear changed another tab');
+  console.log(
+    `[native-inspect] success ${JSON.stringify({ tabId, stored, action, cleared, isolatedAfterSet, isolatedAfterClear })}`,
+  );
 } catch (error) {
   await run('scrot', ['inspect-native-menu-failure.png']).catch(() => undefined);
   throw error;
 } finally {
   await context?.close().catch(() => undefined);
+  await new Promise((resolveClose) => sourceServer.close(resolveClose));
   await rm(userDataDir, { recursive: true, force: true });
 }
