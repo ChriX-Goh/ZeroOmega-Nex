@@ -120,24 +120,12 @@ describe('original toolbar profile resolver', () => {
     });
   });
 
-  it('derives a Direct result when the active Fixed profile bypasses the URL', async () => {
-    const result = await resolver(state(true), {
-      activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
-    }).resolve({ tabId: 9, url: 'http://localhost/' });
-
-    expect(result).toEqual({
-      icon: {
-        mode: 'two-color',
-        outerCircleColor: '#bdbdbd',
-        innerCircleColor: '#64b5f6',
-      },
-      titleArguments: {
-        currentProfileName: 'Proxy',
-        resultProfileName: '[Direct]',
-        details: '(not using any proxy)',
-      },
-      badgeText: 'Dire',
-    });
+  it('keeps a Fixed bypass unresolved until the original result trace is reproduced', async () => {
+    await expect(
+      resolver(state(true), {
+        activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+      }).resolve({ tabId: 9, url: 'http://localhost/' }),
+    ).resolves.toBeUndefined();
   });
 
   it('returns default state for unsupported or missing runtime state', async () => {
