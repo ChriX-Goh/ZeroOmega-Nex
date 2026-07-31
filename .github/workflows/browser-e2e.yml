@@ -45,12 +45,20 @@ jobs:
           set -o pipefail
           pnpm test:e2e:chromium 2>&1 | tee chromium-e2e.log
 
+      - name: Run Chromium toolbar Action E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium-toolbar 2>&1 | tee chromium-toolbar-e2e.log
+
       - name: Upload Chromium diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: chromium-e2e-diagnostics
-          path: chromium-e2e.log
+          path: |
+            chromium-e2e.log
+            chromium-toolbar-e2e.log
           if-no-files-found: warn
 
   firefox:
