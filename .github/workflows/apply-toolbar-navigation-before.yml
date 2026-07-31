@@ -9,6 +9,7 @@ on:
       - scripts/fix-global-toolbar-executor-lint.py
       - scripts/fix-global-toolbar-overlay-contract.py
       - scripts/fix-global-toolbar-startup-await.py
+      - scripts/diagnose-firefox-global-action.py
 
 permissions:
   contents: write
@@ -37,6 +38,7 @@ jobs:
           python scripts/fix-global-toolbar-executor-lint.py
           python scripts/fix-global-toolbar-overlay-contract.py
           python scripts/fix-global-toolbar-startup-await.py
+          python scripts/diagnose-firefox-global-action.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-action-adapter.ts \
             apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
