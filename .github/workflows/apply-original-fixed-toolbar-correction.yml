@@ -36,10 +36,12 @@ jobs:
 
           path = Path('apps/extension/src/lib/inspect-runtime.test.ts')
           text = path.read_text(encoding='utf-8')
-          old = "      color: '#bdbdbd',"
-          new = "      color: '#aaaaaa',"
+          old = """      result: { kind: 'direct', name: 'Direct' },
+          color: '#bdbdbd',"""
+          new = """      result: { kind: 'direct', name: 'Direct' },
+          color: '#aaaaaa',"""
           if text.count(old) != 1:
-              raise SystemExit(f'Inspect Direct color: expected one match, found {text.count(old)}')
+              raise SystemExit(f'Inspect Direct result color: expected one match, found {text.count(old)}')
           path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
           pnpm exec prettier --write \
