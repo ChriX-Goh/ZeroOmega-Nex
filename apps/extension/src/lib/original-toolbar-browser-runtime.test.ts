@@ -16,11 +16,7 @@ import type {
   OriginalToolbarCanvasContext,
 } from './original-toolbar-icon-renderer';
 import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
-import type {
-  OriginalToolbarActivatedListener,
-  OriginalToolbarTabsApi,
-  OriginalToolbarUpdatedListener,
-} from './original-toolbar-tab-coordinator';
+import type { OriginalToolbarTabsApi } from './original-toolbar-tab-coordinator';
 
 class RecordingAction implements OriginalToolbarActionApi {
   readonly icons: Array<{
@@ -100,12 +96,12 @@ class TemplateI18n implements OriginalToolbarI18nApi {
 function createTabs(): OriginalToolbarTabsApi {
   return {
     onUpdated: {
-      addListener(_listener: OriginalToolbarUpdatedListener): void {},
-      removeListener(_listener: OriginalToolbarUpdatedListener): void {},
+      addListener(): void {},
+      removeListener(): void {},
     },
     onActivated: {
-      addListener(_listener: OriginalToolbarActivatedListener): void {},
-      removeListener(_listener: OriginalToolbarActivatedListener): void {},
+      addListener(): void {},
+      removeListener(): void {},
     },
     async get(tabId) {
       return { id: tabId, url: 'https://example.test/' };
