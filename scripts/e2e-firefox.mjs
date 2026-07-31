@@ -123,6 +123,18 @@ async function bidiCommand(method, params) {
   }
 }
 
+async function navigateExtensionPage(relativeUrl) {
+  const context = await driver.getWindowHandle();
+  const url = `moz-extension://${extensionUuid}/${relativeUrl}`;
+  const result = await bidiCommand('browsingContext.navigate', {
+    context,
+    url,
+    wait: 'complete',
+  });
+  assert.equal(result?.url, url, `Firefox BiDi navigated to an unexpected extension URL`);
+  await driver.wait(async () => (await driver.getCurrentUrl()) === url, 20_000);
+}
+
 async function runtimeDiagnostics() {
   return driver.executeAsyncScript(`
     const done = arguments[0];
@@ -208,7 +220,7 @@ try {
   const installedId = installResult?.extension;
   assert.equal(installedId, addonId, 'Firefox returned an unexpected add-on ID');
 
-  await driver.get(`moz-extension://${extensionUuid}/options.html`);
+  await navigateExtensionPage('options.html');
   let profileHeading;
   try {
     profileHeading = await driver.wait(
@@ -388,7 +400,7 @@ try {
     'Firefox Rename did not commit through normal Apply',
   );
 
-  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  await navigateExtensionPage('popup.html');
   const customProfile = await driver.wait(
     until.elementLocated(By.xpath("//button[contains(., 'Firefox E2E Proxy')]")),
     15_000,
@@ -414,11 +426,11 @@ try {
     'Firefox did not retry the target with extension-supplied proxy credentials',
   );
 
-  await driver.get(`moz-extension://${extensionUuid}/options.html#/history`);
+  await navigateExtensionPage('options.html#/history');
   await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
   await driver.wait(until.elementLocated(By.css('article.settings-section')), 20_000);
 
-  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  await navigateExtensionPage('popup.html');
   const direct = await driver.wait(
     until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),
     15_000,
@@ -448,7 +460,7 @@ try {
     'Firefox broad proxy-authentication permission remained after returning Direct',
   );
 
-  await driver.get(`moz-extension://${extensionUuid}/temp-rules.html`);
+  await navigateExtensionPage('temp-rules.html');
   await driver.wait(
     until.elementLocated(By.css('[data-temp-rules-manager][data-typed-locale="zh-TW"]')),
     15_000,
@@ -459,7 +471,7 @@ try {
     15_000,
   );
 
-  await driver.get(`moz-extension://${extensionUuid}/network.html`);
+  await navigateExtensionPage('network.html');
   await driver.wait(
     until.elementLocated(By.css('[data-network-diagnostics][data-typed-locale="zh-TW"]')),
     15_000,
@@ -471,7 +483,7 @@ try {
   );
   await driver.wait(until.elementLocated(By.css('[data-request-diagnostics-stopped]')), 15_000);
 
-  await driver.get(`moz-extension://${extensionUuid}/options.html#/import`);
+  await navigateExtensionPage('options.html#/import');
   const onlineRestorePanel = await driver.wait(
     until.elementLocated(
       By.css('[data-legacy-import-source][data-typed-locale="zh-TW"] [data-legacy-online-restore]'),
@@ -532,7 +544,7 @@ try {
     'Downloading an online backup changed the Firefox workflow before explicit import',
   );
 
-  await driver.get(`moz-extension://${extensionUuid}/options.html`);
+  await navigateExtensionPage('options.html');
   const interfaceAction = await driver.wait(
     until.elementLocated(By.css('[data-interface-action]')),
     15_000,
@@ -849,7 +861,7 @@ try {
     until.elementLocated(By.xpath("//*[contains(normalize-space(.), '目前設定已全部套用。') ]")),
     20_000,
   );
-  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  await navigateExtensionPage('popup.html');
   const pacRoute = await driver.wait(
     until.elementLocated(By.xpath("//button[contains(., 'Firefox PAC E2E')]")),
     15_000,
@@ -883,7 +895,7 @@ try {
   assert.equal(pacRuntime.startRoute?.kind, 'profile');
   assert.equal(pacRuntime.startRoute?.profileId, pacRuntime.profileId);
   assert.match(pacRuntime.script ?? '', /FindProxyForURL/u);
-  await driver.get(`moz-extension://${extensionUuid}/popup.html`);
+  await navigateExtensionPage('popup.html');
   const finalDirect = await driver.wait(
     until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),
     15_000,
