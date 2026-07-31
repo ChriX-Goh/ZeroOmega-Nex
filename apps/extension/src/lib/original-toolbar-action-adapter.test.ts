@@ -8,12 +8,7 @@ import {
 } from './original-toolbar-action-adapter';
 
 interface RecordedCall {
-  readonly method:
-    | 'setIcon'
-    | 'setTitle'
-    | 'setBadgeText'
-    | 'setBadgeBackgroundColor'
-    | 'setPopup';
+  readonly method: 'setIcon' | 'setTitle' | 'setBadgeText' | 'setBadgeBackgroundColor' | 'setPopup';
   readonly details: unknown;
 }
 
