@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/apply-firefox-toolbar-action-e2e.yml
       - scripts/apply-firefox-toolbar-action-e2e.py
+      - scripts/apply-toolbar-created-tab-refresh.py
 
 permissions:
   contents: write
@@ -30,8 +31,12 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Apply and verify
         run: |
+          python scripts/apply-toolbar-created-tab-refresh.py
           python scripts/apply-firefox-toolbar-action-e2e.py
-          pnpm exec prettier --write scripts/e2e-firefox.mjs
+          pnpm exec prettier --write \
+            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
+            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
+            scripts/e2e-firefox.mjs
           pnpm verify
           pnpm build:firefox
           pnpm test:e2e:firefox
@@ -39,6 +44,9 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add scripts/e2e-firefox.mjs
-          git commit -m 'test: verify real Firefox toolbar Action state'
+          git add \
+            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
+            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
+            scripts/e2e-firefox.mjs
+          git commit -m 'fix: refresh toolbar state for new Firefox tabs'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
