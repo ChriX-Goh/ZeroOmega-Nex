@@ -70,7 +70,9 @@ new_bypass = """  it('reproduces a Fixed bypass condition-to-Direct result', asy
     const workflowState = state();
     const profile = workflowState.applied.profiles[0];
     if (!profile || profile.kind !== 'fixed') throw new Error('missing default Fixed profile');
-    profile.proxyByScheme.http = profile.proxyByScheme.fallback;
+    const fallback = profile.proxyByScheme.fallback;
+    if (fallback === undefined) throw new Error('missing default Fixed fallback');
+    profile.proxyByScheme.http = fallback;
 
     const result = await resolver(workflowState, {
       activeRoute: { kind: 'profile', profileId: profile.id },
