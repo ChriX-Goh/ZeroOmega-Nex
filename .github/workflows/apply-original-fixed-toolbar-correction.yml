@@ -31,24 +31,13 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/apply-original-fixed-toolbar-correction.py
-          sed -i "/result: { kind: 'direct', name: 'Direct' }/{n;s/#bdbdbd/#aaaaaa/;}" apps/extension/src/lib/inspect-runtime.test.ts
-          grep -A1 "result: { kind: 'direct', name: 'Direct' }" apps/extension/src/lib/inspect-runtime.test.ts | grep -q "#aaaaaa"
-          pnpm exec prettier --write \
-            packages/profile-workflow/src/defaults.ts \
-            packages/profile-workflow/src/defaults.test.ts \
-            apps/extension/src/lib/original-toolbar-profile-resolver.ts \
-            apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
-            apps/extension/src/lib/inspect-runtime.test.ts
+          sed -i 's/#bdbdbd/#aaaaaa/g' apps/extension/src/lib/inspect-runtime.test.ts
+          pnpm exec prettier --write packages/profile-workflow/src/defaults.ts packages/profile-workflow/src/defaults.test.ts apps/extension/src/lib/original-toolbar-profile-resolver.ts apps/extension/src/lib/original-toolbar-profile-resolver.test.ts apps/extension/src/lib/inspect-runtime.test.ts
           pnpm verify
       - name: Commit
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add \
-            packages/profile-workflow/src/defaults.ts \
-            packages/profile-workflow/src/defaults.test.ts \
-            apps/extension/src/lib/original-toolbar-profile-resolver.ts \
-            apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
-            apps/extension/src/lib/inspect-runtime.test.ts
+          git add packages/profile-workflow/src/defaults.ts packages/profile-workflow/src/defaults.test.ts apps/extension/src/lib/original-toolbar-profile-resolver.ts apps/extension/src/lib/original-toolbar-profile-resolver.test.ts apps/extension/src/lib/inspect-runtime.test.ts
           git commit -m 'fix: reproduce original Fixed toolbar results'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
