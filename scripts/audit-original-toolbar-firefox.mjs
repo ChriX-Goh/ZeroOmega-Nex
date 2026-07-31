@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 
-import { Browser, Builder, until } from 'selenium-webdriver';
+import { Browser, Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
 const extensionPath = resolve(
@@ -29,7 +29,8 @@ await new Promise((resolveListen, rejectListen) => {
   server.listen(0, '127.0.0.1', resolveListen);
 });
 const address = server.address();
-if (!address || typeof address === 'string') throw new Error('Original Firefox audit server failed');
+if (!address || typeof address === 'string')
+  throw new Error('Original Firefox audit server failed');
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
 const options = new firefox.Options()
@@ -97,7 +98,13 @@ try {
   assert.equal(installResult?.extension, addonId, 'Firefox returned an unexpected add-on ID');
 
   await driver.get(`moz-extension://${extensionUuid}/options.html`);
-  await driver.wait(until.titleContains('ZeroOmega'), 20_000);
+  await driver.wait(
+    async () =>
+      driver.executeScript(
+        'return document.readyState === "complete" && Boolean(document.body?.innerText);',
+      ),
+    20_000,
+  );
   const optionsHandle = await driver.getWindowHandle();
 
   async function withOptions(callback) {
@@ -169,7 +176,9 @@ try {
       if (predicate(latest)) return latest;
       await pauseForOriginalUpdate(100);
     }
-    throw new Error(`Original Firefox profile state did not reach ${label}: ${JSON.stringify(latest)}`);
+    throw new Error(
+      `Original Firefox profile state did not reach ${label}: ${JSON.stringify(latest)}`,
+    );
   }
 
   async function resolveTabId(url) {
@@ -187,7 +196,8 @@ try {
         url,
       ),
     ).then((response) => {
-      if (response?.__error) throw new Error(`Could not resolve original Firefox audit tab: ${url}`);
+      if (response?.__error)
+        throw new Error(`Could not resolve original Firefox audit tab: ${url}`);
       return response.value;
     });
   }
@@ -310,7 +320,13 @@ try {
 
   await driver.switchTo().newWindow('tab');
   await driver.get(`moz-extension://${extensionUuid}/popup/index.html`);
-  await driver.wait(until.titleContains('ZeroOmega'), 20_000);
+  await driver.wait(
+    async () =>
+      driver.executeScript(
+        'return document.readyState === "complete" && Boolean(document.body?.innerText);',
+      ),
+    20_000,
+  );
   await writeFile(
     resolve(outputPath, 'popup-zh-CN.png'),
     Buffer.from(await driver.takeScreenshot(), 'base64'),
