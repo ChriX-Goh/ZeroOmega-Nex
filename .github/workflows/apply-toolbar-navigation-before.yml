@@ -8,6 +8,7 @@ on:
       - scripts/apply-toolbar-navigation-before.py
       - scripts/fix-global-toolbar-executor-lint.py
       - scripts/fix-global-toolbar-overlay-contract.py
+      - scripts/fix-global-toolbar-startup-await.py
 
 permissions:
   contents: write
@@ -35,6 +36,7 @@ jobs:
           python scripts/apply-toolbar-navigation-before.py
           python scripts/fix-global-toolbar-executor-lint.py
           python scripts/fix-global-toolbar-overlay-contract.py
+          python scripts/fix-global-toolbar-startup-await.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-action-adapter.ts \
             apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
@@ -44,6 +46,7 @@ jobs:
             apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
+            apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
           pnpm verify
@@ -67,7 +70,8 @@ jobs:
             apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
+            apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
-          git commit -m 'fix: establish a global toolbar Action baseline'
+          git commit -m 'fix: establish a durable global toolbar Action baseline'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
