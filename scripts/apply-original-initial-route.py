@@ -54,6 +54,16 @@ replace_once(
     "startup route command test",
 )
 
+quick_switch_test = Path("packages/profile-workflow/src/commands-quick-switch.test.ts")
+replace_once(
+    quick_switch_test,
+    """      runtime: { activeRoute: { kind: 'direct' } },""",
+    """      runtime: {
+        activeRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },""",
+    "quick-switch fresh startup runtime",
+)
+
 runtime = Path("apps/extension/src/lib/profile-workflow-runtime.ts")
 replace_once(
     runtime,
