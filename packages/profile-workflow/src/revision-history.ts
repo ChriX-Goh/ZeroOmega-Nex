@@ -25,7 +25,9 @@ export async function listProfileWorkflowRevisionHistory(
   repository: ProfileWorkflowRevisionRepository,
   state: ProfileWorkflowState,
 ): Promise<readonly ProfileWorkflowRevisionHistoryEntry[]> {
-  const revisions = await repository.listRevisions();
+  const revisions = (await repository.listRevisions()).filter(
+    (spec) => spec.documentId === state.applied.documentId,
+  );
   const ids = new Set<string>();
   const entries = revisions.map((spec) => {
     validateRevision(spec, state.applied.documentId);

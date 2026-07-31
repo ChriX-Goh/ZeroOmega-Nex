@@ -57,14 +57,25 @@ describe('ProfileSpec revision history', () => {
     expect(JSON.stringify(entries)).not.toContain('proxy.example.invalid');
   });
 
-  it('rejects revisions from another document', async () => {
-    const state = createProfileWorkflowState(workflowFixture());
-    const foreign = revision('revision-foreign', '2026-07-25T16:20:00.000Z');
+  it('isolates the current document while retaining foreign revision archives', async () => {
+    const current = revision('revision-current', '2026-07-25T17:20:00.000Z');
+    const state = createProfileWorkflowState(current);
+    const foreign = revision('revision-foreign', '2026-07-25T16:20:00.000Z', 'revision-foreign');
     foreign.documentId = 'document-foreign';
 
-    await expect(listProfileWorkflowRevisionHistory(repository([foreign]), state)).rejects.toThrow(
-      'belongs to document document-foreign',
-    );
+    await expect(
+      listProfileWorkflowRevisionHistory(repository([foreign, current]), state),
+    ).resolves.toEqual([
+      {
+        documentId: current.documentId,
+        revisionId: 'revision-current',
+        createdAt: '2026-07-25T17:20:00.000Z',
+        profileCount: 2,
+        endpointCount: 2,
+        ruleSourceCount: 0,
+        applied: true,
+      },
+    ]);
   });
 
   it('rejects duplicate revision IDs', async () => {
