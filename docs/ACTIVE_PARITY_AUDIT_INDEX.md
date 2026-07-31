@@ -17,25 +17,26 @@ It records the current real audit position. Historical matrix counts, implementa
 - Progress authority: `docs/PROJECT_PROGRESS_MODEL.md`.
 - Active journey: Order 1 at 35%.
 - Current implementation includes exact original Ω geometry, color decisions, result Badge and pure per-tab presentation composition; none closes the toolbar journey.
+- Exact official Chromium and Firefox packages have now been executed for the basic reference states. Advanced states, Nex integration and owner acceptance remain open.
 
 ## Active delivery sequence
 
-| Order | Journey                                                  | Contract/order                       | Evidence                                                                         | Current state                                                                                                                                                                                                                                    | Next gate                                                                                                                                      |
-| ----: | -------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md`; `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md` | Original core source and official packages captured; 18-row mapping complete; Ω geometry, color, Badge and per-tab presentation models pass permanent gates; installed runtime screenshots and unified browser-action coordination remain absent | Capture official Chromium/Firefox runtime state, then replace direct Inspect action writes with one unified per-tab action adapter/coordinator |
-|     2 | Real original export → direct Nex use                    | pending                              | pending real-export corpus                                                       | `FAILED`; owner’s real original export did not become directly usable                                                                                                                                                                            | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison           |
-|     3 | Popup                                                    | pending                              | original Popup source is archived but runtime evidence incomplete                | broad mismatch reported                                                                                                                                                                                                                          | Capture original dimensions, hierarchy, all states and compare independently with Nex                                                          |
-|     4 | Options / Apply / Discard                                | pending                              | historical source notes only                                                     | broad mismatch reported                                                                                                                                                                                                                          | Page/control/dialog/help-text inventory before code changes                                                                                    |
-|     5 | Complete profile journeys                                | pending                              | historical implementation inventory only                                         | untrusted pending re-audit                                                                                                                                                                                                                       | Fixed → Switch → PAC → Virtual → Rule List complete journey maps                                                                               |
-|     6 | Export / restart / rollback / ownership / authentication | pending                              | partial implementation/tests exist                                               | not owner-complete                                                                                                                                                                                                                               | Revalidate against original-facing behavior and real imported data                                                                             |
-|     7 | Localization / density / visual alignment                | pending                              | generated Nex screenshots are not original comparison evidence                   | broad mismatch reported                                                                                                                                                                                                                          | Original runtime captures and side-by-side owner order                                                                                         |
+| Order | Journey | Contract/order | Evidence | Current state | Next gate |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | Installation / startup / toolbar | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | `AUDIT_EVIDENCE_01_ORIGINAL_TOOLBAR.md`; `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`; `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`; `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` | Original source, official packages and basic Chromium/Firefox runtime states captured; 18-row map complete; Ω geometry, color, Badge and pure per-tab presentation models implemented; advanced states and unified browser-action coordination remain absent | Capture remaining Fixed/Switch/PAC/Virtual/Rule List/temp/Inspect/external states, then implement one unified per-tab Action adapter/coordinator |
+| 2 | Real original export → direct Nex use | pending | pending real-export corpus | `FAILED`; owner’s real original export did not become directly usable | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
+| 3 | Popup | pending | original Popup source and basic Chromium/Firefox runtime surfaces captured | broad mismatch reported; complete state hierarchy remains open | Capture original dimensions, hierarchy and all states; compare independently with Nex |
+| 4 | Options / Apply / Discard | pending | source notes and basic installed Chromium/Firefox Options surfaces | broad mismatch reported | Page/control/dialog/help-text inventory before code changes |
+| 5 | Complete profile journeys | pending | historical implementation inventory only | untrusted pending re-audit | Fixed → Switch → PAC → Virtual → Rule List complete journey maps |
+| 6 | Export / restart / rollback / ownership / authentication | pending | partial implementation/tests exist | not owner-complete | Revalidate against original-facing behavior and real imported data |
+| 7 | Localization / density / visual alignment | pending | generated Nex screenshots are not original comparison evidence | broad mismatch reported | Full original runtime captures and side-by-side owner order |
 
 ## Order 1 checkpoint
 
 ### Confirmed original contract
 
-- original manifest supplies the original action assets, Popup, localized loading title, shortcut and tab-aware permission;
-- original toolbar is per-tab and URL-result-aware;
+- original manifest supplies the original Action assets, Popup, localized loading title, shortcut and tab-aware permission;
+- original toolbar state is per-tab and URL-result-aware;
 - one-color and two-color icons are generated dynamically;
 - exact renderer geometry is source-captured;
 - profile changes invalidate icon state and refresh tabs;
@@ -43,12 +44,36 @@ It records the current real audit position. Historical matrix counts, implementa
 - optional result-profile Badge text is an original setting and is truncated to four JavaScript string code units;
 - official Chromium and Firefox v3.5.0 packages differ in Popup entry, background declaration, authentication permission and minimum Firefox version.
 
+### Captured original runtime
+
+Chromium evidence is durable in `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`.
+
+Firefox evidence is durable in `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` and records:
+
+- successful exact-package run `30597356624`;
+- Artifact `8780625790`;
+- Artifact digest `sha256:1638d78b85d5c70c52d50510ec3e98b0b479a96c0bbf98f86cd133f48e889980`;
+- Firefox `152.0.6`;
+- initial/System, Direct, second-tab, inactive-tab and internal-page title/Badge/Popup state;
+- installed Options and Popup screenshots;
+- manifest `popup/index.html` versus runtime per-tab `popup-iframe.html` behavior.
+
+The following original states remain `UNKNOWN` in one or both targets:
+
+- user-created Fixed profile state;
+- Switch/PAC result and two-color icon state;
+- Virtual and attached Rule List state;
+- temporary-rule state;
+- Inspect state;
+- external-controller transition details;
+- headed toolbar pixels where source/package evidence is insufficient.
+
 ### Confirmed Nex gap
 
 - current manifest uses a different green static icon and incomplete original size/permission/shortcut contract;
 - current background has no complete toolbar state controller;
-- no per-tab result coordinator or action-state convergence exists;
-- current `inspect-runtime.ts` directly writes and clears title/Badge state, including a Nex-specific fallback title, so it will conflict with a future per-tab coordinator unless action mutation is centralized;
+- no per-tab result coordinator or Action-state convergence exists;
+- current `inspect-runtime.ts` directly writes and clears title/Badge state, including a Nex-specific fallback title, so it conflicts with a future per-tab coordinator unless Action mutation is centralized;
 - existing route, temporary-rule, Inspect and ownership modules do not currently converge into the original toolbar contract.
 
 ### Source-certain implementation
@@ -61,10 +86,11 @@ It records the current real audit position. Historical matrix counts, implementa
 - color-state product/test commits: `fc56da9d33dfb71e3c979bb5ab9f502dbdc05b55`, `09a9a587723ebbc1967c804e40f77e8cba1e7b4b`;
 - Badge product/test commits: `d9fda7baa51c8a7691af90fa0d88e350ff0eaa7d`, `d57def937bf0308272cf290b4100d0eecc850c55`;
 - per-tab presentation product/test commits: `fcb91debc7c24725f8e5191b0c6393c58501de73`, `5b60bba3e1e66718a01171034582a606cf2334bb`;
-- no manifest, toolbar permission, browser action or tab-event runtime behavior has been changed yet;
+- Firefox runtime audit script: `scripts/audit-original-toolbar-firefox.mjs`;
+- no manifest, toolbar permission, browser Action or tab-event product behavior has been changed yet;
 - this does not close any `TB-*` row or `KG-ICON-001`.
 
-### Exact slice verification
+### Last fully green pure-model slice
 
 Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
 
@@ -73,19 +99,22 @@ Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
 - Parity Documentation `30509677380`;
 - Milestone 8 Visual Evidence `30509677378`.
 
-Green gates establish only that the source-derived slice is technically valid. They do not prove original runtime parity or owner acceptance.
+The current evidence/documentation Head requires a new Exact-Head permanent-gate record after all synchronization commits settle.
 
 ### Evidence correction and official packages
 
-Artifact `original-zeroomega-ui-evidence-v3.5.0`, ID `8625759489`, SHA-256 `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19`, contains 124 source/locale files and no installed original runtime screenshot set.
+Artifact `original-zeroomega-ui-evidence-v3.5.0`, ID `8625759489`, SHA-256 `8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19`, contains 124 source/locale files and is not an installed runtime screenshot set.
 
 Exact official v3.5.0 packages are captured:
 
 - Chromium ZIP SHA-256 `4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce`, 1,900,340 bytes, 353 extracted files;
 - Firefox ZIP SHA-256 `666ce976022ed379601b896f9138ada82a29aabfe0154bf2bf1ae779e3319cda`, 1,900,377 bytes, 353 extracted files;
 - both ZIP integrity tests passed;
-- durable evidence: `docs/AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`;
-- installed runtime screenshots and state transitions remain `UNKNOWN`.
+- package evidence: `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`;
+- Chromium runtime evidence: `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`;
+- Firefox runtime evidence: `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`.
+
+A later GitHub runner exposed Firefox `153.0`, whose Marionette navigation rejected direct `moz-extension://` navigation. This is a harness compatibility boundary after the successful Firefox `152.0.6` evidence run, not a product-parity result.
 
 ## Active blockers
 
