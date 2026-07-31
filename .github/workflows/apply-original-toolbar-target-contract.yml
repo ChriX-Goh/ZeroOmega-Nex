@@ -87,6 +87,25 @@ jobs:
               encoding='utf-8',
           )
 
+          wxt_path = Path('apps/extension/wxt.config.ts')
+          wxt = wxt_path.read_text(encoding='utf-8')
+          manifest_marker = "  manifest: ({ browser }) => ({"
+          if wxt.count(manifest_marker) != 1:
+              raise SystemExit(f'WXT manifest marker: expected one match, found {wxt.count(manifest_marker)}')
+          hook = "\n".join([
+              '  hooks: {',
+              "    'build:manifestGenerated': (wxt, manifest) => {",
+              '      if (!manifest.action) {',
+              "        throw new Error('WXT generated manifest is missing the Action entry');",
+              '      }',
+              '      manifest.action.default_popup =',
+              "        wxt.config.browser === 'firefox' ? 'popup/index.html' : 'popup-iframe.html';",
+              '    },',
+              '  },',
+              '',
+          ])
+          wxt_path.write_text(wxt.replace(manifest_marker, hook + manifest_marker, 1), encoding='utf-8')
+
           validator_path = Path('scripts/validate-ui-compatibility.mjs')
           validator = validator_path.read_text(encoding='utf-8')
           start_marker = "    manifest.includes(\"default_locale: 'en'\") &&"
@@ -102,6 +121,8 @@ jobs:
               "      manifest.includes('    icons,') &&",
               "      ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)) &&",
               "      manifest.includes('default_icon: originalActionIcons') &&",
+              "      manifest.includes(\"'build:manifestGenerated'\") &&",
+              "      manifest.includes('manifest.action.default_popup') &&",
               '      [',
               "        'original-action-16.png',",
               "        'original-action-19.png',",
