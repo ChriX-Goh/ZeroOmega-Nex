@@ -19,11 +19,22 @@ import {
 
 export type OriginalToolbarTabRemovedListener = (tabId: number) => void;
 
+export interface OriginalToolbarNavigationDetails {
+  readonly tabId: number;
+  readonly frameId: number;
+  readonly url: string;
+}
+
+export type OriginalToolbarNavigationCommittedListener = (
+  details: OriginalToolbarNavigationDetails,
+) => void;
+
 export interface OriginalToolbarRuntimeOptions {
   readonly api: OriginalToolbarBrowserRuntimeApi;
   readonly repository: OriginalToolbarProfileStateRepository;
   readonly runtime: OriginalToolbarRuntimeInspector;
   readonly tabRemoved?: OriginalToolbarEvent<OriginalToolbarTabRemovedListener>;
+  readonly navigationCommitted?: OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>;
   readonly browserRuntime?: OriginalToolbarBrowserRuntimeOptions;
   readonly onError?: (error: unknown, context: OriginalToolbarCoordinatorErrorContext) => void;
 }
@@ -62,6 +73,10 @@ export function registerOriginalToolbarRuntime(
     ...(options.onError === undefined ? {} : { onError: options.onError }),
   });
   const tabRemovedListener: OriginalToolbarTabRemovedListener = (tabId) => overlay.discard(tabId);
+  const navigationCommittedListener: OriginalToolbarNavigationCommittedListener = (details) => {
+    if (details.frameId !== 0 || details.tabId < 0 || details.url.length === 0) return;
+    void coordinator.refreshTab(details.tabId, details.url);
+  };
   let disposed = false;
 
   overlay.setRefreshListener((tabId) => {
@@ -69,6 +84,7 @@ export function registerOriginalToolbarRuntime(
   });
   coordinator.start();
   options.tabRemoved?.addListener(tabRemovedListener);
+  options.navigationCommitted?.addListener(navigationCommittedListener);
 
   return {
     inspectAction: overlay.inspectAction,
@@ -78,6 +94,7 @@ export function registerOriginalToolbarRuntime(
       if (disposed) return;
       disposed = true;
       options.tabRemoved?.removeListener(tabRemovedListener);
+      options.navigationCommitted?.removeListener(navigationCommittedListener);
       overlay.setRefreshListener(undefined);
       coordinator.stop();
       overlay.dispose();

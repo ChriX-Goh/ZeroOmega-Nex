@@ -11,6 +11,7 @@ import {
 import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar-browser-runtime';
 import {
   registerOriginalToolbarRuntime,
+  type OriginalToolbarNavigationCommittedListener,
   type OriginalToolbarTabRemovedListener,
   type RegisteredOriginalToolbarRuntime,
 } from '../lib/original-toolbar-runtime';
@@ -124,6 +125,8 @@ export default defineBackground(() => {
     },
     tabRemoved: browser.tabs
       .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
+    navigationCommitted: browser.webNavigation
+      .onCommitted as unknown as OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>,
     onError: (error, context) => {
       console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
     },

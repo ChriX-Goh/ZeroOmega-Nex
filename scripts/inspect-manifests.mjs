@@ -52,7 +52,7 @@ for (const file of manifestFiles) {
 
   assertExactSet(
     permissions,
-    ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus', 'tabs'],
+    ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus', 'tabs', 'webNavigation'],
     'required permissions',
     file,
   );
@@ -126,7 +126,7 @@ for (const file of manifestFiles) {
   }
 
   console.log(
-    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage/alarms/activeTab/contextMenus/tabs required, auth optional, no global host access.`,
+    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage/alarms/activeTab/contextMenus/tabs/webNavigation required, auth optional, no global host access.`,
   );
 }
 

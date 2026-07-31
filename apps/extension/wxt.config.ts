@@ -46,6 +46,7 @@ export default defineConfig({
       'activeTab',
       'contextMenus',
       'tabs',
+      'webNavigation',
       ...(diagnosticsE2e ? ['webRequest'] : []),
     ],
     optional_permissions:

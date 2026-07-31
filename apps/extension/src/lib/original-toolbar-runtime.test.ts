@@ -22,6 +22,7 @@ import type {
 } from './original-toolbar-profile-resolver';
 import {
   registerOriginalToolbarRuntime,
+  type OriginalToolbarNavigationCommittedListener,
   type OriginalToolbarTabRemovedListener,
 } from './original-toolbar-runtime';
 import type {
@@ -157,6 +158,7 @@ function harness() {
   const activated = new ListenerEvent<OriginalToolbarActivatedListener>();
   const created = new ListenerEvent<OriginalToolbarCreatedListener>();
   const removed = new ListenerEvent<OriginalToolbarTabRemovedListener>();
+  const navigation = new ListenerEvent<OriginalToolbarNavigationCommittedListener>();
   const tabs: OriginalToolbarTabsApi = {
     onUpdated: updated,
     onActivated: activated,
@@ -174,19 +176,31 @@ function harness() {
     repository: new MemoryRepository(workflowState()),
     runtime: new FixedRuntime({ activeRoute: { kind: 'direct' } }),
     tabRemoved: removed,
+    navigationCommitted: navigation,
     browserRuntime: { canvasFactory: () => canvas },
   });
-  return { action, updated, activated, created, removed, runtime };
+  return { action, updated, activated, created, removed, navigation, runtime };
 }
 
 describe('registered original toolbar runtime', () => {
   it('owns tab listeners and writes repository-backed base state', async () => {
-    const { action, updated, activated, created, removed, runtime } = harness();
+    const { action, updated, activated, created, removed, navigation, runtime } = harness();
 
     expect(updated.listeners.size).toBe(1);
     expect(activated.listeners.size).toBe(1);
     expect(created.listeners.size).toBe(1);
     expect(removed.listeners.size).toBe(1);
+    expect(navigation.listeners.size).toBe(1);
+
+    for (const listener of navigation.listeners) {
+      listener({ tabId: 11, frameId: 1, url: 'https://frame.test/' });
+      listener({ tabId: 13, frameId: 0, url: 'https://navigation.test/' });
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    expect(action.titles.at(-1)).toEqual({
+      tabId: 13,
+      title: 'ZeroOmega:: [Direct]\nDIRECT',
+    });
 
     await runtime.refreshAll({ clearIconCache: true });
 
@@ -202,6 +216,7 @@ describe('registered original toolbar runtime', () => {
     expect(activated.listeners.size).toBe(0);
     expect(created.listeners.size).toBe(0);
     expect(removed.listeners.size).toBe(0);
+    expect(navigation.listeners.size).toBe(0);
   });
 
   it('applies Inspect through the same executor and discards it for a closed tab', async () => {
