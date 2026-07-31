@@ -9,7 +9,7 @@ on:
       - scripts/fix-global-toolbar-executor-lint.py
       - scripts/fix-global-toolbar-overlay-contract.py
       - scripts/fix-global-toolbar-startup-await.py
-      - scripts/diagnose-firefox-global-action.py
+      - scripts/fix-profile-workflow-command-serialization.py
 
 permissions:
   contents: write
@@ -38,7 +38,7 @@ jobs:
           python scripts/fix-global-toolbar-executor-lint.py
           python scripts/fix-global-toolbar-overlay-contract.py
           python scripts/fix-global-toolbar-startup-await.py
-          python scripts/diagnose-firefox-global-action.py
+          python scripts/fix-profile-workflow-command-serialization.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-action-adapter.ts \
             apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
@@ -50,6 +50,7 @@ jobs:
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
             apps/extension/src/lib/profile-workflow-runtime.test.ts \
+            apps/extension/src/lib/profile-workflow-runtime-initialize.test.ts \
             apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
@@ -76,6 +77,7 @@ jobs:
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
             apps/extension/src/lib/profile-workflow-runtime.ts \
             apps/extension/src/lib/profile-workflow-runtime.test.ts \
+            apps/extension/src/lib/profile-workflow-runtime-initialize.test.ts \
             apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
