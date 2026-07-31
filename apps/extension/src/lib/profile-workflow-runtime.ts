@@ -12,6 +12,7 @@ import {
   listProfileWorkflowRevisionHistory,
   type ProfileWorkflowActivationDriver,
   type ProfileWorkflowApplyService,
+  type ProfileWorkflowCommand,
   type ProfileWorkflowCommandResponse,
   type ProfileWorkflowExternalProfileService,
   type ProfileWorkflowHistoryService,
@@ -54,14 +55,42 @@ interface ProfileWorkflowRuntimeApi {
   readonly permissions?: RuleSourceSchedulerApi['permissions'];
 }
 
+export type ProfileWorkflowActivationResponse = Extract<
+  ProfileWorkflowCommandResponse,
+  { readonly ok: true }
+> & {
+  readonly appliedSnapshotId: string;
+};
+
+export interface ProfileWorkflowActivationEvent {
+  readonly command: ProfileWorkflowCommand;
+  readonly response: ProfileWorkflowActivationResponse;
+}
+
 export interface ProfileWorkflowRuntimeOptions {
   readonly activationDriver?: ProfileWorkflowActivationDriver;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
   readonly ruleSourceDownloader?: ProfileWorkflowRuleSourceDownloader;
+  readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => void;
 }
 
 export interface RegisteredProfileWorkflowRuntime {
   dispose(): void;
+}
+
+export function notifyProfileWorkflowActivation(
+  command: ProfileWorkflowCommand,
+  response: ProfileWorkflowCommandResponse,
+  listener: ProfileWorkflowRuntimeOptions['onActivationSucceeded'],
+): void {
+  if (!response.ok || response.appliedSnapshotId === undefined || listener === undefined) return;
+  listener({
+    command,
+    response: {
+      ...response,
+      appliedSnapshotId: response.appliedSnapshotId,
+    },
+  });
 }
 
 class BrowserExternalProfileService implements ProfileWorkflowExternalProfileService {
@@ -203,7 +232,10 @@ export function registerProfileWorkflowRuntime(
       ruleSourceUpdateService,
       externalProfileService,
       ruleSourceUpdateService,
-    );
+    ).then((response) => {
+      notifyProfileWorkflowActivation(message, response, options.onActivationSucceeded);
+      return response;
+    });
   };
   api.runtime.onMessage.addListener(listener);
   return {
