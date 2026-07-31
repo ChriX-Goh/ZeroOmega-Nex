@@ -6,7 +6,10 @@ import type {
 } from '@zeroomega-nex/profile-workflow';
 import { describe, expect, it, vi } from 'vitest';
 
-import { notifyProfileWorkflowActivation } from './profile-workflow-runtime';
+import {
+  createInitialBrowserProfileSpec,
+  notifyProfileWorkflowActivation,
+} from './profile-workflow-runtime';
 
 const state = {} as ProfileWorkflowState;
 const view = {} as ProfileWorkflowView;
@@ -27,6 +30,21 @@ function success(appliedSnapshotId?: string): ProfileWorkflowCommandResponse {
 }
 
 describe('profile workflow activation notification', () => {
+  it('creates a browser-safe original System startup without a placeholder proxy', () => {
+    const initial = createInitialBrowserProfileSpec('device-runtime');
+
+    expect(initial.settings.startup.route).toEqual({ kind: 'system' });
+    expect(initial.settings.interface.builtInProfiles).toEqual({
+      direct: { color: '#aaaaaa' },
+      system: { color: '#000000' },
+    });
+    expect(initial.proxyEndpoints).toEqual([]);
+    expect(initial.profiles[0]).toMatchObject({
+      kind: 'fixed',
+      proxyByScheme: {},
+    });
+  });
+
   it('notifies only after a successful command returns an applied snapshot', () => {
     const listener = vi.fn();
     const apply = command('apply');

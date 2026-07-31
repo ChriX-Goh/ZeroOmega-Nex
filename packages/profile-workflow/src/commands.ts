@@ -496,7 +496,8 @@ export async function executeProfileWorkflowCommand(
   if (command.action === 'get') {
     if (created && applyService) {
       try {
-        const activated = await applyService.driver.activate(state.applied, { kind: 'direct' });
+        const startupRoute = state.applied.settings.startup.route ?? { kind: 'system' };
+        const activated = await applyService.driver.activate(state.applied, startupRoute);
         return response(state, activated.snapshotId, await runtimeView(applyService));
       } catch (error) {
         return failure('activation-failed', errorMessage(error), state);

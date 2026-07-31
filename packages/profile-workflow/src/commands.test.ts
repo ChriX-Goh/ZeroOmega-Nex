@@ -75,7 +75,7 @@ describe('typed profile workflow command service', () => {
     expect(initializer.calls).toBe(1);
   });
 
-  it('activates Direct when a fresh workflow is first opened', async () => {
+  it('activates the Applied startup route when a fresh workflow is first opened', async () => {
     const repository = new MemoryProfileWorkflowRepository();
     const initializer = new Initializer();
     const driver = new ApplyDriver();
@@ -87,7 +87,7 @@ describe('typed profile workflow command service', () => {
     );
 
     expect(result.ok).toBe(true);
-    expect(driver.routes).toEqual([{ kind: 'direct' }]);
+    expect(driver.routes).toEqual([{ kind: 'profile', profileId: 'profile-primary' }]);
     expect(driver.activated).toHaveLength(1);
   });
 

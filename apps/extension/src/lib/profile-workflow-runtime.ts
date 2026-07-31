@@ -108,6 +108,21 @@ class BrowserExternalProfileService implements ProfileWorkflowExternalProfileSer
   }
 }
 
+export function createInitialBrowserProfileSpec(deviceId: string) {
+  const now = new Date().toISOString();
+  const initial = createDefaultProfileSpec({
+    documentId: `document-${crypto.randomUUID()}`,
+    revisionId: `revision-${crypto.randomUUID()}`,
+    createdAt: now,
+    deviceId,
+  });
+  initial.settings.startup.route = { kind: 'system' };
+  const initialProfile = initial.profiles[0];
+  if (initialProfile?.kind === 'fixed') initialProfile.proxyByScheme = {};
+  initial.proxyEndpoints = [];
+  return initial;
+}
+
 class RuntimeInitializer implements ProfileWorkflowInitializer {
   readonly #deviceId: string;
 
@@ -116,18 +131,7 @@ class RuntimeInitializer implements ProfileWorkflowInitializer {
   }
 
   createInitialProfileSpec() {
-    const now = new Date().toISOString();
-    const initial = createDefaultProfileSpec({
-      documentId: `document-${crypto.randomUUID()}`,
-      revisionId: `revision-${crypto.randomUUID()}`,
-      createdAt: now,
-      deviceId: this.#deviceId,
-    });
-    initial.settings.startup.route = { kind: 'direct' };
-    const initialProfile = initial.profiles[0];
-    if (initialProfile?.kind === 'fixed') initialProfile.proxyByScheme = {};
-    initial.proxyEndpoints = [];
-    return initial;
+    return createInitialBrowserProfileSpec(this.#deviceId);
   }
 }
 

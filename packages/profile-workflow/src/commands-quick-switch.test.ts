@@ -68,7 +68,9 @@ describe('profile workflow quick-switch commands', () => {
     expect(result).toMatchObject({
       ok: true,
       state: { applied: { revision: { id: 'revision-applied' } } },
-      runtime: { activeRoute: { kind: 'direct' } },
+      runtime: {
+        activeRoute: { kind: 'profile', profileId: 'profile-primary' },
+      },
     });
   });
 
