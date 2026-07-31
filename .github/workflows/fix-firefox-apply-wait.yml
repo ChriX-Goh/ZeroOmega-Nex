@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/fix-firefox-apply-wait.yml
       - scripts/fix-firefox-apply-wait.py
+      - scripts/fix-firefox-raw-pac-wait.py
 
 permissions:
   contents: write
@@ -31,6 +32,7 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/fix-firefox-apply-wait.py
+          python scripts/fix-firefox-raw-pac-wait.py
           pnpm exec prettier --write scripts/e2e-firefox.mjs
           pnpm verify
           pnpm build:firefox
@@ -45,6 +47,7 @@ jobs:
           git add scripts/e2e-firefox.mjs
           git rm \
             .github/workflows/fix-firefox-apply-wait.yml \
-            scripts/fix-firefox-apply-wait.py
-          git commit -m 'test: make Firefox Apply acceptance deterministic'
+            scripts/fix-firefox-apply-wait.py \
+            scripts/fix-firefox-raw-pac-wait.py
+          git commit -m 'test: make Firefox state acceptance deterministic'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
