@@ -26,11 +26,9 @@ The required end state is:
 
 The highest authority is:
 
-- `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`
-- `docs/PROJECT_PROGRESS_MODEL.md`
-- `docs/ACTIVE_PARITY_AUDIT_INDEX.md`
-
-These files define the product contract, weighted progress, detailed comparison graph, defect register, implementation order and owner-facing delivery order.
+- `docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md`;
+- `docs/PROJECT_PROGRESS_MODEL.md`;
+- `docs/ACTIVE_PARITY_AUDIT_INDEX.md`.
 
 ## Status correction
 
@@ -62,19 +60,13 @@ The branch contains substantial implementation foundations:
 - legacy backup decoding/export code;
 - authentication handling.
 
-These are implementation inventory only. None is presumed original-compatible until it is revalidated against:
-
-- original source;
-- original runtime behavior;
-- original exported files;
-- clean Chromium and Firefox installations;
-- repository-owner review.
+These are implementation inventory only. None is presumed original-compatible until revalidated against original source, original runtime behavior, original exported files, clean Chromium/Firefox installations and repository-owner review.
 
 No old broad `DONE` row is owner-complete by inheritance.
 
 ## Active Order 1 checkpoint
 
-Captured evidence:
+Captured source/package evidence:
 
 - exact original toolbar source and 18-row Original ↔ Nex map;
 - exact official Chromium and Firefox v3.5.0 packages and hashes;
@@ -83,38 +75,47 @@ Captured evidence:
 - original result-Badge preference, localized built-in labels and four-code-unit truncation;
 - pure per-tab presentation composition without Nex-only state.
 
-Verified slice Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
+Captured real original runtime evidence:
+
+- Chromium exact-package evidence: `docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`;
+- Firefox exact-package evidence: `docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`;
+- both targets cover initial/System, Direct, two-tab and internal-page Action title/Badge/Popup observations plus installed Options and Popup surfaces;
+- Firefox evidence records the runtime difference between the manifest Popup entry and the per-tab `action.getPopup()` result;
+- Firefox successful run `30597356624`, Artifact `8780625790`, digest `sha256:1638d78b85d5c70c52d50510ec3e98b0b479a96c0bbf98f86cd133f48e889980`.
+
+Verified pure-model slice Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
 
 - CI `30509677377`;
 - Browser E2E `30509677387`;
 - Parity Documentation `30509677380`;
 - Milestone 8 Visual Evidence `30509677378`.
 
-These gates verify only the mapped pure-model slice. Installed original runtime screenshots, browser-action integration, tab event coordination and owner acceptance remain open.
+The exact-package runtime captures close only the basic reference states. They do not close Order 1. Still open:
 
-A structural Nex conflict is confirmed: current Inspect runtime directly mutates title and Badge state. It must become an input to one unified per-tab action coordinator rather than competing with it.
+- user-created Fixed profile state;
+- Switch/PAC result and two-color icon state;
+- Virtual and attached Rule List state;
+- temporary-rule state;
+- Inspect state;
+- external-controller transition details;
+- headed toolbar pixels where required;
+- Nex browser-action integration and per-tab coordination;
+- repository-owner acceptance.
+
+A structural Nex conflict is confirmed: current Inspect runtime directly mutates title and Badge state. It must become an input to one unified per-tab Action coordinator rather than competing with it.
+
+## Runtime harness boundary
+
+The successful Firefox evidence used Firefox `152.0.6`. A later GitHub runner image exposed Firefox `153.0`, whose Marionette navigation rejected direct `moz-extension://` navigation before state capture. This is a test-harness compatibility change, not evidence against the successful exact-package run. Future reruns must use supported BiDi browsing-context navigation or pin the verified Firefox runtime.
 
 ## Non-invention rule
 
-Every Nex-only visible element must have one of two things:
+Every Nex-only visible element must have either:
 
 1. a direct original source/runtime anchor; or
 2. a documented necessary divergence with technical evidence and explicit owner acceptance.
 
-Without that provenance, the element is a defect.
-
-This applies to:
-
-- pages and auxiliary surfaces;
-- dialogs and confirmation steps;
-- description cards and help boxes;
-- compatibility summaries and status taxonomies;
-- labels and terminology;
-- control regrouping;
-- validation timing;
-- visible distinctions created from internal Draft/Applied/snapshot architecture.
-
-Unknown original behavior must remain `UNKNOWN`; it must not be filled by design assumptions.
+Without that provenance, the element is a defect. Unknown original behavior remains `UNKNOWN`; it must not be filled by design assumptions.
 
 ## Failed candidate record
 
@@ -128,7 +129,7 @@ Its status is `FAILED`. It must not be reissued, renamed or used as evidence of 
 
 ## Reopened blockers
 
-- `KG-ICON-001` — toolbar icon, badge, title and runtime-state parity.
+- `KG-ICON-001` — toolbar icon, Badge, title and runtime-state parity.
 - `KG-IMPORT-001` — direct import and immediate use of real original exports.
 - `KG-UI-001` — layout, density, dialogs and action hierarchy.
 - `KG-EXTRA-001` — unnecessary descriptions and extra workflow.
@@ -140,67 +141,41 @@ All are release-blocking.
 
 ## Immediate work order
 
-### 1. Complete Order 1 runtime capture and integration
+### 1. Freeze the remaining Order 1 runtime matrix
 
-- install the exact official Chromium and Firefox packages;
-- capture toolbar icon/title/Badge states and browser differences;
-- implement one browser-action adapter and per-tab coordinator;
+- capture user Fixed, Switch/PAC, Virtual, attached Rule List, temporary-rule, Inspect and external-control states;
+- preserve browser-specific differences instead of forcing Chromium and Firefox into one inferred contract;
+- keep uncaptured states explicitly `UNKNOWN`.
+
+### 2. Implement the unified Action path
+
+- implement one browser-action adapter;
+- implement one per-tab result coordinator;
+- connect tab creation, URL update, tab activation and profile changes;
 - convert Inspect from direct Action mutation to coordinator state input;
-- verify two tabs, route changes, temporary rules, Inspect and restart behavior;
-- require owner review before closing `KG-ICON-001`.
+- converge temporary rules, route results, Rule Lists, Virtual profiles and external control into the same state calculation.
 
-### 2. Capture current Nex independently
+### 3. Verify Order 1 independently
 
-Capture the same nodes without assuming equivalence, including every:
+- capture current Nex without assuming equivalence;
+- verify two tabs, inactive tabs, route changes, temporary rules, Inspect, restart and stale-state clearing;
+- run Chromium and Firefox real-browser checks;
+- require repository-owner `PASS` before closing `KG-ICON-001`.
 
-- extra page;
-- extra dialog;
-- description/help block;
-- warning panel;
-- status taxonomy;
-- additional step;
-- term or visible state without original provenance.
-
-### 3. Build the detailed Original ↔ Nex delivery order
-
-Every node must show:
-
-- original source and runtime evidence;
-- original UI and data before/after;
-- Nex source and runtime evidence;
-- missing, broken, extra or invented behavior;
-- exact correction target;
-- automated and real-export verification;
-- Chromium/Firefox results;
-- owner `PASS`, `FAIL` or `NOT RUN`.
-
-Broad claims such as “Popup done”, “Import done” or “Profile editor done” are prohibited.
-
-### 4. Fix complete user journeys
-
-Priority:
+### 4. Continue the fixed delivery order
 
 1. installation, startup and toolbar state;
 2. direct import and immediate use of real original exports;
 3. Popup behavior;
 4. Options information architecture and Apply/Discard;
 5. Fixed, Switch, PAC, Virtual and Rule List journeys;
-6. profile lifecycle and exports;
-7. authentication, ownership, restart and rollback;
-8. localization, density and visual alignment.
+6. profile lifecycle, exports, authentication, ownership, restart and rollback;
+7. localization, density and visual alignment.
 
 ## Candidate prohibition
 
-No new candidate may be declared until:
-
-- the complete comparison graph is mapped;
-- every visible Nex-only element has provenance or owner approval;
-- representative real original exports import directly and work immediately;
-- broad UI and workflow differences are corrected;
-- unnecessary descriptions and extra workflow are removed;
-- Chromium and Firefox pass complete real-data journeys;
-- the repository owner explicitly accepts the exact build.
+No new candidate may be declared until the complete comparison graph is mapped, every visible Nex-only element has provenance or owner approval, representative real original exports work directly, complete Chromium and Firefox journeys pass, and the repository owner explicitly accepts the exact build.
 
 ## Current next action
 
-Complete installed original Chromium/Firefox toolbar runtime capture, then implement the unified browser-action adapter and coordinator against that evidence. No candidate is permitted.
+Complete the remaining original toolbar states, then implement the unified browser-action adapter and per-tab coordinator against the source plus Chromium/Firefox runtime evidence. No candidate is permitted.
