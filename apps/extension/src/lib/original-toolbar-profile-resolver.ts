@@ -106,10 +106,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     return deriveOriginalToolbarTabState({
       currentProfileName: profile.name,
       resultProfileName: profile.name,
-      details: localizeOriginalToolbarDetail(
-        this.#i18n,
-        ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
-      ),
+      details: localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule),
       icon: {
         currentProfileColor: profile.color,
         matchedProfileColor: profile.color,
