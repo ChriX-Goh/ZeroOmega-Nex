@@ -100,16 +100,8 @@ try {
     return {
       system: resultTitle(`[${systemName}]`, `[${systemName}]`, externalDetail),
       direct: resultTitle(`[${directName}]`, `[${directName}]`, directDetail),
-      fixedProxy: resultTitle(
-        'Toolbar Proxy',
-        'Toolbar Proxy',
-        'PROXY 127.0.0.1:7890\n',
-      ),
-      fixedBypass: resultTitle(
-        'Toolbar Proxy',
-        'Toolbar Proxy',
-        `localhost => ${directDetail}\n`,
-      ),
+      fixedProxy: resultTitle('Toolbar Proxy', 'Toolbar Proxy', 'PROXY 127.0.0.1:7890\n'),
+      fixedBypass: resultTitle('Toolbar Proxy', 'Toolbar Proxy', `localhost => ${directDetail}\n`),
     };
   });
 
