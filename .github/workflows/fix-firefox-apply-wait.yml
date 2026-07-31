@@ -1,0 +1,50 @@
+name: Fix Firefox Apply acceptance wait
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-firefox-apply-wait.yml
+      - scripts/fix-firefox-apply-wait.py
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply and verify
+        run: |
+          python scripts/fix-firefox-apply-wait.py
+          pnpm exec prettier --write scripts/e2e-firefox.mjs
+          pnpm verify
+          pnpm build:firefox
+          for iteration in 1 2 3; do
+            echo ">>>>> FULL FIREFOX E2E ITERATION ${iteration}"
+            pnpm test:e2e:firefox
+          done
+      - name: Commit and clean
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/e2e-firefox.mjs
+          git rm \
+            .github/workflows/fix-firefox-apply-wait.yml \
+            scripts/fix-firefox-apply-wait.py
+          git commit -m 'test: make Firefox Apply acceptance deterministic'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
