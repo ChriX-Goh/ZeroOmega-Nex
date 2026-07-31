@@ -223,8 +223,7 @@ export class OriginalToolbarTabCoordinator {
   private enqueue(tabId: number, work: () => Promise<void>): Promise<void> {
     const previous = this.#queues.get(tabId) ?? Promise.resolve();
     const task = previous.catch(() => undefined).then(work);
-    let tracked: Promise<void>;
-    tracked = task.finally(() => {
+    const tracked = task.finally(() => {
       if (this.#queues.get(tabId) === tracked) this.#queues.delete(tabId);
     });
     this.#queues.set(tabId, tracked);
