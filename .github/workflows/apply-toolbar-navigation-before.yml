@@ -1,87 +1,35 @@
-name: Apply global toolbar Action baseline
+name: Clean toolbar transaction files
 
 on:
   pull_request:
     branches: [main]
     paths:
       - .github/workflows/apply-toolbar-navigation-before.yml
-      - scripts/apply-toolbar-navigation-before.py
-      - scripts/fix-global-toolbar-executor-lint.py
-      - scripts/fix-global-toolbar-overlay-contract.py
-      - scripts/fix-global-toolbar-startup-await.py
-      - scripts/fix-profile-workflow-command-serialization.py
-      - scripts/fix-firefox-toolbar-focused-mode.py
 
 permissions:
   contents: write
 
 jobs:
-  apply:
+  clean:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Install
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.4.0 --activate
-          pnpm install --frozen-lockfile
-      - name: Apply and verify
-        run: |
-          python scripts/apply-toolbar-navigation-before.py
-          python scripts/fix-global-toolbar-executor-lint.py
-          python scripts/fix-global-toolbar-overlay-contract.py
-          python scripts/fix-global-toolbar-startup-await.py
-          python scripts/fix-profile-workflow-command-serialization.py
-          python scripts/fix-firefox-toolbar-focused-mode.py
-          pnpm exec prettier --write \
-            apps/extension/src/lib/original-toolbar-action-adapter.ts \
-            apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
-            apps/extension/src/lib/original-toolbar-action-executor.ts \
-            apps/extension/src/lib/original-toolbar-action-executor.test.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
-            apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
-            apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
-            apps/extension/src/lib/profile-workflow-runtime.ts \
-            apps/extension/src/lib/profile-workflow-runtime.test.ts \
-            apps/extension/src/lib/profile-workflow-runtime-initialize.test.ts \
-            apps/extension/src/entrypoints/background.ts \
-            scripts/e2e-firefox.mjs \
-            package.json
-          pnpm verify
-          pnpm build:firefox
-          echo ">>>>> FULL FIREFOX E2E"
-          pnpm test:e2e:firefox
-          for iteration in 1 2 3 4 5 6 7 8 9 10; do
-            echo ">>>>> FIREFOX TOOLBAR ACTION ITERATION ${iteration}"
-            pnpm test:e2e:firefox-toolbar
-          done
-      - name: Commit
+      - name: Remove transaction files
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add \
-            apps/extension/src/lib/original-toolbar-action-adapter.ts \
-            apps/extension/src/lib/original-toolbar-action-adapter.test.ts \
-            apps/extension/src/lib/original-toolbar-action-executor.ts \
-            apps/extension/src/lib/original-toolbar-action-executor.test.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.ts \
-            apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
-            apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
-            apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
-            apps/extension/src/lib/profile-workflow-runtime.ts \
-            apps/extension/src/lib/profile-workflow-runtime.test.ts \
-            apps/extension/src/lib/profile-workflow-runtime-initialize.test.ts \
-            apps/extension/src/entrypoints/background.ts \
-            scripts/e2e-firefox.mjs \
-            package.json
-          git commit -m 'fix: establish a durable global toolbar Action baseline'
+          git rm \
+            .github/workflows/apply-toolbar-navigation-before.yml \
+            scripts/apply-toolbar-navigation-before.py \
+            scripts/fix-global-toolbar-executor-lint.py \
+            scripts/fix-global-toolbar-overlay-contract.py \
+            scripts/fix-global-toolbar-startup-await.py \
+            scripts/fix-profile-workflow-command-serialization.py \
+            scripts/fix-firefox-toolbar-focused-mode.py \
+            scripts/diagnose-firefox-global-action.py
+          git commit -m 'chore: remove toolbar transaction files'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
