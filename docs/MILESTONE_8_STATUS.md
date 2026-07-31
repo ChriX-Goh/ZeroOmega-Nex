@@ -66,47 +66,45 @@ No old broad `DONE` row is owner-complete by inheritance.
 
 ## Active Order 1 checkpoint
 
-Captured source/package evidence:
+Captured original authority remains the exact v3.5.0 source, official Chromium/Firefox packages and installed runtime evidence recorded in the Order 1 documents.
 
-- exact original toolbar source and 18-row Original ↔ Nex map;
-- exact official Chromium and Firefox v3.5.0 packages and hashes;
-- exact Ω geometry and dynamic size contract;
-- original static/inclusive/Direct icon color decisions;
-- original result-Badge preference, localized built-in labels and four-code-unit truncation;
-- pure per-tab presentation composition without Nex-only state.
+Current verified Nex runtime:
 
-Captured real original runtime evidence:
+- one registered background owner performs all real Action writes;
+- real `browser.action`, `browser.i18n`, `browser.tabs` and OffscreenCanvas boundaries are constructed in the background;
+- the repository resolver covers Direct, System, Fixed proxy and Fixed bypass;
+- the per-tab coordinator handles URL updates, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh;
+- clean installations proactively initialize to the original System route without opening UI; existing state follows restore/recovery without duplicate activation;
+- Inspect feeds a single-writer overlay and no longer mutates title/Badge independently;
+- permanent Chromium Action E2E directly verifies two tab IDs through `getTitle`, `getBadgeText` and `getPopup` across System → Direct → Fixed proxy / Fixed bypass;
+- cross-document revision history is isolated by current `documentId` before validation.
 
-- Chromium exact-package evidence: `docs/AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`;
-- Firefox exact-package evidence: `docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`;
-- both targets cover initial/System, Direct, two-tab and internal-page Action title/Badge/Popup observations plus installed Options and Popup surfaces;
-- Firefox evidence records the runtime difference between the manifest Popup entry and the per-tab `action.getPopup()` result;
-- Firefox successful run `30597356624`, Artifact `8780625790`, digest `sha256:1638d78b85d5c70c52d50510ec3e98b0b479a96c0bbf98f86cd133f48e889980`.
+### Exact verified checkpoint
 
-Verified pure-model slice Head `5b60bba3e1e66718a01171034582a606cf2334bb` passed:
+Clean Head `e03e76e7edf310ddd6f947e77453febf0de07f58` passed all permanent gates after the knowledge-graph sync and temporary-file cleanup:
 
-- CI `30509677377`;
-- Browser E2E `30509677387`;
-- Parity Documentation `30509677380`;
-- Milestone 8 Visual Evidence `30509677378`.
+- CI `30657732067`;
+- Browser E2E `30657732048`;
+- Parity Documentation `30657732107`;
+- Milestone 8 Visual Evidence `30657732880`.
 
-The exact-package runtime captures close only the basic reference states. They do not close Order 1. Still open:
+The permanent Chromium browser job includes the separate real toolbar Action E2E. It reads per-tab title, Badge and Popup for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions. Firefox and native Chromium Inspect passed in the same Browser E2E run.
 
-- user-created Fixed profile state;
-- Switch/PAC result and two-color icon state;
-- Virtual and attached Rule List state;
-- temporary-rule state;
-- Inspect state;
-- external-controller transition details;
-- headed toolbar pixels where required;
-- Nex browser-action integration and per-tab coordination;
-- repository-owner acceptance.
+Still open:
 
-A structural Nex conflict is confirmed: current Inspect runtime directly mutates title and Badge state. It must become an input to one unified per-tab Action coordinator rather than competing with it.
+- complete Switch/PAC/Virtual/attached Rule List/temporary-rule/external-control result traces;
+- direct equivalent Firefox Action API acceptance;
+- explicit internal-page, same-tab URL-transition, Inspect set/clear and forced renderer-fallback Action evidence;
+- headed toolbar pixels where browser-readable state is insufficient;
+- repository-owner acceptance of the corrected Order 1 journey.
+
+No `TB-*` row or `KG-ICON-001` is owner-complete.
 
 ## Runtime harness boundary
 
-The successful Firefox evidence used Firefox `152.0.6`. A later GitHub runner image exposed Firefox `153.0`, whose Marionette navigation rejected direct `moz-extension://` navigation before state capture. This is a test-harness compatibility change, not evidence against the successful exact-package run. Future reruns must use supported BiDi browsing-context navigation or pin the verified Firefox runtime.
+Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and passes on Firefox 153.0. Historical original-package evidence remains fixed to Firefox 152.0.6; rerunning that separate original audit still requires the same BiDi migration or a pinned runtime.
+
+The browser Action architecture now has one writer. Inspect, profile activation and startup recovery are integrated inputs. Temporary rules, inclusive-profile traces and external-control transitions remain explicit missing inputs rather than permission to add simplified invented wording.
 
 ## Non-invention rule
 
@@ -141,36 +139,30 @@ All are release-blocking.
 
 ## Immediate work order
 
-### 1. Freeze the remaining Order 1 runtime matrix
+### 1. Complete the remaining Order 1 trace contract
 
-- capture user Fixed, Switch/PAC, Virtual, attached Rule List, temporary-rule, Inspect and external-control states;
-- preserve browser-specific differences instead of forcing Chromium and Firefox into one inferred contract;
-- keep uncaptured states explicitly `UNKNOWN`.
+- capture and map Switch/PAC default and matched results;
+- capture Virtual and attached Rule List results;
+- connect temporary-rule and external-control transitions to the single writer;
+- preserve the original multiline `matchProfile.results` wording and fail closed on unsupported trace shapes.
 
-### 2. Implement the unified Action path
+### 2. Expand direct real-browser Action acceptance
 
-- implement one browser-action adapter;
-- implement one per-tab result coordinator;
-- connect tab creation, URL update, tab activation and profile changes;
-- convert Inspect from direct Action mutation to coordinator state input;
-- converge temporary rules, route results, Rule Lists, Virtual profiles and external control into the same state calculation.
+- add direct Firefox title/Badge/Popup acceptance;
+- add explicit internal-page fallback and same-tab proxy↔bypass transition assertions;
+- capture Inspect set/clear/isolation through the real Action API;
+- force renderer failure and verify static fallback where feasible.
 
-### 3. Verify Order 1 independently
+### 3. Run focused owner acceptance
 
-- capture current Nex without assuming equivalence;
-- verify two tabs, inactive tabs, route changes, temporary rules, Inspect, restart and stale-state clearing;
-- run Chromium and Firefox real-browser checks;
-- require repository-owner `PASS` before closing `KG-ICON-001`.
+- install the exact clean build;
+- verify startup/System, Direct, user Fixed, two-tab isolation, Popup and Inspect;
+- record repository-owner `PASS` or concrete defects;
+- do not close `KG-ICON-001` from automation alone.
 
 ### 4. Continue the fixed delivery order
 
-1. installation, startup and toolbar state;
-2. direct import and immediate use of real original exports;
-3. Popup behavior;
-4. Options information architecture and Apply/Discard;
-5. Fixed, Switch, PAC, Virtual and Rule List journeys;
-6. profile lifecycle, exports, authentication, ownership, restart and rollback;
-7. localization, density and visual alignment.
+After Order 1 owner acceptance, proceed to real original export → direct import → immediate use. No UI redesign or unrelated feature expansion is authorized.
 
 ## Candidate prohibition
 
@@ -178,4 +170,4 @@ No new candidate may be declared until the complete comparison graph is mapped, 
 
 ## Current next action
 
-Complete the remaining original toolbar states, then implement the unified browser-action adapter and per-tab coordinator against the source plus Chromium/Firefox runtime evidence. No candidate is permitted.
+Complete the remaining original result traces and direct Firefox Action acceptance, then run focused Order 1 owner acceptance. No candidate is permitted.

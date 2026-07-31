@@ -12,26 +12,25 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 - Unrounded score: **46.7%**.
 - Confidence band: **42%–50%**.
 - Active journey: Order 1 — installation/startup/toolbar, **35%**.
-- Current formatted audit Head before this checkpoint: `1c329ac9f9257a8c5bd2d523588184c23dde2c83`.
-- `1c329ac9…` was authored by GitHub Actions after exact Prettier formatting, so this connected-account checkpoint exists to trigger the permanent gates on the same tree plus this boundary record.
 
-Current source-certain toolbar slices:
+Clean Head `e03e76e7edf310ddd6f947e77453febf0de07f58` passed all permanent gates after the knowledge-graph sync and temporary-file cleanup:
 
-- exact original Ω geometry and dynamic size contract;
-- original static/inclusive/Direct icon color decisions;
-- original result-Badge preference, localized built-in label and four-code-unit truncation;
-- pure per-tab icon/title-placeholder/Badge/detail-prefix composition;
-- exact official v3.5.0 Chromium and Firefox package identities and manifests.
+- CI `30657732067`;
+- Browser E2E `30657732048`;
+- Parity Documentation `30657732107`;
+- Milestone 8 Visual Evidence `30657732880`.
 
-Head `5b60bba3e1e66718a01171034582a606cf2334bb` already passed all four permanent gates for the per-tab pure model. The current checkpoint also includes synchronized progress and status documents.
+The permanent Chromium browser job includes the separate real toolbar Action E2E. It reads per-tab title, Badge and Popup for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions. Firefox and native Chromium Inspect passed in the same Browser E2E run.
 
-These are slice-level implementation and evidence only. No `TB-*` row, `KG-ICON-001`, journey or release is closed.
+This is an exact engineering and evidence checkpoint, not a release-completeness Head. It proves the mapped toolbar slice and permanent gates only.
 
 ## Confirmed integration boundary
 
-Current `inspect-runtime.ts` directly mutates tab-specific title and Badge state. The original-compatible per-tab coordinator must become the sole browser Action writer; Inspect, temporary rules, profile activation and ownership state must provide inputs rather than competing mutations.
+The background now registers one real browser Action writer composed from the repository resolver, per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, existing state follows restore/recovery, and successful activation refreshes all tabs.
 
-No browser Action integration should be accepted until the official original packages are run and the Chromium/Firefox state differences are recorded.
+Permanent Chromium acceptance verifies System, Direct, Fixed proxy and Fixed bypass per-tab title/Badge/Popup state on two real tabs. Inspect no longer competes as a second title/Badge writer.
+
+Still outside the verified slice are complete Switch/PAC/Virtual/Rule List/temporary-rule/external-control traces, direct Firefox Action API acceptance, explicit internal-page and same-tab transition assertions, forced renderer fallback and repository-owner PASS.
 
 ## Current boundary
 
