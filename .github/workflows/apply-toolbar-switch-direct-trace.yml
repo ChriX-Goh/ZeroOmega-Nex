@@ -30,6 +30,7 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/apply-toolbar-switch-direct-trace.py
+          python scripts/fix-toolbar-switch-direct-unused.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-profile-resolver.ts \
             apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
@@ -55,6 +56,7 @@ jobs:
             docs/AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md
           git rm \
             scripts/apply-toolbar-switch-direct-trace.py \
+            scripts/fix-toolbar-switch-direct-unused.py \
             scripts/audit-original-toolbar-switch-results.mjs
           git commit -m 'feat: resolve exact Switch to Direct toolbar traces'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
