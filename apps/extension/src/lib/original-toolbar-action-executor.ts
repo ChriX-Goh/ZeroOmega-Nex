@@ -19,6 +19,7 @@ export interface OriginalToolbarIconRendererApi {
     outerCircleColor: string,
     innerCircleColor?: string,
   ): OriginalToolbarActionImageDataSet | undefined;
+  clearCache(): void;
 }
 
 export interface OriginalToolbarActionExecutorOptions {
@@ -76,6 +77,10 @@ export class OriginalToolbarActionExecutor {
         title: localizeOriginalToolbarDefaultTitle(this.#i18n),
       }),
     );
+  }
+
+  clearIconCache(): void {
+    this.#renderer.clearCache();
   }
 
   private presentation(input: {
