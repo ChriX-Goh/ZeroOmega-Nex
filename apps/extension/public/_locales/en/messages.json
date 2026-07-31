@@ -30,5 +30,61 @@
   },
   "routeSystem": {
     "message": "System Proxy"
+  },
+  "browserAction_attachedPrefix": {
+    "message": "(attached) ",
+    "description": "A prefix prepended to the matching details if an attached profile has matched the request."
+  },
+  "browserAction_defaultRuleDetails": {
+    "message": "(default)",
+    "description": "Matching details if the default condition is used."
+  },
+  "browserAction_directResult": {
+    "message": "(not using any proxy)",
+    "description": "Matching details if no proxy is used for the request."
+  },
+  "browserAction_tempRulePrefix": {
+    "message": "(temporary rule) ",
+    "description": "A prefix prepended to the matching details if a temporary rule has matched the request."
+  },
+  "browserAction_titleExternalProxy": {
+    "message": "(controlled by other extensions or environment)",
+    "description": "The last line of the title of the toolbar icon when the proxy is set by other extensions, policies, command line options, etc."
+  },
+  "browserAction_titleInspect": {
+    "message": "[Inspect] $URL$",
+    "description": "The last line of the title of the toolbar icon while inspecting proxy used for requests on the current tab.",
+    "placeholders": {
+      "url": {
+        "content": "$2",
+        "example": "http://www.example.com/"
+      },
+      "_unused_0": {
+        "content": "$1",
+        "example": "Profile Name"
+      }
+    }
+  },
+  "browserAction_titleWithResult": {
+    "message": "ZeroOmega:: $PROFILE$\n$DETAILS$",
+    "description": "Title of the toolbar icon, indicating that the last request on the current tab is routed under profile $1, with matching details $3.",
+    "placeholders": {
+      "details": {
+        "content": "$3",
+        "example": "(default)"
+      },
+      "profile": {
+        "content": "$1",
+        "example": "Profile Name"
+      },
+      "_unused_0": {
+        "content": "$2",
+        "example": "(another profile)"
+      }
+    }
+  },
+  "manifest_icon_default_title": {
+    "message": "Loading...",
+    "description": "Default title for the toolbar icon shown while loading."
   }
 }

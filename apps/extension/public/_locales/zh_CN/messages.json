@@ -30,5 +30,61 @@
   },
   "routeSystem": {
     "message": "系统代理"
+  },
+  "browserAction_attachedPrefix": {
+    "message": "（附加）",
+    "description": "附加情景模式匹配请求时，匹配细节之前的前缀。"
+  },
+  "browserAction_defaultRuleDetails": {
+    "message": "（默认情景模式）",
+    "description": "使用默认条件时的匹配细节。"
+  },
+  "browserAction_directResult": {
+    "message": "（未使用代理服务器）",
+    "description": "请求未使用代理时的匹配细节。"
+  },
+  "browserAction_tempRulePrefix": {
+    "message": "（临时规则）",
+    "description": "临时规则匹配请求时，匹配细节之前的前缀。"
+  },
+  "browserAction_titleExternalProxy": {
+    "message": "（代理服务器由其它扩展或环境控制。）",
+    "description": "代理服务器由其它扩展、策略或命令行选项等控制时，工具栏图标的最后一行标题。"
+  },
+  "browserAction_titleInspect": {
+    "message": "[检查] $URL$",
+    "description": "检查当前标签页的请求使用的代理服务器时，工具栏图标的最后一行标题。",
+    "placeholders": {
+      "url": {
+        "content": "$2",
+        "example": "http://www.example.com/"
+      },
+      "_unused_0": {
+        "content": "$1",
+        "example": "Profile Name"
+      }
+    }
+  },
+  "browserAction_titleWithResult": {
+    "message": "ZeroOmega:: $PROFILE$\n$DETAILS$",
+    "description": "工具栏图标的标题，指示当前标签页的最后一个请求依据情景模式 $1 处理，并附匹配细节 $3。",
+    "placeholders": {
+      "details": {
+        "content": "$3",
+        "example": "(default)"
+      },
+      "profile": {
+        "content": "$1",
+        "example": "Profile Name"
+      },
+      "_unused_0": {
+        "content": "$2",
+        "example": "(another profile)"
+      }
+    }
+  },
+  "manifest_icon_default_title": {
+    "message": "正在加载……",
+    "description": "加载时工具栏图标显示的标题。"
   }
 }

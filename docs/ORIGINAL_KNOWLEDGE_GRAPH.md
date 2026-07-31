@@ -614,3 +614,30 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - QC state is `NOT RUN`; candidate declaration is not release acceptance.
 - Owner QC must use a real complex backup and record visual parity, authenticated routing, permission denial, restart recovery, rollback, and whether failed/cancelled operations changed traffic.
 - Any defect stays attached to this exact candidate; replacement requires a new Head, full automation, fresh artifact identity, and a new candidate ID.
+
+## 21. Session 8 工具栏目标常量纠偏
+
+### 21.1 权威证据
+
+- 官方 Chromium v3.5.0 包 SHA-256：`4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce`。
+- 编译 manifest 与 `en` / `zh_CN` / `zh_TW` 词条：`AUDIT_EVIDENCE_01E_ORIGINAL_TARGET_CONSTANTS.md`。
+- 原版静态 Action Blob：16 `46f3348f...`、19 `3498aa0d...`、24 `adfe3560...`、32 `07e41189...`。
+
+### 21.2 固定目标契约
+
+```text
+Chromium manifest Popup = popup-iframe.html
+Firefox manifest Popup = popup/index.html
+每标签页运行时 Popup = popup-iframe.html
+Action 默认标题 = __MSG_manifest_icon_default_title__
+Action 静态尺寸 = 16 / 19 / 24 / 32
+快捷键 = Alt+Shift+O
+必需权限新增 tabs
+结果标题接收三参数，但编译模板只显示 $1 与 $3；$2 必须继续传入并保持未使用占位符
+```
+
+### 21.3 当前实施边界
+
+- 精确静态资产、三套编译词条、两个 Popup 兼容入口和 manifest 目标常量在本切片接入。
+- 该切片只修正安装后的默认 Action 契约；每标签页结果仍需真实协调器、解析器和 `browser.action` 绑定。
+- 不因 manifest 绿色测试关闭 `KG-ICON-001` 或任何 `TB-*` 行。

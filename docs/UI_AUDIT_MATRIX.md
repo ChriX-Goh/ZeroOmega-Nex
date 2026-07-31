@@ -219,3 +219,13 @@
 | 2026-07-29 | 完成 PAC 目标能力信号：原版 proxy-script-registration 不支持分支、缺失 proxy.settings 的 fail-closed、当前目标支持分支及 Chromium 真实 UI 禁用验证；开放 MUST_MATCH 降至 4 项 |
 | 2026-07-29 | 恢复原版 Profile 页头 Rename 动作与独立对话框；完成 Apply-before-dialog、名称校验、Draft/Apply、附属 Rule List/源事务及 Chromium/Firefox 回归；开放 MUST_MATCH 降至 3 项      |
 | 2026-07-29 | 完成代理协议×浏览器目标×URL 槽位能力矩阵、SOCKS DNS/认证边界及现代 FTP 请求移除决定；C-05/C-09 关闭，开放 MUST_MATCH 降至 2 项                                                |
+
+## Session 8 Toolbar Contract Correction
+
+| ID   | 界面/功能                     | 原版源码                                                   | 原版布局与行为                                                       | 分类       | Nex 状态 | 翻译     | 证据/问题                                                    | 下一步                         |
+| ---- | ----------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------- | ---------- | -------- | -------- | ------------------------------------------------------------ | ------------------------------ |
+| H-13 | 编译后工具栏本地化契约        | `AUDIT_EVIDENCE_01E_ORIGINAL_TARGET_CONSTANTS.md`          | 保留默认、结果、细节词条及三参数占位符顺序                           | MUST_MATCH | DONE     | COMPLETE | 编译包证据、三套 locale 与本地化校验                         | 保持编译词条和三参数调用回归   |
+| J-06 | 目标 Action manifest 默认契约 | Chromium/Firefox v3.5.0 官方包及运行证据                   | 保留目标 Popup、默认标题、16/19/24/32 回退图标、快捷键和 `tabs` 权限 | MUST_MATCH | PARTIAL  | N/A      | 构建 manifest 审计已覆盖；每标签页运行时协调仍未接入         | 完成真实 Action 运行时绑定     |
+| J-07 | 每标签页 Action 运行时收敛    | 工具栏源码/运行矩阵与 `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | 标签页、Profile、Inspect、临时规则和外部控制统一进入一个协调器       | MUST_MATCH | MISSING  | N/A      | 隔离协调器已验证；真实 Chromium/Firefox 绑定和用户 PASS 缺失 | 完成双浏览器状态迁移与用户验收 |
+
+This section supersedes any older implication that toolbar target constants or localization are unknown. It does not supersede the project-wide failure state or authorize a candidate.

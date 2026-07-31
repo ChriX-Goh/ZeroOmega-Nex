@@ -30,5 +30,61 @@
   },
   "routeSystem": {
     "message": "系統代理"
+  },
+  "browserAction_attachedPrefix": {
+    "message": "（附加）",
+    "description": "附加情境模式匹配要求時，匹配細節之前的前綴。"
+  },
+  "browserAction_defaultRuleDetails": {
+    "message": "（預設情境模式）",
+    "description": "使用預設條件時的匹配細節。"
+  },
+  "browserAction_directResult": {
+    "message": "（未使用 Proxy 伺服器）",
+    "description": "要求未使用 Proxy 時的匹配細節。"
+  },
+  "browserAction_tempRulePrefix": {
+    "message": "（暫時規則）",
+    "description": "暫時規則匹配要求時，匹配細節之前的前綴。"
+  },
+  "browserAction_titleExternalProxy": {
+    "message": "（Proxy 伺服器由其它擴充功能或環境控制。）",
+    "description": "Proxy 伺服器由其它擴充功能、規則或命令列選項等控制時，工具列圖示的最後一行標題。"
+  },
+  "browserAction_titleInspect": {
+    "message": "[檢查] $URL$",
+    "description": "檢查目前分頁的要求使用的 Proxy 伺服器時，工具列圖示的最後一行標題。",
+    "placeholders": {
+      "url": {
+        "content": "$2",
+        "example": "http://www.example.com/"
+      },
+      "_unused_0": {
+        "content": "$1",
+        "example": "Profile Name"
+      }
+    }
+  },
+  "browserAction_titleWithResult": {
+    "message": "ZeroOmega:: $PROFILE$\n$DETAILS$",
+    "description": "工具列圖示的標題，表示目前分頁的最後一個要求依據情境模式 $1 處理，並附匹配細節 $3。",
+    "placeholders": {
+      "details": {
+        "content": "$3",
+        "example": "(default)"
+      },
+      "profile": {
+        "content": "$1",
+        "example": "Profile Name"
+      },
+      "_unused_0": {
+        "content": "$2",
+        "example": "(another profile)"
+      }
+    }
+  },
+  "manifest_icon_default_title": {
+    "message": "正在載入……",
+    "description": "載入時工具列圖示顯示的標題。"
   }
 }

@@ -503,9 +503,20 @@ const requirements = [
   ],
   [
     manifest.includes("default_locale: 'en'") &&
-      manifest.includes('default_icon: icons') &&
-      ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)),
-    'The browser manifest must expose localized metadata and toolbar icons at all standard sizes.',
+      manifest.includes('    icons,') &&
+      ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)) &&
+      manifest.includes('default_icon: originalActionIcons') &&
+      manifest.includes("'build:manifestGenerated'") &&
+      manifest.includes('manifest.action.default_title') &&
+      manifest.includes('manifest.action.default_icon') &&
+      manifest.includes('manifest.action.default_popup') &&
+      [
+        'original-action-16.png',
+        'original-action-19.png',
+        'original-action-24.png',
+        'original-action-32.png',
+      ].every((entry) => manifest.includes(entry)),
+    'The browser manifest must keep standard install icons and the original Action fallback sizes.',
   ],
   [
     popupApp.includes('import ProfileIcon') &&
