@@ -20,7 +20,7 @@ Product commit `a69cdb3f1e215ad0306afe4083b67066f2c68d18` establishes a durable 
 
 - browser-level Action title, Badge, Popup and icon fallback can be written without a `tabId`;
 - Direct and System establish a global Action baseline before per-tab URL-derived states override it;
-- the per-tab coordinator refreshes the global baseline and then all identified tabs through the same single writer;
+- the coordinator refreshes the global baseline and then all identified tabs through the same single writer;
 - Inspect delegates global writes without applying per-tab overlays;
 - profile-workflow commands are serialized so concurrent `get` requests cannot observe a partially persisted but not-yet-activated initial state;
 - activation follow-up may be asynchronous and is awaited before the command response resolves;
@@ -42,6 +42,8 @@ Temporary applicators, diagnostics and the one-time workflow were removed atomic
 
 Authenticated clean checkpoint `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all four permanent gates: CI `30666472249`, Browser E2E `30666473257`, Parity Documentation `30666472570` and Milestone 8 Visual Evidence `30666472029`. Browser E2E passed Firefox, Chromium toolbar Action and native Chromium Inspect jobs. This remains slice-level engineering evidence only.
 
+The authoritative knowledge graph, audit index, Delivery Order 1, Milestone 8 status and Verification Head were synchronized to that exact checkpoint in `16fdd72ca32e109778f54b0eb2a61993059ba60c`; the temporary synchronization files were removed in `7eb7077ba11c500ebc12829f822da9dd67f246ad`.
+
 ## Remaining Order 1 work
 
 - complete Switch/PAC default and matched-result traces;
@@ -55,6 +57,6 @@ Authenticated clean checkpoint `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed
 
 ## Next gate
 
-1. Synchronize the authoritative knowledge graph and PR description to the exact successful Head and run IDs.
+1. Require the four permanent gates on this authenticated post-synchronization Head.
 2. Continue with internal-page, same-tab transition and direct Inspect Action acceptance.
 3. Keep progress at 47% / 35% until their real-browser and owner-acceptance gates close.
