@@ -46,6 +46,8 @@ jobs:
             apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            apps/extension/src/lib/profile-workflow-runtime.test.ts \
             apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
@@ -70,6 +72,8 @@ jobs:
             apps/extension/src/lib/original-toolbar-tab-coordinator.test.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.ts \
             apps/extension/src/lib/original-toolbar-inspect-overlay.test.ts \
+            apps/extension/src/lib/profile-workflow-runtime.ts \
+            apps/extension/src/lib/profile-workflow-runtime.test.ts \
             apps/extension/src/entrypoints/background.ts \
             scripts/e2e-firefox.mjs \
             package.json
