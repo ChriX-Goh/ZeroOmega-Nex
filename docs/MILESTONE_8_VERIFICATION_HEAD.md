@@ -13,24 +13,22 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 - Confidence band: **42%–50%**.
 - Active journey: Order 1 — installation/startup/toolbar, **35%**.
 
-Clean Head `f782f802a78ace277de938bdd4dfed2bf6315951` passed all permanent gates after the top-level navigation refresh fix and temporary-file cleanup:
+Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30660824011`;
-- Browser E2E `30660824007`;
-- Parity Documentation `30660824047`;
-- Milestone 8 Visual Evidence `30660823998`.
+- CI `30666472249`;
+- Browser E2E `30666473257`;
+- Parity Documentation `30666472570`;
+- Milestone 8 Visual Evidence `30666472029`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Its Firefox job ran Firefox `152.0.6` and proved that newly opened tabs receive System, Direct and Fixed proxy / Fixed bypass Action state instead of remaining at the manifest loading title. Firefox diagnostics Artifact `8805083911` has digest `sha256:198cc198a90a39a1def2d93d416f6f0c3b66a0f90c70eff6f7ea633d069dc2b9`.
+The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
 
-The top-level navigation listener only calls the existing coordinator and is protected by the exact manifest permission audit.
-
-This is an exact engineering and evidence checkpoint, not a release-completeness Head.
+The runtime now establishes a browser-level Action baseline before per-tab overrides, serializes profile-workflow commands so concurrent startup reads cannot observe half-initialized proxy state, and repairs missing persisted proxy runtime from the saved startup route. Top-level navigation remains an exact-guarded coordinator input rather than a second writer.
 
 This is an exact engineering and evidence checkpoint, not a release-completeness Head. It proves the mapped toolbar slice and permanent gates only.
 
 ## Confirmed integration boundary
 
-The background now registers one real browser Action writer composed from the repository resolver, per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, existing state follows restore/recovery, successful activation refreshes all tabs, and top-level navigation commits provide final URLs without creating another writer.
+The background now registers one real browser Action writer composed from the repository resolver, global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, profile-workflow commands are serialized through activation and Action follow-up, missing proxy runtime is repaired from the saved startup route, and top-level navigation commits provide final URLs without creating another writer.
 
 Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy and Fixed bypass per-tab title/Badge/Popup state on two real tabs. Firefox 152.0.6 additionally verifies the `about:blank` → committed web navigation path. Inspect no longer competes as a second title/Badge writer.
 

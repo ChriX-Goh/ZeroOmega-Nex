@@ -40,7 +40,7 @@ Temporary applicators, diagnostics and the one-time workflow were removed atomic
 
 ## Verification boundary
 
-The bot-authored cleanup Head produced `action_required` rather than executed permanent PR gates. This checkpoint is the authenticated trigger commit for the same product tree plus this record. The exact permanent CI, Browser E2E, Parity Documentation and Milestone 8 Visual Evidence results must be recorded only after they complete on this Head.
+Authenticated clean checkpoint `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all four permanent gates: CI `30666472249`, Browser E2E `30666473257`, Parity Documentation `30666472570` and Milestone 8 Visual Evidence `30666472029`. Browser E2E passed Firefox, Chromium toolbar Action and native Chromium Inspect jobs. This remains slice-level engineering evidence only.
 
 ## Remaining Order 1 work
 
@@ -55,6 +55,6 @@ The bot-authored cleanup Head produced `action_required` rather than executed pe
 
 ## Next gate
 
-1. Require all four permanent gates on this authenticated clean checkpoint.
-2. Synchronize the authoritative knowledge graph and PR description to the exact successful Head and run IDs.
-3. Continue with internal-page, same-tab transition and direct Inspect Action acceptance without increasing progress until their acceptance gates close.
+1. Synchronize the authoritative knowledge graph and PR description to the exact successful Head and run IDs.
+2. Continue with internal-page, same-tab transition and direct Inspect Action acceptance.
+3. Keep progress at 47% / 35% until their real-browser and owner-acceptance gates close.

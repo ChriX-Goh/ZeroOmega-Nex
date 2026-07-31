@@ -16,18 +16,18 @@ This document is the first executable child order of `ORIGINAL_NEX_DELIVERY_KNOW
 - Current delivery status: `FAILED`.
 - Owner result: `FAIL` from the 2026-07-30 trial; corrected build `NOT RUN`.
 
-The current Nex branch now registers one background owner for all real browser Action writes. The owner composes the repository-backed resolver, race-safe per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Background startup proactively initializes a clean installation to the original System route, restores existing state without duplicate activation and refreshes all tabs after successful activation or recovery. Tab creation/update/activation remain coordinator inputs; top-level `webNavigation.onCommitted` supplies the final URL when Firefox tab events expose only `about:blank` or omit a useful URL. Resolver coverage is verified for Direct, System, Fixed proxy and Fixed bypass results; Inspect no longer competes as a second title/Badge writer.
+The current Nex branch now registers one background owner for all real browser Action writes. The owner composes the repository-backed resolver, race-safe global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Background startup proactively initializes a clean installation to the original System route, serializes concurrent workflow commands through activation and Action follow-up, repairs missing proxy runtime from the saved startup route and refreshes all tabs after successful activation or recovery. Tab creation/update/activation and top-level `webNavigation.onCommitted` remain coordinator inputs. Resolver coverage is verified for Direct, System, Fixed proxy and Fixed bypass results; Inspect no longer competes as a second title/Badge writer.
 
 ### Exact verified checkpoint — 2026-08-01
 
-Clean Head `f782f802a78ace277de938bdd4dfed2bf6315951` passed all permanent gates after the top-level navigation refresh fix and temporary-file cleanup:
+Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30660824011`;
-- Browser E2E `30660824007`;
-- Parity Documentation `30660824047`;
-- Milestone 8 Visual Evidence `30660823998`.
+- CI `30666472249`;
+- Browser E2E `30666473257`;
+- Parity Documentation `30666472570`;
+- Milestone 8 Visual Evidence `30666472029`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Its Firefox job ran Firefox `152.0.6` and proved that newly opened tabs receive System, Direct and Fixed proxy / Fixed bypass Action state instead of remaining at the manifest loading title. Firefox diagnostics Artifact `8805083911` has digest `sha256:198cc198a90a39a1def2d93d416f6f0c3b66a0f90c70eff6f7ea633d069dc2b9`.
+The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
 
 The navigation listener only feeds the existing coordinator. Required `webNavigation` permission is exact-guarded in both manifests; no global host permission was added.
 
@@ -70,7 +70,7 @@ graph TD
   RUNTIME --> MATRIX[18-row Original ↔ Nex matrix]
   PURE --> ADAPTER[Browser Action adapter]
   MATRIX --> ADAPTER
-  ADAPTER --> COORD[Per-tab coordinator]
+  ADAPTER --> COORD[Global / per-tab coordinator]
   COORD --> INPUTS[Profile / route / temp rule / Inspect / ownership]
   INPUTS --> REAL[Chromium and Firefox real-browser verification]
   REAL --> OWNER[Repository-owner PASS]
@@ -149,14 +149,14 @@ graph TD
   M[Target manifest / locale / exact static assets] --> B[Registered Nex background]
   API[Real browser Action / i18n / tabs / webNavigation / OffscreenCanvas] --> EXEC[Verified Action executor]
   PURE[Pure original toolbar models] --> EXEC
-  WF[Profile workflow] --> NOTICE[Successful activation / startup notification]
+  WF[Profile workflow] --> NOTICE[Serialized activation / startup notification]
   NOTICE --> COORD[Race-safe per-tab coordinator]
   NAV[Top-level webNavigation commits] --> COORD
   RES[Repository resolver: Direct / System / Fixed proxy / Fixed bypass] --> COORD
   INSPECT[Inspect runtime] --> OVERLAY[Single-writer Inspect overlay]
   OVERLAY --> EXEC
   COORD --> EXEC
-  EXEC --> ACTION[Real per-tab browser Action]
+  EXEC --> ACTION[Real global and per-tab browser Action]
   ACTION --> CHROME[Permanent Chromium two-tab Action E2E]
   ACTION --> FIREFOX[Permanent Firefox two-tab Action E2E]
   TEMP[Temporary rules] -. trace adapter open .-> COORD

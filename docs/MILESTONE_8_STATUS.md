@@ -73,22 +73,22 @@ Current verified Nex runtime:
 - one registered background owner performs all real Action writes;
 - real `browser.action`, `browser.i18n`, `browser.tabs`, top-level `browser.webNavigation` and OffscreenCanvas boundaries are constructed in the background;
 - the repository resolver covers Direct, System, Fixed proxy and Fixed bypass;
-- the per-tab coordinator handles tab creation, URL updates, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh; a top-level navigation-commit listener supplies final URLs when Firefox tab events are incomplete;
-- clean installations proactively initialize to the original System route without opening UI; existing state follows restore/recovery without duplicate activation;
+- the coordinator establishes a browser-level Action baseline, then handles tab creation, URL updates, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh; a top-level navigation-commit listener supplies final URLs when Firefox tab events are incomplete;
+- clean installations proactively initialize to the original System route without opening UI; profile-workflow commands are serialized so concurrent reads cannot observe half-initialized startup, and missing proxy runtime is repaired from the saved startup route;
 - Inspect feeds a single-writer overlay and no longer mutates title/Badge independently;
 - permanent Chromium and Firefox Action E2E directly verify two tab IDs through the target Action API across System → Direct → Fixed proxy / Fixed bypass;
 - cross-document revision history is isolated by current `documentId` before validation.
 
 ### Exact verified checkpoint
 
-Clean Head `f782f802a78ace277de938bdd4dfed2bf6315951` passed all permanent gates after the top-level navigation refresh fix and temporary-file cleanup:
+Clean Head `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed all permanent gates after the durable global Action baseline, serialized profile-workflow initialization and temporary-file cleanup:
 
-- CI `30660824011`;
-- Browser E2E `30660824007`;
-- Parity Documentation `30660824047`;
-- Milestone 8 Visual Evidence `30660823998`.
+- CI `30666472249`;
+- Browser E2E `30666473257`;
+- Parity Documentation `30666472570`;
+- Milestone 8 Visual Evidence `30666472029`.
 
-The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Its Firefox job ran Firefox `152.0.6` and proved that newly opened tabs receive System, Direct and Fixed proxy / Fixed bypass Action state instead of remaining at the manifest loading title. Firefox diagnostics Artifact `8805083911` has digest `sha256:198cc198a90a39a1def2d93d416f6f0c3b66a0f90c70eff6f7ea633d069dc2b9`.
+The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Firefox directly verified System, Direct and simultaneous Fixed proxy / Fixed bypass state on two real tabs. Before cleanup, the same product transaction also passed one complete Firefox journey and ten consecutive command-driven focused Firefox Action journeys.
 
 The `webNavigation` listener is a refresh input to the existing coordinator, not a second Action writer. Both built manifests require the permission through the exact manifest guard and retain no required global host access.
 
@@ -103,7 +103,7 @@ No `TB-*` row or `KG-ICON-001` is owner-complete.
 
 ## Runtime harness boundary
 
-Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and directly verifies Action title/Badge/Popup. It has passed on runner Firefox 153.0 and, at the current clean checkpoint, Firefox 152.0.6. Firefox 152.0.6 exposed that a WebDriver-created tab can begin at `about:blank` without a useful follow-up tab URL event; top-level `webNavigation.onCommitted` now supplies the final URL and wakes the background while preserving the single Action writer. Historical original-package evidence remains fixed to its separate Firefox 152.0.6 audit.
+Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and directly verifies Action title/Badge/Popup. Diagnosis showed that concurrent workflow reads could observe a persisted ProfileSpec before initial System activation and Action follow-up completed. The runtime now serializes all profile-workflow commands, awaits activation follow-up and repairs missing proxy runtime on startup. Top-level `webNavigation.onCommitted` remains a final-URL coordinator input. Historical original-package evidence remains fixed to its separate Firefox 152.0.6 audit.
 
 The browser Action architecture now has one writer. Inspect, profile activation and startup recovery are integrated inputs. Temporary rules, inclusive-profile traces and external-control transitions remain explicit missing inputs rather than permission to add simplified invented wording.
 

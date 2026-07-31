@@ -49,12 +49,12 @@ graph TD
 
 ## 2.1 当前 Nex 工具栏映射检查点（不反向定义原版）
 
-- clean Head：`f782f802a78ace277de938bdd4dfed2bf6315951`；CI `30660824011`、Browser E2E `30660824007`、Parity `30660824047`、Visual `30660823998` 全绿。
+- clean Head：`db1b10ebe6d41637246d777e34b1afd4eb6ca170`；CI `30666472249`、Browser E2E `30666473257`、Parity `30666472570`、Visual `30666472029` 全绿。
 - Chromium 与 Firefox 均直接读取每标签页 Action title、Badge、Popup，并通过 System → Direct → Fixed proxy / Fixed bypass 双标签验收；当前 Firefox 永久门禁运行于 `152.0.6`。
-- Firefox 152.0.6 暴露：WebDriver 新标签可能先停在 `about:blank`，随后不给 `tabs` 监听器可用的最终 URL，令 Action 保留 manifest loading title。
-- Nex 使用顶层 `webNavigation.onCommitted` 取得最终 URL并唤醒后台；该监听器只调用现有 coordinator，不成为第二个 Action writer。
+- Firefox 诊断进一步暴露初始化竞态：并发 `get` 可在 ProfileSpec 已保存、System 激活及 Action follow-up 尚未完成时观察到空 runtime，令全局 Action 保留 manifest loading title。
+- Nex 现在串行化 profile-workflow 命令、等待激活后的 Action 刷新，并在已保存配置但代理 runtime 缺失时按 startup route 补激活；顶层 `webNavigation.onCommitted` 继续只作为 coordinator 的最终 URL 输入。
 - `webNavigation` 已成为 Chromium/Firefox 精确必需权限并纳入 manifest 守卫；仍无 required host access 或 `<all_urls>`。
-- 该兼容修复只保证原版可观察的“已导航标签必须得到当前状态”，不是新增原版概念。
+- 全局基线、命令串行化与缺失 runtime 恢复只保证原版可观察的启动／标签状态一致性，不新增原版概念。
 - Switch/PAC/Virtual/Rule List/临时规则/外部控制完整 trace、内部页、同标签 URL 切换、Inspect Action set/clear 和 owner PASS 仍未完成。
 - 总进度仍为 47%，Order 1 仍为 35%，不得据此生成候选。
 
