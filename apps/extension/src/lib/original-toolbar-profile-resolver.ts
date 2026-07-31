@@ -2,10 +2,7 @@ import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
 } from '@zeroomega-nex/profile-workflow';
-import {
-  evaluateProfileGraph,
-  type ReferenceRequest,
-} from '@zeroomega-nex/reference-interpreter';
+import { evaluateProfileGraph, type ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
 
 import {
   localizeOriginalToolbarDetail,
@@ -22,13 +19,7 @@ const ROUTE_MESSAGE_KEYS = {
   direct: 'routeDirect',
   system: 'routeSystem',
 } as const;
-const SUPPORTED_REQUEST_PROTOCOLS = new Set([
-  'http:',
-  'https:',
-  'ftp:',
-  'ws:',
-  'wss:',
-]);
+const SUPPORTED_REQUEST_PROTOCOLS = new Set(['http:', 'https:', 'ftp:', 'ws:', 'wss:']);
 
 export interface OriginalToolbarProfileStateRepository {
   read(): Promise<ProfileWorkflowState | undefined>;
@@ -103,9 +94,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
       return this.resolveBuiltIn(state, route.kind, directColor, systemColor);
     }
 
-    const profile = state.applied.profiles.find(
-      (candidate) => candidate.id === route.profileId,
-    );
+    const profile = state.applied.profiles.find((candidate) => candidate.id === route.profileId);
     if (profile?.kind !== 'fixed' || profile.color === undefined) return undefined;
 
     const request = referenceRequest(input.url);
@@ -142,10 +131,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     return deriveOriginalToolbarTabState({
       currentProfileName: profile.name,
       resultProfileName: `[${directName}]`,
-      details: localizeOriginalToolbarDetail(
-        this.#i18n,
-        ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
-      ),
+      details: localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult),
       icon: {
         currentProfileColor: profile.color,
         matchedProfileColor: profile.color,
@@ -174,10 +160,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const detail =
       route === 'direct'
         ? localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult)
-        : localizeOriginalToolbarDetail(
-            this.#i18n,
-            ORIGINAL_TOOLBAR_DETAIL_KEYS.externalProxy,
-          );
+        : localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.externalProxy);
 
     return deriveOriginalToolbarTabState({
       currentProfileName: `[${routeName}]`,
