@@ -30,6 +30,7 @@ jobs:
       - name: Apply and verify
         run: |
           python scripts/apply-toolbar-switch-fixed-trace.py
+          python scripts/fix-toolbar-switch-color-narrowing.py
           pnpm exec prettier --write \
             apps/extension/src/lib/original-toolbar-profile-resolver.ts \
             apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
@@ -51,6 +52,8 @@ jobs:
             apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
             scripts/e2e-chromium-toolbar.mjs \
             scripts/e2e-firefox.mjs
-          git rm scripts/apply-toolbar-switch-fixed-trace.py
+          git rm \
+            scripts/apply-toolbar-switch-fixed-trace.py \
+            scripts/fix-toolbar-switch-color-narrowing.py
           git commit -m 'feat: resolve exact Switch to Fixed toolbar traces'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
