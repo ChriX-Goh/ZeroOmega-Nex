@@ -146,12 +146,15 @@ jobs:
             scripts/audit-original-toolbar-firefox.mjs \
             docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md
 
-      - name: Upload runtime evidence
+      - name: Upload runtime and durable evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: original-zeroomega-v3.5.0-firefox-runtime-${{ github.event.pull_request.head.sha || github.sha }}
-          path: original-runtime/firefox
+          path: |
+            original-runtime/firefox
+            scripts/audit-original-toolbar-firefox.mjs
+            docs/AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md
           if-no-files-found: error
           retention-days: 90
 
