@@ -58,6 +58,7 @@ jobs:
         run: |
           python scripts/apply-original-toolbar-target-contract.py
           python - <<'PY'
+          import re
           from pathlib import Path
 
           index_path = Path('docs/ACTIVE_PARITY_AUDIT_INDEX.md')
@@ -72,11 +73,15 @@ jobs:
 
           validator_path = Path('scripts/validate-ui-compatibility.mjs')
           validator = validator_path.read_text(encoding='utf-8')
-          old = """    manifest.includes(\"default_locale: 'en'\") &&
-              manifest.includes('default_icon: icons') &&
-              ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)),
-            'The browser manifest must expose localized metadata and toolbar icons at all standard sizes.',"""
-          new = """    manifest.includes(\"default_locale: 'en'\") &&
+          pattern = re.compile(
+              r'''    manifest\.includes\("default_locale: 'en'"\) &&\s+
+                  manifest\.includes\('default_icon: icons'\) &&\s+
+                  \['16\.png', '32\.png', '48\.png', '128\.png'\]\.every\(\(entry\) => manifest\.includes\(entry\)\),\s+
+                'The browser manifest must expose localized metadata and toolbar icons at all standard sizes\.',
+              ''',
+              re.VERBOSE,
+          )
+          replacement = """    manifest.includes(\"default_locale: 'en'\") &&
               manifest.includes('    icons,') &&
               ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)) &&
               manifest.includes('default_icon: originalActionIcons') &&
@@ -87,9 +92,10 @@ jobs:
                 'original-action-32.png',
               ].every((entry) => manifest.includes(entry)),
             'The browser manifest must keep standard install icons and the original Action fallback sizes.',"""
-          if validator.count(old) != 1:
-              raise SystemExit(f'UI manifest guard: expected one match, found {validator.count(old)}')
-          validator_path.write_text(validator.replace(old, new, 1), encoding='utf-8')
+          validator, count = pattern.subn(replacement, validator, count=1)
+          if count != 1:
+              raise SystemExit(f'UI manifest guard: expected one semantic match, found {count}')
+          validator_path.write_text(validator, encoding='utf-8')
           PY
           pnpm locale:inventory
           pnpm exec prettier --write \
