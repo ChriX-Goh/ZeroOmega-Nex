@@ -149,7 +149,7 @@ describe('inspect runtime', () => {
       evaluatePresentation: async () => ({
         current: { kind: 'profile', name: 'Work' },
         result: { kind: 'direct', name: 'Direct' },
-        color: '#bdbdbd',
+        color: '#aaaaaa',
       }),
     });
     await runtime.ready;
@@ -173,7 +173,7 @@ describe('inspect runtime', () => {
       },
     });
     expect(fake.badgeCalls).toContainEqual({ tabId: 7, text: '#' });
-    expect(fake.badgeColorCalls).toContainEqual({ tabId: 7, color: '#bdbdbd' });
+    expect(fake.badgeColorCalls).toContainEqual({ tabId: 7, color: '#aaaaaa' });
     expect(fake.titleCalls).toContainEqual({
       tabId: 7,
       title: '[Inspect] cdn.example.test\nZeroOmega Nex — Work → Direct',
@@ -207,7 +207,7 @@ describe('inspect runtime', () => {
     ).toEqual({
       current: { kind: 'profile', name: 'Proxy' },
       result: { kind: 'direct', name: 'Direct' },
-      color: '#bdbdbd',
+      color: '#aaaaaa',
     });
   });
 

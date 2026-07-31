@@ -71,8 +71,8 @@ describe('original toolbar profile resolver', () => {
     expect(result).toEqual({
       icon: {
         mode: 'two-color',
-        outerCircleColor: '#bdbdbd',
-        innerCircleColor: '#bdbdbd',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#aaaaaa',
       },
       titleArguments: {
         currentProfileName: '[Direct]',
@@ -114,18 +114,45 @@ describe('original toolbar profile resolver', () => {
       titleArguments: {
         currentProfileName: 'Proxy',
         resultProfileName: 'Proxy',
-        details: '(default)',
+        details: 'PROXY 127.0.0.1:7890\n',
       },
       badgeText: 'Prox',
     });
   });
 
-  it('keeps a Fixed bypass unresolved until the original result trace is reproduced', async () => {
-    await expect(
-      resolver(state(true), {
-        activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
-      }).resolve({ tabId: 9, url: 'http://localhost/' }),
-    ).resolves.toBeUndefined();
+  it('reproduces a Fixed bypass condition-to-Direct result', async () => {
+    const result = await resolver(state(true), {
+      activeRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    }).resolve({ tabId: 9, url: 'http://localhost/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#64b5f6',
+      },
+      titleArguments: {
+        currentProfileName: 'Proxy',
+        resultProfileName: 'Proxy',
+        details: 'localhost => (not using any proxy)\n',
+      },
+      badgeText: 'Prox',
+    });
+  });
+
+  it('reproduces a scheme-specific Fixed PAC result', async () => {
+    const workflowState = state();
+    const profile = workflowState.applied.profiles[0];
+    if (!profile || profile.kind !== 'fixed') throw new Error('missing default Fixed profile');
+    const fallback = profile.proxyByScheme.fallback;
+    if (fallback === undefined) throw new Error('missing default Fixed fallback');
+    profile.proxyByScheme.http = fallback;
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: profile.id },
+    }).resolve({ tabId: 10, url: 'http://example.test/' });
+
+    expect(result?.titleArguments.details).toBe('http => PROXY 127.0.0.1:7890\n');
   });
 
   it('returns default state for unsupported or missing runtime state', async () => {

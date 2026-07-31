@@ -41,6 +41,10 @@ describe('initial editable ProfileSpec', () => {
       { kind: 'system' },
       { kind: 'profile', profileId: DEFAULT_FIXED_PROFILE_ID },
     ]);
+    expect(spec.settings.interface.builtInProfiles).toEqual({
+      direct: { color: '#aaaaaa' },
+      system: { color: '#000000' },
+    });
   });
 
   it('does not add an undefined device ID', () => {

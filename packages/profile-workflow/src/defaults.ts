@@ -67,8 +67,8 @@ export function createDefaultProfileSpec(options: DefaultProfileSpecOptions): Pr
         showAdvancedConditions: false,
         exportLegacyRuleList: false,
         builtInProfiles: {
-          direct: { color: '#bdbdbd' },
-          system: { color: '#616161' },
+          direct: { color: '#aaaaaa' },
+          system: { color: '#000000' },
         },
       },
       ruleSourceUpdateIntervalMinutes: 1440,
