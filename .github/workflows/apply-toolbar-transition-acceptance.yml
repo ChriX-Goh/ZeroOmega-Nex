@@ -1,0 +1,65 @@
+name: Apply toolbar transition acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-toolbar-transition-acceptance.yml
+      - scripts/apply-toolbar-transition-acceptance.py
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply and verify
+        run: |
+          python scripts/apply-toolbar-transition-acceptance.py
+          pnpm exec prettier --write \
+            scripts/e2e-chromium-toolbar.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/e2e-inspect-native-menu.mjs \
+            .github/workflows/browser-e2e.yml
+          pnpm verify
+          pnpm exec playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dbus-x11 scrot xauth xdotool xvfb
+          pnpm test:e2e:chromium-toolbar
+          for iteration in 1 2 3; do
+            echo ">>>>> FIREFOX TOOLBAR TRANSITION ITERATION ${iteration}"
+            pnpm test:e2e:firefox-toolbar
+          done
+          dbus-run-session -- bash -lc '
+            xvfb-run -a -s "-screen 0 1280x800x24 -ac +extension RANDR" \
+              pnpm test:e2e:inspect-native
+          '
+      - name: Commit and clean
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            scripts/e2e-chromium-toolbar.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/e2e-inspect-native-menu.mjs \
+            .github/workflows/browser-e2e.yml
+          git rm \
+            .github/workflows/apply-toolbar-transition-acceptance.yml \
+            scripts/apply-toolbar-transition-acceptance.py
+          git commit -m 'test: cover toolbar fallback transitions and Inspect isolation'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
