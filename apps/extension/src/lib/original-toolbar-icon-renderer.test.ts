@@ -41,7 +41,12 @@ class RecordingCanvasContext implements OriginalToolbarCanvasContext {
     this.transforms.push([a, b, c, d, e, f]);
   }
 
-  getImageData(x: number, y: number, width: number, height: number): OriginalToolbarActionImageData {
+  getImageData(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): OriginalToolbarActionImageData {
     this.imageReads.push([x, y, width, height]);
     return {
       width,
@@ -95,9 +100,7 @@ describe('original toolbar icon renderer', () => {
       [38, 38],
     ]);
     expect(context.clearRects).toEqual(Array.from({ length: 5 }, () => [0, 0, 1, 1]));
-    expect(context.transforms).toEqual(
-      Array.from({ length: 5 }, () => [1, 0, 0, 1, 0, 0]),
-    );
+    expect(context.transforms).toEqual(Array.from({ length: 5 }, () => [1, 0, 0, 1, 0, 0]));
     expect(context.imageReads).toEqual([
       [0, 0, 16, 16],
       [0, 0, 19, 19],
