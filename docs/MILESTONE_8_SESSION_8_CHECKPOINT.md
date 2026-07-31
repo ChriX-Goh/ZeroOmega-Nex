@@ -44,6 +44,16 @@ Authenticated clean checkpoint `db1b10ebe6d41637246d777e34b1afd4eb6ca170` passed
 
 The authoritative knowledge graph, audit index, Delivery Order 1, Milestone 8 status and Verification Head were synchronized to that exact checkpoint in `16fdd72ca32e109778f54b0eb2a61993059ba60c`; the temporary synchronization files were removed in `7eb7077ba11c500ebc12829f822da9dd67f246ad`.
 
+## Firefox acceptance stabilization
+
+Test commit `b23d0be3223a371891364564f7390fe138bc3d0c` removes two timing-only false failures without weakening product assertions:
+
+- Options Apply now waits for the profile-workflow view to become clean and not busy, then verifies the exact persistent Traditional Chinese `.draft-status` text;
+- PAC acceptance now waits until the persisted active snapshot exists, uses compiler version `raw-pac/1`, targets the applied PAC profile and contains `FindProxyForURL`;
+- all temporary workflow and applicator files were removed in the same commit.
+
+Before that commit, the exact modified tree passed CI `30667693473`, Browser E2E `30667693463`, Parity Documentation `30667693502` and Milestone 8 Visual Evidence `30667693470`. The dedicated transaction also passed full verification and three consecutive complete Firefox extension journeys.
+
 ## Remaining Order 1 work
 
 - complete Switch/PAC default and matched-result traces;
@@ -57,6 +67,7 @@ The authoritative knowledge graph, audit index, Delivery Order 1, Milestone 8 st
 
 ## Next gate
 
-1. Require the four permanent gates on this authenticated post-synchronization Head.
-2. Continue with internal-page, same-tab transition and direct Inspect Action acceptance.
-3. Keep progress at 47% / 35% until their real-browser and owner-acceptance gates close.
+1. Require all four permanent gates on this authenticated post-stabilization Head.
+2. Update PR #11 and the Session 8 PR checkpoint to the exact successful Head and run IDs.
+3. Continue with internal-page, same-tab transition and direct Inspect Action acceptance.
+4. Keep progress at 47% / 35% until their real-browser and owner-acceptance gates close.
