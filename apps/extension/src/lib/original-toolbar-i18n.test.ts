@@ -20,9 +20,7 @@ class RecordingI18nApi implements OriginalToolbarI18nApi {
   readonly messages = new Map<string, string>();
 
   getMessage(messageName: string, substitutions?: string | readonly string[]): string {
-    this.calls.push(
-      substitutions === undefined ? { messageName } : { messageName, substitutions },
-    );
+    this.calls.push(substitutions === undefined ? { messageName } : { messageName, substitutions });
     return this.messages.get(messageName) ?? '';
   }
 }
