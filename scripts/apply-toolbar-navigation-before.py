@@ -205,3 +205,63 @@ test = replace_once(
     "runtime navigation removal",
 )
 test_path.write_text(test, encoding="utf-8")
+
+
+firefox_path = Path("scripts/e2e-firefox.mjs")
+firefox_e2e = firefox_path.read_text(encoding="utf-8")
+firefox_e2e = replace_once(
+    firefox_e2e,
+    """const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+""",
+    """const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+const toolbarOnly = process.env.ZEROOMEGA_FIREFOX_TOOLBAR_ONLY === '1';
+const toolbarOnlyComplete = Symbol('firefox-toolbar-only-complete');
+""",
+    "Firefox toolbar-only mode",
+)
+firefox_e2e = replace_once(
+    firefox_e2e,
+    """  await waitForFirefoxActionState(
+    toolbarBypassTabId,
+    fixedBypassAction,
+    'Firefox Fixed bypass Action state failed',
+  );
+
+  await driver.get(authProxy.targetUrl);""",
+    """  await waitForFirefoxActionState(
+    toolbarBypassTabId,
+    fixedBypassAction,
+    'Firefox Fixed bypass Action state failed',
+  );
+
+  if (toolbarOnly) {
+    console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);
+    throw toolbarOnlyComplete;
+  }
+
+  await driver.get(authProxy.targetUrl);""",
+    "Firefox toolbar-only completion",
+)
+firefox_e2e = replace_once(
+    firefox_e2e,
+    """  console.log(`Firefox extension E2E passed for ${installedId}.`);
+} finally {""",
+    """  console.log(`Firefox extension E2E passed for ${installedId}.`);
+} catch (error) {
+  if (error !== toolbarOnlyComplete) throw error;
+} finally {""",
+    "Firefox toolbar-only cleanup",
+)
+firefox_path.write_text(firefox_e2e, encoding="utf-8")
+
+
+package_path = Path("package.json")
+package = package_path.read_text(encoding="utf-8")
+package = replace_once(
+    package,
+    '    "test:e2e:firefox": "node scripts/e2e-firefox.mjs",',
+    '    "test:e2e:firefox": "node scripts/e2e-firefox.mjs",\n'
+    '    "test:e2e:firefox-toolbar": "ZEROOMEGA_FIREFOX_TOOLBAR_ONLY=1 node scripts/e2e-firefox.mjs",',
+    "Firefox toolbar package script",
+)
+package_path.write_text(package, encoding="utf-8")
