@@ -164,6 +164,24 @@ describe('original toolbar Action executor', () => {
     });
   });
 
+  it('writes a global derived state without a tabId', async () => {
+    const { action, renderer, executor } = createHarness();
+    renderer.result = renderedIcon;
+
+    await executor.applyGlobal(tabState());
+
+    expect(action.presentations).toEqual([
+      {
+        title: 'ZeroOmega:: [Auto Switch]\n(default)',
+        badgeText: 'DIR',
+        badgeBackgroundColor: '#d90000',
+        popup: 'popup-iframe.html',
+        imageData: renderedIcon,
+        fallbackIconPaths,
+      },
+    ]);
+  });
+
   it('applies the localized default state without invoking the dynamic renderer', async () => {
     const { action, renderer, i18n, executor } = createHarness();
 
@@ -174,6 +192,21 @@ describe('original toolbar Action executor', () => {
     expect(action.presentations).toEqual([
       {
         tabId: 31,
+        title: '正在加载……',
+        badgeBackgroundColor: '#d90000',
+        popup: 'popup-iframe.html',
+        fallbackIconPaths,
+      },
+    ]);
+  });
+
+  it('applies the global default without a tabId', async () => {
+    const { action, executor } = createHarness();
+
+    await executor.applyGlobalDefault();
+
+    expect(action.presentations).toEqual([
+      {
         title: '正在加载……',
         badgeBackgroundColor: '#d90000',
         popup: 'popup-iframe.html',

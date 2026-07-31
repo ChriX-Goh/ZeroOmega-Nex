@@ -57,12 +57,23 @@ export class OriginalToolbarActionExecutor {
   }
 
   async apply(tabId: number, state: OriginalToolbarTabState): Promise<void> {
+    await this.applyState(tabId, state);
+  }
+
+  async applyGlobal(state: OriginalToolbarTabState): Promise<void> {
+    await this.applyState(undefined, state);
+  }
+
+  private async applyState(
+    tabId: number | undefined,
+    state: OriginalToolbarTabState,
+  ): Promise<void> {
     const imageData = this.#renderer.render(
       state.icon.outerCircleColor,
       state.icon.innerCircleColor,
     );
     const presentation = this.presentation({
-      tabId,
+      ...(tabId === undefined ? {} : { tabId }),
       title: localizeOriginalToolbarResultTitle(this.#i18n, state.titleArguments),
       ...(state.badgeText === undefined ? {} : { badgeText: state.badgeText }),
       ...(imageData === undefined ? {} : { imageData }),
@@ -70,13 +81,17 @@ export class OriginalToolbarActionExecutor {
     await this.#action.apply(presentation);
   }
 
-  async applyDefault(tabId: number): Promise<void> {
+  async applyDefault(tabId?: number): Promise<void> {
     await this.#action.apply(
       this.presentation({
-        tabId,
+        ...(tabId === undefined ? {} : { tabId }),
         title: localizeOriginalToolbarDefaultTitle(this.#i18n),
       }),
     );
+  }
+
+  async applyGlobalDefault(): Promise<void> {
+    await this.applyDefault();
   }
 
   clearIconCache(): void {
@@ -84,13 +99,13 @@ export class OriginalToolbarActionExecutor {
   }
 
   private presentation(input: {
-    readonly tabId: number;
+    readonly tabId?: number;
     readonly title: string;
     readonly badgeText?: string;
     readonly imageData?: OriginalToolbarActionImageDataSet;
   }): OriginalToolbarActionPresentation {
     return {
-      tabId: input.tabId,
+      ...(input.tabId === undefined ? {} : { tabId: input.tabId }),
       title: input.title,
       badgeBackgroundColor: this.#badgeBackgroundColor,
       popup: this.#popup,

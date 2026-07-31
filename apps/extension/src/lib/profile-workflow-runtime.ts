@@ -72,7 +72,7 @@ export interface ProfileWorkflowRuntimeOptions {
   readonly activationDriver?: ProfileWorkflowActivationDriver;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
   readonly ruleSourceDownloader?: ProfileWorkflowRuleSourceDownloader;
-  readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => void;
+  readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => Promise<void> | void;
 }
 
 export interface RegisteredProfileWorkflowRuntime {
@@ -80,13 +80,13 @@ export interface RegisteredProfileWorkflowRuntime {
   dispose(): void;
 }
 
-export function notifyProfileWorkflowActivation(
+export async function notifyProfileWorkflowActivation(
   command: ProfileWorkflowCommand,
   response: ProfileWorkflowCommandResponse,
   listener: ProfileWorkflowRuntimeOptions['onActivationSucceeded'],
-): void {
+): Promise<void> {
   if (!response.ok || response.appliedSnapshotId === undefined || listener === undefined) return;
-  listener({
+  await listener({
     command,
     response: {
       ...response,
@@ -227,8 +227,11 @@ export function registerProfileWorkflowRuntime(
         });
   let disposed = false;
   let initialization: Promise<ProfileWorkflowCommandResponse> | undefined;
-  const executeCommand = (command: ProfileWorkflowCommand) =>
-    executeProfileWorkflowCommand(
+  let commandTail: Promise<void> = Promise.resolve();
+  const performCommand = async (
+    command: ProfileWorkflowCommand,
+  ): Promise<ProfileWorkflowCommandResponse> => {
+    const response = await executeProfileWorkflowCommand(
       repository,
       initializer,
       command,
@@ -239,10 +242,23 @@ export function registerProfileWorkflowRuntime(
       ruleSourceUpdateService,
       externalProfileService,
       ruleSourceUpdateService,
-    ).then((response) => {
-      notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
-      return response;
-    });
+    );
+    await notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
+    return response;
+  };
+  const executeCommand = (
+    command: ProfileWorkflowCommand,
+  ): Promise<ProfileWorkflowCommandResponse> => {
+    const run = commandTail.then(
+      () => performCommand(command),
+      () => performCommand(command),
+    );
+    commandTail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
   const listener = (message: unknown): Promise<ProfileWorkflowCommandResponse> | undefined => {
     if (!isProfileWorkflowCommand(message)) return undefined;
     return executeCommand(message);

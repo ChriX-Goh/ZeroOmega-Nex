@@ -55,6 +55,8 @@ class RecordingExecutor implements OriginalToolbarCoordinatorExecutor {
   readonly calls: Array<
     | { readonly type: 'apply'; readonly tabId: number; readonly state: OriginalToolbarTabState }
     | { readonly type: 'default'; readonly tabId: number }
+    | { readonly type: 'global'; readonly state: OriginalToolbarTabState }
+    | { readonly type: 'global-default' }
     | { readonly type: 'clear-cache' }
   > = [];
   applyError: unknown;
@@ -66,6 +68,15 @@ class RecordingExecutor implements OriginalToolbarCoordinatorExecutor {
 
   async applyDefault(tabId: number): Promise<void> {
     this.calls.push({ type: 'default', tabId });
+  }
+
+  async applyGlobal(state: OriginalToolbarTabState): Promise<void> {
+    this.calls.push({ type: 'global', state });
+    if (this.applyError !== undefined) throw this.applyError;
+  }
+
+  async applyGlobalDefault(): Promise<void> {
+    this.calls.push({ type: 'global-default' });
   }
 
   clearIconCache(): void {
@@ -226,9 +237,21 @@ describe('original toolbar tab coordinator', () => {
     expect(tabs.queryCalls).toEqual([{}]);
     expect(executor.calls).toEqual([
       { type: 'clear-cache' },
+      { type: 'global', state: state('about:blank') },
       { type: 'apply', tabId: 19, state: state('https://first.test/') },
       { type: 'apply', tabId: 23, state: state('https://second.test/') },
     ]);
+  });
+
+  it('uses a global loading fallback when the active route has no source-certain baseline', async () => {
+    const { tabs, resolver, executor, coordinator } = createHarness();
+    tabs.queryResult = [];
+    resolver.implementation = () => undefined;
+
+    await coordinator.refreshAll();
+
+    expect(resolver.calls).toEqual([{ tabId: -1, url: 'about:blank' }]);
+    expect(executor.calls).toEqual([{ type: 'global-default' }]);
   });
 
   it('falls back to default and reports resolver or Action failures with tab context', async () => {

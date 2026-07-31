@@ -63,10 +63,29 @@ class RecordingDriver implements ProfileWorkflowActivationDriver {
   }
 }
 
-function harness() {
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
+class BlockingDriver extends RecordingDriver {
+  readonly started = deferred();
+  readonly release = deferred();
+
+  override async activate(candidate: ProfileSpec, route?: ProfileRouteTarget) {
+    this.routes.push(route);
+    this.started.resolve();
+    await this.release.promise;
+    return { snapshotId: 'built-in-system' };
+  }
+}
+
+function harness(driver = new RecordingDriver()) {
   const messages = new MessageEvent();
   const storage = new MemoryArea();
-  const driver = new RecordingDriver();
   const activated = vi.fn();
   const runtime = registerProfileWorkflowRuntime(
     {
@@ -100,6 +119,40 @@ describe('profile workflow background initialization', () => {
     });
     expect(driver.routes).toEqual([{ kind: 'system' }]);
     expect(activated).toHaveBeenCalledTimes(1);
+  });
+
+  it('queues concurrent runtime messages behind the complete initial activation', async () => {
+    const driver = new BlockingDriver();
+    const { messages, runtime } = harness(driver);
+    const listener = [...messages.listeners][0];
+    if (!listener) throw new Error('profile workflow message listener is unavailable');
+
+    const initialization = runtime.initialize();
+    await driver.started.promise;
+    const concurrent = listener({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'get',
+    });
+    if (!concurrent) throw new Error('concurrent profile workflow command was ignored');
+    let concurrentSettled = false;
+    void Promise.resolve(concurrent).then(() => {
+      concurrentSettled = true;
+    });
+    await Promise.resolve();
+    expect(concurrentSettled).toBe(false);
+
+    driver.release.resolve();
+    const [initialResponse, concurrentResponse] = await Promise.all([initialization, concurrent]);
+
+    expect(initialResponse).toMatchObject({
+      ok: true,
+      appliedSnapshotId: 'built-in-system',
+    });
+    expect(concurrentResponse).toMatchObject({
+      ok: true,
+      runtime: { activeRoute: { kind: 'system' } },
+    });
+    expect(driver.routes).toEqual([{ kind: 'system' }]);
   });
 
   it('returns the settled initialization result without reactivating', async () => {

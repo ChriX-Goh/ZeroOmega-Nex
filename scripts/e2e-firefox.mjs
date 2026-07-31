@@ -89,6 +89,8 @@ const options = new firefox.Options()
   .setPreference('network.dns.localDomains', 'toolbar-a.test')
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+const toolbarOnly = process.env.ZEROOMEGA_FIREFOX_TOOLBAR_ONLY === '1';
+const toolbarOnlyComplete = Symbol('firefox-toolbar-only-complete');
 
 async function bidiCommand(method, params) {
   const capabilities = await driver.getCapabilities();
@@ -312,6 +314,33 @@ async function waitForFirefoxActionState(tabId, expected, label) {
   }
 }
 
+async function readFirefoxGlobalActionState() {
+  return driver.executeAsyncScript(`
+    const done = arguments[0];
+    Promise.all([
+      browser.action.getTitle({}),
+      browser.action.getBadgeText({}),
+      browser.action.getPopup({}),
+    ]).then(
+      ([title, badgeText, popup]) => done({ title, badgeText, popup }),
+      (error) => done({ error: String(error) }),
+    );
+  `);
+}
+
+async function waitForFirefoxGlobalActionState(expected, label) {
+  let actual;
+  try {
+    await driver.wait(async () => {
+      actual = await readFirefoxGlobalActionState();
+      return JSON.stringify(actual) === JSON.stringify(expected);
+    }, 20_000);
+  } catch (error) {
+    assert.deepEqual(actual, expected, label);
+    throw error;
+  }
+}
+
 async function sendFirefoxWorkflowCommand(command) {
   return driver.executeAsyncScript(
     `
@@ -391,16 +420,6 @@ try {
     'Firefox remote source origin must remain optional before a user action',
   );
 
-  const toolbarProxyUrl = `http://toolbar-a.test:${sourceAddress.port}/toolbar-a`;
-  const toolbarBypassUrl = `http://localhost:${sourceAddress.port}/toolbar-b`;
-  await driver.switchTo().newWindow('tab');
-  await driver.get(toolbarProxyUrl);
-  await driver.switchTo().newWindow('tab');
-  await driver.get(toolbarBypassUrl);
-  await driver.switchTo().window(optionsWindow);
-
-  const toolbarProxyTabId = await firefoxTabIdForUrl(toolbarProxyUrl);
-  const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);
   const toolbarPopup = `moz-extension://${extensionUuid}/popup-iframe.html`;
   const routeSystem = await driver.executeScript(
     "return `[${browser.i18n.getMessage('routeSystem')}]`;",
@@ -414,6 +433,21 @@ try {
     'browserAction_titleExternalProxy',
     toolbarPopup,
   );
+  await waitForFirefoxGlobalActionState(
+    systemAction,
+    'Firefox global System Action baseline failed before new-tab creation',
+  );
+
+  const toolbarProxyUrl = `http://toolbar-a.test:${sourceAddress.port}/toolbar-a`;
+  const toolbarBypassUrl = `http://localhost:${sourceAddress.port}/toolbar-b`;
+  await driver.switchTo().newWindow('tab');
+  await driver.get(toolbarProxyUrl);
+  await driver.switchTo().newWindow('tab');
+  await driver.get(toolbarBypassUrl);
+  await driver.switchTo().window(optionsWindow);
+
+  const toolbarProxyTabId = await firefoxTabIdForUrl(toolbarProxyUrl);
+  const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);
   await waitForFirefoxActionState(
     toolbarProxyTabId,
     systemAction,
@@ -462,6 +496,94 @@ try {
     directAction,
     'Firefox Direct bypass-tab Action state failed',
   );
+
+  if (toolbarOnly) {
+    const current = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'get',
+    });
+    assert.equal(current?.ok, true, `Firefox workflow refresh failed: ${JSON.stringify(current)}`);
+    const draft = structuredClone(current.state.draft);
+    const profile = draft.profiles.find((candidate) => candidate.id === 'profile-default-proxy');
+    assert.equal(profile?.kind, 'fixed', 'Firefox default Fixed Profile was not found');
+    profile.name = 'Toolbar Proxy';
+    profile.color = '#64b5f6';
+    profile.proxyByScheme = { fallback: 'endpoint-toolbar-e2e' };
+    draft.proxyEndpoints = [
+      {
+        id: 'endpoint-toolbar-e2e',
+        name: 'Toolbar E2E endpoint',
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 7890,
+      },
+    ];
+    draft.settings.interface.showResultProfileOnActionBadgeText = true;
+
+    const replaced = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'replace-draft',
+      expectedGeneration: current.state.generation,
+      draft,
+    });
+    assert.equal(
+      replaced?.ok,
+      true,
+      `Firefox draft replacement failed: ${JSON.stringify(replaced)}`,
+    );
+    const applied = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'apply',
+      expectedGeneration: replaced.state.generation,
+    });
+    assert.equal(applied?.ok, true, `Firefox Fixed Apply failed: ${JSON.stringify(applied)}`);
+    const activated = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'activate-route',
+      expectedAppliedRevisionId: applied.state.applied.revision.id,
+      route: { kind: 'profile', profileId: 'profile-default-proxy' },
+    });
+    assert.equal(
+      activated?.ok,
+      true,
+      `Firefox Fixed activation failed: ${JSON.stringify(activated)}`,
+    );
+
+    const fixedProxyAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Proxy',
+        'Toolbar Proxy',
+        'PROXY 127.0.0.1:7890\n',
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    const localizedDirectResult = await driver.executeScript(
+      "return browser.i18n.getMessage('browserAction_directResult');",
+    );
+    const fixedBypassAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Proxy',
+        'Toolbar Proxy',
+        `localhost => ${localizedDirectResult}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      fixedProxyAction,
+      'Firefox focused Fixed proxy Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarBypassTabId,
+      fixedBypassAction,
+      'Firefox focused Fixed bypass Action state failed',
+    );
+
+    console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);
+    throw toolbarOnlyComplete;
+  }
 
   const fixedTable = await driver.wait(
     until.elementLocated(By.css('[data-fixed-proxy-table]')),
@@ -1125,6 +1247,8 @@ try {
   await driver.wait(until.elementIsDisabled(finalDirect), 15_000);
 
   console.log(`Firefox extension E2E passed for ${installedId}.`);
+} catch (error) {
+  if (error !== toolbarOnlyComplete) throw error;
 } finally {
   try {
     await driver.quit();

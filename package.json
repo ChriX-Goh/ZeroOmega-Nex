@@ -21,6 +21,7 @@
     "test:e2e:chromium": "node scripts/e2e-chromium.mjs",
     "test:e2e:chromium-toolbar": "node scripts/e2e-chromium-toolbar.mjs",
     "test:e2e:firefox": "node scripts/e2e-firefox.mjs",
+    "test:e2e:firefox-toolbar": "ZEROOMEGA_FIREFOX_TOOLBAR_ONLY=1 node scripts/e2e-firefox.mjs",
     "evidence:visual": "node scripts/capture-visual-evidence.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",

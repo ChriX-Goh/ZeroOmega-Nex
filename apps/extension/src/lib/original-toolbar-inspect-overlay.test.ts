@@ -32,6 +32,8 @@ describe('original toolbar Inspect overlay manager', () => {
     const base: OriginalToolbarCoordinatorExecutor = {
       apply: vi.fn(),
       applyDefault: vi.fn(),
+      applyGlobal: vi.fn(),
+      applyGlobalDefault: vi.fn(),
       clearIconCache: vi.fn(),
     };
     const manager = new OriginalToolbarInspectOverlayManager(action, base);
@@ -71,6 +73,8 @@ describe('original toolbar Inspect overlay manager', () => {
         order.push('base');
       }),
       applyDefault: vi.fn(),
+      applyGlobal: vi.fn(),
+      applyGlobalDefault: vi.fn(),
       clearIconCache: vi.fn(),
     };
     const manager = new OriginalToolbarInspectOverlayManager(action, base);
@@ -93,6 +97,32 @@ describe('original toolbar Inspect overlay manager', () => {
     });
   });
 
+  it('delegates global baselines without applying any per-tab Inspect overlay', async () => {
+    const action: OriginalToolbarActionApi = {
+      setIcon: vi.fn(),
+      setPopup: vi.fn(),
+      setBadgeText: vi.fn(),
+      setBadgeBackgroundColor: vi.fn(),
+      setTitle: vi.fn(),
+    };
+    const base: OriginalToolbarCoordinatorExecutor = {
+      apply: vi.fn(),
+      applyDefault: vi.fn(),
+      applyGlobal: vi.fn(),
+      applyGlobalDefault: vi.fn(),
+      clearIconCache: vi.fn(),
+    };
+    const manager = new OriginalToolbarInspectOverlayManager(action, base);
+
+    await manager.executor.applyGlobal(state());
+    await manager.executor.applyGlobalDefault();
+
+    expect(base.applyGlobal).toHaveBeenCalledWith(state());
+    expect(base.applyGlobalDefault).toHaveBeenCalledTimes(1);
+    expect(action.setBadgeText).not.toHaveBeenCalled();
+    expect(action.setTitle).not.toHaveBeenCalled();
+  });
+
   it('reapplies an active overlay after a default toolbar refresh', async () => {
     const action: OriginalToolbarActionApi = {
       setIcon: vi.fn(),
@@ -104,6 +134,8 @@ describe('original toolbar Inspect overlay manager', () => {
     const base: OriginalToolbarCoordinatorExecutor = {
       apply: vi.fn(),
       applyDefault: vi.fn(),
+      applyGlobal: vi.fn(),
+      applyGlobalDefault: vi.fn(),
       clearIconCache: vi.fn(),
     };
     const manager = new OriginalToolbarInspectOverlayManager(action, base);
@@ -131,6 +163,8 @@ describe('original toolbar Inspect overlay manager', () => {
     const base: OriginalToolbarCoordinatorExecutor = {
       apply: vi.fn(),
       applyDefault: vi.fn(),
+      applyGlobal: vi.fn(),
+      applyGlobalDefault: vi.fn(),
       clearIconCache: vi.fn(),
     };
     const manager = new OriginalToolbarInspectOverlayManager(action, base);

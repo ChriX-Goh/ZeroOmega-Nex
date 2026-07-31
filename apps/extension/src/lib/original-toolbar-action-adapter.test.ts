@@ -93,6 +93,26 @@ describe('original toolbar Action adapter', () => {
     ]);
   });
 
+  it('omits tabId when writing the global Action baseline', async () => {
+    const action = new RecordingActionApi();
+    const adapter = new OriginalToolbarActionAdapter(action);
+
+    await adapter.apply({
+      title: 'ZeroOmega:: [System Proxy]',
+      badgeBackgroundColor: '#d90000',
+      popup: 'popup-iframe.html',
+      fallbackIconPaths,
+    });
+
+    expect(action.calls).toEqual([
+      { method: 'setIcon', details: { path: fallbackIconPaths } },
+      { method: 'setTitle', details: { title: 'ZeroOmega:: [System Proxy]' } },
+      { method: 'setBadgeBackgroundColor', details: { color: '#d90000' } },
+      { method: 'setBadgeText', details: { text: '' } },
+      { method: 'setPopup', details: { popup: 'popup-iframe.html' } },
+    ]);
+  });
+
   it('clears stale Badge text when the derived state has no Badge', async () => {
     const action = new RecordingActionApi();
     const adapter = new OriginalToolbarActionAdapter(action);

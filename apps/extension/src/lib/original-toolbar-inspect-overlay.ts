@@ -62,6 +62,8 @@ export class OriginalToolbarInspectOverlayManager {
       await this.#baseExecutor.applyDefault(tabId);
       await this.applyOverlay(tabId);
     },
+    applyGlobal: (state) => this.#baseExecutor.applyGlobal(state),
+    applyGlobalDefault: () => this.#baseExecutor.applyGlobalDefault(),
     clearIconCache: () => this.#baseExecutor.clearIconCache(),
   };
 

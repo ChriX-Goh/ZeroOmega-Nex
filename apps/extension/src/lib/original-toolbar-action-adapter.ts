@@ -15,24 +15,24 @@ export type OriginalToolbarActionIconPaths = Readonly<
 >;
 
 interface OriginalToolbarActionIconDetails {
-  readonly tabId: number;
+  readonly tabId?: number;
   readonly imageData?: OriginalToolbarActionImageDataSet;
   readonly path?: OriginalToolbarActionIconPaths;
 }
 
 export interface OriginalToolbarActionApi {
   setIcon(details: OriginalToolbarActionIconDetails): Promise<void> | void;
-  setTitle(details: { readonly tabId: number; readonly title: string }): Promise<void> | void;
-  setBadgeText(details: { readonly tabId: number; readonly text: string }): Promise<void> | void;
+  setTitle(details: { readonly tabId?: number; readonly title: string }): Promise<void> | void;
+  setBadgeText(details: { readonly tabId?: number; readonly text: string }): Promise<void> | void;
   setBadgeBackgroundColor(details: {
-    readonly tabId: number;
+    readonly tabId?: number;
     readonly color: string;
   }): Promise<void> | void;
-  setPopup(details: { readonly tabId: number; readonly popup: string }): Promise<void> | void;
+  setPopup(details: { readonly tabId?: number; readonly popup: string }): Promise<void> | void;
 }
 
 export interface OriginalToolbarActionPresentation {
-  readonly tabId: number;
+  readonly tabId?: number;
   readonly title: string;
   readonly badgeText?: string;
   readonly badgeBackgroundColor: string;
@@ -52,35 +52,35 @@ export class OriginalToolbarActionAdapter {
   constructor(private readonly action: OriginalToolbarActionApi) {}
 
   async apply(presentation: OriginalToolbarActionPresentation): Promise<void> {
-    await this.applyIcon(presentation);
+    const target = presentation.tabId === undefined ? {} : { tabId: presentation.tabId };
+    await this.applyIcon(presentation, target);
 
     await Promise.all([
-      Promise.resolve(
-        this.action.setTitle({ tabId: presentation.tabId, title: presentation.title }),
-      ),
+      Promise.resolve(this.action.setTitle({ ...target, title: presentation.title })),
       Promise.resolve(
         this.action.setBadgeBackgroundColor({
-          tabId: presentation.tabId,
+          ...target,
           color: presentation.badgeBackgroundColor,
         }),
       ),
       Promise.resolve(
         this.action.setBadgeText({
-          tabId: presentation.tabId,
+          ...target,
           text: presentation.badgeText ?? '',
         }),
       ),
-      Promise.resolve(
-        this.action.setPopup({ tabId: presentation.tabId, popup: presentation.popup }),
-      ),
+      Promise.resolve(this.action.setPopup({ ...target, popup: presentation.popup })),
     ]);
   }
 
-  private async applyIcon(presentation: OriginalToolbarActionPresentation): Promise<void> {
+  private async applyIcon(
+    presentation: OriginalToolbarActionPresentation,
+    target: Readonly<{ tabId?: number }>,
+  ): Promise<void> {
     if (presentation.imageData === undefined) {
       await Promise.resolve(
         this.action.setIcon({
-          tabId: presentation.tabId,
+          ...target,
           path: presentation.fallbackIconPaths,
         }),
       );
@@ -90,14 +90,14 @@ export class OriginalToolbarActionAdapter {
     try {
       await Promise.resolve(
         this.action.setIcon({
-          tabId: presentation.tabId,
+          ...target,
           imageData: presentation.imageData,
         }),
       );
     } catch {
       await Promise.resolve(
         this.action.setIcon({
-          tabId: presentation.tabId,
+          ...target,
           path: presentation.fallbackIconPaths,
         }),
       );

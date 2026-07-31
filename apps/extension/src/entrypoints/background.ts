@@ -132,12 +132,12 @@ export default defineBackground(() => {
     },
   });
   originalToolbarRuntime = toolbarRuntime;
-  const refreshToolbar = (reason: string, clearIconCache = true): void => {
-    void toolbarRuntime
-      .refreshAll(clearIconCache ? { clearIconCache: true } : {})
-      .catch((error: unknown) => {
-        console.error(`[${productIdentity.name}] toolbar refresh failed after ${reason}:`, error);
-      });
+  const refreshToolbar = async (reason: string, clearIconCache = true): Promise<void> => {
+    try {
+      await toolbarRuntime.refreshAll(clearIconCache ? { clearIconCache: true } : {});
+    } catch (error) {
+      console.error(`[${productIdentity.name}] toolbar refresh failed after ${reason}:`, error);
+    }
   };
 
   const workflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
@@ -167,10 +167,13 @@ export default defineBackground(() => {
       }
       if (response.appliedSnapshotId === undefined) {
         await restoreProxyRuntime(authentication, temporaryRuleCoordinator);
-        refreshToolbar('startup recovery');
-        return;
+        const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
+        if (restoredRuntime.activeRoute === undefined) {
+          const startupRoute = response.state.applied.settings.startup.route ?? { kind: 'system' };
+          await activationDriver.activate(response.state.applied, startupRoute);
+        }
+        await refreshToolbar('startup recovery');
       }
-      refreshToolbar('initial startup activation');
     })
     .catch((error: unknown) => {
       console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);

@@ -49,6 +49,8 @@ export interface OriginalToolbarTabStateResolver {
 export interface OriginalToolbarCoordinatorExecutor {
   apply(tabId: number, state: OriginalToolbarTabState): Promise<void>;
   applyDefault(tabId: number): Promise<void>;
+  applyGlobal(state: OriginalToolbarTabState): Promise<void>;
+  applyGlobalDefault(): Promise<void>;
   clearIconCache(): void;
 }
 
@@ -57,7 +59,10 @@ export type OriginalToolbarCoordinatorErrorPhase =
   | 'query-tabs'
   | 'resolve-state'
   | 'apply-state'
-  | 'apply-default';
+  | 'apply-default'
+  | 'resolve-global'
+  | 'apply-global'
+  | 'apply-global-default';
 
 export interface OriginalToolbarCoordinatorErrorContext {
   readonly phase: OriginalToolbarCoordinatorErrorPhase;
@@ -186,6 +191,7 @@ export class OriginalToolbarTabCoordinator {
 
   async refreshAll(options: OriginalToolbarRefreshAllOptions = {}): Promise<void> {
     if (options.clearIconCache === true) this.#executor.clearIconCache();
+    await this.refreshGlobal();
 
     let tabs: readonly OriginalToolbarCoordinatorTab[];
     try {
@@ -202,6 +208,37 @@ export class OriginalToolbarTabCoordinator {
           : [tab.url === undefined ? this.refreshTab(tab.id) : this.refreshTab(tab.id, tab.url)],
       ),
     );
+  }
+
+  private async refreshGlobal(): Promise<void> {
+    let state: OriginalToolbarTabState | undefined;
+    try {
+      state = await this.#resolver.resolve({ tabId: -1, url: 'about:blank' });
+    } catch (error) {
+      this.report(error, { phase: 'resolve-global', url: 'about:blank' });
+      await this.applyGlobalDefault();
+      return;
+    }
+
+    if (state === undefined) {
+      await this.applyGlobalDefault();
+      return;
+    }
+
+    try {
+      await this.#executor.applyGlobal(state);
+    } catch (error) {
+      this.report(error, { phase: 'apply-global', url: 'about:blank' });
+      await this.applyGlobalDefault();
+    }
+  }
+
+  private async applyGlobalDefault(): Promise<void> {
+    try {
+      await this.#executor.applyGlobalDefault();
+    } catch (error) {
+      this.report(error, { phase: 'apply-global-default' });
+    }
   }
 
   private async applyDefault(
