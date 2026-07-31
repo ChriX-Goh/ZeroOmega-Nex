@@ -60,15 +60,36 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('docs/ACTIVE_PARITY_AUDIT_INDEX.md')
-          text = path.read_text(encoding='utf-8')
+          index_path = Path('docs/ACTIVE_PARITY_AUDIT_INDEX.md')
+          index = index_path.read_text(encoding='utf-8')
           sentinel = '`__SESSION8_KEEP_FIREFOX_RUNTIME_EVIDENCE__`'
-          if text.count(sentinel) != 2:
-              raise SystemExit(f'expected two protected Firefox evidence references, found {text.count(sentinel)}')
-          path.write_text(
-              text.replace(sentinel, '`AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`'),
+          if index.count(sentinel) != 2:
+              raise SystemExit(f'expected two protected Firefox evidence references, found {index.count(sentinel)}')
+          index_path.write_text(
+              index.replace(sentinel, '`AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`'),
               encoding='utf-8',
           )
+
+          validator_path = Path('scripts/validate-ui-compatibility.mjs')
+          validator = validator_path.read_text(encoding='utf-8')
+          old = """    manifest.includes(\"default_locale: 'en'\") &&
+              manifest.includes('default_icon: icons') &&
+              ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)),
+            'The browser manifest must expose localized metadata and toolbar icons at all standard sizes.',"""
+          new = """    manifest.includes(\"default_locale: 'en'\") &&
+              manifest.includes('    icons,') &&
+              ['16.png', '32.png', '48.png', '128.png'].every((entry) => manifest.includes(entry)) &&
+              manifest.includes('default_icon: originalActionIcons') &&
+              [
+                'original-action-16.png',
+                'original-action-19.png',
+                'original-action-24.png',
+                'original-action-32.png',
+              ].every((entry) => manifest.includes(entry)),
+            'The browser manifest must keep standard install icons and the original Action fallback sizes.',"""
+          if validator.count(old) != 1:
+              raise SystemExit(f'UI manifest guard: expected one match, found {validator.count(old)}')
+          validator_path.write_text(validator.replace(old, new, 1), encoding='utf-8')
           PY
           pnpm locale:inventory
           pnpm exec prettier --write \
@@ -77,6 +98,7 @@ jobs:
             apps/extension/public/_locales/zh_TW/messages.json \
             apps/extension/wxt.config.ts \
             scripts/inspect-manifests.mjs \
+            scripts/validate-ui-compatibility.mjs \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
             docs/ACTIVE_PARITY_AUDIT_INDEX.md \
@@ -94,6 +116,7 @@ jobs:
             apps/extension/public/_locales \
             apps/extension/wxt.config.ts \
             scripts/inspect-manifests.mjs \
+            scripts/validate-ui-compatibility.mjs \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
             docs/ACTIVE_PARITY_AUDIT_INDEX.md \
