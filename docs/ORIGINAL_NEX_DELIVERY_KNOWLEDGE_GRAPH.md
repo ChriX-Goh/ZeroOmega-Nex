@@ -101,13 +101,24 @@ The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 co
 
 ## 2. Current state
 
-- Provisional total progress: **46%** with a **42%–50% confidence band**, calculated by `docs/PROJECT_PROGRESS_MODEL.md`.
+- Provisional total progress: **47%** with a **42%–50% confidence band**, calculated by `docs/PROJECT_PROGRESS_MODEL.md`.
 - Previous `DONE=124 / PARTIAL=2` summary: **invalid as a product-completeness measure**.
 - Active installable candidate: **none**.
 - Previous candidate `M8-OWNER-QC-1`: **FAILED**.
 - Existing code and tests: implementation inventory requiring re-audit, not presumed parity evidence.
 - Required mode: complete Original capture, independent Nex capture, explicit mapping, then journey-level correction.
 - PR #11 remains Draft; merge and release are prohibited.
+
+### Exact verified checkpoint — 2026-07-31
+
+Clean Head `dbb237ffd0c65358fbe9bd483ae85bc9538f6976` passed all permanent gates:
+
+- CI run `30632153986`;
+- Browser E2E run `30632154001`;
+- Parity Documentation run `30632154009`;
+- Milestone 8 Visual Evidence run `30632153953`.
+
+The permanent Chromium browser job now executes a separate real Action acceptance script after the existing full extension journey. It reads `chrome.action.getTitle`, `getBadgeText` and `getPopup` for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions, localized titles from the runtime extension locale, four-code-unit Badge text and per-tab Popup state. Firefox and native Chromium Inspect also passed in the same Browser E2E run.
 
 ## 3. Status vocabulary
 
@@ -250,15 +261,15 @@ Internal architecture nodes are recorded separately and never count as user-faci
 
 ## 6. Reopened defect register
 
-| ID                 | Area                      | Original contract                                                                      | Observed Nex result                                                                                  | Status   | Delivery requirement                                                                          |
-| ------------------ | ------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `KG-ICON-001`      | Browser toolbar           | Icon, title and visible toolbar state follow the current profile/runtime situation.    | No complete toolbar state controller; icon and Popup identity differ.                                | `FAILED` | Capture and implement every original state transition in Chromium and Firefox.                |
-| `KG-IMPORT-001`    | Original export migration | Original exported files import directly and become immediately usable.                 | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures.  | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations.     |
-| `KG-UI-001`        | UI structure              | Navigation, layout, density, dialogs and actions remain familiar.                      | Broad structural and interaction differences remain.                                                 | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish.      |
-| `KG-EXTRA-001`     | Extra descriptions        | Normal workflows contain only original or necessary accepted guidance.                 | Many unnecessary description/help boxes change density and workflow.                                 | `FAILED` | Inventory and remove/collapse/relocate every unjustified block.                               |
-| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown.                   | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped. | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it.     |
-| `KG-FLOW-001`      | General behavior          | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples.                                       | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows.                         |
-| `KG-GOV-001`       | Acceptance governance     | Completion reflects actual parity and owner acceptance.                                | Automation closure was promoted incorrectly to product completion.                                   | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
+| ID                 | Area                      | Original contract                                                                      | Observed Nex result                                                                                                                                                                            | Status   | Delivery requirement                                                                          |
+| ------------------ | ------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `KG-ICON-001`      | Browser toolbar           | Icon, title and visible toolbar state follow the current profile/runtime situation.    | One background owner now drives real per-tab System, Direct, Fixed proxy/bypass and Inspect-overlay state; Switch/PAC/Virtual/Rule List/temp/external traces and owner acceptance remain open. | `FAILED` | Complete remaining original states, direct Firefox Action acceptance and owner review.        |
+| `KG-IMPORT-001`    | Original export migration | Original exported files import directly and become immediately usable.                 | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures.                                                                                            | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations.     |
+| `KG-UI-001`        | UI structure              | Navigation, layout, density, dialogs and actions remain familiar.                      | Broad structural and interaction differences remain.                                                                                                                                           | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish.      |
+| `KG-EXTRA-001`     | Extra descriptions        | Normal workflows contain only original or necessary accepted guidance.                 | Many unnecessary description/help boxes change density and workflow.                                                                                                                           | `FAILED` | Inventory and remove/collapse/relocate every unjustified block.                               |
+| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown.                   | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped.                                                                                           | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it.     |
+| `KG-FLOW-001`      | General behavior          | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples.                                                                                                                                 | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows.                         |
+| `KG-GOV-001`       | Acceptance governance     | Completion reflects actual parity and owner acceptance.                                | Automation closure was promoted incorrectly to product completion.                                                                                                                             | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
 
 ## 7. Delivery order
 

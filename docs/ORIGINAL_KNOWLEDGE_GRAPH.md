@@ -676,3 +676,16 @@ graph LR
 ### 精确检查点
 
 Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E `30615270448`、Parity `30615270389`、Visual `30615270430` 全部通过。
+
+## Session 8 — 工具栏真实运行时检查点（2026-07-31）
+
+- clean Head：`dbb237ffd0c65358fbe9bd483ae85bc9538f6976`。
+- 永久门禁：CI `30632153986`、Browser E2E `30632154001`、Parity `30632154009`、Visual `30632153953` 全绿。
+- 后台已注册唯一 Action 写入者；`browser.action`、`browser.i18n`、`browser.tabs`、OffscreenCanvas、resolver、coordinator 与 Inspect overlay 已组成真实运行链。
+- 新安装无需打开 UI，后台会主动初始化到原版 System；已有状态走恢复链，初始化并发去重。
+- Direct / System / Fixed proxy / Fixed bypass 已由 repository resolver 生成原版标题、Badge 与 Popup 状态。
+- 永久 Chromium Action E2E 直接读取两个真实标签页的 `getTitle/getBadgeText/getPopup`，验证 System → Direct → Fixed proxy / Fixed bypass，以及 `Toolbar Proxy` 截断为四字符 Badge `Tool`。
+- Inspect 不再直接竞争写 Action；它只维护 overlay，由同一 executor 写入。
+- 跨 document revision 历史先按当前 `documentId` 隔离，防止旧导入文档历史破坏新安装／当前文档历史读取。
+- 仍未闭合：Switch、PAC、Virtual、附属 Rule List、临时规则、外部控制完整 trace；Firefox 直接 Action API 验收；headed 图标像素；Owner PASS。
+- 总进度仍为 47%，Order 1 仍为 35%；新增自动化证据不等于 Owner 完成度。

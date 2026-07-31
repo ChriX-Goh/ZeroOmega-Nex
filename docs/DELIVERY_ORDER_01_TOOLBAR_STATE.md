@@ -16,7 +16,18 @@ This document is the first executable child order of `ORIGINAL_NEX_DELIVERY_KNOW
 - Current delivery status: `FAILED`.
 - Owner result: `FAIL` from the 2026-07-30 trial; corrected build `NOT RUN`.
 
-The current Nex branch now has the source-derived pure models, exact OffscreenCanvas renderer, browser Action adapter, compiled original localization adapter, Action executor, race-safe per-tab coordinator, exact target manifest/static assets, a real browser API construction boundary and a narrow successful-activation notification. A repository-backed resolver is verified for Direct, System and source-certain Fixed-to-proxy results. None of these slices is registered as the sole background Action owner yet; Fixed bypass/Direct and all inclusive-profile traces remain fail-closed until the original `matchProfile.results` display trace is reproduced.
+The current Nex branch now registers one background owner for all real browser Action writes. The owner composes the repository-backed resolver, race-safe per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Background startup proactively initializes a clean installation to the original System route, restores existing state without duplicate activation and refreshes all tabs after successful activation or recovery. Resolver coverage is verified for Direct, System, Fixed proxy and Fixed bypass results; Inspect no longer competes as a second title/Badge writer.
+
+### Exact verified checkpoint — 2026-07-31
+
+Clean Head `dbb237ffd0c65358fbe9bd483ae85bc9538f6976` passed all permanent gates:
+
+- CI run `30632153986`;
+- Browser E2E run `30632154001`;
+- Parity Documentation run `30632154009`;
+- Milestone 8 Visual Evidence run `30632153953`.
+
+The permanent Chromium browser job now executes a separate real Action acceptance script after the existing full extension journey. It reads `chrome.action.getTitle`, `getBadgeText` and `getPopup` for two real web tabs and verifies System → Direct → Fixed proxy / Fixed bypass transitions, localized titles from the runtime extension locale, four-code-unit Badge text and per-tab Popup state. Firefox and native Chromium Inspect also passed in the same Browser E2E run.
 
 No candidate may be generated from this order until the exact corrected build receives repository-owner `PASS`.
 
@@ -131,50 +142,51 @@ Consequences for Nex:
 
 ```mermaid
 graph TD
-  M[Target manifest / locale / exact static assets] --> B[Nex background]
-  API[Real browser Action / i18n / tabs construction] --> EXEC[Verified Action executor]
+  M[Target manifest / locale / exact static assets] --> B[Registered Nex background]
+  API[Real browser Action / i18n / tabs / OffscreenCanvas] --> EXEC[Verified Action executor]
   PURE[Pure original toolbar models] --> EXEC
-  EXEC --> COORD[Race-safe per-tab coordinator]
-  WF[Profile workflow] --> NOTICE[Successful activation notification]
-  NOTICE -. not connected .-> COORD
-  RES[Repository-backed resolver: Direct / System / Fixed proxy] --> COORD
-  B -. coordinator not registered .-> COORD
-  TEMP[Temporary rules] -. trace not converged .-> COORD
-  OWN[Ownership / external control] -. trace not converged .-> COORD
-  INSPECT[Inspect runtime] -. still writes Action directly .-> EXEC
+  WF[Profile workflow] --> NOTICE[Successful activation / startup notification]
+  NOTICE --> COORD[Race-safe per-tab coordinator]
+  RES[Repository resolver: Direct / System / Fixed proxy / Fixed bypass] --> COORD
+  INSPECT[Inspect runtime] --> OVERLAY[Single-writer Inspect overlay]
+  OVERLAY --> EXEC
+  COORD --> EXEC
+  EXEC --> ACTION[Real per-tab browser Action]
+  ACTION --> CHROME[Permanent Chromium two-tab Action E2E]
+  TEMP[Temporary rules] -. trace adapter open .-> COORD
+  OWN[Ownership / external control] -. transition adapter open .-> COORD
+  INCLUSIVE[Switch / PAC / Virtual / attached Rule List] -. full trace open .-> COORD
 ```
 
 Confirmed remaining gaps:
 
-- the verified browser API boundary and coordinator are not registered in `background.ts`;
-- activation notification exists but is not connected to `refreshAll({ clearIconCache: true })`;
-- Direct and System are source/runtime-backed; a static Fixed profile is resolved only when the final route remains its proxy endpoint;
-- Fixed bypass/Direct, Switch, Rule List, Virtual, PAC, temporary-rule and Inspect details still lack a complete original `matchProfile.results` display adapter;
-- Inspect remains a competing direct title/Badge writer;
-- no Nex real-browser acceptance yet asserts per-tab Action title/icon/Badge transitions.
+- Switch, PAC, Virtual, attached Rule List, temporary-rule and external-control states still need the complete original `matchProfile.results` display trace;
+- Chromium now has direct per-tab Action acceptance for System, Direct, Fixed proxy, Fixed bypass and optional four-code-unit Badge; equivalent direct Firefox Action API acceptance remains open;
+- exact headed toolbar pixels and forced dynamic-draw fallback remain open where source/unit evidence is insufficient;
+- complete owner-facing Order 1 acceptance remains `NOT RUN`, so no row is owner-complete.
 
 ## 5. Original ↔ Nex state matrix
 
-| ID       | Original observable state                                             | Original evidence                  | Current Nex                                                                                                            | Current edge                                 | Closure requirement                                                 |
-| -------- | --------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------- |
-| `TB-001` | Static fallback Ω assets and localized default title                  | source, packages                   | exact target fallback assets/title/Popup/shortcut/permission defaults implemented; runtime default clearing still open | `PARTIAL`                                    | real target manifest plus default/internal-page Action verification |
-| `TB-002` | Toolbar click opens target-specific original Popup; shortcut exists   | packages, Chromium/Firefox runtime | Popup exists but complete target Action contract not integrated                                                        | `PARTIAL`                                    | verify click, Popup and shortcut in both targets                    |
-| `TB-003` | Direct/System/Fixed static profile uses one color                     | source; Direct/System runtime      | pure color model only                                                                                                  | `PARTIAL`                                    | connect model to real Action and capture user Fixed state           |
-| `TB-004` | Inclusive Switch/PAC default uses Direct/current two-color state      | source                             | pure color decision exists; runtime state uncaptured                                                                   | `PARTIAL` / `UNKNOWN`                        | capture original default and implement Action output                |
-| `TB-005` | Current tab result equals current static profile: one-color result    | source                             | pure presentation model only                                                                                           | `PARTIAL`                                    | two-browser tab-local Action verification                           |
-| `TB-006` | Switch/PAC resolves to another profile: two-color result/current icon | source                             | no runtime coordinator                                                                                                 | `MISSING_IN_NEX`; original runtime `UNKNOWN` | capture two URLs/results, then implement exact transition           |
-| `TB-007` | Direct result receives Direct color                                   | source; Direct runtime title       | pure Direct color state exists                                                                                         | `PARTIAL`                                    | real icon/title verification in both targets                        |
-| `TB-008` | Virtual shows Virtual name plus resolved target                       | source                             | route activation exists; toolbar mapping absent                                                                        | `MISSING_IN_NEX`                             | capture original and implement nested effective target state        |
-| `TB-009` | Attached Rule List contributes prefix/details                         | source                             | internal Rule List support; Action details absent                                                                      | `MISSING_IN_NEX`                             | capture original wording/state and integrate result trace           |
-| `TB-010` | Temporary rule contributes prefix/details and result colors           | source                             | temporary-rule runtime exists; Action integration absent                                                               | `MISSING_IN_NEX`                             | add/replace/remove rule with immediate tab-local transition         |
-| `TB-011` | Optional localized result-profile Badge, max four code units          | source                             | pure Badge model exists                                                                                                | `PARTIAL`                                    | import preference and verify visible Badge in both targets          |
-| `TB-012` | Inspect sets tab-specific `#`, result color and Inspect title         | source                             | Inspect directly mutates Action with Nex fallback                                                                      | `BROKEN_IN_NEX`                              | make Inspect coordinator input; verify set/clear/isolation          |
-| `TB-013` | External proxy state changes title/short title and Badge              | source; basic System runtime       | ownership blocker exists; complete Action state absent                                                                 | `MISSING_IN_NEX`                             | capture transitions and integrate without invented panels           |
-| `TB-014` | Internal/unsupported URL clears result and uses default state         | source; basic runtime capture      | no coordinator                                                                                                         | `MISSING_IN_NEX`                             | verify no stale state in both targets                               |
-| `TB-015` | Tab URL update recalculates result                                    | source                             | no equivalent Action path                                                                                              | `MISSING_IN_NEX`                             | same-tab navigation changes visible state                           |
-| `TB-016` | Tab activation restores each tab’s own state                          | source; basic two-tab runtime      | no equivalent coordinator                                                                                              | `MISSING_IN_NEX`                             | two result-different tabs retain isolation                          |
-| `TB-017` | Profile change invalidates cache and resets tabs                      | source                             | activation does not drive unified toolbar refresh                                                                      | `MISSING_IN_NEX`                             | Popup/Options profile change refreshes all affected tabs            |
-| `TB-018` | Dynamic drawing failure uses static fallback                          | source                             | dynamic renderer not connected                                                                                         | `MISSING_IN_NEX`                             | forced failure preserves usable original-compatible fallback        |
+| ID       | Original observable state                                             | Original evidence                  | Current Nex                                                                                                                                         | Current edge                                 | Closure requirement                                                         |
+| -------- | --------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- |
+| `TB-001` | Static fallback Ω assets and localized default title                  | source, packages                   | exact target assets/title/Popup/shortcut/permissions are active; clean startup reaches System and Chromium reads the real per-tab title/Badge/Popup | `PARTIAL`                                    | add explicit internal-page and Firefox Action acceptance, then owner review |
+| `TB-002` | Toolbar click opens target-specific original Popup; shortcut exists   | packages, Chromium/Firefox runtime | target Popup contracts are active; Chromium `getPopup()` is verified across System, Direct and Fixed states                                         | `PARTIAL`                                    | verify click/shortcut and direct Action state in Firefox                    |
+| `TB-003` | Direct/System/Fixed static profile uses one color                     | source; Direct/System runtime      | one background owner applies Direct/System/Fixed states; Chromium verifies real titles, Badge and Popup for all three routes                        | `PARTIAL`                                    | verify exact visible icon pixels and Firefox user-Fixed state               |
+| `TB-004` | Inclusive Switch/PAC default uses Direct/current two-color state      | source                             | pure color decision exists; runtime state uncaptured                                                                                                | `PARTIAL` / `UNKNOWN`                        | capture original default and implement Action output                        |
+| `TB-005` | Current tab result equals current static profile: one-color result    | source                             | Chromium real Action acceptance verifies a Fixed proxy result on one tab while another tab resolves through Fixed bypass                            | `PARTIAL`                                    | add direct Firefox Action acceptance and owner review                       |
+| `TB-006` | Switch/PAC resolves to another profile: two-color result/current icon | source                             | no runtime coordinator                                                                                                                              | `MISSING_IN_NEX`; original runtime `UNKNOWN` | capture two URLs/results, then implement exact transition                   |
+| `TB-007` | Direct result receives Direct color                                   | source; Direct runtime title       | Direct is activated through the real workflow and reflected across two Chromium tabs; renderer/color contract remains source/unit-backed            | `PARTIAL`                                    | capture visible icon pixels or another browser-readable equivalent          |
+| `TB-008` | Virtual shows Virtual name plus resolved target                       | source                             | route activation exists; toolbar mapping absent                                                                                                     | `MISSING_IN_NEX`                             | capture original and implement nested effective target state                |
+| `TB-009` | Attached Rule List contributes prefix/details                         | source                             | internal Rule List support; Action details absent                                                                                                   | `MISSING_IN_NEX`                             | capture original wording/state and integrate result trace                   |
+| `TB-010` | Temporary rule contributes prefix/details and result colors           | source                             | temporary-rule runtime exists; Action integration absent                                                                                            | `MISSING_IN_NEX`                             | add/replace/remove rule with immediate tab-local transition                 |
+| `TB-011` | Optional localized result-profile Badge, max four code units          | source                             | Chromium Fixed acceptance enables the preference and reads Badge `Tool` for `Toolbar Proxy` on both result-different tabs                           | `PARTIAL`                                    | verify imported preference and Firefox Badge behavior                       |
+| `TB-012` | Inspect sets tab-specific `#`, result color and Inspect title         | source                             | Inspect feeds a single-writer overlay; native Chromium menu E2E and overlay lifecycle tests pass                                                    | `PARTIAL`                                    | add direct real Action set/clear/isolation capture                          |
+| `TB-013` | External proxy state changes title/short title and Badge              | source; basic System runtime       | ownership blocker exists; complete Action state absent                                                                                              | `MISSING_IN_NEX`                             | capture transitions and integrate without invented panels                   |
+| `TB-014` | Internal/unsupported URL clears result and uses default state         | source; basic runtime capture      | coordinator owns fallback/default clearing; Built-in route handling is registered                                                                   | `PARTIAL`                                    | add explicit Nex internal-page Action assertions in both targets            |
+| `TB-015` | Tab URL update recalculates result                                    | source                             | registered coordinator listens to URL updates; real result-different same-tab navigation remains unasserted                                         | `PARTIAL`                                    | navigate one tab across proxy/bypass URLs and read Action transitions       |
+| `TB-016` | Tab activation restores each tab’s own state                          | source; basic two-tab runtime      | Chromium Action E2E verifies simultaneous Fixed proxy and Fixed bypass state on two tab IDs                                                         | `PARTIAL`                                    | repeat direct per-tab acceptance in Firefox and owner review                |
+| `TB-017` | Profile change invalidates cache and resets tabs                      | source                             | System → Direct → Fixed activation refreshes both Chromium tabs through the real successful-activation callback                                     | `PARTIAL`                                    | cover import/temp-rule/external-control refresh inputs                      |
+| `TB-018` | Dynamic drawing failure uses static fallback                          | source                             | exact renderer is connected to the real executor and fallback behavior is unit-tested                                                               | `PARTIAL`                                    | force a real browser draw failure and confirm original static fallback      |
 
 No row is owner-complete. Pure unit tests and reference runtime captures do not close a row without Nex real-browser equivalence and owner acceptance.
 
@@ -238,63 +250,53 @@ Exact geometry, the original single `300 × 300` OffscreenCanvas pipeline, five-
 
 ### `TO-04` — browser Action adapter
 
-Status: `PARTIAL`, construction boundary complete but not registered.
+Status: `PARTIAL`, registered real browser owner with Chromium Action acceptance.
 
-Implemented and tested:
+Implemented and verified:
 
-- one browser-API boundary for `setIcon`, `setTitle`, `setBadgeText`, `setBadgeBackgroundColor` and `setPopup`;
-- every application rewrites all tab-visible fields to clear stale state;
-- rejected dynamic ImageData falls back to the supplied original static icon paths;
-- exact original default/result/detail localization keys with the original three-substitution title order and fail-closed missing-message behavior;
-- one isolated executor that composes pure tab state → original localization → exact renderer → Action presentation;
-- real `browser.action`, `browser.i18n`, `browser.tabs` and OffscreenCanvas construction using the exact Badge color, runtime Popup and fallback paths;
-- exact compiled locale messages, target-specific manifest hook, static Action assets, permission and shortcut contract.
+- one browser-API boundary for icon, title, Badge/background and Popup;
+- exact original localization, renderer, static fallback and manifest contract;
+- one registered background executor as the sole real Action writer;
+- Inspect requests are intercepted as overlays and reapplied by the same executor;
+- permanent Chromium E2E reads real per-tab title, Badge and Popup for System, Direct, Fixed proxy and Fixed bypass.
 
 Remaining:
 
-- register one background owner for the constructed executor;
-- invoke it only through the per-tab coordinator;
-- remove competing Inspect writes after Inspect becomes a resolver input;
-- prove visible target Action mutations in Chromium and Firefox.
-
-No browser API mutation occurs inside the pure state model.
+- direct equivalent Action API acceptance in Firefox;
+- headed icon pixels and forced dynamic-render fallback evidence;
+- Switch/PAC/Virtual/Rule List/temp-rule/external-control states.
 
 ### `TO-05` — per-tab coordinator
 
-Status: `PARTIAL`, isolated implementation and resolver slices verified.
+Status: `PARTIAL`, registered and real-browser verified for the source-certain slice.
 
-Implemented and tested:
+Implemented and verified:
 
-- idempotent registration and removal of URL-update and tab-activation listeners;
-- per-tab promise queues, refresh sequences and lifecycle invalidation;
-- stale async result suppression before Action mutation;
-- unresolved-state fallback to the localized default state;
-- resolver/Action error reporting with tab and URL context;
-- all-tab refresh with optional icon-cache invalidation;
-- omission of tabs without an ID;
-- repository-backed Direct/System state resolution;
-- source-certain static Fixed-to-proxy resolution using the existing reference interpreter;
-- explicit fail-closed behavior for Fixed bypass and unsupported profile trace shapes.
+- URL-update and tab-activation listeners, per-tab queues and stale-result suppression;
+- all-tab refresh with icon-cache invalidation;
+- repository-backed Direct, System, Fixed proxy and Fixed bypass resolution;
+- per-tab Fixed proxy/bypass isolation in permanent Chromium Action E2E;
+- default fallback and resolver/Action error reporting.
 
 Remaining:
 
-- reproduce the original multiline `matchProfile.results` display trace;
-- support Fixed bypass, Switch, Rule List, Virtual, PAC and temporary-rule results without simplified wording;
-- bind the real coordinator to startup, tab events, successful activation and recovery;
-- represent Inspect and external control as coordinator inputs;
-- prove tab isolation and stale-state clearing against visible Action state in Chromium and Firefox.
+- complete original multiline trace for Switch, PAC, Virtual, attached Rule List and temporary rules;
+- external-control transition input;
+- explicit same-tab URL transition and direct Firefox per-tab Action acceptance.
 
 ### `TO-06` — workflow/runtime integration
 
-Status: `PARTIAL`, notification seam implemented but not connected.
+Status: `PARTIAL`, real background integration complete for startup, activation and Inspect.
 
-Implemented and tested:
+Implemented and verified:
 
-- profile-workflow runtime emits a narrow callback only after a successful command returns `appliedSnapshotId`;
-- Draft edits, reads and failed commands do not trigger toolbar refresh;
-- real browser API construction and state resolver can be composed without registering another Action writer.
+- clean installations proactively initialize to the original System route without opening Popup or Options;
+- concurrent initialization is deduplicated and existing state follows restore/recovery without duplicate activation;
+- successful activation and startup recovery refresh all toolbar tabs;
+- Inspect is a coordinator overlay rather than a competing Action writer;
+- cross-document revision archives are isolated before current-document validation, preventing background initialization from breaking history reads.
 
-Remaining inputs include startup restoration, successful activation refresh, temporary rules, Inspect, ownership/external control, rollback and recovery. Background registration remains intentionally blocked until the result-trace adapter and single-writer transition are safe.
+Remaining inputs include temporary-rule transitions, ownership/external control, inclusive-profile trace display and equivalent direct Firefox Action acceptance.
 
 ### `TO-07` — acceptance automation and real browsers
 
