@@ -32,6 +32,7 @@ new = """  const historyResponse = await worker.evaluate(async () =>
       .catch(() => ({ text: '', alerts: ['history panel missing'], statuses: [] }));
     throw new Error(
       `Chromium snapshot history UI failed: ${JSON.stringify(historyDiagnostics)}; ${String(error)}`,
+      { cause: error },
     );
   }"""
 count = text.count(old)
