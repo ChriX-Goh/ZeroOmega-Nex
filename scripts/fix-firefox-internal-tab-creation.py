@@ -20,31 +20,26 @@ text = replace_once(
   const toolbarProxyTabId = await firefoxTabIdForUrl(toolbarProxyUrl);
   const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);
   const toolbarInternalTabId = await firefoxTabIdForUrl('about:support');""",
-    """  await driver.switchTo().window(optionsWindow);
-  const toolbarInternalTabId = await driver.executeAsyncScript(`
-    const done = arguments[0];
-    browser.tabs.create({ url: 'about:support', active: false }).then(
-      (tab) => done(tab.id),
-      (error) => done({ error: String(error) }),
-    );
-  `);
-  assert.equal(
-    typeof toolbarInternalTabId,
-    'number',
-    `Firefox internal tab creation failed: ${JSON.stringify(toolbarInternalTabId)}`,
-  );
+    """  await driver.switchTo().newWindow('tab');
+  const toolbarInternalWindow = await driver.getWindowHandle();
+  await driver.switchTo().window(optionsWindow);
 
   const toolbarProxyTabId = await firefoxTabIdForUrl(toolbarProxyUrl);
-  const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);""",
-    "Firefox extension-created internal tab",
-)
-text = replace_once(
-    text,
-    """    assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);
-    assert.notEqual(toolbarInternalWindow, toolbarProxyWindow);
-    console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);""",
-    """    assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);
-    console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);""",
-    "remove Firefox internal WebDriver window assertion",
+  const toolbarBypassTabId = await firefoxTabIdForUrl(toolbarBypassUrl);
+  const toolbarInternalTabId = await driver.wait(
+    async () => {
+      const tabId = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        browser.tabs.query({}).then(
+          (tabs) => done(tabs.find((tab) => tab.url === 'about:blank')?.id),
+          (error) => done({ error: String(error) }),
+        );
+      `);
+      return typeof tabId === 'number' ? tabId : false;
+    },
+    10_000,
+    'Firefox about:blank internal tab ID was not resolved',
+  );""",
+    "Firefox about blank internal tab",
 )
 path.write_text(text, encoding="utf-8")
