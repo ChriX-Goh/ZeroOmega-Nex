@@ -63,8 +63,8 @@ export class OriginalToolbarActionExecutor {
     const presentation = this.presentation({
       tabId,
       title: localizeOriginalToolbarResultTitle(this.#i18n, state.titleArguments),
-      badgeText: state.badgeText,
-      imageData,
+      ...(state.badgeText === undefined ? {} : { badgeText: state.badgeText }),
+      ...(imageData === undefined ? {} : { imageData }),
     });
     await this.#action.apply(presentation);
   }
