@@ -2,6 +2,7 @@ import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
 } from '@zeroomega-nex/profile-workflow';
+import { evaluateProfileGraph, type ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
 
 import {
   localizeOriginalToolbarDetail,
@@ -18,6 +19,7 @@ const ROUTE_MESSAGE_KEYS = {
   direct: 'routeDirect',
   system: 'routeSystem',
 } as const;
+const SUPPORTED_REQUEST_PROTOCOLS = new Set(['http:', 'https:', 'ftp:', 'ws:', 'wss:']);
 
 export interface OriginalToolbarProfileStateRepository {
   read(): Promise<ProfileWorkflowState | undefined>;
@@ -33,11 +35,32 @@ export interface OriginalToolbarProfileResolverOptions {
   readonly i18n: OriginalToolbarI18nApi;
 }
 
+function referenceRequest(url: string): ReferenceRequest | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return undefined;
+  }
+  if (!SUPPORTED_REQUEST_PROTOCOLS.has(parsed.protocol) || parsed.hostname.length === 0) {
+    return undefined;
+  }
+
+  const port = parsed.port.length === 0 ? undefined : Number(parsed.port);
+  return {
+    url: parsed.href,
+    host: parsed.hostname.replace(/^\[|\]$/gu, ''),
+    scheme: parsed.protocol.slice(0, -1),
+    ...(port === undefined ? {} : { port }),
+  };
+}
+
 /**
- * Resolve source- and runtime-proven built-in Action states from the applied
- * profile workflow. Profile graph matching remains deliberately unsupported in
- * this slice; returning undefined keeps the coordinator on the localized
- * Loading fallback instead of inventing a result trace.
+ * Resolve source- and runtime-proven built-in and static Fixed Action states
+ * from the applied profile workflow. Switch, Rule List, Virtual, PAC and
+ * auto-detect title traces remain deliberately unsupported in this slice;
+ * returning undefined keeps the coordinator on the localized Loading fallback
+ * instead of inventing original-facing details.
  */
 export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateResolver {
   readonly #repository: OriginalToolbarProfileStateRepository;
@@ -58,7 +81,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
 
     const runtime = await this.#runtime.inspectRuntime();
     const route = runtime.activeRoute;
-    if (route === undefined || route.kind === 'profile') return undefined;
+    if (route === undefined) return undefined;
 
     const directColor =
       state.applied.settings.interface.builtInProfiles?.direct?.color ??
@@ -66,10 +89,79 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const systemColor =
       state.applied.settings.interface.builtInProfiles?.system?.color ??
       ORIGINAL_TOOLBAR_SYSTEM_COLOR;
-    const currentColor = route.kind === 'direct' ? directColor : systemColor;
-    const routeName = this.requireRouteName(route.kind);
+
+    if (route.kind === 'direct' || route.kind === 'system') {
+      return this.resolveBuiltIn(state, route.kind, directColor, systemColor);
+    }
+
+    const profile = state.applied.profiles.find((candidate) => candidate.id === route.profileId);
+    if (profile?.kind !== 'fixed' || profile.color === undefined) return undefined;
+
+    const request = referenceRequest(input.url);
+    if (request === undefined) return undefined;
+    const decision = evaluateProfileGraph(state.applied, route, request);
+    if (decision.status !== 'resolved') return undefined;
+
+    if (decision.route.kind === 'proxy') {
+      return deriveOriginalToolbarTabState({
+        currentProfileName: profile.name,
+        resultProfileName: profile.name,
+        details: localizeOriginalToolbarDetail(
+          this.#i18n,
+          ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
+        ),
+        icon: {
+          currentProfileColor: profile.color,
+          matchedProfileColor: profile.color,
+          directProfileColor: directColor,
+          directResult: false,
+          currentProfileStatic: true,
+          matchedProfileIsCurrent: true,
+        },
+        badge: {
+          enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+          resultProfileName: profile.name,
+          resultProfileBuiltin: false,
+        },
+      });
+    }
+
+    if (decision.route.kind !== 'direct') return undefined;
+    const directName = this.requireRouteName('direct');
+    return deriveOriginalToolbarTabState({
+      currentProfileName: profile.name,
+      resultProfileName: `[${directName}]`,
+      details: localizeOriginalToolbarDetail(
+        this.#i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
+      ),
+      icon: {
+        currentProfileColor: profile.color,
+        matchedProfileColor: profile.color,
+        directProfileColor: directColor,
+        directResult: true,
+        currentProfileStatic: true,
+        matchedProfileIsCurrent: false,
+      },
+      badge: {
+        enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+        resultProfileName: directName,
+        resultProfileBuiltin: true,
+        builtinBadgeText: directName,
+      },
+    });
+  }
+
+  private resolveBuiltIn(
+    state: ProfileWorkflowState,
+    route: keyof typeof ROUTE_MESSAGE_KEYS,
+    directColor: string,
+    systemColor: string,
+  ) {
+    const currentColor = route === 'direct' ? directColor : systemColor;
+    const routeName = this.requireRouteName(route);
     const detail =
-      route.kind === 'direct'
+      route === 'direct'
         ? localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult)
         : localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.externalProxy);
 
@@ -81,7 +173,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
         currentProfileColor: currentColor,
         matchedProfileColor: currentColor,
         directProfileColor: directColor,
-        directResult: route.kind === 'direct',
+        directResult: route === 'direct',
         currentProfileStatic: true,
         matchedProfileIsCurrent: true,
       },
