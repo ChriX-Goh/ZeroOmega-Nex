@@ -13,24 +13,26 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 - Confidence band: **42%–50%**.
 - Active journey: Order 1 — installation/startup/toolbar, **35%**.
 
-Clean Head `c37f56e818bb73806f2a42a70dc941d5e5d76e9a` passed all permanent gates after the Firefox new-tab Action fix and temporary-file cleanup:
+Clean Head `f782f802a78ace277de938bdd4dfed2bf6315951` passed all permanent gates after the top-level navigation refresh fix and temporary-file cleanup:
 
-- CI `30659255772`;
-- Browser E2E `30659255691`;
-- Parity Documentation `30659255845`;
-- Milestone 8 Visual Evidence `30659255790`.
+- CI `30660824011`;
+- Browser E2E `30660824007`;
+- Parity Documentation `30660824047`;
+- Milestone 8 Visual Evidence `30660823998`.
 
-The permanent Browser E2E run directly verifies per-tab title, Badge and Popup in both Chromium and Firefox for System → Direct → Fixed proxy / Fixed bypass. Firefox additionally proves that newly created tabs and completed navigations receive computed Action state instead of remaining at the manifest loading title. Native Chromium Inspect passed in the same run.
+The permanent Browser E2E run passed Chromium Action, Firefox Action and native Chromium Inspect acceptance. Its Firefox job ran Firefox `152.0.6` and proved that newly opened tabs receive System, Direct and Fixed proxy / Fixed bypass Action state instead of remaining at the manifest loading title. Firefox diagnostics Artifact `8805083911` has digest `sha256:198cc198a90a39a1def2d93d416f6f0c3b66a0f90c70eff6f7ea633d069dc2b9`.
 
-This is an exact engineering and evidence checkpoint
+The top-level navigation listener only calls the existing coordinator and is protected by the exact manifest permission audit.
+
+This is an exact engineering and evidence checkpoint, not a release-completeness Head.
 
 This is an exact engineering and evidence checkpoint, not a release-completeness Head. It proves the mapped toolbar slice and permanent gates only.
 
 ## Confirmed integration boundary
 
-The background now registers one real browser Action writer composed from the repository resolver, per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, existing state follows restore/recovery, and successful activation refreshes all tabs.
+The background now registers one real browser Action writer composed from the repository resolver, per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, existing state follows restore/recovery, successful activation refreshes all tabs, and top-level navigation commits provide final URLs without creating another writer.
 
-Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy and Fixed bypass per-tab title/Badge/Popup state on two real tabs. The coordinator also refreshes newly created and completed Firefox tabs. Inspect no longer competes as a second title/Badge writer.
+Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy and Fixed bypass per-tab title/Badge/Popup state on two real tabs. Firefox 152.0.6 additionally verifies the `about:blank` → committed web navigation path. Inspect no longer competes as a second title/Badge writer.
 
 Still outside the verified slice are complete Switch/PAC/Virtual/Rule List/temporary-rule/external-control traces, explicit internal-page and same-tab transition assertions, direct Inspect set/clear Action capture, forced renderer fallback and repository-owner PASS.
 
