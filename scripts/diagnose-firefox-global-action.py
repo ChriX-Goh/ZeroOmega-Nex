@@ -13,7 +13,19 @@ new = """  const globalWorkflow = await sendFirefoxWorkflowCommand({
   });
   console.error(`[Firefox global workflow] ${JSON.stringify(globalWorkflow)}`);
   assert.equal(globalWorkflow?.ok, true, 'Firefox global workflow state is unavailable');
-  assert.deepEqual(globalWorkflow.runtime?.activeRoute, { kind: 'system' });
+
+  const proxyRuntimeDiagnostic = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    Promise.all([
+      browser.storage.local.get('zeroomega-nex/browser-proxy/v1/state'),
+      browser.proxy.settings.get({ incognito: false }),
+      browser.action.getTitle({}),
+    ]).then(
+      ([storage, proxy, title]) => done({ storage, proxy, title }),
+      (error) => done({ error: String(error) }),
+    );
+  `);
+  console.error(`[Firefox proxy runtime diagnostic] ${JSON.stringify(proxyRuntimeDiagnostic)}`);
 
   const directGlobalProbe = await driver.executeAsyncScript(`
     const done = arguments[0];
@@ -36,6 +48,21 @@ new = """  const globalWorkflow = await sendFirefoxWorkflowCommand({
     systemReactivation?.ok,
     true,
     `Firefox explicit System reactivation failed: ${JSON.stringify(systemReactivation)}`,
+  );
+
+  const proxyRuntimeAfterReactivation = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    Promise.all([
+      browser.storage.local.get('zeroomega-nex/browser-proxy/v1/state'),
+      browser.proxy.settings.get({ incognito: false }),
+      browser.action.getTitle({}),
+    ]).then(
+      ([storage, proxy, title]) => done({ storage, proxy, title }),
+      (error) => done({ error: String(error) }),
+    );
+  `);
+  console.error(
+    `[Firefox proxy runtime after reactivation] ${JSON.stringify(proxyRuntimeAfterReactivation)}`,
   );
 
   await waitForFirefoxGlobalActionState(
