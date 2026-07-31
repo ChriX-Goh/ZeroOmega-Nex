@@ -112,12 +112,15 @@ function originalSwitchConditionDisplay(condition: Condition): string | undefine
 }
 
 /**
- * Resolve source- and runtime-proven built-in and static Fixed Action states
- * from the applied profile workflow. The Fixed details reproduce the original
- * `Profiles.match` arrays consumed by `actionForUrl`: bypass pattern to Direct,
- * scheme to PAC result, or the fallback PAC result alone. Switch, Rule List,
- * Virtual, PAC and auto-detect traces remain fail-closed until their complete
- * original `matchProfile.results` display chain is represented.
+ * Resolve source- and runtime-proven built-in, static Fixed and exact
+ * Switch-to-Fixed proxy Action states from the applied profile workflow. Fixed
+ * details reproduce the original `Profiles.match` arrays consumed by
+ * `actionForUrl`: bypass pattern to Direct, scheme to PAC result, or fallback
+ * PAC result alone. The Switch slice accepts only a direct matched/default rule
+ * into one colored Fixed profile without an attached Rule List. Switch results
+ * into Direct/System, nested or attached Rule Lists, Virtual, PAC,
+ * temporary-rule and external-control traces remain fail-closed until their
+ * complete original `matchProfile.results` display chain is represented.
  */
 export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateResolver {
   readonly #repository: OriginalToolbarProfileStateRepository;
