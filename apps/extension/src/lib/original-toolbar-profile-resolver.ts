@@ -12,14 +12,20 @@ import {
 import { deriveOriginalToolbarTabState } from './original-toolbar-tab-state';
 import type { OriginalToolbarTabStateResolver } from './original-toolbar-tab-coordinator';
 
-export const ORIGINAL_TOOLBAR_DIRECT_COLOR = '#bdbdbd';
-export const ORIGINAL_TOOLBAR_SYSTEM_COLOR = '#616161';
+export const ORIGINAL_TOOLBAR_DIRECT_COLOR = '#aaaaaa';
+export const ORIGINAL_TOOLBAR_SYSTEM_COLOR = '#000000';
 
 const ROUTE_MESSAGE_KEYS = {
   direct: 'routeDirect',
   system: 'routeSystem',
 } as const;
-const SUPPORTED_REQUEST_PROTOCOLS = new Set(['http:', 'https:', 'ftp:', 'ws:', 'wss:']);
+const FIXED_REQUEST_PROTOCOLS = new Set(['http:', 'https:', 'ftp:']);
+const PAC_PROTOCOLS = {
+  http: 'PROXY',
+  https: 'HTTPS',
+  socks4: 'SOCKS',
+  socks5: 'SOCKS5',
+} as const;
 
 export interface OriginalToolbarProfileStateRepository {
   read(): Promise<ProfileWorkflowState | undefined>;
@@ -42,7 +48,7 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   } catch {
     return undefined;
   }
-  if (!SUPPORTED_REQUEST_PROTOCOLS.has(parsed.protocol) || parsed.hostname.length === 0) {
+  if (!FIXED_REQUEST_PROTOCOLS.has(parsed.protocol) || parsed.hostname.length === 0) {
     return undefined;
   }
 
@@ -55,13 +61,21 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   };
 }
 
+function originalPacResult(endpoint: {
+  readonly protocol: keyof typeof PAC_PROTOCOLS;
+  readonly host: string;
+  readonly port: number;
+}): string {
+  return `${PAC_PROTOCOLS[endpoint.protocol]} ${endpoint.host}:${endpoint.port}`;
+}
+
 /**
- * Resolve source- and runtime-proven built-in and static Fixed proxy Action
- * states from the applied profile workflow. Fixed bypass/Direct, Switch, Rule
- * List, Virtual, PAC and auto-detect title traces remain deliberately
- * unsupported until the original `matchProfile.results` display trace is
- * reproduced. Returning undefined keeps the coordinator on the localized
- * Loading fallback instead of inventing original-facing details.
+ * Resolve source- and runtime-proven built-in and static Fixed Action states
+ * from the applied profile workflow. The Fixed details reproduce the original
+ * `Profiles.match` arrays consumed by `actionForUrl`: bypass pattern to Direct,
+ * scheme to PAC result, or the fallback PAC result alone. Switch, Rule List,
+ * Virtual, PAC and auto-detect traces remain fail-closed until their complete
+ * original `matchProfile.results` display chain is represented.
  */
 export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateResolver {
   readonly #repository: OriginalToolbarProfileStateRepository;
@@ -101,23 +115,72 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
     const decision = evaluateProfileGraph(state.applied, route, request);
-    if (decision.status !== 'resolved' || decision.route.kind !== 'proxy') return undefined;
+    if (decision.status !== 'resolved') return undefined;
 
+    if (decision.route.kind === 'proxy') {
+      const scheme = request.scheme as 'http' | 'https' | 'ftp';
+      const hasSpecificEndpoint = profile.proxyByScheme[scheme] !== undefined;
+      const pacResult = originalPacResult(decision.route.endpoint);
+      return this.resolveFixed(
+        state,
+        profile.name,
+        profile.color,
+        directColor,
+        `${hasSpecificEndpoint ? `${scheme} => ` : ''}${pacResult}\n`,
+        false,
+      );
+    }
+
+    if (decision.route.kind !== 'direct') return undefined;
+    const directDetail = localizeOriginalToolbarDetail(
+      this.#i18n,
+      ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
+    );
+    const matchedBypass = decision.trace.find(
+      (entry) => entry.action === 'fixed-bypass' && entry.matched === true,
+    );
+    const bypass =
+      matchedBypass?.action === 'fixed-bypass'
+        ? profile.bypass.find((candidate) => candidate.id === matchedBypass.bypassId)
+        : undefined;
+    const hasUnmappedDirect = decision.trace.some(
+      (entry) => entry.action === 'fixed-unmapped-direct',
+    );
+    if (bypass === undefined && !hasUnmappedDirect) return undefined;
+
+    return this.resolveFixed(
+      state,
+      profile.name,
+      profile.color,
+      directColor,
+      `${bypass === undefined ? '' : `${bypass.pattern} => `}${directDetail}\n`,
+      true,
+    );
+  }
+
+  private resolveFixed(
+    state: ProfileWorkflowState,
+    profileName: string,
+    profileColor: string,
+    directColor: string,
+    details: string,
+    directResult: boolean,
+  ) {
     return deriveOriginalToolbarTabState({
-      currentProfileName: profile.name,
-      resultProfileName: profile.name,
-      details: localizeOriginalToolbarDetail(this.#i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule),
+      currentProfileName: profileName,
+      resultProfileName: profileName,
+      details,
       icon: {
-        currentProfileColor: profile.color,
-        matchedProfileColor: profile.color,
+        currentProfileColor: profileColor,
+        matchedProfileColor: profileColor,
         directProfileColor: directColor,
-        directResult: false,
+        directResult,
         currentProfileStatic: true,
-        matchedProfileIsCurrent: true,
+        matchedProfileIsCurrent: !directResult,
       },
       badge: {
         enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
-        resultProfileName: profile.name,
+        resultProfileName: profileName,
         resultProfileBuiltin: false,
       },
     });
