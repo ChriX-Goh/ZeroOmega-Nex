@@ -1,0 +1,56 @@
+name: Sync Session 8 toolbar knowledge graph
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-session8-toolbar-kg.yml
+      - scripts/sync-session8-toolbar-kg.py
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply and verify
+        run: |
+          python scripts/sync-session8-toolbar-kg.py
+          pnpm exec prettier --write \
+            docs/MILESTONE_8_VERIFICATION_HEAD.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_SESSION_8_CHECKPOINT.md
+          pnpm verify
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            docs/MILESTONE_8_VERIFICATION_HEAD.md \
+            docs/MILESTONE_8_STATUS.md \
+            docs/ACTIVE_PARITY_AUDIT_INDEX.md \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/MILESTONE_8_SESSION_8_CHECKPOINT.md
+          git commit -m 'docs: synchronize Session 8 toolbar knowledge graph'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
