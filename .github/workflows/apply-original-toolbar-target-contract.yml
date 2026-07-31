@@ -34,9 +34,42 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
           pnpm install --frozen-lockfile
 
+      - name: Prepare exact one-shot applicator
+        run: |
+          sed -i 's/_execute_action/_execute_browser_action/g' scripts/apply-original-toolbar-target-contract.py
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/ACTIVE_PARITY_AUDIT_INDEX.md')
+          text = path.read_text(encoding='utf-8')
+          needle = '`AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`'
+          sentinel = '`__SESSION8_KEEP_FIREFOX_RUNTIME_EVIDENCE__`'
+          first = text.find(needle)
+          if first < 0:
+              raise SystemExit('active evidence target is missing')
+          split = first + len(needle)
+          tail = text[split:]
+          if tail.count(needle) != 2:
+              raise SystemExit(f'expected two non-target Firefox evidence references, found {tail.count(needle)}')
+          path.write_text(text[:split] + tail.replace(needle, sentinel), encoding='utf-8')
+          PY
+
       - name: Apply exact target contract
         run: |
           python scripts/apply-original-toolbar-target-contract.py
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/ACTIVE_PARITY_AUDIT_INDEX.md')
+          text = path.read_text(encoding='utf-8')
+          sentinel = '`__SESSION8_KEEP_FIREFOX_RUNTIME_EVIDENCE__`'
+          if text.count(sentinel) != 2:
+              raise SystemExit(f'expected two protected Firefox evidence references, found {text.count(sentinel)}')
+          path.write_text(
+              text.replace(sentinel, '`AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`'),
+              encoding='utf-8',
+          )
+          PY
           pnpm locale:inventory
           pnpm exec prettier --write \
             apps/extension/public/_locales/en/messages.json \
@@ -47,7 +80,8 @@ jobs:
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
             docs/ACTIVE_PARITY_AUDIT_INDEX.md \
-            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/LOCALE_INVENTORY.json
 
       - name: Verify target contract before commit
         run: pnpm verify
@@ -64,6 +98,6 @@ jobs:
             docs/UI_AUDIT_MATRIX.md \
             docs/ACTIVE_PARITY_AUDIT_INDEX.md \
             docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
-            docs/LOCALE_INVENTORY.md
+            docs/LOCALE_INVENTORY.json
           git commit -m 'feat: restore original toolbar target contract'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
