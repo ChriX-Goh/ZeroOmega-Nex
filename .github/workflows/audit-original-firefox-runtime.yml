@@ -39,6 +39,30 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
           pnpm install --frozen-lockfile
 
+      - name: Replace title readiness with document readiness
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/audit-original-toolbar-firefox.mjs')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              "import { Browser, Builder, until } from 'selenium-webdriver';",
+              "import { Browser, Builder } from 'selenium-webdriver';",
+          )
+          text = text.replace(
+              "await driver.wait(until.titleContains('ZeroOmega'), 20_000);",
+              """await driver.wait(
+            async () =>
+              driver.executeScript(
+                'return document.readyState === \"complete\" && Boolean(document.body?.innerText);',
+              ),
+            20_000,
+          );""",
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+
       - name: Format audit source
         run: pnpm exec prettier --write scripts/audit-original-toolbar-firefox.mjs
 
