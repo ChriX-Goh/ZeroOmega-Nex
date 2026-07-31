@@ -1,0 +1,53 @@
+name: Apply toolbar navigation completion fallback
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-toolbar-navigation-completed.yml
+      - scripts/apply-toolbar-navigation-completed.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply and verify
+        run: |
+          python scripts/apply-toolbar-navigation-completed.py
+          pnpm exec prettier --write \
+            apps/extension/src/lib/original-toolbar-runtime.ts \
+            apps/extension/src/lib/original-toolbar-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts
+          pnpm verify
+          pnpm build:firefox
+          for iteration in 1 2 3 4 5; do
+            echo ">>>>> FIREFOX ACTION ITERATION ${iteration}"
+            pnpm test:e2e:firefox
+          done
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            apps/extension/src/lib/original-toolbar-runtime.ts \
+            apps/extension/src/lib/original-toolbar-runtime.test.ts \
+            apps/extension/src/entrypoints/background.ts
+          git commit -m 'fix: refresh toolbar after completed navigations'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
