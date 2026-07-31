@@ -94,12 +94,20 @@ jobs:
           set -o pipefail
           pnpm test:e2e:firefox 2>&1 | tee firefox-e2e.log
 
+      - name: Run Firefox toolbar Action E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-toolbar 2>&1 | tee firefox-toolbar-e2e.log
+
       - name: Upload Firefox diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: firefox-e2e-diagnostics
-          path: firefox-e2e.log
+          path: |
+            firefox-e2e.log
+            firefox-toolbar-e2e.log
           if-no-files-found: warn
 
   chromium-native-inspect:
