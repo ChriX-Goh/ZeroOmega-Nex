@@ -214,11 +214,7 @@ try {
     expectedGeneration: current.state.generation,
     draft,
   });
-  assert.equal(
-    replaced?.ok,
-    true,
-    `Firefox draft replacement failed: ${JSON.stringify(replaced)}`,
-  );
+  assert.equal(replaced?.ok, true, `Firefox draft replacement failed: ${JSON.stringify(replaced)}`);
   const applied = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
     action: 'apply',
