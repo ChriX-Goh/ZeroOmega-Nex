@@ -1035,13 +1035,38 @@ try {
     const [local, session] = await worker.evaluate(async () =>
       Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
     );
+    const temporaryState = session['zeroomega-nex/popup-temporary-rules/v1/state'];
     return (
-      session['zeroomega-nex/popup-temporary-rules/v1/state'] === undefined &&
-      !String(local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '').startsWith(
+      temporaryState?.overlayActive === true &&
+      Array.isArray(temporaryState.rules) &&
+      temporaryState.rules.length === 0 &&
+      String(local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '').startsWith(
         'popup-temporary-v1/',
       )
     );
-  }, 'Deleting the final temporary rule did not restore the underlying route');
+  }, 'Deleting the final temporary rule did not retain the original empty overlay');
+
+  const temporaryCleanup = await worker.evaluate(
+    async (expectedAppliedRevisionId) =>
+      chrome.runtime.sendMessage({
+        channel: 'zeroomega-nex/profile-workflow/v1',
+        action: 'activate-route',
+        expectedAppliedRevisionId,
+        route: { kind: 'system' },
+      }),
+    popupWorkflow.applied.revision.id,
+  );
+  assert.equal(
+    temporaryCleanup?.ok,
+    true,
+    `System cleanup after temporary-rule evidence failed: ${JSON.stringify(temporaryCleanup)}`,
+  );
+  await assertEventually(async () => {
+    const local = await worker.evaluate(async () => chrome.storage.local.get(null));
+    return !String(
+      local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '',
+    ).startsWith('popup-temporary-v1/');
+  }, 'System cleanup did not leave the temporary overlay');
   await temporaryManager.close();
 
   const historyRollbackTarget = await assertEventuallyValue(async () => {
