@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -36,6 +36,7 @@ try {
   const optionsPage = await context.newPage();
   await optionsPage.goto(`chrome-extension://${extensionId}/options.html`);
   await optionsPage.waitForLoadState('domcontentloaded');
+  const packageVersion = await optionsPage.evaluate(() => chrome.runtime.getManifest().version);
 
   async function sendOriginalMessage(method, args = [], noReply = false) {
     let lastError;
@@ -161,7 +162,7 @@ try {
 
   const result = {
     target: 'chromium',
-    packageVersion: chrome?.runtime?.getManifest?.()?.version,
+    packageVersion,
     browserVersion: context.browser()?.version() ?? 'unknown',
     extensionId,
     badgeKey,
@@ -181,4 +182,5 @@ try {
   console.log(JSON.stringify(result, null, 2));
 } finally {
   await context?.close().catch(() => undefined);
+  await rm(userDataDir, { recursive: true, force: true });
 }
