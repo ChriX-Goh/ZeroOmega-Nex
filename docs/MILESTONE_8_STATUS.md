@@ -45,29 +45,43 @@ The current retained Toolbar architecture includes:
 - a browser-global Action baseline followed by per-tab overrides;
 - serialized startup and profile-workflow transitions;
 - clean-install initialization to the original System route;
-- Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, and immediate Virtual -> Direct/Fixed proxy/bypass result handling;
+- one browser-independent Original-observable result projection between internal graph decisions and Action rendering;
+- Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, and immediate Virtual -> Direct/Fixed proxy/bypass result handling through that projection;
 - original-derived title, multiline detail, Badge truncation, color inputs, and Virtual target suffix behavior for represented shapes;
+- preservation of the original Switch -> Direct two-color icon rule, where the result and Badge are Direct while the inner ring remains the current Switch color;
 - Chromium and Firefox Action acceptance for the represented states;
 - internal-page/default fallback, two-tab isolation, and Chromium Inspect overlay set/clear/isolation;
 - fail-closed behavior for result shapes not yet represented.
 
-This is slice-level engineering evidence only. It does not close Order 1 or `KG-ICON-001`.
+The trace projection is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for the represented shapes. It does not yet cover nested Switch/Virtual, attached Rule List, PAC, temporary-rule, or external-control result families.
+
+This is slice-level engineering evidence only. It does not close Order 1 or `KG-ICON-001`. Total progress remains 47% and Order 1 remains 35%.
 
 ## Order 0 governance correction
 
-The repository now has an authoritative `PRODUCT_CONSTITUTION.md`. `AGENTS.md`, `PROJECT_CHARTER.md`, and `COMPATIBILITY.md` are bound to it. Old broad milestone-status claims are no longer authoritative, and failed write-enabled/per-trace attached-Rule-List workflows were removed.
+Order 0 is engineering-complete at the current checkpoint:
 
-Permanent CI must remain read-only. Future original evidence collection must be parameterized and batched rather than implemented as a new workflow and applicator for every trace.
+- `PRODUCT_CONSTITUTION.md` is authoritative;
+- `AGENTS.md`, `PROJECT_CHARTER.md`, `COMPATIBILITY.md`, and `DELIVERY_PLAN.md` are bound to it;
+- the knowledge graph is separated into product, architecture, and acceptance layers;
+- stable milestone history is separated from current product status;
+- moving Head and CI values are no longer copied across competing documents;
+- failed write-enabled/per-trace attached-Rule-List workflows and scripts were removed;
+- permanent CI remains read-only.
+
+Future original evidence collection must be parameterized and batched rather than implemented as a new workflow and applicator for every trace.
 
 ## Attached Rule List checkpoint
 
 Exact original attached Rule List evidence is retained in `AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md`.
 
-The attempted one-time implementation applicator did not land product code: its verification stopped at formatting before commit/push. The write-enabled applicator, per-trace audit workflow, and temporary scripts were removed. Attached Rule List implementation therefore remains open and must be integrated through the planned unified observable-result trace layer, not revived as another self-writing workflow.
+The attempted one-time implementation applicator did not land product code: its verification stopped at formatting before commit/push. The write-enabled applicator, per-trace audit workflow, and temporary scripts were removed.
+
+The unified Original-observable trace layer now exists, so attached Rule List implementation no longer requires a separate result engine. The remaining work is to map only the evidence-backed attached Rule List trace shapes into that layer. No attached Rule List result is claimed implemented yet.
 
 ## Open Order 1 blockers
 
-- unified Original-observable result trace representation;
+- one parameterized original evidence harness for the remaining result families;
 - nested Switch/profile chains;
 - nested Virtual and Virtual -> Switch/Rule List/PAC targets;
 - attached Rule List result prefixes, matched lines, defaults, and details;
@@ -94,13 +108,11 @@ All remain release-blocking.
 
 ## Immediate execution order
 
-1. Finish Order 0 document conflict cleanup and remove stale exact-Head duplication.
-2. Build one parameterized original evidence harness for the remaining Toolbar/Popup result families.
-3. Introduce one Original-observable trace model between the reference interpreter/runtime evidence and Toolbar/Popup rendering.
-4. Integrate attached Rule List, nested Switch/Virtual, PAC, temporary-rule, and external-control states through that model.
-5. Run one complete Chromium/Firefox Order 1 matrix and produce one exact installable owner-QC build.
-6. Record repository-owner `PASS` or concrete defects.
-7. Only after Order 1 acceptance, begin the real original-export migration corpus.
+1. Build one parameterized original evidence harness for the remaining Toolbar/Popup result families.
+2. Extend the unified Original-observable trace model only with evidence-backed attached Rule List, nested Switch/Virtual, PAC, temporary-rule, and external-control states.
+3. Run one complete Chromium/Firefox Order 1 matrix and produce one exact installable owner-QC build.
+4. Record repository-owner `PASS` or concrete defects.
+5. Only after Order 1 acceptance, begin the real original-export migration corpus.
 
 ## Candidate prohibition
 
