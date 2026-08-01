@@ -147,14 +147,16 @@ export function projectOriginalAttachedRuleListTrace(
   if (
     ruleEntry?.action !== 'rule-list-rule' ||
     ruleEntry.priorityGroup !== 'normal' ||
+    ruleEntry.sourceLine === undefined ||
     ruleEntry.sourceLine !== sourceLines[0]
   ) {
     return undefined;
   }
 
+  const sourceLine = ruleEntry.sourceLine;
   const matched = ruleEntry.matched === true;
   if (ruleEntry.matched !== true && ruleEntry.matched !== false) return undefined;
-  if (matched && ruleEntry.sourceLine.includes('^')) return undefined;
+  if (matched && sourceLine.includes('^')) return undefined;
 
   const selectionIndex = 3 + ruleEntries.length;
   let resultIndex = selectionIndex;
@@ -165,7 +167,7 @@ export function projectOriginalAttachedRuleListTrace(
   if (matched) {
     selectedRoute = attached.matchRoute;
     detailPrefix = localizeOriginalToolbarDetail(i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.attachedPrefix);
-    transition = `${detailPrefix}${ruleEntry.sourceLine} => `;
+    transition = `${detailPrefix}${sourceLine} => `;
   } else {
     const defaultEntry = trace[selectionIndex];
     if (defaultEntry?.action !== 'rule-list-default' || defaultEntry.profileId !== attached.id) {
