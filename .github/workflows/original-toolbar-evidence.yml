@@ -1,0 +1,75 @@
+name: Original Toolbar Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario ID, comma-separated IDs, or all
+        required: true
+        default: nested-switch
+        type: string
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/original-toolbar-evidence.yml
+      - scripts/audit-original-toolbar-scenarios.mjs
+      - scripts/original-toolbar-evidence-scenarios.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ZEROOMEGA_ORIGINAL_SCENARIO: ${{ github.event_name == 'workflow_dispatch' && inputs.scenario || 'nested-switch' }}
+      ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
+      ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/toolbar-evidence
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Download exact official ZeroOmega v3.5.0 Chromium package
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            -o chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  chromium-release.zip' | sha256sum -c -
+          mkdir -p "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          unzip -q chromium-release.zip -d "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          test -f "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH/manifest.json"
+
+      - name: Capture parameterized original Toolbar evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/audit-original-toolbar-scenarios.mjs 2>&1 | tee original-toolbar-evidence.log
+
+      - name: Upload exact original Toolbar evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-toolbar-evidence-v3.5.0
+          path: |
+            original-runtime/toolbar-evidence/runtime.json
+            original-toolbar-evidence.log
+          if-no-files-found: warn
