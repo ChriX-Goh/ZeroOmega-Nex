@@ -72,29 +72,29 @@ Current verified Nex runtime:
 
 - one registered background owner performs all real Action writes;
 - real `browser.action`, `browser.i18n`, `browser.tabs`, top-level `browser.webNavigation` and OffscreenCanvas boundaries are constructed in the background;
-- the repository resolver covers Direct, System, Fixed proxy/bypass and strict exact Switch matched/default results into Direct or one Fixed proxy;
+- the repository resolver covers Direct, System, Fixed proxy/bypass, strict exact Switch matched/default results into Direct or one Fixed proxy, and exact immediate Virtual results into Direct or one Fixed proxy/bypass target;
 - the coordinator establishes a browser-level Action baseline, then handles tab creation, URL updates, activation, serialization, stale-result suppression, lifecycle invalidation, cache invalidation and all-tab refresh; a top-level navigation-commit listener supplies final URLs when Firefox tab events are incomplete;
 - clean installations proactively initialize to the original System route without opening UI; profile-workflow commands are serialized so concurrent reads cannot observe half-initialized startup, and missing proxy runtime is repaired from the saved startup route;
 - Inspect feeds a single-writer overlay and no longer mutates title/Badge independently;
-- permanent Chromium and Firefox Action E2E directly verify real tab IDs across System → Direct → Fixed proxy/bypass and exact Switch matched/default results into Direct/Fixed;
+- permanent Chromium and Firefox Action E2E directly verify real tab IDs across System → Direct → Fixed proxy/bypass, exact Switch matched/default results into Direct/Fixed and exact immediate Virtual → Direct/Fixed proxy/bypass results;
 - cross-document revision history is isolated by current `documentId` before validation.
 
 ### Exact verified checkpoint
 
-Clean Head `0ffd09ad00d67b79c29a341a484f32d40c7d0122` passed all permanent gates after exact original Switch-to-Direct/Fixed trace integration and temporary-file cleanup:
+Clean Head `6747760e01572d47038ec4beba6dba10ef4f1f02` passed all permanent gates after exact original immediate Virtual-to-Direct/Fixed integration and temporary-file cleanup:
 
-- CI `30674564650`;
-- Browser E2E `30674564634`;
-- Parity Documentation `30674564648`;
-- Milestone 8 Visual Evidence `30674564598`.
+- CI `30678329216`;
+- Browser E2E `30678329237`;
+- Parity Documentation `30678329224`;
+- Milestone 8 Visual Evidence `30678329214`.
 
-The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, simultaneous Fixed proxy / Fixed bypass, internal/default fallback, same-tab transitions and exact Switch matched/default results into Direct/Fixed. Native Inspect verifies target-tab set, current-page clear, base restoration and cross-tab isolation. Dedicated transaction `30674297543` passed full verification, Chromium Switch-to-Direct acceptance and three consecutive focused Firefox Switch-to-Direct journeys.
+The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, Fixed proxy/bypass, exact Switch matched/default results into Direct/Fixed and exact immediate Virtual results into built-in Direct or one Fixed proxy/bypass target. The Virtual display preserves the original target suffix, including `[[Direct]]`, suppresses the Virtual default transition from details, uses the resolved target Badge and applies Direct/Fixed color inputs exactly. Dedicated transaction `30678033747` passed full `pnpm verify`, Chromium Virtual Action acceptance and three consecutive focused Firefox Virtual journeys. Official original-package run `30677618681` and Artifact `8811046002` (`sha256:f4485078f732e9d64294c13d2edd8cb09f26a3f1405dfa427f2d4072292ce2ed`) fix the source/runtime contract.
 
 The `webNavigation` listener is a refresh input to the existing coordinator, not a second Action writer. Both built manifests require the permission through the exact manifest guard and retain no required global host access.
 
 Still open:
 
-- nested Switch/profile chains, attached Rule Lists, plus PAC/Virtual/temporary-rule/external-control result traces; Switch → System is rejected by the original runtime;
+- nested Switch/profile chains, nested Virtual and Virtual-to-inclusive/PAC targets, attached Rule Lists, PAC/temporary-rule/external-control result traces; Switch → System is rejected by the original runtime;
 - forced renderer-fallback Action evidence and headed toolbar pixels where browser-readable state is insufficient;
 - repository-owner acceptance of the corrected Order 1 journey.
 
@@ -104,7 +104,7 @@ No `TB-*` row or `KG-ICON-001` is owner-complete.
 
 Permanent Nex Firefox E2E uses WebDriver BiDi for extension-page navigation and directly verifies Action title/Badge/Popup. Diagnosis showed that concurrent workflow reads could observe a persisted ProfileSpec before initial System activation and Action follow-up completed. The runtime now serializes all profile-workflow commands, awaits activation follow-up and repairs missing proxy runtime on startup. Top-level `webNavigation.onCommitted` remains a final-URL coordinator input. Historical original-package evidence remains fixed to its separate Firefox 152.0.6 audit.
 
-The browser Action architecture now has one writer. Inspect, profile activation and startup recovery are integrated inputs. Switch matched/default results into Direct and Fixed are now exact integrated inputs backed by official runtime evidence. Switch → System is original-invalid. Nested/attached profile chains, PAC/Virtual, temporary rules and external-control transitions remain explicit missing inputs rather than permission to add simplified invented wording.
+The browser Action architecture now has one writer. Inspect, profile activation and startup recovery are integrated inputs. Switch matched/default results into Direct and Fixed plus immediate Virtual results into Direct/Fixed proxy/bypass are exact integrated inputs backed by official runtime evidence. Switch → System is original-invalid. Nested/attached profile chains, nested Virtual/Virtual-to-inclusive/PAC, temporary rules and external-control transitions remain explicit missing inputs rather than permission to add simplified invented wording.
 
 ## Non-invention rule
 
@@ -142,7 +142,7 @@ All are release-blocking.
 ### 1. Complete the remaining Order 1 trace contract
 
 - capture and map nested Switch/profile chains, attached Rule List results and PAC default/matched results;
-- capture Virtual and attached Rule List results;
+- capture nested Virtual/Virtual-to-inclusive targets and attached Rule List results;
 - connect temporary-rule and external-control transitions to the single writer;
 - preserve the original multiline `matchProfile.results` wording and fail closed on unsupported trace shapes.
 
@@ -168,4 +168,4 @@ No new candidate may be declared until the complete comparison graph is mapped, 
 
 ## Current next action
 
-Complete the remaining Switch/PAC/Virtual/Rule List/temp/external result traces plus renderer fallback/pixel evidence where needed, then run focused Order 1 owner acceptance. No candidate is permitted.
+Complete the remaining nested Switch/Virtual, PAC/Rule List/temp/external result traces plus renderer fallback/pixel evidence where needed, then run focused Order 1 owner acceptance. No candidate is permitted.

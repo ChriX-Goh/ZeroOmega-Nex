@@ -13,14 +13,14 @@ The previous candidate `M8-OWNER-QC-1`, Head `46b10285b25ab0a0d7faae4d4822d5f4c3
 - Confidence band: **42%–50%**.
 - Active journey: Order 1 — installation/startup/toolbar, **35%**.
 
-Clean Head `0ffd09ad00d67b79c29a341a484f32d40c7d0122` passed all permanent gates after exact original Switch-to-Direct/Fixed trace integration and temporary-file cleanup:
+Clean Head `6747760e01572d47038ec4beba6dba10ef4f1f02` passed all permanent gates after exact original immediate Virtual-to-Direct/Fixed integration and temporary-file cleanup:
 
-- CI `30674564650`;
-- Browser E2E `30674564634`;
-- Parity Documentation `30674564648`;
-- Milestone 8 Visual Evidence `30674564598`.
+- CI `30678329216`;
+- Browser E2E `30678329237`;
+- Parity Documentation `30678329224`;
+- Milestone 8 Visual Evidence `30678329214`.
 
-The permanent Browser E2E run passed the Chromium full journey, Chromium toolbar Action, Firefox full journey, the permanent focused Firefox toolbar Action job and native Chromium Inspect acceptance. Chromium and Firefox now directly verify System, Direct, simultaneous Fixed proxy / Fixed bypass state, browser-internal/default fallback, same-tab transitions and exact no-attached-list Switch matched/default results into both built-in Direct and one Fixed proxy. The Switch result preserves the original multiline order, two-color state, localized result Badge and per-tab Popup. Native Inspect directly captures tab-local set, current-page clear, base-state restoration and cross-tab isolation. Dedicated transaction `30674297543` passed full verification, Chromium Switch-to-Direct Action acceptance and three consecutive focused Firefox Switch-to-Direct journeys.
+The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, Fixed proxy/bypass, exact Switch matched/default results into Direct/Fixed and exact immediate Virtual results into built-in Direct or one Fixed proxy/bypass target. The Virtual display preserves the original target suffix, including `[[Direct]]`, suppresses the Virtual default transition from details, uses the resolved target Badge and applies Direct/Fixed color inputs exactly. Dedicated transaction `30678033747` passed full `pnpm verify`, Chromium Virtual Action acceptance and three consecutive focused Firefox Virtual journeys. Official original-package run `30677618681` and Artifact `8811046002` (`sha256:f4485078f732e9d64294c13d2edd8cb09f26a3f1405dfa427f2d4072292ce2ed`) fix the source/runtime contract.
 
 The runtime now establishes a browser-level Action baseline before per-tab overrides, serializes profile-workflow commands so concurrent startup reads cannot observe half-initialized proxy state, and repairs missing persisted proxy runtime from the saved startup route. Top-level navigation remains an exact-guarded coordinator input rather than a second writer. Permanent acceptance now exercises the coordinator across internal/default fallback, same-tab URL result changes and Inspect overlay set/clear/isolation rather than only static two-tab snapshots.
 
@@ -30,9 +30,9 @@ This is an exact engineering and evidence checkpoint, not a release-completeness
 
 The background now registers one real browser Action writer composed from the repository resolver, global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Clean installation initializes to System, profile-workflow commands are serialized through activation and Action follow-up, missing proxy runtime is repaired from the saved startup route, and top-level navigation commits provide final URLs without creating another writer.
 
-Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy/bypass and exact Switch matched/default results into Direct or Fixed. Exact original package runtime evidence in `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md` fixes `[Direct]`, `(default)`, four-code-unit `Dire`, Direct result color and current Switch color; it also proves Switch → System is rejected by the original PAC runtime. Firefox 152.0.6 additionally verifies the historical original `about:blank` → committed web navigation path. Inspect no longer competes as a second title/Badge writer.
+Permanent Chromium and Firefox acceptance verifies System, Direct, Fixed proxy/bypass, exact Switch matched/default results into Direct or Fixed and exact immediate Virtual results into Direct or one Fixed proxy/bypass target. `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md` fixes the Switch contract; `AUDIT_EVIDENCE_01G_ORIGINAL_VIRTUAL_RESULTS.md` fixes the Virtual target suffix, `[[Direct]]`, detail suppression, resolved-target Badge and color inputs. Switch → System is rejected by the original PAC runtime. Firefox 152.0.6 additionally verifies the historical original `about:blank` → committed web navigation path. Inspect no longer competes as a second title/Badge writer.
 
-Still outside the verified slice are nested Switch/profile chains, attached Rule Lists, PAC/Virtual/temporary-rule/external-control traces, forced renderer fallback, headed toolbar pixels where browser-readable state is insufficient and repository-owner PASS. Switch → System is not an open parity feature because the original runtime rejects it.
+Still outside the verified slice are nested Switch/profile chains, nested Virtual and Virtual-to-inclusive/PAC targets, attached Rule Lists, PAC/temporary-rule/external-control traces, forced renderer fallback, headed toolbar pixels where browser-readable state is insufficient and repository-owner PASS. Switch → System is not an open parity feature because the original runtime rejects it.
 
 ## Current boundary
 

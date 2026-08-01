@@ -94,10 +94,22 @@ Product commit `f8e5892bc4a5a7a1b538a9f649e8ec98d61d6dcd` extends the strict res
 
 Two focused tests bring the unit total to `522`. Dedicated transaction `30674297543` passed full `pnpm verify`, Chromium real Action acceptance and three consecutive Firefox focused Action journeys covering matched Fixed, matched Direct, default Direct, internal fallback and same-tab Fixed ↔ Direct transitions. Clean Head `0ffd09ad00d67b79c29a341a484f32d40c7d0122` passed CI `30674564650`, Browser E2E `30674564634`, Parity Documentation `30674564648` and Milestone 8 Visual Evidence `30674564598`. The first native Inspect attempt in the permanent Browser E2E run missed the menu result; the unchanged failed job was rerun on the same Head and passed, while Chromium and Firefox Switch jobs passed on their first attempt.
 
+## Exact original Virtual runtime and Nex integration
+
+Official package workflow `30677618681` directly called the original v3.5.0 `_actionForUrl` implementation and is preserved in `AUDIT_EVIDENCE_01G_ORIGINAL_VIRTUAL_RESULTS.md` (Artifact `8811046002`, `sha256:f4485078f732e9d64294c13d2edd8cb09f26a3f1405dfa427f2d4072292ce2ed`):
+
+- Virtual → Direct displays `Alias [[Direct]]`, uses the localized Direct description without a transition line, Badge `Dire` and Direct/Direct colors;
+- Virtual → Fixed proxy displays `Alias [Target]`, preserves only the final PAC-result line, uses the target Badge and one Fixed color;
+- Virtual → Fixed bypass preserves the target name/Badge, writes the bypass-to-Direct line and uses Direct outer plus Fixed inner color;
+- the Virtual default transition to its immediate target is suppressed from details;
+- direct original `addProfile` injection requires the post-create `rules: []` shape because Virtual reuses the Switch handler.
+
+Product commit `1e38cff72e511beca810bdfbe7e02b0f07c6590d` adds only the source/runtime-certain immediate Virtual → Direct and Virtual → Fixed proxy/bypass shapes. Nested Virtual, Virtual → Switch/Rule List/PAC, temporary rules and external-control shapes remain fail-closed. Four focused resolver tests bring the unit total to `526`. Dedicated transaction `30678033747` passed full `pnpm verify`, Chromium real Action acceptance and three consecutive Firefox focused Action journeys. Clean Head `6747760e01572d47038ec4beba6dba10ef4f1f02` passed CI `30678329216`, Browser E2E `30678329237`, Parity Documentation `30678329224` and Milestone 8 Visual Evidence `30678329214`.
+
 ## Remaining Order 1 work
 
 - nested Switch/profile chains, attached Rule Lists, plus PAC default and matched-result traces; Switch → System is original-invalid, not a missing result state;
-- Virtual and attached Rule List traces;
+- nested Virtual targets, Virtual → inclusive/PAC targets and attached Rule List traces;
 - temporary-rule and external-control transitions through the single writer;
 - forced dynamic-render failure/static-fallback evidence where feasible;
 - headed toolbar pixels where browser-readable state is insufficient;
@@ -105,7 +117,7 @@ Two focused tests bring the unit total to `522`. Dedicated transaction `30674297
 
 ## Next gate
 
-1. Preserve and integrate the remaining original `matchProfile.results` traces for nested Switch/profile chains, attached Rule Lists, PAC/Virtual/temporary-rule/external-control states.
+1. Preserve and integrate the remaining original `matchProfile.results` traces for nested Switch/profile chains, nested/Virtual-to-inclusive targets, attached Rule Lists, PAC/temporary-rule/external-control states.
 2. Force dynamic-render failure/static fallback where feasible and capture headed toolbar pixels only where Action API state is insufficient.
 3. Run focused repository-owner acceptance for startup/System, Direct, user Fixed, two-tab isolation, Popup and Inspect.
 4. Keep progress at 47% / 35% until the remaining real-browser and owner-acceptance gates close.
