@@ -77,7 +77,9 @@ function onlySwitchProfiles(
 ): boolean {
   return decision.trace.every(
     (entry) =>
-      entry.action !== 'switch-rule' || entry.profileId === parent.id || entry.profileId === inner.id,
+      entry.action !== 'switch-rule' ||
+      entry.profileId === parent.id ||
+      entry.profileId === inner.id,
   );
 }
 
@@ -176,9 +178,7 @@ function projectNestedFixed(
 
   const innerSelection = matchedHostWildcard(inner, input.decision);
   const defaults = input.decision.trace.filter((entry) => entry.action === 'switch-default');
-  const endpointEntry = input.decision.trace.findLast(
-    (entry) => entry.action === 'fixed-endpoint',
-  );
+  const endpointEntry = input.decision.trace.findLast((entry) => entry.action === 'fixed-endpoint');
   if (
     innerSelection === undefined ||
     innerSelection.targetProfileId !== fixed.id ||
