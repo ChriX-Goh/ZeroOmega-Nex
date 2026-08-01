@@ -557,9 +557,7 @@ export function projectOriginalObservableResultTrace(
     return undefined;
   }
 
-  const profile = input.spec.profiles.find(
-    (candidate) => candidate.id === activeRoute.profileId,
-  );
+  const profile = input.spec.profiles.find((candidate) => candidate.id === activeRoute.profileId);
   if (profile === undefined) return undefined;
 
   switch (profile.kind) {
