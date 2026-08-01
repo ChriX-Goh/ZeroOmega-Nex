@@ -1,0 +1,46 @@
+name: Format Observable Trace Probe
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/format-observable-trace-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format observable trace files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/lib/original-observable-result-trace.ts \
+            apps/extension/src/lib/original-toolbar-profile-resolver.ts
+
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-observable-trace-files
+          path: |
+            apps/extension/src/lib/original-observable-result-trace.ts
+            apps/extension/src/lib/original-toolbar-profile-resolver.ts
+          if-no-files-found: error
