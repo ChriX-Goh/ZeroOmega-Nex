@@ -1,7 +1,6 @@
-import type { SwitchProfile } from '@zeroomega-nex/profile-spec';
-
 import { projectOriginalAttachedRuleListTrace } from './original-observable-attached-rule-list';
 import { projectOriginalNestedSwitchTrace } from './original-observable-nested-switch';
+import { projectOriginalNestedVirtualTrace } from './original-observable-nested-virtual';
 import {
   ORIGINAL_TOOLBAR_DIRECT_COLOR,
   projectOriginalObservableResultTrace,
@@ -23,18 +22,18 @@ export function projectOriginalObservableResult(
     input.request !== undefined &&
     input.decision !== undefined
   ) {
-    const parent = input.spec.profiles.find(
-      (candidate): candidate is SwitchProfile =>
-        candidate.id === activeRoute.profileId && candidate.kind === 'switch',
+    const activeProfile = input.spec.profiles.find(
+      (candidate) => candidate.id === activeRoute.profileId,
     );
-    if (parent !== undefined) {
-      const directColor =
-        input.spec.settings.interface.builtInProfiles?.direct?.color ??
-        ORIGINAL_TOOLBAR_DIRECT_COLOR;
-      if (parent.attachedRuleListProfileId !== undefined) {
+    const directColor =
+      input.spec.settings.interface.builtInProfiles?.direct?.color ??
+      ORIGINAL_TOOLBAR_DIRECT_COLOR;
+
+    if (activeProfile?.kind === 'switch') {
+      if (activeProfile.attachedRuleListProfileId !== undefined) {
         return projectOriginalAttachedRuleListTrace({
           spec: input.spec,
-          parent,
+          parent: activeProfile,
           decision: input.decision,
           request: input.request,
           i18n: input.i18n,
@@ -44,13 +43,25 @@ export function projectOriginalObservableResult(
 
       const nestedSwitch = projectOriginalNestedSwitchTrace({
         spec: input.spec,
-        parent,
+        parent: activeProfile,
         decision: input.decision,
         request: input.request,
         i18n: input.i18n,
         directColor,
       });
       if (nestedSwitch !== undefined) return nestedSwitch;
+    }
+
+    if (activeProfile?.kind === 'virtual') {
+      const nestedVirtual = projectOriginalNestedVirtualTrace({
+        spec: input.spec,
+        parent: activeProfile,
+        decision: input.decision,
+        request: input.request,
+        i18n: input.i18n,
+        directColor,
+      });
+      if (nestedVirtual !== undefined) return nestedVirtual;
     }
   }
 
