@@ -144,8 +144,7 @@ describe('original nested Switch toolbar projection', () => {
       titleArguments: {
         currentProfileName: 'Runtime Nested Outer Switch',
         resultProfileName: '[Direct]',
-        details:
-          'nested-direct.test => Runtime Nested Inner Switch\n' + '(default) => [Direct]\n',
+        details: 'nested-direct.test => Runtime Nested Inner Switch\n' + '(default) => [Direct]\n',
       },
       badgeText: 'Dire',
     });
