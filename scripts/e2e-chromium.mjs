@@ -955,6 +955,29 @@ try {
   await temporaryPopup.goto(
     `chrome-extension://${extensionId}/popup.html?activeTabId=${currentSiteTabId}`,
   );
+  const historyRollbackTarget = await assertEventuallyValue(async () => {
+    return worker.evaluate(async () => {
+      const storage = await chrome.storage.local.get(null);
+      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
+      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
+      const snapshotId = proxyState?.activeSnapshotId;
+      if (
+        !workflow ||
+        typeof snapshotId !== 'string' ||
+        snapshotId.startsWith('popup-temporary-v1/')
+      ) {
+        return undefined;
+      }
+      const snapshot = storage[`zeroomega-nex/browser-proxy/v1/snapshot/${snapshotId}`];
+      if (!snapshot || snapshot.sourceRevisionId !== workflow.applied.revision.id) return undefined;
+      return {
+        snapshotId,
+        sourceRevisionId: snapshot.sourceRevisionId,
+        startRoute: snapshot.startRoute,
+      };
+    });
+  }, 'Verified rollback target was not available before temporary-rule evidence');
+
   const temporarySelect = temporaryPopup.getByLabel('example.co.uk 的临时情景模式');
   await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(await temporarySelect.inputValue(), '');
@@ -1094,29 +1117,6 @@ try {
     ).startsWith('popup-temporary-v1/');
   }, 'System cleanup did not leave the temporary overlay');
   await temporaryManager.close();
-
-  const historyRollbackTarget = await assertEventuallyValue(async () => {
-    return worker.evaluate(async () => {
-      const storage = await chrome.storage.local.get(null);
-      const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];
-      const proxyState = storage['zeroomega-nex/browser-proxy/v1/state'];
-      const snapshotId = proxyState?.activeSnapshotId;
-      if (
-        !workflow ||
-        typeof snapshotId !== 'string' ||
-        snapshotId.startsWith('popup-temporary-v1/')
-      ) {
-        return undefined;
-      }
-      const snapshot = storage[`zeroomega-nex/browser-proxy/v1/snapshot/${snapshotId}`];
-      if (!snapshot || snapshot.sourceRevisionId !== workflow.applied.revision.id) return undefined;
-      return {
-        snapshotId,
-        sourceRevisionId: snapshot.sourceRevisionId,
-        startRoute: snapshot.startRoute,
-      };
-    });
-  }, 'Underlying verified snapshot was not restored after removing the final temporary rule');
 
   const diagnosticsPage = await context.newPage();
   await diagnosticsPage.goto(
