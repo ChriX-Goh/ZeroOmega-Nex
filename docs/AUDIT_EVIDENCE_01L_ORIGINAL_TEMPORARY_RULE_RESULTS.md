@@ -148,6 +148,8 @@ Nex reproduces this captured subset through:
 
 The hidden synthetic profile remains internal and is never displayed directly.
 
+The Chromium full E2E performs its post-evidence route cleanup by sending the workflow command from the still-open extension page, matching the real extension-page-to-background message path. A service worker self-message is not used because Chromium MV3 does not guarantee that it will be delivered to the same worker's runtime listener. This is a test-harness boundary, not a product-contract difference.
+
 ## Represented subset
 
 `KG-TEMP-RULE-001` is represented only for:
