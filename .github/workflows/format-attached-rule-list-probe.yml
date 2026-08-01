@@ -1,0 +1,44 @@
+name: Format Attached Rule List Probe
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/format-attached-rule-list-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format attached Rule List files
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/lib/original-observable-attached-rule-list.ts \
+            apps/extension/src/lib/original-toolbar-attached-rule-list.test.ts
+
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-attached-rule-list-files
+          path: |
+            apps/extension/src/lib/original-observable-attached-rule-list.ts
+            apps/extension/src/lib/original-toolbar-attached-rule-list.test.ts
+          if-no-files-found: error
