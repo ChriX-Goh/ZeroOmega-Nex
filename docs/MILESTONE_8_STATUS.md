@@ -96,7 +96,6 @@ Still open:
 
 - nested Switch/profile chains, attached Rule Lists, plus PAC/Virtual/temporary-rule/external-control result traces; Switch → System is rejected by the original runtime;
 - forced renderer-fallback Action evidence and headed toolbar pixels where browser-readable state is insufficient;
-- headed toolbar pixels where browser-readable state is insufficient;
 - repository-owner acceptance of the corrected Order 1 journey.
 
 No `TB-*` row or `KG-ICON-001` is owner-complete.
