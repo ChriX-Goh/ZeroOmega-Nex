@@ -119,7 +119,7 @@ describe('original attached Rule List toolbar projection', () => {
   it('reproduces attached match into Fixed', async () => {
     const { state, parent } = attachedFixture({
       parentName: 'Runtime Attached Fixed Switch',
-      parentColor: '#5b5',
+      parentColor: '#55bb55',
       sourceHost: 'attached-fixed.test',
       matchRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
       defaultRoute: { kind: 'direct' },
@@ -129,7 +129,7 @@ describe('original attached Rule List toolbar projection', () => {
       icon: {
         mode: 'two-color',
         outerCircleColor: '#64b5f6',
-        innerCircleColor: '#5b5',
+        innerCircleColor: '#55bb55',
       },
       titleArguments: {
         currentProfileName: 'Runtime Attached Fixed Switch',
@@ -144,7 +144,7 @@ describe('original attached Rule List toolbar projection', () => {
   it('reproduces attached no-match default into Direct', async () => {
     const { state, parent } = attachedFixture({
       parentName: 'Runtime Attached Fixed Switch',
-      parentColor: '#5b5',
+      parentColor: '#55bb55',
       sourceHost: 'attached-fixed.test',
       matchRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
       defaultRoute: { kind: 'direct' },
@@ -154,7 +154,7 @@ describe('original attached Rule List toolbar projection', () => {
       icon: {
         mode: 'two-color',
         outerCircleColor: '#aaaaaa',
-        innerCircleColor: '#5b5',
+        innerCircleColor: '#55bb55',
       },
       titleArguments: {
         currentProfileName: 'Runtime Attached Fixed Switch',
@@ -168,7 +168,7 @@ describe('original attached Rule List toolbar projection', () => {
   it('reproduces attached match into Direct', async () => {
     const { state, parent } = attachedFixture({
       parentName: 'Runtime Attached Direct Switch',
-      parentColor: '#d63',
+      parentColor: '#dd6633',
       sourceHost: 'attached-direct.test',
       matchRoute: { kind: 'direct' },
       defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
@@ -178,7 +178,7 @@ describe('original attached Rule List toolbar projection', () => {
       icon: {
         mode: 'two-color',
         outerCircleColor: '#aaaaaa',
-        innerCircleColor: '#d63',
+        innerCircleColor: '#dd6633',
       },
       titleArguments: {
         currentProfileName: 'Runtime Attached Direct Switch',
@@ -193,7 +193,7 @@ describe('original attached Rule List toolbar projection', () => {
   it('reproduces attached no-match default into Fixed', async () => {
     const { state, parent } = attachedFixture({
       parentName: 'Runtime Attached Direct Switch',
-      parentColor: '#d63',
+      parentColor: '#dd6633',
       sourceHost: 'attached-direct.test',
       matchRoute: { kind: 'direct' },
       defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
@@ -203,7 +203,7 @@ describe('original attached Rule List toolbar projection', () => {
       icon: {
         mode: 'two-color',
         outerCircleColor: '#64b5f6',
-        innerCircleColor: '#d63',
+        innerCircleColor: '#dd6633',
       },
       titleArguments: {
         currentProfileName: 'Runtime Attached Direct Switch',
@@ -217,7 +217,7 @@ describe('original attached Rule List toolbar projection', () => {
   it('keeps parent rules and non-AutoProxy attached shapes fail-closed', async () => {
     const { state, parent } = attachedFixture({
       parentName: 'Runtime Attached Direct Switch',
-      parentColor: '#d63',
+      parentColor: '#dd6633',
       sourceHost: 'attached-direct.test',
       matchRoute: { kind: 'direct' },
       defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
