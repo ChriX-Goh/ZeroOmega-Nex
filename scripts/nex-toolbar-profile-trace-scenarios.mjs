@@ -20,9 +20,22 @@ export const NESTED_VIRTUAL_SCENARIO = Object.freeze({
   hosts: Object.freeze(['nested-virtual-direct.test', 'nested-virtual-fixed.test']),
 });
 
+export const PAC_SCENARIO = Object.freeze({
+  id: 'pac',
+  profileId: 'profile-runtime-pac-e2e',
+  hosts: Object.freeze(['pac-proxy.test', 'pac-direct.test']),
+});
+
+export const RUNTIME_PAC_SCRIPT = `function FindProxyForURL(url, host) {
+  if (host === 'pac-proxy.test') return 'PROXY 127.0.0.1:18186';
+  return 'DIRECT';
+}
+`;
+
 export const PROFILE_TRACE_HOSTS = Object.freeze([
   ...NESTED_SWITCH_SCENARIO.hosts,
   ...NESTED_VIRTUAL_SCENARIO.hosts,
+  ...PAC_SCENARIO.hosts,
 ]);
 
 export function configureNestedSwitchDraft(draft, proxyPort) {
@@ -143,6 +156,20 @@ export function configureNestedVirtualDraft(draft, proxyPort) {
   return scenario;
 }
 
+export function configurePacDraft(draft, pacUrl) {
+  const scenario = PAC_SCENARIO;
+  draft.settings.interface.showResultProfileOnActionBadgeText = true;
+  draft.profiles.push({
+    id: scenario.profileId,
+    name: 'Runtime PAC',
+    color: '#4db6ac',
+    kind: 'pac',
+    source: { kind: 'url', url: pacUrl, script: RUNTIME_PAC_SCRIPT },
+  });
+  draft.settings.quickSwitch.routes.push({ kind: 'profile', profileId: scenario.profileId });
+  return scenario;
+}
+
 export function nestedSwitchCases({ proxyPort, directName, defaultDetail }) {
   return Object.freeze([
     Object.freeze({
@@ -216,6 +243,32 @@ export function nestedVirtualCases({ proxyPort, directName, defaultDetail }) {
       resultProfileName: 'Runtime Nested Virtual Fixed',
       badgeText: 'Runt',
       details: `${defaultDetail} => Runtime Nested Virtual Fixed\nlocalhost => DIRECT\n`,
+    }),
+  ]);
+}
+
+export function pacCases({ pacUrl }) {
+  const scenario = PAC_SCENARIO;
+  return Object.freeze([
+    Object.freeze({
+      id: 'pac-proxy',
+      activationProfileId: scenario.profileId,
+      host: 'pac-proxy.test',
+      path: '/pac-proxy',
+      currentProfileName: 'Runtime PAC',
+      resultProfileName: 'Runtime PAC',
+      badgeText: 'Runt',
+      details: pacUrl,
+    }),
+    Object.freeze({
+      id: 'pac-direct',
+      activationProfileId: scenario.profileId,
+      host: 'pac-direct.test',
+      path: '/pac-direct',
+      currentProfileName: 'Runtime PAC',
+      resultProfileName: 'Runtime PAC',
+      badgeText: 'Runt',
+      details: pacUrl,
     }),
   ]);
 }
