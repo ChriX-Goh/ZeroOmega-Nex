@@ -151,11 +151,15 @@ The contract details live in `PRODUCT_CONSTITUTION.md`. This graph records the r
   - cycle and depth protection
   - route result and internal graph trace
 - `OriginalObservableProjection`
-  - required node `KG-TRACE-001`
+  - node `KG-TRACE-001`
+  - status: `IMPLEMENTED` and `VERIFIED_AUTOMATION` for Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, and immediate Virtual -> Direct/Fixed proxy/bypass
   - converts internal graph/runtime results into original-observable result semantics
-  - produces Toolbar title, detail, Badge, colors, icon inputs, and Popup result state
+  - produces Toolbar title, detail, Badge, colors, and icon inputs for represented shapes
+  - preserves distinct result-profile and Action-icon semantics, including the original Switch -> Direct two-color icon rule
+  - is browser-independent and consumed by the single Toolbar Action adapter
   - hides internal transitions that the original does not expose
   - rejects unknown shapes rather than inventing simplified wording
+  - remaining status: `UNKNOWN` or `MISSING_IN_NEX` for nested Switch/Virtual, attached Rule List, PAC, temporary-rule, external-control, and other unrepresented result families
 - `PacDataPlane`
   - capability analysis
   - deterministic PAC generation
@@ -214,6 +218,7 @@ The authoritative order and full acceptance criteria live in `DELIVERY_PLAN.md`.
   - `KG-GOV-PLAN-001`: journey-based delivery plan
   - `KG-GOV-GRAPH-001`: knowledge graph contains mappings/evidence rather than a competing contract
 - current checkpoint:
+  - status: `IMPLEMENTED` and `VERIFIED_AUTOMATION`
   - constitution created
   - Agent, Charter, Compatibility, Delivery Plan, milestone status, verification boundary, and PR contract aligned
   - failed write-enabled and per-trace attached-Rule-List workflows/scripts removed
@@ -224,29 +229,34 @@ The authoritative order and full acceptance criteria live in `DELIVERY_PLAN.md`.
 - depends on `Order0Governance`
 - active node: `KG-ICON-001`
 - supporting nodes:
-  - `KG-EVIDENCE-HARNESS-001`: one parameterized original result-evidence harness
-  - `KG-TRACE-001`: one Original-observable result trace model
-  - `KG-SWITCH-NESTED-001`: nested Switch/profile results
-  - `KG-VIRTUAL-NESTED-001`: nested Virtual and Virtual -> Switch/Rule List/PAC
-  - `KG-ATTACHED-RULELIST-001`: attached Rule List prefixes, matched lines, defaults, and details
-  - `KG-PAC-TRACE-001`: PAC effective route and observable result traces
-  - `KG-TEMP-RULE-001`: temporary/site-rule state through the single writer
-  - `KG-EXTERNAL-CONTROL-001`: ownership loss and recovery
-  - `KG-ACTION-FALLBACK-001`: forced renderer failure and static fallback
-  - `KG-TOOLBAR-PIXEL-001`: headed evidence only where Action API state is insufficient
-  - `KG-OWNER-ORDER1-001`: consolidated exact-build owner acceptance
+  - `KG-EVIDENCE-HARNESS-001`: one parameterized original result-evidence harness — not implemented
+  - `KG-TRACE-001`: one Original-observable result trace model — `IMPLEMENTED` and `VERIFIED_AUTOMATION` for represented shapes
+  - `KG-SWITCH-NESTED-001`: nested Switch/profile results — open
+  - `KG-VIRTUAL-NESTED-001`: nested Virtual and Virtual -> Switch/Rule List/PAC — open
+  - `KG-ATTACHED-RULELIST-001`: attached Rule List prefixes, matched lines, defaults, and details — source evidence captured, implementation open
+  - `KG-PAC-TRACE-001`: PAC effective route and observable result traces — open
+  - `KG-TEMP-RULE-001`: temporary/site-rule state through the single writer — open
+  - `KG-EXTERNAL-CONTROL-001`: ownership loss and recovery — open
+  - `KG-ACTION-FALLBACK-001`: forced renderer failure and static fallback — open
+  - `KG-TOOLBAR-PIXEL-001`: headed evidence only where Action API state is insufficient — open
+  - `KG-OWNER-ORDER1-001`: consolidated exact-build owner acceptance — not run
 - retained implemented slice:
   - one Action writer
   - global baseline and per-tab overrides
   - clean-install System initialization
   - serialized startup/profile-workflow commands
+  - one browser-independent Original-observable result projection
   - Direct, System, Fixed proxy/bypass
   - exact Switch -> Direct/Fixed
   - immediate Virtual -> Direct/Fixed proxy/bypass
+  - original Switch -> Direct current-profile inner-ring color with Direct result/Badge
   - internal/default fallback
   - two-tab isolation
   - Inspect set/clear/restoration/isolation
   - Chromium and Firefox Action acceptance for represented shapes
+- current engineering checkpoint:
+  - `KG-TRACE-001` passed repository CI, Chromium extension/Toolbar E2E, Firefox extension/Toolbar E2E, native Chromium Inspect, Parity Documentation, and Visual Evidence
+  - this checkpoint does not close `KG-ICON-001`, does not represent the remaining trace families, and does not increase product progress
 - original-invalid edge:
   - Switch -> System is rejected by the original runtime and is not a missing feature
 
@@ -303,8 +313,16 @@ The authoritative order and full acceptance criteria live in `DELIVERY_PLAN.md`.
 - area: completion and acceptance governance
 - original requirement: completion reflects actual parity and owner acceptance
 - historical defect: automation closure was promoted to `98%` and broad `DONE` counts
-- current edge: `BROKEN_IN_NEX -> remediation in Order0Governance`
-- status: `IMPLEMENTED` governance correction; exact journey closure requires all core authority conflicts removed
+- current edge: `BROKEN_IN_NEX -> MODERNIZED_EQUIVALENT governance model`
+- status: `IMPLEMENTED` and `VERIFIED_AUTOMATION`; ongoing discipline remains mandatory
+
+`KG-TRACE-001`
+
+- area: internal graph/runtime result to original-observable result projection
+- requirement: one stable semantic boundary must produce original-facing result semantics without exposing internal rewrite state
+- current edge: `MODERNIZED_EQUIVALENT` for represented Direct/System/Fixed/Switch/immediate-Virtual shapes
+- status: `IMPLEMENTED` and `VERIFIED_AUTOMATION` for represented shapes; `UNKNOWN` for remaining result families
+- regression evidence: the initial refactor incorrectly collapsed Direct result color and Switch Action inner-ring color; deterministic tests detected the mismatch and the projection now preserves both distinct semantics
 
 `KG-ICON-001`
 
@@ -352,9 +370,9 @@ The attempted one-time implementation applicator did not land product code becau
 
 Graph relationship:
 
-`OriginalAttachedRuleListEvidence (SOURCE_CAPTURED) -> KG-TRACE-001 (required) -> KG-ATTACHED-RULELIST-001 (not implemented) -> KG-ICON-001 -> KG-OWNER-ORDER1-001`
+`OriginalAttachedRuleListEvidence (SOURCE_CAPTURED) -> KG-TRACE-001 (IMPLEMENTED foundation) -> KG-ATTACHED-RULELIST-001 (not implemented) -> KG-ICON-001 -> KG-OWNER-ORDER1-001`
 
-Attached Rule List must be implemented through the unified Original-observable trace layer, not through another dedicated self-writing workflow.
+The reference interpreter and profile-workflow model already represent the hidden attached Rule List route relationship. The remaining gap is the evidence-bounded projection of those internal traces into original-observable result details. Attached Rule List must be added to the unified projection, not through another routing engine or dedicated self-writing workflow.
 
 ## 8. Progress and completion boundary
 
@@ -368,5 +386,7 @@ This graph must not increase progress because of:
 - green CI alone;
 - Nex-only screenshots;
 - an implemented architecture node without complete journey evidence.
+
+The current `KG-TRACE-001` checkpoint does not change the formal 47% total or 35% Order 1 score because no complete journey or owner-acceptance gate closed.
 
 The project is complete only when every required journey node is `OWNER_ACCEPTED`, representative real original exports work directly, unjustified visible behavior is removed, necessary differences are accepted under `DR-xxxx`, and one exact final candidate receives repository-owner `PASS`.
