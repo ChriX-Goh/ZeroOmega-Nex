@@ -144,34 +144,33 @@ try {
   // End selects built-in Inspect; one Up selects ZeroOmega's real native Inspect link item.
   await run('xdotool', ['key', '--clearmodifiers', 'End', 'Up', 'Return']);
 
-  const stored = await eventually(
-    async () =>
-      worker.evaluate(async (key) => {
-        const values = await chrome.storage.session.get(key);
-        return values[key];
-      }, inspectStorageKey),
-    'Keyboard-selected native context-menu action did not create Inspect session state',
-  );
-  const entries = stored?.entries ?? {};
-  const matched = Object.entries(entries).find(([, entry]) => entry?.url === targetUrl);
-  assert.ok(
-    matched,
-    `Inspect state did not contain the native link target: ${JSON.stringify(stored)}`,
-  );
+  const inspected = await eventually(
+    () =>
+      worker.evaluate(
+        async ({ key, expectedUrl }) => {
+          const values = await chrome.storage.session.get(key);
+          const stored = values[key];
+          const entries = stored?.entries ?? {};
+          const matched = Object.entries(entries).find(([, entry]) => entry?.url === expectedUrl);
+          if (!matched) return undefined;
 
-  const tabId = Number(matched[0]);
-  assert.ok(
-    Number.isInteger(tabId) && tabId >= 0,
-    `Inspect state had an invalid tab ID: ${matched[0]}`,
+          const tabId = Number(matched[0]);
+          if (!Number.isInteger(tabId) || tabId < 0) return undefined;
+
+          const action = {
+            badge: await chrome.action.getBadgeText({ tabId }),
+            title: await chrome.action.getTitle({ tabId }),
+          };
+          return action.badge === '#' && /^\[Inspect\] cdn\.example\.test/mu.test(action.title)
+            ? { stored, matched, tabId, action }
+            : undefined;
+        },
+        { key: inspectStorageKey, expectedUrl: targetUrl },
+      ),
+    'Keyboard-selected native context-menu action did not converge Inspect session and Action state',
   );
+  const { stored, matched, tabId, action } = inspected;
   assert.equal(tabId, tabIds.target, 'Inspect overlay was stored on the wrong tab');
-  const action = await worker.evaluate(async (id) => {
-    const [badge, title] = await Promise.all([
-      chrome.action.getBadgeText({ tabId: id }),
-      chrome.action.getTitle({ tabId: id }),
-    ]);
-    return { badge, title };
-  }, tabId);
   assert.equal(action.badge, '#');
   assert.match(action.title, /^\[Inspect\] cdn\.example\.test/mu);
   const isolatedAfterSet = await worker.evaluate(
@@ -214,7 +213,7 @@ try {
   );
   assert.deepEqual(isolatedAfterClear, baseActions.isolation, 'Inspect clear changed another tab');
   console.log(
-    `[native-inspect] success ${JSON.stringify({ tabId, stored, action, cleared, isolatedAfterSet, isolatedAfterClear })}`,
+    `[native-inspect] success ${JSON.stringify({ tabId, stored, matched, action, cleared, isolatedAfterSet, isolatedAfterClear })}`,
   );
 } catch (error) {
   await run('scrot', ['inspect-native-menu-failure.png']).catch(() => undefined);
