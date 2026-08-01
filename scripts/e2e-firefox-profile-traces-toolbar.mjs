@@ -8,13 +8,24 @@ import firefox from 'selenium-webdriver/firefox.js';
 import {
   configureNestedSwitchDraft,
   configureNestedVirtualDraft,
+  configurePacDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
   nestedSwitchCases,
   nestedVirtualCases,
+  pacCases,
   PROFILE_TRACE_HOSTS,
+  RUNTIME_PAC_SCRIPT,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
-const server = createServer((_request, response) => {
+const server = createServer((request, response) => {
+  if (request.url === '/runtime-pac.pac') {
+    response.writeHead(200, {
+      'content-type': 'application/x-ns-proxy-autoconfig; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(RUNTIME_PAC_SCRIPT);
+    return;
+  }
   response.writeHead(200, {
     'content-type': 'text/html; charset=utf-8',
     'cache-control': 'no-store',
@@ -29,6 +40,7 @@ const address = server.address();
 if (!address || typeof address === 'string') {
   throw new Error('Firefox profile trace server failed');
 }
+const pacUrl = `http://127.0.0.1:${address.port}/runtime-pac.pac`;
 
 const extensionPath = resolve('dist/firefox-mv3');
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -218,11 +230,14 @@ try {
   `);
   const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
   const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
+  const runtimePacCases = pacCases({ pacUrl });
   const switchTabs = await openCases(switchCases);
   const virtualTabs = await openCases(virtualCases);
+  const pacTabs = await openCases(runtimePacCases);
   await driver.switchTo().window(optionsWindow);
   await resolveTabIds(switchTabs);
   await resolveTabIds(virtualTabs);
+  await resolveTabIds(pacTabs);
 
   const current = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -232,6 +247,7 @@ try {
   const draft = structuredClone(current.state.draft);
   const switchScenario = configureNestedSwitchDraft(draft, address.port);
   const virtualScenario = configureNestedVirtualDraft(draft, address.port);
+  const pacScenario = configurePacDraft(draft, pacUrl);
 
   const replaced = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -283,6 +299,15 @@ try {
       tabId,
       await localizedActionState(capture, popup),
       `Firefox nested Virtual Fixed case ${capture.id} failed`,
+    );
+  }
+
+  await activateProfile(applied.state.applied.revision.id, pacScenario.profileId, 'PAC');
+  for (const { capture, tabId } of pacTabs) {
+    await waitForActionState(
+      tabId,
+      await localizedActionState(capture, popup),
+      `Firefox PAC case ${capture.id} failed`,
     );
   }
 
