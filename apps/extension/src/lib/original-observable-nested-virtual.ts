@@ -266,6 +266,7 @@ export function projectOriginalNestedVirtualTrace(
   if (inner.targetRoute.kind === 'direct') {
     return projectNestedDirect(resolvedInput, inner);
   }
+  if (inner.targetRoute.kind !== 'profile') return undefined;
 
   const fixedProfileId = inner.targetRoute.profileId;
   const fixed = input.spec.profiles.find(
