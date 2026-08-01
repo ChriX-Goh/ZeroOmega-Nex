@@ -114,6 +114,26 @@ const runtimePac = {
   pacScript: runtimePacScript,
 };
 
+const temporaryRuleFixed = {
+  name: 'Runtime Temporary Fixed',
+  profileType: 'FixedProfile',
+  color: '#64b5f6',
+  bypassList: [],
+  fallbackProxy: {
+    scheme: 'http',
+    host: '127.0.0.1',
+    port: 18187,
+  },
+};
+
+const temporaryRuleBase = {
+  name: 'Runtime Temporary Base',
+  profileType: 'SwitchProfile',
+  color: '#ffb74d',
+  rules: [],
+  defaultProfileName: 'direct',
+};
+
 export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
   'nested-switch': Object.freeze({
     id: 'nested-switch',
@@ -164,6 +184,41 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         label: 'outer-virtual-inner-virtual-fixed-bypass',
         profileName: nestedVirtualOuterFixed.name,
         url: 'http://localhost/path',
+      }),
+    ]),
+  }),
+  'temporary-rule': Object.freeze({
+    id: 'temporary-rule',
+    description:
+      'A temporary host rule overrides a base Switch profile, leaves unmatched hosts on the base default, and restores the base behavior after removal.',
+    profiles: Object.freeze([temporaryRuleFixed, temporaryRuleBase]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'temporary-rule-match-fixed',
+        profileName: temporaryRuleBase.name,
+        url: 'http://temp-rule.test/path',
+        commands: Object.freeze([
+          Object.freeze({
+            method: 'addTempRule',
+            args: Object.freeze(['temp-rule.test', temporaryRuleFixed.name, 1]),
+          }),
+        ]),
+      }),
+      Object.freeze({
+        label: 'temporary-rule-default-direct',
+        profileName: temporaryRuleBase.name,
+        url: 'http://temp-rule-default.test/path',
+      }),
+      Object.freeze({
+        label: 'temporary-rule-removed-base-direct',
+        profileName: temporaryRuleBase.name,
+        url: 'http://temp-rule.test/path',
+        commands: Object.freeze([
+          Object.freeze({
+            method: 'addTempRule',
+            args: Object.freeze(['temp-rule.test', temporaryRuleFixed.name, -1]),
+          }),
+        ]),
       }),
     ]),
   }),

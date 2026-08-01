@@ -41,6 +41,26 @@ function validateScenario(scenario) {
       () => new URL(capture.url),
       `Scenario ${scenario.id} capture ${capture.label} has an invalid URL`,
     );
+    const commands = capture.commands ?? [];
+    assert.ok(
+      Array.isArray(commands),
+      `Scenario ${scenario.id}/${capture.label} commands must be an array`,
+    );
+    for (const [index, command] of commands.entries()) {
+      assert.ok(
+        command && typeof command === 'object' && !Array.isArray(command),
+        `Scenario ${scenario.id}/${capture.label} command ${index} must be an object`,
+      );
+      assert.equal(
+        typeof command.method,
+        'string',
+        `Scenario ${scenario.id}/${capture.label} command ${index} method is required`,
+      );
+      assert.ok(
+        command.args === undefined || Array.isArray(command.args),
+        `Scenario ${scenario.id}/${capture.label} command ${index} args must be an array`,
+      );
+    }
   }
 }
 
@@ -137,6 +157,14 @@ async function runScenario(scenario) {
     const captures = [];
     for (const capture of scenario.captures) {
       await sendOriginalMessage('applyProfile', [capture.profileName]);
+      await waitForCurrentProfile(capture.profileName);
+      const commandResults = [];
+      for (const command of capture.commands ?? []) {
+        commandResults.push({
+          method: command.method,
+          result: await sendOriginalMessage(command.method, command.args ?? []),
+        });
+      }
       const runtimeState = await waitForCurrentProfile(capture.profileName);
       await pause(300);
       const action = await sendOriginalMessage('_actionForUrl', [capture.url, { skipIcon: true }]);
@@ -144,7 +172,12 @@ async function runScenario(scenario) {
         action,
         `Original _actionForUrl returned no result for ${scenario.id}/${capture.label}`,
       );
-      captures.push({ ...capture, runtimeState, action });
+      captures.push({
+        ...capture,
+        runtimeState,
+        action,
+        ...(commandResults.length === 0 ? {} : { commandResults }),
+      });
     }
 
     return {
