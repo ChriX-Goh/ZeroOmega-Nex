@@ -1,6 +1,7 @@
 import type { SwitchProfile } from '@zeroomega-nex/profile-spec';
 
 import { projectOriginalAttachedRuleListTrace } from './original-observable-attached-rule-list';
+import { projectOriginalNestedSwitchTrace } from './original-observable-nested-switch';
 import {
   ORIGINAL_TOOLBAR_DIRECT_COLOR,
   projectOriginalObservableResultTrace,
@@ -26,11 +27,22 @@ export function projectOriginalObservableResult(
       (candidate): candidate is SwitchProfile =>
         candidate.id === activeRoute.profileId && candidate.kind === 'switch',
     );
-    if (parent?.attachedRuleListProfileId !== undefined) {
+    if (parent !== undefined) {
       const directColor =
         input.spec.settings.interface.builtInProfiles?.direct?.color ??
         ORIGINAL_TOOLBAR_DIRECT_COLOR;
-      return projectOriginalAttachedRuleListTrace({
+      if (parent.attachedRuleListProfileId !== undefined) {
+        return projectOriginalAttachedRuleListTrace({
+          spec: input.spec,
+          parent,
+          decision: input.decision,
+          request: input.request,
+          i18n: input.i18n,
+          directColor,
+        });
+      }
+
+      const nestedSwitch = projectOriginalNestedSwitchTrace({
         spec: input.spec,
         parent,
         decision: input.decision,
@@ -38,6 +50,7 @@ export function projectOriginalObservableResult(
         i18n: input.i18n,
         directColor,
       });
+      if (nestedSwitch !== undefined) return nestedSwitch;
     }
   }
 
