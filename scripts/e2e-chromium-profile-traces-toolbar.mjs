@@ -10,12 +10,15 @@ import {
   configureNestedSwitchDraft,
   configureNestedVirtualDraft,
   configurePacDraft,
+  configureTemporaryRuleDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
+  POPUP_TEMPORARY_RULE_CHANNEL,
   nestedSwitchCases,
   nestedVirtualCases,
   pacCases,
   PROFILE_TRACE_HOSTS,
   RUNTIME_PAC_SCRIPT,
+  temporaryRuleCases,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
@@ -142,13 +145,22 @@ try {
   const localization = await extensionPage.evaluate(() => ({
     directName: chrome.i18n.getMessage('routeDirect'),
     defaultDetail: chrome.i18n.getMessage('browserAction_defaultRuleDetails'),
+    temporaryPrefix: chrome.i18n.getMessage('browserAction_tempRulePrefix'),
   }));
   const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
   const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
   const runtimePacCases = pacCases({ pacUrl });
+  const temporaryCases = temporaryRuleCases({
+    proxyPort: address.port,
+    ...localization,
+  });
   const switchTabs = await openCases(extensionPage, switchCases);
   const virtualTabs = await openCases(extensionPage, virtualCases);
   const pacTabs = await openCases(extensionPage, runtimePacCases);
+  const temporaryTabs = await openCases(extensionPage, [
+    temporaryCases.matched,
+    temporaryCases.unmatched,
+  ]);
 
   const current = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -159,6 +171,7 @@ try {
   const switchScenario = configureNestedSwitchDraft(draft, address.port);
   const virtualScenario = configureNestedVirtualDraft(draft, address.port);
   const pacScenario = configurePacDraft(draft, pacUrl);
+  const temporaryScenario = configureTemporaryRuleDraft(draft, address.port);
 
   const replaced = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -237,6 +250,52 @@ try {
       `Chromium PAC case ${capture.id} failed`,
     );
   }
+
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    temporaryScenario.baseProfileId,
+    'Temporary rule base',
+  );
+  const toggled = await sendWorkflowCommand(extensionPage, {
+    channel: POPUP_TEMPORARY_RULE_CHANNEL,
+    action: 'toggle',
+    expectedAppliedRevisionId: applied.state.applied.revision.id,
+    domain: temporaryScenario.domain,
+    route: { kind: 'profile', profileId: temporaryScenario.fixedProfileId },
+  });
+  assert.equal(
+    toggled?.ok,
+    true,
+    `Chromium temporary rule toggle failed: ${JSON.stringify(toggled)}`,
+  );
+  for (const { capture, tabId } of temporaryTabs) {
+    await waitForActionState(
+      extensionPage,
+      tabId,
+      await expectedActionState(extensionPage, capture, popup),
+      `Chromium temporary rule case ${capture.id} failed`,
+    );
+  }
+  const removed = await sendWorkflowCommand(extensionPage, {
+    channel: POPUP_TEMPORARY_RULE_CHANNEL,
+    action: 'remove',
+    expectedAppliedRevisionId: applied.state.applied.revision.id,
+    domain: temporaryScenario.domain,
+  });
+  assert.equal(
+    removed?.ok,
+    true,
+    `Chromium temporary rule removal failed: ${JSON.stringify(removed)}`,
+  );
+  const matchedTab = temporaryTabs.find(({ capture }) => capture.id === temporaryCases.matched.id);
+  assert.ok(matchedTab, 'Chromium temporary rule matched tab was not found');
+  await waitForActionState(
+    extensionPage,
+    matchedTab.tabId,
+    await expectedActionState(extensionPage, temporaryCases.removed, popup),
+    'Chromium removed temporary rule did not retain the hidden default overlay',
+  );
 
   console.log(`Chromium Toolbar profile trace E2E passed for ${extensionId}.`);
 } finally {

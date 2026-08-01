@@ -26,6 +26,17 @@ export const PAC_SCENARIO = Object.freeze({
   hosts: Object.freeze(['pac-proxy.test', 'pac-direct.test']),
 });
 
+export const TEMPORARY_RULE_SCENARIO = Object.freeze({
+  id: 'temporary-rule',
+  baseProfileId: 'profile-temporary-base-e2e',
+  fixedProfileId: 'profile-temporary-fixed-e2e',
+  fixedEndpointId: 'endpoint-temporary-rule-e2e',
+  domain: 'temp-rule.test',
+  hosts: Object.freeze(['temp-rule.test', 'temp-rule-default.test']),
+});
+
+export const POPUP_TEMPORARY_RULE_CHANNEL = 'zeroomega-nex/popup-temporary-rules/v1';
+
 export const RUNTIME_PAC_SCRIPT = `function FindProxyForURL(url, host) {
   if (host === 'pac-proxy.test') return 'PROXY 127.0.0.1:18186';
   return 'DIRECT';
@@ -36,6 +47,7 @@ export const PROFILE_TRACE_HOSTS = Object.freeze([
   ...NESTED_SWITCH_SCENARIO.hosts,
   ...NESTED_VIRTUAL_SCENARIO.hosts,
   ...PAC_SCENARIO.hosts,
+  ...TEMPORARY_RULE_SCENARIO.hosts,
 ]);
 
 export function configureNestedSwitchDraft(draft, proxyPort) {
@@ -170,6 +182,41 @@ export function configurePacDraft(draft, pacUrl) {
   return scenario;
 }
 
+export function configureTemporaryRuleDraft(draft, proxyPort) {
+  const scenario = TEMPORARY_RULE_SCENARIO;
+  draft.settings.interface.showResultProfileOnActionBadgeText = true;
+  draft.proxyEndpoints.push({
+    id: scenario.fixedEndpointId,
+    name: 'Temporary rule E2E endpoint',
+    protocol: 'http',
+    host: '127.0.0.1',
+    port: proxyPort,
+  });
+  draft.profiles.push(
+    {
+      id: scenario.fixedProfileId,
+      name: 'Runtime Temporary Fixed',
+      color: '#64b5f6',
+      kind: 'fixed',
+      proxyByScheme: { fallback: scenario.fixedEndpointId },
+      bypass: [],
+    },
+    {
+      id: scenario.baseProfileId,
+      name: 'Runtime Temporary Base',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [],
+      defaultRoute: { kind: 'direct' },
+    },
+  );
+  draft.settings.quickSwitch.routes.push({
+    kind: 'profile',
+    profileId: scenario.baseProfileId,
+  });
+  return scenario;
+}
+
 export function nestedSwitchCases({ proxyPort, directName, defaultDetail }) {
   return Object.freeze([
     Object.freeze({
@@ -245,6 +292,42 @@ export function nestedVirtualCases({ proxyPort, directName, defaultDetail }) {
       details: `${defaultDetail} => Runtime Nested Virtual Fixed\nlocalhost => DIRECT\n`,
     }),
   ]);
+}
+
+export function temporaryRuleCases({ proxyPort, directName, defaultDetail, temporaryPrefix }) {
+  const scenario = TEMPORARY_RULE_SCENARIO;
+  const defaultResult = Object.freeze({
+    currentProfileName: 'Runtime Temporary Base',
+    resultProfileName: `[${directName}]`,
+    badgeText: 'Dire',
+    details:
+      `${defaultDetail} => Runtime Temporary Base\n` + `${defaultDetail} => [${directName}]\n`,
+  });
+  return Object.freeze({
+    matched: Object.freeze({
+      id: 'temporary-rule-match-fixed',
+      host: scenario.domain,
+      path: '/temporary-rule-match',
+      currentProfileName: 'Runtime Temporary Base',
+      resultProfileName: 'Runtime Temporary Fixed',
+      badgeText: 'Runt',
+      details:
+        `${temporaryPrefix}*.${scenario.domain} => Runtime Temporary Fixed\n` +
+        `PROXY 127.0.0.1:${proxyPort}\n`,
+    }),
+    unmatched: Object.freeze({
+      id: 'temporary-rule-default-direct',
+      host: 'temp-rule-default.test',
+      path: '/temporary-rule-default',
+      ...defaultResult,
+    }),
+    removed: Object.freeze({
+      id: 'temporary-rule-removed-base-direct',
+      host: scenario.domain,
+      path: '/temporary-rule-match',
+      ...defaultResult,
+    }),
+  });
 }
 
 export function pacCases({ pacUrl }) {

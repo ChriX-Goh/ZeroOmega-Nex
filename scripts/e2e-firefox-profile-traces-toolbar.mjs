@@ -9,12 +9,15 @@ import {
   configureNestedSwitchDraft,
   configureNestedVirtualDraft,
   configurePacDraft,
+  configureTemporaryRuleDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
+  POPUP_TEMPORARY_RULE_CHANNEL,
   nestedSwitchCases,
   nestedVirtualCases,
   pacCases,
   PROFILE_TRACE_HOSTS,
   RUNTIME_PAC_SCRIPT,
+  temporaryRuleCases,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const server = createServer((request, response) => {
@@ -226,18 +229,25 @@ try {
     return {
       directName: browser.i18n.getMessage('routeDirect'),
       defaultDetail: browser.i18n.getMessage('browserAction_defaultRuleDetails'),
+      temporaryPrefix: browser.i18n.getMessage('browserAction_tempRulePrefix'),
     };
   `);
   const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
   const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
   const runtimePacCases = pacCases({ pacUrl });
+  const temporaryCases = temporaryRuleCases({
+    proxyPort: address.port,
+    ...localization,
+  });
   const switchTabs = await openCases(switchCases);
   const virtualTabs = await openCases(virtualCases);
   const pacTabs = await openCases(runtimePacCases);
+  const temporaryTabs = await openCases([temporaryCases.matched, temporaryCases.unmatched]);
   await driver.switchTo().window(optionsWindow);
   await resolveTabIds(switchTabs);
   await resolveTabIds(virtualTabs);
   await resolveTabIds(pacTabs);
+  await resolveTabIds(temporaryTabs);
 
   const current = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -248,6 +258,7 @@ try {
   const switchScenario = configureNestedSwitchDraft(draft, address.port);
   const virtualScenario = configureNestedVirtualDraft(draft, address.port);
   const pacScenario = configurePacDraft(draft, pacUrl);
+  const temporaryScenario = configureTemporaryRuleDraft(draft, address.port);
 
   const replaced = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -310,6 +321,49 @@ try {
       `Firefox PAC case ${capture.id} failed`,
     );
   }
+
+  await activateProfile(
+    applied.state.applied.revision.id,
+    temporaryScenario.baseProfileId,
+    'Temporary rule base',
+  );
+  const toggled = await sendWorkflowCommand({
+    channel: POPUP_TEMPORARY_RULE_CHANNEL,
+    action: 'toggle',
+    expectedAppliedRevisionId: applied.state.applied.revision.id,
+    domain: temporaryScenario.domain,
+    route: { kind: 'profile', profileId: temporaryScenario.fixedProfileId },
+  });
+  assert.equal(
+    toggled?.ok,
+    true,
+    `Firefox temporary rule toggle failed: ${JSON.stringify(toggled)}`,
+  );
+  for (const { capture, tabId } of temporaryTabs) {
+    await waitForActionState(
+      tabId,
+      await localizedActionState(capture, popup),
+      `Firefox temporary rule case ${capture.id} failed`,
+    );
+  }
+  const removed = await sendWorkflowCommand({
+    channel: POPUP_TEMPORARY_RULE_CHANNEL,
+    action: 'remove',
+    expectedAppliedRevisionId: applied.state.applied.revision.id,
+    domain: temporaryScenario.domain,
+  });
+  assert.equal(
+    removed?.ok,
+    true,
+    `Firefox temporary rule removal failed: ${JSON.stringify(removed)}`,
+  );
+  const matchedTab = temporaryTabs.find(({ capture }) => capture.id === temporaryCases.matched.id);
+  assert.ok(matchedTab, 'Firefox temporary rule matched tab was not found');
+  await waitForActionState(
+    matchedTab.tabId,
+    await localizedActionState(temporaryCases.removed, popup),
+    'Firefox removed temporary rule did not retain the hidden default overlay',
+  );
 
   console.log(`Firefox Toolbar profile trace E2E passed for ${addonId}.`);
 } finally {
