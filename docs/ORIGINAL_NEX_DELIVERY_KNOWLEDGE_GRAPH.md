@@ -1,387 +1,372 @@
 # ZeroOmega Original ↔ Nex Delivery Knowledge Graph
 
-## 0. Canonical project contract
+## 0. Authority and scope
 
-This document is simultaneously:
+`PRODUCT_CONSTITUTION.md` is the highest-authority product contract.
 
-- the highest-level product contract for the ZeroOmega rewrite;
-- the Original ↔ Nex engineering knowledge graph;
-- the owner-facing delivery order;
-- the defect and acceptance authority.
+`DELIVERY_PLAN.md` is the authoritative delivery-order and acceptance plan.
 
-The project goal is not to design a new proxy-extension product inspired by ZeroOmega. The goal is to **rewrite the complete underlying implementation while preserving the original user-facing product contract as closely as modern browser APIs permit**.
+`MILESTONE_8_STATUS.md` is the single hand-maintained Milestone 8 progress and blocker summary. Draft PR #11 and GitHub Checks provide the exact moving Head and exact-Head engineering conclusions.
 
-The repository owner reconfirmed this contract on 2026-07-30: the entire project, not merely the failed candidate, must be judged against the original. Existing UI, behavior, labels, descriptions and workflows cannot be trusted merely because they were already implemented.
+This document is the Original ↔ Nex knowledge graph. It contains stable product nodes, semantic architecture nodes, mapping relationships, evidence identifiers, gap classifications, and acceptance dependencies. It must not become a competing product constitution, delivery plan, or moving Head database.
 
-### 0.1 Non-negotiable outcome
+## 1. Graph status vocabulary
 
-The finished product must allow an experienced ZeroOmega user to switch without relearning the product:
+- `SOURCE_CAPTURED`: exact original source, package, runtime, UI, or data evidence exists.
+- `NEX_CAPTURED`: current Nex source and real behavior are independently captured.
+- `MAPPED`: an explicit Original ↔ Nex relationship and gap classification exists.
+- `IMPLEMENTED`: code exists, but parity is not fully verified.
+- `VERIFIED_AUTOMATION`: deterministic contract tests and required automation pass.
+- `VERIFIED_REAL_DATA`: representative real original data and real browser journeys pass.
+- `OWNER_ACCEPTED`: the repository owner accepts the exact journey/build.
+- `FAILED`: a demonstrated mismatch or defect exists.
+- `UNKNOWN`: evidence is incomplete and must not be treated as equivalent.
 
-1. The user exports a configuration from the original extension.
-2. The user installs the rewritten extension.
-3. The user imports the original exported file directly.
-4. The rewritten extension preserves the meaningful configuration, relationships, ordering, colors, startup state, Quick Switch state, rules, Rule Lists, PAC definitions, bypass entries and other supported behavior.
-5. The imported configuration can be used immediately without manual reconstruction, reinterpretation or a new workflow.
-6. Toolbar, Popup, Options, dialogs, terminology, action placement, profile editing and state transitions remain familiar enough to constitute a near-seamless migration.
+Only `OWNER_ACCEPTED` closes a product journey.
 
-The bottom layer may be replaced completely. The user-facing mental model may not be replaced merely because the new architecture is cleaner or easier to implement.
+Mapping edge types:
 
-### 0.2 Original-first authority
+- `EXACT_EQUIVALENT`: same observable behavior and compatible data result.
+- `MODERNIZED_EQUIVALENT`: internals changed, but the user contract remains equivalent.
+- `INTENTIONAL_DIVERGENCE`: a necessary, minimized, evidenced, owner-accepted difference.
+- `MISSING_IN_NEX`: required original behavior is absent.
+- `BROKEN_IN_NEX`: behavior exists but produces an incompatible result.
+- `EXTRA_IN_NEX`: Nex adds visible behavior not present in the original.
+- `UNJUSTIFIED_INVENTION`: visible behavior was created without original evidence or accepted divergence.
+- `UNKNOWN`: relationship cannot yet be established.
 
-For every user-visible surface, action, state transition, label and data transformation:
+## 2. Required evidence relationship
 
-- the original ZeroOmega v3.5.0 source and real runtime behavior are the default authority;
-- Nex must match the original observable contract unless a modern browser limitation makes that impossible;
-- a necessary divergence must be minimized, documented with source/API evidence and explicitly accepted by the repository owner;
-- absence of evidence is `UNKNOWN`, never permission to invent.
+Every parity node closes through this directed chain:
 
-### 0.3 No-invention rule
+`Original source/runtime -> input data -> Nex mapping -> implementation -> deterministic tests -> Chromium -> Firefox -> owner result`
 
-The rewrite must not invent user-facing content or workflow without evidence and approval.
+Required evidence fields:
 
-The following are defects unless they have an original source/runtime anchor or an owner-accepted divergence record:
-
-- new pages or auxiliary surfaces;
-- new multi-step workflows;
-- additional dialogs or confirmation layers;
-- description cards, help boxes, status summaries and compatibility taxonomies;
-- renamed concepts or reorganized actions;
-- different default selections or validation timing;
-- new visible state distinctions created only to expose internal architecture;
-- developer-oriented explanations shown during normal use.
-
-Internal safety, typed state, snapshots, atomic Apply, diagnostics and modern browser adapters may be improved, but those improvements should remain behind the original-facing interaction model whenever possible.
-
-### 0.4 UI contract
-
-“UI尽可能一致” means more than using similar colors. The comparison must cover:
-
-- window and Popup dimensions;
-- toolbar icons and state transitions;
-- navigation hierarchy;
-- page boundaries;
-- control order and grouping;
-- labels and terminology;
-- button placement and priority;
-- dialogs and validation timing;
-- information density and whitespace;
-- help text quantity and placement;
-- disabled, warning, error, loading and active states;
-- profile colors, icons and inheritance;
-- light/dark and locale expansion behavior.
-
-Visual modernization is permitted only where it does not require relearning or alter the original workflow. Unnecessary explanation is not modernization.
-
-### 0.5 Configuration migration contract
-
-A configuration feature is not complete because a parser accepts a synthetic fixture. It is complete only when representative, sanitized files exported by the original extension can be imported into a clean Nex installation and used directly.
-
-Acceptance must compare the original semantic graph before export with the Nex semantic and browser state after import, including:
-
-- profile identity, type and names;
-- colors, icons and ordering;
-- profile references and result profiles;
-- Fixed protocols, authentication references and bypass rules;
-- Switch rules, condition kinds, fields, order and attached Rule Lists;
-- PAC URLs, raw content, headers and cache-relevant state;
-- Virtual targets and nested references;
-- startup profile, active profile and Quick Switch order;
-- generated/runtime fields that must be ignored, migrated or preserved;
-- credentials under the documented security boundary;
-- immediate Apply/activation behavior;
-- export and semantic round trip.
-
-Any manual repair needed after import is a compatibility defect unless explicitly accepted.
-
-## 1. Purpose
-
-The rewrite is not accepted because code compiles, tests pass, screenshots exist, or a previous matrix row was marked `DONE`. Acceptance requires demonstrated equivalence against the original product on complete user journeys and real original exports.
-
-The repository-owner trial on 2026-07-30 invalidated the previous Milestone 8 completion claim and candidate `M8-OWNER-QC-1`.
-
-## 2. Current state
-
-- Provisional total progress: **47%** with a **42%–50% confidence band**, calculated by `docs/PROJECT_PROGRESS_MODEL.md`.
-- Previous `DONE=124 / PARTIAL=2` summary: **invalid as a product-completeness measure**.
-- Active installable candidate: **none**.
-- Previous candidate `M8-OWNER-QC-1`: **FAILED**.
-- Existing code and tests: implementation inventory requiring re-audit, not presumed parity evidence.
-- Required mode: complete Original capture, independent Nex capture, explicit mapping, then journey-level correction.
-- PR #11 remains Draft; merge and release are prohibited.
-
-### Exact verified checkpoint — 2026-08-01
-
-Clean Head `6747760e01572d47038ec4beba6dba10ef4f1f02` passed all permanent gates after exact original immediate Virtual-to-Direct/Fixed integration and temporary-file cleanup:
-
-- CI `30678329216`;
-- Browser E2E `30678329237`;
-- Parity Documentation `30678329224`;
-- Milestone 8 Visual Evidence `30678329214`.
-
-The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, Fixed proxy/bypass, exact Switch matched/default results into Direct/Fixed and exact immediate Virtual results into built-in Direct or one Fixed proxy/bypass target. The Virtual display preserves the original target suffix, including `[[Direct]]`, suppresses the Virtual default transition from details, uses the resolved target Badge and applies Direct/Fixed color inputs exactly. Dedicated transaction `30678033747` passed full `pnpm verify`, Chromium Virtual Action acceptance and three consecutive focused Firefox Virtual journeys. Official original-package run `30677618681` and Artifact `8811046002` (`sha256:f4485078f732e9d64294c13d2edd8cb09f26a3f1405dfa427f2d4072292ce2ed`) fix the source/runtime contract.
-
-Firefox diagnosis proved a second startup boundary: concurrent workflow reads could observe a persisted ProfileSpec before initial System activation and Action follow-up completed. Profile-workflow commands are now serialized, activation follow-up is awaited and missing proxy runtime is repaired from the saved startup route. Top-level `webNavigation.onCommitted` remains an exact-guarded coordinator input and required global host access remains forbidden.
-
-The checkpoint remains slice-level evidence and does not alter the 47% / 35% progress model.
-
-## 3. Status vocabulary
-
-| Status                | Meaning                                                                      |
-| --------------------- | ---------------------------------------------------------------------------- |
-| `SOURCE_CAPTURED`     | Original source, runtime behavior, UI and data evidence are captured.        |
-| `NEX_CAPTURED`        | Current Nex code and real browser behavior are captured independently.       |
-| `MAPPED`              | Original and Nex nodes have an explicit relationship and gap classification. |
-| `IMPLEMENTED`         | Code exists, but equivalence has not passed acceptance.                      |
-| `VERIFIED_AUTOMATION` | Automated checks pass against the explicit original contract.                |
-| `VERIFIED_REAL_DATA`  | Real original exports and real browser journeys pass.                        |
-| `OWNER_ACCEPTED`      | Repository owner has reviewed and accepted the exact behavior/build.         |
-| `FAILED`              | A demonstrated mismatch or defect exists.                                    |
-| `UNKNOWN`             | Evidence is incomplete; it must never be treated as done.                    |
-
-Only `OWNER_ACCEPTED` is delivery-complete.
-
-## 4. Required evidence for every delivery row
-
-Every row must contain:
-
-1. Original source file, symbol/controller/template and version.
-2. Original runtime screenshot, recording or reproducible browser steps.
-3. Original UI hierarchy and visible text.
+1. Original version, source file, symbol/controller/template, or official package identity.
+2. Original runtime screenshot, recording, Action state, or reproducible steps.
+3. Original visible hierarchy, text, default, validation timing, and state transition.
 4. Original data shape before and after the operation.
-5. Current Nex source file and real runtime behavior.
-6. Explicit relationship and gap classification.
-7. Inventory of missing and extra Nex behavior.
-8. Expected user-visible result written without implementation jargon.
-9. Automated test tied to the original contract rather than a self-created fixture alone.
-10. Real Chromium and Firefox evidence when browser-sensitive.
-11. Real exported ZeroOmega/SwitchyOmega file evidence when configuration is involved.
-12. Provenance for every Nex-only visible element or workflow.
-13. Repository-owner result: `PASS`, `FAIL` or `NOT RUN`.
+5. Nex source file and real runtime behavior.
+6. Explicit mapping edge and gap classification.
+7. Missing, broken, extra, or invented Nex behavior.
+8. Expected user-visible result without implementation jargon.
+9. Deterministic contract test tied to the original evidence.
+10. Chromium and Firefox evidence where browser-sensitive.
+11. Representative real original export where configuration is involved.
+12. `DR-xxxx` record for every accepted visible difference.
+13. Repository-owner result: `PASS`, `FAIL`, or `NOT RUN`.
 
-A unit test, component render, generated screenshot, synthetic fixture or successful build cannot independently close a row.
+Synthetic fixtures, generated screenshots of Nex alone, green CI, or high test counts cannot independently close a node.
 
-## 5. Knowledge graph model
+## 3. Layer A — product contract graph
 
-### 5.1 Original product graph
+The contract details live in `PRODUCT_CONSTITUTION.md`. This graph records the required observable domains and their dependencies.
 
-`OriginalProduct`
+`OriginalProductContract`
 
-- `InstallationAndStartup`
-  - first-run behavior
-  - default configuration
-  - startup restore
-  - browser ownership state
-- `BrowserToolbar`
-  - original icon artwork
-  - icon state changes
-  - badge/title/tooltip state
-  - active profile indication
-  - Direct/System/error/temporary-rule states
-  - click behavior
-- `Popup`
-  - dimensions and density
-  - profile list and hierarchy
-  - active/result profile indication
-  - current-site rule actions
-  - temporary rule actions
-  - error and ownership states
-- `OptionsInformationArchitecture`
-  - left navigation grouping
-  - page separation
-  - action placement
-  - Apply/Discard lifecycle
-  - dialogs, labels and validation timing
-  - information density and help text
-- `ProfileLifecycle`
-  - create, rename, delete and duplicate
-  - replace references
-  - color/icon inheritance
-  - export profile/PAC/rule list
-- `ProfileTypes`
-  - Fixed
-  - Switch
-  - PAC
-  - Virtual
-  - Rule List/import-only states
-- `RuleAndConditionEditing`
-  - selector catalog
-  - condition-specific fields
-  - validation timing
-  - drag/order
-  - source mode
-  - attached Rule Lists
-- `BackupContract`
-  - accepted encodings and schema versions
-  - generated/runtime fields
-  - profile identity and references
-  - credentials
-  - startup/Quick Switch state
-  - import side effects
+- `DirectMigrationContract`
+  - supported schema-v2 export decoding
+  - names, colors, ordering, and identity
+  - startup and Quick Switch state
+  - profile references and nested graphs
+  - Fixed proxy endpoints and bypass
+  - Switch conditions, defaults, and attached Rule Lists
+  - PAC URL, raw PAC, update/cache state
+  - Virtual targets and nested references
+  - temporary/site-rule semantics
+  - supported authentication metadata under the secret boundary
+  - safe opaque metadata preservation
   - immediate usability after import
-  - semantic export round trip
-- `RuntimeState`
-  - selected and result profile
-  - browser-installed proxy state
-  - temporary rules
-  - startup restore
-  - ownership conflicts
-  - authentication permissions
-- `LocalizationAndVisuals`
-  - en / zh-CN / zh-TW
-  - light/dark
-  - spacing, density, grouping, iconography and dialog behavior
+  - restart and semantic export round trip
+- `NoRelearningContract`
+  - original terminology
+  - original page and Popup hierarchy
+  - original action order and placement
+  - original defaults and validation timing
+  - original Apply/Discard semantics
+  - original profile lifecycle
+  - original information density and help-text quantity
+- `ToolbarContract`
+  - original Ω geometry and state colors
+  - title and multiline result details
+  - four-code-unit result Badge behavior
+  - global baseline and per-tab state
+  - internal-page/default inheritance
+  - temporary-rule and Inspect overlays
+  - external-control state
+  - renderer fallback
+- `PopupContract`
+  - dimensions and density
+  - profile list ordering and colors
+  - selected, current, and result profile state
+  - current-site and temporary-rule actions
+  - ownership and error states
+  - close behavior
+- `OptionsContract`
+  - navigation hierarchy
+  - page boundaries
+  - controls and grouping
+  - dialogs and destructive actions
+  - validation timing
+  - Apply/Discard and reload restoration
+  - profile and rule lifecycle
+- `CrossBrowserReliabilityContract`
+  - Chromium capability and ownership
+  - Firefox capability and private-window boundary
+  - atomic activation and confirmation
+  - rollback and last-confirmed-state recovery
+  - competing extension or policy control
+  - proxy authentication isolation
+- `PresentationContract`
+  - English, Simplified Chinese, and Traditional Chinese terminology
+  - light and dark presentation
+  - density, spacing, grouping, iconography, and focus
+  - bounded browser-controlled pixel tolerance
 
-### 5.2 Nex product graph
+## 4. Layer B — semantic architecture graph
 
-The Nex graph must capture the current product independently, without assuming equivalence:
+`NexArchitecture`
 
-- `NexInstallationAndStartup`
-- `NexToolbarRuntime`
-- `NexPopup`
-- `NexOptionsInformationArchitecture`
-- `NexProfileLifecycle`
-- `NexProfileTypes`
-- `NexRuleAndConditionEditing`
-- `NexLegacyImporterExporter`
-- `NexAppliedDraftBrowserState`
-- `NexLocalizationAndVisuals`
-- `NexExtraSurfaces`
-- `NexInventedTerminologyAndWorkflow`
+- `LegacyBoundary`
+  - bounded JSON/base64 decoder
+  - schema-v1 to schema-v2 upgrade where required
+  - schema-v2 importer
+  - generated/runtime field classification
+  - safe opaque legacy metadata
+  - secret extraction and references
+  - deterministic compatibility report
+- `ProfileSpecBoundary`
+  - stable IDs and ordered profiles
+  - built-in Direct and System routes
+  - Fixed, Switch, PAC, Virtual, Rule List, and AutoDetect variants
+  - startup and Quick Switch state
+  - versioned schema and semantic validation
+  - deterministic serialization and migrations
+- `PolicyOracle`
+  - URL/host/scheme/port normalization
+  - condition evaluation
+  - ordered rule evaluation
+  - recursive profile graph resolution
+  - cycle and depth protection
+  - route result and internal graph trace
+- `OriginalObservableProjection`
+  - required node `KG-TRACE-001`
+  - converts internal graph/runtime results into original-observable result semantics
+  - produces Toolbar title, detail, Badge, colors, icon inputs, and Popup result state
+  - hides internal transitions that the original does not expose
+  - rejects unknown shapes rather than inventing simplified wording
+- `PacDataPlane`
+  - capability analysis
+  - deterministic PAC generation
+  - safe escaping and budgets
+  - differential verification against the policy oracle
+  - immutable runtime snapshot
+  - browser-native installation
+- `BrowserControlBoundary`
+  - Chromium proxy adapter
+  - Firefox proxy adapter
+  - level-of-control discovery
+  - candidate installation and confirmation
+  - atomic active-state update
+  - rollback and startup recovery
+  - narrowly scoped proxy authentication
+- `ActionBoundary`
+  - one background writer
+  - global baseline
+  - per-tab coordinator
+  - stale-result suppression
+  - navigation and lifecycle invalidation
+  - Inspect overlay input
+  - renderer and static fallback
+- `UserInterfaceBoundary`
+  - Popup projection
+  - Options projection
+  - dialogs and profile editors
+  - internal candidate/compile/snapshot states hidden behind the original-facing workflow
+- `EvidenceBoundary`
+  - parameterized original runtime harness
+  - deterministic fixture vectors
+  - Chromium extension E2E
+  - Firefox extension E2E
+  - paired visual evidence
+  - real-export corpus
+  - owner acceptance package
 
-Internal architecture nodes are recorded separately and never count as user-facing parity by themselves.
+Stable architecture principle:
 
-### 5.3 Mapping edge types
+`OriginalProductContract -> OriginalObservableProjection -> UserInterfaceBoundary/ActionBoundary`
 
-| Edge                     | Meaning                                                                           |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `EXACT_EQUIVALENT`       | Same observable behavior and compatible data result.                              |
-| `MODERNIZED_EQUIVALENT`  | Implementation changed, but the user contract and mental model remain equivalent. |
-| `INTENTIONAL_DIVERGENCE` | Difference is necessary, evidenced, minimized and owner accepted.                 |
-| `MISSING_IN_NEX`         | Original behavior is absent.                                                      |
-| `BROKEN_IN_NEX`          | Behavior exists but fails or produces incompatible state.                         |
-| `EXTRA_IN_NEX`           | Nex adds visible behavior not present in the original.                            |
-| `UNJUSTIFIED_INVENTION`  | Nex behavior or UI was created without original evidence or owner approval.       |
-| `UNKNOWN`                | Evidence is insufficient.                                                         |
+The internal `PolicyOracle` trace must not be exposed directly as user-facing wording.
 
-## 6. Reopened defect register
+## 5. Layer C — acceptance journey graph
 
-| ID                 | Area                      | Original contract                                                                      | Observed Nex result                                                                                                                                                                                                                                                                                                                                                                                                                           | Status   | Delivery requirement                                                                          |
-| ------------------ | ------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `KG-ICON-001`      | Browser toolbar           | Icon, title and visible toolbar state follow the current profile/runtime situation.    | One background owner now drives a durable global baseline plus real per-tab System, Direct, Fixed proxy/bypass, exact Switch→Direct/Fixed matched/default, exact immediate Virtual→Direct/Fixed proxy/bypass, internal/default fallback, same-tab transitions and Inspect set/clear/isolation; nested/attached/PAC/Virtual-to-inclusive/Rule List/temp/external traces and owner acceptance remain open; Switch → System is original-invalid. | `FAILED` | Complete remaining original traces, renderer/pixel evidence where needed and owner review.    |
-| `KG-IMPORT-001`    | Original export migration | Original exported files import directly and become immediately usable.                 | Owner’s original export cannot be used directly; existing tests rely heavily on synthetic fixtures.                                                                                                                                                                                                                                                                                                                                           | `FAILED` | Build a real-export corpus and prove semantic/browser equivalence in clean installations.     |
-| `KG-UI-001`        | UI structure              | Navigation, layout, density, dialogs and actions remain familiar.                      | Broad structural and interaction differences remain.                                                                                                                                                                                                                                                                                                                                                                                          | `FAILED` | Produce page-by-page annotated comparisons and correct structure before cosmetic polish.      |
-| `KG-EXTRA-001`     | Extra descriptions        | Normal workflows contain only original or necessary accepted guidance.                 | Many unnecessary description/help boxes change density and workflow.                                                                                                                                                                                                                                                                                                                                                                          | `FAILED` | Inventory and remove/collapse/relocate every unjustified block.                               |
-| `KG-INVENTION-001` | Invented product behavior | Original behavior is the default authority; unknowns remain unknown.                   | Multiple UI elements, explanations and workflows were inferred or invented instead of source-mapped.                                                                                                                                                                                                                                                                                                                                          | `FAILED` | Establish provenance for every visible Nex-only element; delete or explicitly approve it.     |
-| `KG-FLOW-001`      | General behavior          | Actions, defaults, state transitions and terminology follow the original mental model. | Many additional mismatches remain beyond the initial examples.                                                                                                                                                                                                                                                                                                                                                                                | `FAILED` | Re-audit every complete user journey; distrust old broad `DONE` rows.                         |
-| `KG-GOV-001`       | Acceptance governance     | Completion reflects actual parity and owner acceptance.                                | Automation closure was promoted incorrectly to product completion.                                                                                                                                                                                                                                                                                                                                                                            | `FAILED` | Separate implementation, automation, real-data verification and owner acceptance permanently. |
+The authoritative order and full acceptance criteria live in `DELIVERY_PLAN.md`.
 
-## 7. Delivery order
+`Order0Governance`
 
-### Order 0 — reset false completion
+- depends on `ProductConstitution`
+- nodes:
+  - `KG-CONTRACT-001`: one authoritative product constitution
+  - `KG-GOV-SOURCE-001`: stable milestone history separated from current status
+  - `KG-GOV-HEAD-001`: exact Head and CI read from PR metadata and GitHub Checks
+  - `KG-GOV-WORKFLOW-001`: permanent CI is read-only
+  - `KG-GOV-PLAN-001`: journey-based delivery plan
+  - `KG-GOV-GRAPH-001`: knowledge graph contains mappings/evidence rather than a competing contract
+- current checkpoint:
+  - constitution created
+  - Agent, Charter, Compatibility, Delivery Plan, milestone status, verification boundary, and PR contract aligned
+  - failed write-enabled and per-trace attached-Rule-List workflows/scripts removed
+  - permanent gates pass on the governance checkpoint
 
-- Keep `M8-OWNER-QC-1` permanently marked failed.
-- Remove completion/candidate language from current status.
-- Treat previous broad matrix results as historical implementation inventory only.
-- Prohibit candidate generation, merge and release.
+`Order1ToolbarJourney`
 
-Acceptance: repository, PR and delivery graph all show the same failed/re-audit state.
+- depends on `Order0Governance`
+- active node: `KG-ICON-001`
+- supporting nodes:
+  - `KG-EVIDENCE-HARNESS-001`: one parameterized original result-evidence harness
+  - `KG-TRACE-001`: one Original-observable result trace model
+  - `KG-SWITCH-NESTED-001`: nested Switch/profile results
+  - `KG-VIRTUAL-NESTED-001`: nested Virtual and Virtual -> Switch/Rule List/PAC
+  - `KG-ATTACHED-RULELIST-001`: attached Rule List prefixes, matched lines, defaults, and details
+  - `KG-PAC-TRACE-001`: PAC effective route and observable result traces
+  - `KG-TEMP-RULE-001`: temporary/site-rule state through the single writer
+  - `KG-EXTERNAL-CONTROL-001`: ownership loss and recovery
+  - `KG-ACTION-FALLBACK-001`: forced renderer failure and static fallback
+  - `KG-TOOLBAR-PIXEL-001`: headed evidence only where Action API state is insufficient
+  - `KG-OWNER-ORDER1-001`: consolidated exact-build owner acceptance
+- retained implemented slice:
+  - one Action writer
+  - global baseline and per-tab overrides
+  - clean-install System initialization
+  - serialized startup/profile-workflow commands
+  - Direct, System, Fixed proxy/bypass
+  - exact Switch -> Direct/Fixed
+  - immediate Virtual -> Direct/Fixed proxy/bypass
+  - internal/default fallback
+  - two-tab isolation
+  - Inspect set/clear/restoration/isolation
+  - Chromium and Firefox Action acceptance for represented shapes
+- original-invalid edge:
+  - Switch -> System is rejected by the original runtime and is not a missing feature
 
-### Order 1 — capture the original completely
+`Order2DirectMigrationJourney`
 
-Deliverables:
+- depends on `KG-OWNER-ORDER1-001`
+- active blocker: `KG-IMPORT-001`
+- nodes:
+  - official/default export
+  - sanitized owner daily-use export
+  - nested Switch/Virtual/Rule List export
+  - PAC/update/cache/authentication-metadata export
+  - malformed/cyclic/oversized/unsupported negative corpus
+  - semantic manifest comparison
+  - atomic activation and browser confirmation
+  - restart recovery
+  - semantic re-export
+  - Chromium acceptance
+  - Firefox acceptance
+  - owner acceptance
 
-- complete surface and page inventory;
-- toolbar icon/badge/title transition inventory;
-- Popup states and workflows;
-- Options navigation, controls, dialogs, wording and layout;
-- every profile type and lifecycle operation;
-- every condition type, field and validation rule;
-- import/export schema and runtime-field contract;
-- real original screenshots, recordings, source anchors and exported files.
+`Order3PopupJourney`
 
-Acceptance: every original node is `SOURCE_CAPTURED`; no unknown behavior is omitted or guessed.
+- blocker relationship: `KG-FLOW-001`
+- depends on `KG-TRACE-001` and accepted migration data
+- includes Popup hierarchy, switching, selected/current/result state, temporary/site-rule actions, ownership state, and close behavior
 
-### Order 2 — capture current Nex independently
+`Order4OptionsJourney`
 
-Deliverables:
+- active blockers: `KG-UI-001`, `KG-EXTRA-001`, `KG-INVENTION-001`
+- includes navigation, dialogs, profile list, action hierarchy, validation timing, Apply/Discard, reload restoration, deletion, and reference replacement
 
-- matching inventory and recordings of the current branch;
-- current data transformations for each workflow;
-- every extra page, dialog, explanation, warning, taxonomy and auxiliary action;
-- every visible term or state with no original provenance.
+`Order5ProfileLifecycleJourney`
 
-Acceptance: every Nex node is `NEX_CAPTURED`; extras and inventions are explicit.
+- includes Fixed, Switch, PAC, Virtual, Rule List, AutoDetect where supported, create/edit/rename/duplicate/delete, references, ordering, cache/update, and activation
 
-### Order 3 — construct the owner-facing comparison order
+`Order6ReliabilityJourney`
 
-For every original node, provide:
+- includes export, restart, rollback, storage/PAC failure injection, ownership, Chromium/Firefox capability differences, proxy 407 authentication, ordinary website 401 isolation, and secret scanning
 
-- original annotated screenshot/source/steps;
-- Nex annotated screenshot/source/steps;
-- data before/after comparison;
-- mapping edge;
-- defect and required correction;
-- automation and real-data test plan;
-- owner acceptance field.
+`Order7PresentationJourney`
 
-Acceptance: all nodes are `MAPPED`; broad labels such as “Popup done” or “Import done” are prohibited.
+- includes localization, density, paired Original ↔ Nex screenshots, icons, colors, focus, keyboard behavior, responsive boundaries, and bounded browser-controlled pixels
 
-### Order 4 — fix complete user journeys
+`Order8FinalCandidate`
 
-Priority:
+- depends on every required journey being `OWNER_ACCEPTED`
+- produces exact Chromium/Firefox artifacts, hashes, migration evidence, reliability evidence, accepted divergence list, release notes, and final owner `PASS`
 
-1. Installation, startup and toolbar state.
-2. Direct import and immediate use of real original exports.
-3. Popup selection, result state and site/temporary rules.
-4. Options information architecture and Apply/Discard lifecycle.
-5. Fixed, Switch, PAC, Virtual and Rule List editing.
-6. Profile lifecycle and exports.
-7. Authentication, ownership, restart and rollback.
-8. Localization, information density and visual alignment.
+## 6. Active defect and gap graph
 
-Acceptance: each journey passes contract automation, real exports, Chromium/Firefox and owner review.
+`KG-GOV-001`
 
-### Order 5 — real-export corpus
+- area: completion and acceptance governance
+- original requirement: completion reflects actual parity and owner acceptance
+- historical defect: automation closure was promoted to `98%` and broad `DONE` counts
+- current edge: `BROKEN_IN_NEX -> remediation in Order0Governance`
+- status: `IMPLEMENTED` governance correction; exact journey closure requires all core authority conflicts removed
 
-Required categories:
+`KG-ICON-001`
 
-- original default export;
-- multiple Fixed profiles with protocol/auth/bypass variation;
-- complex Switch rules and attached Rule Lists;
-- PAC URL/raw/header states;
-- Virtual and nested references;
-- profile colors, ordering, Quick Switch and startup state;
-- schema-v1 and schema-v2 exports;
-- generated/runtime-field variants;
-- configurations previously used by the repository owner.
+- area: Toolbar, title, Badge, icon, result detail, and per-tab state
+- original requirement: visible state follows current selected/result/runtime situation
+- current edge: `MODERNIZED_EQUIVALENT` for represented Direct/System/Fixed/Switch/immediate-Virtual shapes; `MISSING_IN_NEX` or `UNKNOWN` for remaining trace families
+- status: `FAILED` as a complete journey; partial engineering slice retained
 
-Each item records provenance, sanitized hash, expected semantic graph, browser result and owner verdict.
+`KG-IMPORT-001`
 
-### Order 6 — owner-facing delivery package
+- area: original export migration
+- original requirement: direct import and immediate use
+- current edge: importer architecture exists, but representative owner real-export journey remains unproved or failed
+- status: `FAILED`
 
-Each package must include:
+`KG-UI-001`
 
-- exact build identity and hashes;
-- Original/Nex side-by-side comparison report;
-- resolved and unresolved defect register;
-- real-export compatibility report;
-- Chromium and Firefox results;
-- installation and rollback steps;
-- complete list of necessary accepted divergences;
-- complete list of removed Nex inventions/extras;
-- checklist requiring explicit owner `PASS`.
+- area: Options/Popup layout, density, dialogs, controls, and hierarchy
+- current edge: broad `BROKEN_IN_NEX`
+- status: `FAILED`
 
-## 8. Completion rule
+`KG-EXTRA-001`
 
-The project is 100% complete only when:
+- area: descriptions, help boxes, summaries, and extra workflow
+- current edge: `EXTRA_IN_NEX`
+- status: `FAILED`
 
-- every required original node is captured and mapped;
-- every Nex-only visible element has original provenance or explicit owner approval;
-- every mismatch is fixed or explicitly accepted as a necessary divergence;
-- representative real original exports import directly and work immediately without reconstruction;
-- toolbar, Popup, Options, dialogs, profiles, restart, rollback and authentication pass in Chromium and Firefox;
-- UI and interaction require no material relearning by an experienced original user;
-- unnecessary descriptions and extra workflow are removed;
-- the repository owner marks one exact final candidate `PASS`.
+`KG-INVENTION-001`
 
-Until the complete audit narrows the confidence band, every substantive report must provide the provisional audit-weighted percentage from `PROJECT_PROGRESS_MODEL.md`, its confidence band and the evidence delta. The percentage must never be inferred from code volume, test counts or old matrix row counts, and it must never be described as release readiness.
+- area: visible behavior without original provenance or accepted divergence
+- current edge: `UNJUSTIFIED_INVENTION`
+- status: `FAILED`
+
+`KG-FLOW-001`
+
+- area: complete feature, action, default, and state-transition parity
+- current edge: multiple mixed `BROKEN_IN_NEX`, `MISSING_IN_NEX`, and `UNKNOWN` relationships
+- status: `FAILED`
+
+## 7. Attached Rule List evidence checkpoint
+
+`AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md` contains exact original evidence for attached Rule List Toolbar result behavior.
+
+The attempted one-time implementation applicator did not land product code because verification stopped before commit/push. Its write-enabled workflow, per-trace audit workflow, and temporary scripts were removed.
+
+Graph relationship:
+
+`OriginalAttachedRuleListEvidence (SOURCE_CAPTURED) -> KG-TRACE-001 (required) -> KG-ATTACHED-RULELIST-001 (not implemented) -> KG-ICON-001 -> KG-OWNER-ORDER1-001`
+
+Attached Rule List must be implemented through the unified Original-observable trace layer, not through another dedicated self-writing workflow.
+
+## 8. Progress and completion boundary
+
+Current numerical progress, confidence band, active journey percentage, and blocker summary are maintained in `MILESTONE_8_STATUS.md` and calculated by `PROJECT_PROGRESS_MODEL.md`.
+
+This graph must not increase progress because of:
+
+- commit count;
+- changed lines;
+- test count;
+- green CI alone;
+- Nex-only screenshots;
+- an implemented architecture node without complete journey evidence.
+
+The project is complete only when every required journey node is `OWNER_ACCEPTED`, representative real original exports work directly, unjustified visible behavior is removed, necessary differences are accepted under `DR-xxxx`, and one exact final candidate receives repository-owner `PASS`.
