@@ -1,0 +1,107 @@
+export const NEX_TOOLBAR_WORKFLOW_CHANNEL = 'zeroomega-nex/profile-workflow/v1';
+
+export const NESTED_SWITCH_SCENARIO = Object.freeze({
+  id: 'nested-switch',
+  fixedProfileId: 'profile-default-proxy',
+  fixedEndpointId: 'endpoint-nested-switch-e2e',
+  innerProfileId: 'profile-nested-inner-e2e',
+  outerProfileId: 'profile-nested-outer-e2e',
+  hosts: Object.freeze(['nested-fixed.test', 'nested-direct.test']),
+});
+
+export function configureNestedSwitchDraft(draft, proxyPort) {
+  const scenario = NESTED_SWITCH_SCENARIO;
+  const fixed = draft.profiles.find((candidate) => candidate.id === scenario.fixedProfileId);
+  if (!fixed || fixed.kind !== 'fixed') {
+    throw new Error('Default Fixed Profile was not found for nested Switch E2E');
+  }
+
+  fixed.name = 'Runtime Nested Fixed';
+  fixed.color = '#64b5f6';
+  fixed.bypass = [];
+  fixed.proxyByScheme = { fallback: scenario.fixedEndpointId };
+  draft.proxyEndpoints = [
+    {
+      id: scenario.fixedEndpointId,
+      name: 'Nested Switch E2E endpoint',
+      protocol: 'http',
+      host: '127.0.0.1',
+      port: proxyPort,
+    },
+  ];
+  draft.settings.interface.showResultProfileOnActionBadgeText = true;
+  draft.profiles.push(
+    {
+      id: scenario.innerProfileId,
+      name: 'Runtime Nested Inner Switch',
+      color: '#81c784',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-nested-inner-fixed',
+          condition: { kind: 'host-wildcard', pattern: 'nested-fixed.test' },
+          route: { kind: 'profile', profileId: scenario.fixedProfileId },
+        },
+      ],
+      defaultRoute: { kind: 'direct' },
+    },
+    {
+      id: scenario.outerProfileId,
+      name: 'Runtime Nested Outer Switch',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-nested-outer-fixed',
+          condition: { kind: 'host-wildcard', pattern: 'nested-fixed.test' },
+          route: { kind: 'profile', profileId: scenario.innerProfileId },
+        },
+        {
+          id: 'rule-nested-outer-direct',
+          condition: { kind: 'host-wildcard', pattern: 'nested-direct.test' },
+          route: { kind: 'profile', profileId: scenario.innerProfileId },
+        },
+      ],
+      defaultRoute: { kind: 'direct' },
+    },
+  );
+  draft.settings.quickSwitch.routes.push({
+    kind: 'profile',
+    profileId: scenario.outerProfileId,
+  });
+  return scenario;
+}
+
+export function nestedSwitchCases({ proxyPort, directName, defaultDetail }) {
+  return Object.freeze([
+    Object.freeze({
+      id: 'outer-match-inner-match-fixed',
+      host: 'nested-fixed.test',
+      path: '/nested-fixed',
+      resultProfileName: 'Runtime Nested Fixed',
+      badgeText: 'Runt',
+      details:
+        'nested-fixed.test => Runtime Nested Inner Switch\n' +
+        'nested-fixed.test => Runtime Nested Fixed\n' +
+        `PROXY 127.0.0.1:${proxyPort}\n`,
+    }),
+    Object.freeze({
+      id: 'outer-match-inner-default-direct',
+      host: 'nested-direct.test',
+      path: '/nested-direct',
+      resultProfileName: `[${directName}]`,
+      badgeText: 'Dire',
+      details:
+        'nested-direct.test => Runtime Nested Inner Switch\n' +
+        `${defaultDetail} => [${directName}]\n`,
+    }),
+    Object.freeze({
+      id: 'outer-default-direct',
+      host: '127.0.0.1',
+      path: '/outer-default',
+      resultProfileName: `[${directName}]`,
+      badgeText: 'Dire',
+      details: `${defaultDetail} => [${directName}]\n`,
+    }),
+  ]);
+}
