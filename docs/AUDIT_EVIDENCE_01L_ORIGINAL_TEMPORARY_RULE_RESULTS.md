@@ -148,7 +148,7 @@ Nex reproduces this captured subset through:
 
 The hidden synthetic profile remains internal and is never displayed directly.
 
-The Chromium full E2E performs post-evidence cleanup through the normal extension-page workflow channel: it reads the current state, adds built-in System to Quick Switch when absent, replaces and applies the draft, and then activates System with the new applied revision. This yields a verified non-temporary snapshot while keeping later network diagnostics on a safe direct system route. The messages originate from the still-open extension page rather than from a service-worker self-message. This is a test-harness boundary, not a product-contract difference.
+The Chromium full E2E captures a verified rollback target before temporary-rule evidence begins. After the final rule is removed and the original empty-overlay state is verified, the test uses the normal extension-page workflow channel to add built-in System to Quick Switch when absent, replace and apply the draft, and activate System with the new applied revision. System is used only as a safe non-temporary route for later network diagnostics; it is not treated as the source of the historical rollback target. The messages originate from the still-open extension page rather than from a service-worker self-message. These are test-harness boundaries, not product-contract differences.
 
 ## Represented subset
 
