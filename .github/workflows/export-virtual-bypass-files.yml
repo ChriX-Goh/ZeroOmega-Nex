@@ -1,0 +1,30 @@
+name: Export Virtual Bypass Files
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-virtual-bypass-files.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload exact source files
+        uses: actions/upload-artifact@v4
+        with:
+          name: virtual-bypass-source-files
+          path: |
+            apps/extension/src/lib/original-observable-result-trace.ts
+            apps/extension/src/lib/original-toolbar-profile-resolver.test.ts
+            scripts/e2e-chromium-toolbar.mjs
+            scripts/e2e-firefox.mjs
+          if-no-files-found: error
