@@ -105,11 +105,7 @@ function attachedFixture(options: AttachedFixtureOptions): {
   return { state: createProfileWorkflowState(spec), parent };
 }
 
-function resolve(
-  workflowState: ProfileWorkflowState,
-  parent: SwitchProfile,
-  url: string,
-) {
+function resolve(workflowState: ProfileWorkflowState, parent: SwitchProfile, url: string) {
   return new OriginalToolbarProfileResolver({
     repository: new MemoryRepository(workflowState),
     runtime: new FixedRuntime({
@@ -138,8 +134,7 @@ describe('original attached Rule List toolbar projection', () => {
       titleArguments: {
         currentProfileName: 'Runtime Attached Fixed Switch',
         resultProfileName: 'Runtime Attached Fixed',
-        details:
-          '(RL) ||attached-fixed.test => Runtime Attached Fixed\nPROXY 127.0.0.1:18183\n',
+        details: '(RL) ||attached-fixed.test => Runtime Attached Fixed\nPROXY 127.0.0.1:18183\n',
       },
       badgeText: 'Runt',
       detailPrefix: '(RL) ',
