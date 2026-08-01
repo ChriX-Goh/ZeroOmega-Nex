@@ -1046,7 +1046,7 @@ try {
     );
   }, 'Deleting the final temporary rule did not retain the original empty overlay');
 
-  const temporaryCleanup = await worker.evaluate(
+  const temporaryCleanup = await temporaryManager.evaluate(
     async (expectedAppliedRevisionId) =>
       chrome.runtime.sendMessage({
         channel: 'zeroomega-nex/profile-workflow/v1',
