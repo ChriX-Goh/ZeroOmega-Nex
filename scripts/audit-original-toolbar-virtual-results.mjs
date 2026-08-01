@@ -138,12 +138,14 @@ try {
     name: 'Runtime Virtual Fixed Alias',
     profileType: 'VirtualProfile',
     defaultProfileName: fixedProfile.name,
+    rules: [],
     color: fixedProfile.color,
   };
   const virtualDirectProfile = {
     name: 'Runtime Virtual Direct Alias',
     profileType: 'VirtualProfile',
     defaultProfileName: 'direct',
+    rules: [],
     color: '#aaaaaa',
   };
 
