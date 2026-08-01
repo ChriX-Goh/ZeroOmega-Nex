@@ -35,7 +35,7 @@ function validateScenario(scenario) {
   for (const capture of scenario.captures) {
     assert.ok(
       profileNames.includes(capture.profileName),
-      `Scenario ${scenario.id} capture ${capture.label} references missing profile ${capture.profileName}`,
+      `Scenario ${scenario.id}/${capture.label} missing profile ${capture.profileName}`,
     );
     assert.doesNotThrow(
       () => new URL(capture.url),
