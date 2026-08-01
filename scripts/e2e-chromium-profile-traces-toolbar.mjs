@@ -8,9 +8,11 @@ import { chromium } from '@playwright/test';
 
 import {
   configureNestedSwitchDraft,
-  NESTED_SWITCH_SCENARIO,
+  configureNestedVirtualDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
   nestedSwitchCases,
+  nestedVirtualCases,
+  PROFILE_TRACE_HOSTS,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
@@ -70,6 +72,40 @@ async function tabIdForUrl(extensionPage, url) {
   return tabId;
 }
 
+async function openCases(extensionPage, cases) {
+  const tabs = [];
+  for (const capture of cases) {
+    const url = `http://${capture.host}:${address.port}${capture.path}`;
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    tabs.push({ capture, url, tabId: await tabIdForUrl(extensionPage, url) });
+  }
+  return tabs;
+}
+
+async function activateProfile(extensionPage, appliedRevisionId, profileId, label) {
+  const activated = await sendWorkflowCommand(extensionPage, {
+    channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
+    action: 'activate-route',
+    expectedAppliedRevisionId: appliedRevisionId,
+    route: { kind: 'profile', profileId },
+  });
+  assert.equal(activated?.ok, true, `${label} activation failed: ${JSON.stringify(activated)}`);
+}
+
+async function expectedActionState(extensionPage, capture, popup) {
+  const title = await extensionPage.evaluate(
+    ({ currentProfileName, resultProfileName, details }) =>
+      chrome.i18n.getMessage('browserAction_titleWithResult', [
+        currentProfileName,
+        resultProfileName,
+        details,
+      ]),
+    capture,
+  );
+  return { title, badgeText: capture.badgeText, popup };
+}
+
 try {
   context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
@@ -78,7 +114,7 @@ try {
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,
-      `--host-resolver-rules=${NESTED_SWITCH_SCENARIO.hosts.map((host) => `MAP ${host} 127.0.0.1`).join(',')}`,
+      `--host-resolver-rules=${PROFILE_TRACE_HOSTS.map((host) => `MAP ${host} 127.0.0.1`).join(',')}`,
     ],
   });
 
@@ -95,15 +131,10 @@ try {
     directName: chrome.i18n.getMessage('routeDirect'),
     defaultDetail: chrome.i18n.getMessage('browserAction_defaultRuleDetails'),
   }));
-  const cases = nestedSwitchCases({ proxyPort: address.port, ...localization });
-
-  const tabs = [];
-  for (const capture of cases) {
-    const url = `http://${capture.host}:${address.port}${capture.path}`;
-    const page = await context.newPage();
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-    tabs.push({ capture, url, tabId: await tabIdForUrl(extensionPage, url) });
-  }
+  const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
+  const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
+  const switchTabs = await openCases(extensionPage, switchCases);
+  const virtualTabs = await openCases(extensionPage, virtualCases);
 
   const current = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -111,7 +142,8 @@ try {
   });
   assert.equal(current?.ok, true, `Workflow refresh failed: ${JSON.stringify(current)}`);
   const draft = structuredClone(current.state.draft);
-  const scenario = configureNestedSwitchDraft(draft, address.port);
+  const switchScenario = configureNestedSwitchDraft(draft, address.port);
+  const virtualScenario = configureNestedVirtualDraft(draft, address.port);
 
   const replaced = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -126,33 +158,57 @@ try {
     expectedGeneration: replaced.state.generation,
   });
   assert.equal(applied?.ok, true, `Apply failed: ${JSON.stringify(applied)}`);
-  const activated = await sendWorkflowCommand(extensionPage, {
-    channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
-    action: 'activate-route',
-    expectedAppliedRevisionId: applied.state.applied.revision.id,
-    route: { kind: 'profile', profileId: scenario.outerProfileId },
-  });
-  assert.equal(activated?.ok, true, `Activation failed: ${JSON.stringify(activated)}`);
 
-  for (const { capture, tabId } of tabs) {
-    const title = await extensionPage.evaluate(
-      ({ resultProfileName, details }) =>
-        chrome.i18n.getMessage('browserAction_titleWithResult', [
-          'Runtime Nested Outer Switch',
-          resultProfileName,
-          details,
-        ]),
-      capture,
-    );
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    switchScenario.outerProfileId,
+    'Nested Switch',
+  );
+  for (const { capture, tabId } of switchTabs) {
     await waitForActionState(
       extensionPage,
       tabId,
-      { title, badgeText: capture.badgeText, popup },
+      await expectedActionState(extensionPage, capture, popup),
       `Chromium nested Switch case ${capture.id} failed`,
     );
   }
 
-  console.log(`Chromium nested Switch toolbar E2E passed for ${extensionId}.`);
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    virtualScenario.outerDirectProfileId,
+    'Nested Virtual Direct',
+  );
+  for (const { capture, tabId } of virtualTabs.filter(
+    ({ capture }) => capture.activationProfileId === virtualScenario.outerDirectProfileId,
+  )) {
+    await waitForActionState(
+      extensionPage,
+      tabId,
+      await expectedActionState(extensionPage, capture, popup),
+      `Chromium nested Virtual Direct case ${capture.id} failed`,
+    );
+  }
+
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    virtualScenario.outerFixedProfileId,
+    'Nested Virtual Fixed',
+  );
+  for (const { capture, tabId } of virtualTabs.filter(
+    ({ capture }) => capture.activationProfileId === virtualScenario.outerFixedProfileId,
+  )) {
+    await waitForActionState(
+      extensionPage,
+      tabId,
+      await expectedActionState(extensionPage, capture, popup),
+      `Chromium nested Virtual Fixed case ${capture.id} failed`,
+    );
+  }
+
+  console.log(`Chromium Toolbar profile trace E2E passed for ${extensionId}.`);
 } finally {
   await context?.close();
   await new Promise((resolveClose) => server.close(resolveClose));
