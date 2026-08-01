@@ -517,14 +517,10 @@ function projectVirtual(
       : undefined;
   if (bypass === undefined) return undefined;
 
-  const directDetail = localizeOriginalToolbarDetail(
-    input.i18n,
-    ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
-  );
   return {
     currentProfile,
     resultProfile,
-    details: `${bypass.pattern} => ${directDetail}\n`,
+    details: `${bypass.pattern} => DIRECT\n`,
     routeKind: 'direct',
     directProfileColor: directColor,
     directResult: true,

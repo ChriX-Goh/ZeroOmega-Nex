@@ -847,7 +847,7 @@ try {
       ...(await literalFirefoxActionState(
         'Toolbar Virtual [Toolbar Proxy]',
         'Toolbar Proxy',
-        `localhost => ${localizedDirectResult}\n`,
+        'localhost => DIRECT\n',
         toolbarPopup,
       )),
       badgeText: 'Tool',

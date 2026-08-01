@@ -377,7 +377,7 @@ describe('original toolbar profile resolver', () => {
       titleArguments: {
         currentProfileName: 'Virtual Fixed Alias [Proxy]',
         resultProfileName: 'Proxy',
-        details: 'localhost => (not using any proxy)\n',
+        details: 'localhost => DIRECT\n',
       },
       badgeText: 'Prox',
     });

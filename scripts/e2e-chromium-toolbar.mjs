@@ -126,7 +126,7 @@ try {
       virtualFixedBypass: resultTitle(
         'Toolbar Virtual [Toolbar Proxy]',
         'Toolbar Proxy',
-        `localhost => ${directDetail}\n`,
+        'localhost => DIRECT\n',
       ),
       virtualDirect: resultTitle(
         `Toolbar Virtual Direct [[${directName}]]`,

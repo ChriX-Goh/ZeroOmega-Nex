@@ -139,7 +139,7 @@ The internal `GraphTrace` must never be displayed directly.
 - Fixed proxy and bypass;
 - one-level Switch → Direct/Fixed;
 - nested Switch 01I subset;
-- immediate Virtual → Direct/Fixed proxy/bypass, subject to `KG-VIRTUAL-BYPASS-DETAIL-001`;
+- immediate Virtual → Direct/Fixed proxy/bypass;
 - nested Virtual 01J subset;
 - attached Rule List 01H subset.
 
@@ -175,10 +175,10 @@ Supporting nodes:
   - 01J subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`
   - remaining Virtual → Switch/Rule List/PAC/System, deeper chains and cycles: `UNKNOWN`
 - `KG-VIRTUAL-BYPASS-DETAIL-001`
-  - immediate Virtual bypass detail: `BROKEN_IN_NEX`
-  - original: literal `DIRECT`
-  - current older generic path: localized standalone Direct description
-  - nested 01J path: correct
+  - immediate Virtual bypass detail: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`
+  - original and Nex: literal `DIRECT`
+  - deterministic, Chromium and Firefox expectations verified
+  - Fixed profile bypass remains a separate captured contract
 - `KG-ATTACHED-RULELIST-001`
   - 01H subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`
   - remaining shapes: `UNKNOWN`
@@ -243,7 +243,7 @@ Depends on all required journeys reaching `OWNER_ACCEPTED`. Produces exact artif
 `OriginalImmediateVirtual01G (SOURCE_CAPTURED)`  
 `-> KG-TRACE-001 (IMPLEMENTED)`  
 `-> Chromium/Firefox Action E2E (VERIFIED_AUTOMATION)`  
-`-> KG-VIRTUAL-BYPASS-DETAIL-001 (BROKEN_IN_NEX for bypass detail only)`
+`-> KG-VIRTUAL-BYPASS-DETAIL-001 (EXACT_EQUIVALENT, VERIFIED_AUTOMATION)`
 
 ### Attached Rule List 01H
 
@@ -296,7 +296,6 @@ Unrepresented:
 ## 7. Active defect graph
 
 - `KG-ICON-001`: complete Toolbar journey — `FAILED`.
-- `KG-VIRTUAL-BYPASS-DETAIL-001`: immediate Virtual bypass detail — `BROKEN_IN_NEX`.
 - `KG-IMPORT-001`: direct original export use — `FAILED`.
 - `KG-IMPORT-COLOR-001`: original shorthand colors — open.
 - `KG-UI-001`: layout/density/dialog/control hierarchy — `FAILED`.
@@ -307,10 +306,10 @@ Unrepresented:
 
 ## 8. Progress and next edge
 
-Formal progress remains 47% total and 35% for Order 1. The next fixed edge is:
+Formal progress remains 47% total and 35% for Order 1. `KG-VIRTUAL-BYPASS-DETAIL-001` is corrected through deterministic tests and real Chromium/Firefox Toolbar E2E.
 
-`01G literal DIRECT evidence -> KG-VIRTUAL-BYPASS-DETAIL-001 repair -> deterministic tests -> Chromium -> Firefox`
+The next fixed edge is:
 
-After that repair, the next new original result family is PAC.
+`PAC original source/runtime -> KG-PAC-TRACE-001 mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
 
 No candidate, merge or release is authorized.

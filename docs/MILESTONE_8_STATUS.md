@@ -30,7 +30,7 @@ The retained Toolbar architecture currently includes:
 - Direct, System and Fixed proxy/bypass;
 - exact one-level Switch → Direct/Fixed;
 - the exact two-level nested Switch 01I subset;
-- exact immediate Virtual → Direct/Fixed proxy/bypass, except for the known bypass-detail defect below;
+- exact immediate Virtual → Direct/Fixed proxy/bypass;
 - the exact two-level nested Virtual 01J subset;
 - the exact attached Rule List 01H subset;
 - original-derived title, multiline detail, four-code-unit Badge, color and Virtual suffix behavior for represented shapes;
@@ -97,16 +97,14 @@ One shared Nex profile-trace fixture drives these cases in real Chromium and Fir
 
 The parent Switch remains current, the hidden `__ruleListOf_<parent>` profile stays hidden, `(RL) ` is limited to matched attached-list details and `(default)` is used for fallback. Parent rules, exclusive/multi-line/non-AutoProxy behavior, bypass, fallthrough, chains and uncaptured nesting remain fail-closed.
 
-## Known evidence-proven defect
+## Closed evidence-proven correction
 
-`KG-VIRTUAL-BYPASS-DETAIL-001` is open under Order 1.
+`KG-VIRTUAL-BYPASS-DETAIL-001` is now `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`.
 
 - Original immediate Virtual → Fixed bypass evidence in 01G uses `localhost => DIRECT`.
-- The newly implemented nested Virtual 01J path reproduces this correctly.
-- The older generic immediate Virtual bypass projection still emits the localized standalone Direct description instead of literal `DIRECT`.
-- The immediate Virtual bypass shape must no longer be described as exact until this path and its Chromium/Firefox expectations are corrected.
-
-This defect is narrow, proven and should be repaired before opening another large result family.
+- The generic immediate Virtual projector now emits the literal PAC result `DIRECT`.
+- The deterministic resolver expectation and real Chromium/Firefox Toolbar expectations use the same literal result.
+- Fixed profile bypass remains unchanged and continues to use its separately captured localized detail contract.
 
 ## Migration blocker
 
@@ -114,7 +112,6 @@ This defect is narrow, proven and should be repaired before opening another larg
 
 ## Open Order 1 blockers
 
-- `KG-VIRTUAL-BYPASS-DETAIL-001` immediate Virtual bypass detail correction;
 - nested Switch shapes outside 01I;
 - nested Virtual and Virtual → Switch/Rule List/PAC shapes outside 01J;
 - attached Rule List shapes outside 01H;
@@ -140,11 +137,10 @@ Switch → System is not an open parity feature because the original runtime rej
 
 ## Immediate execution order
 
-1. Repair `KG-VIRTUAL-BYPASS-DETAIL-001` in the generic immediate Virtual projection and both browser expectations.
-2. Add PAC as the next parameterized original result family.
-3. Continue remaining Rule List, temporary-rule, external-control and renderer-fallback states.
-4. Run one complete Chromium/Firefox Order 1 matrix and focused owner acceptance.
-5. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
+1. Add PAC as the next parameterized original result family.
+2. Continue remaining Rule List, temporary-rule, external-control and renderer-fallback states.
+3. Run one complete Chromium/Firefox Order 1 matrix and focused owner acceptance.
+4. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
 
 ## Candidate prohibition
 
