@@ -1,0 +1,169 @@
+name: Apply Temporary Rule Browser Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-original-temp-rule-source.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply shared Chromium and Firefox acceptance
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one replacement target, found {count}')
+              target.write_text(text.replace(old, new, 1))
+
+          shared = 'scripts/nex-toolbar-profile-trace-scenarios.mjs'
+          replace_once(
+              shared,
+              "export const PAC_SCENARIO = Object.freeze({\n  id: 'pac',\n  profileId: 'profile-runtime-pac-e2e',\n  hosts: Object.freeze(['pac-proxy.test', 'pac-direct.test']),\n});",
+              "export const PAC_SCENARIO = Object.freeze({\n  id: 'pac',\n  profileId: 'profile-runtime-pac-e2e',\n  hosts: Object.freeze(['pac-proxy.test', 'pac-direct.test']),\n});\n\nexport const TEMPORARY_RULE_SCENARIO = Object.freeze({\n  id: 'temporary-rule',\n  baseProfileId: 'profile-temporary-base-e2e',\n  fixedProfileId: 'profile-temporary-fixed-e2e',\n  fixedEndpointId: 'endpoint-temporary-rule-e2e',\n  domain: 'temp-rule.test',\n  hosts: Object.freeze(['temp-rule.test', 'temp-rule-default.test']),\n});\n\nexport const POPUP_TEMPORARY_RULE_CHANNEL =\n  'zeroomega-nex/popup-temporary-rules/v1';",
+          )
+          replace_once(
+              shared,
+              "  ...PAC_SCENARIO.hosts,\n]);",
+              "  ...PAC_SCENARIO.hosts,\n  ...TEMPORARY_RULE_SCENARIO.hosts,\n]);",
+          )
+          replace_once(
+              shared,
+              "export function nestedSwitchCases({ proxyPort, directName, defaultDetail }) {",
+              "export function configureTemporaryRuleDraft(draft, proxyPort) {\n  const scenario = TEMPORARY_RULE_SCENARIO;\n  draft.settings.interface.showResultProfileOnActionBadgeText = true;\n  draft.proxyEndpoints.push({\n    id: scenario.fixedEndpointId,\n    name: 'Temporary rule E2E endpoint',\n    protocol: 'http',\n    host: '127.0.0.1',\n    port: proxyPort,\n  });\n  draft.profiles.push(\n    {\n      id: scenario.fixedProfileId,\n      name: 'Runtime Temporary Fixed',\n      color: '#64b5f6',\n      kind: 'fixed',\n      proxyByScheme: { fallback: scenario.fixedEndpointId },\n      bypass: [],\n    },\n    {\n      id: scenario.baseProfileId,\n      name: 'Runtime Temporary Base',\n      color: '#ffb74d',\n      kind: 'switch',\n      rules: [],\n      defaultRoute: { kind: 'direct' },\n    },\n  );\n  draft.settings.quickSwitch.routes.push({\n    kind: 'profile',\n    profileId: scenario.baseProfileId,\n  });\n  return scenario;\n}\n\nexport function nestedSwitchCases({ proxyPort, directName, defaultDetail }) {",
+          )
+          replace_once(
+              shared,
+              "export function pacCases({ pacUrl }) {",
+              "export function temporaryRuleCases({\n  proxyPort,\n  directName,\n  defaultDetail,\n  temporaryPrefix,\n}) {\n  const scenario = TEMPORARY_RULE_SCENARIO;\n  const defaultResult = Object.freeze({\n    currentProfileName: 'Runtime Temporary Base',\n    resultProfileName: `[${directName}]`,\n    badgeText: 'Dire',\n    details:\n      `${defaultDetail} => Runtime Temporary Base\\n` +\n      `${defaultDetail} => [${directName}]\\n`,\n  });\n  return Object.freeze({\n    matched: Object.freeze({\n      id: 'temporary-rule-match-fixed',\n      host: scenario.domain,\n      path: '/temporary-rule-match',\n      currentProfileName: 'Runtime Temporary Base',\n      resultProfileName: 'Runtime Temporary Fixed',\n      badgeText: 'Runt',\n      details:\n        `${temporaryPrefix}*.${scenario.domain} => Runtime Temporary Fixed\\n` +\n        `PROXY 127.0.0.1:${proxyPort}\\n`,\n    }),\n    unmatched: Object.freeze({\n      id: 'temporary-rule-default-direct',\n      host: 'temp-rule-default.test',\n      path: '/temporary-rule-default',\n      ...defaultResult,\n    }),\n    removed: Object.freeze({\n      id: 'temporary-rule-removed-base-direct',\n      host: scenario.domain,\n      path: '/temporary-rule-match',\n      ...defaultResult,\n    }),\n  });\n}\n\nexport function pacCases({ pacUrl }) {",
+          )
+
+          chromium = 'scripts/e2e-chromium-profile-traces-toolbar.mjs'
+          replace_once(
+              chromium,
+              "  configurePacDraft,\n  NEX_TOOLBAR_WORKFLOW_CHANNEL,",
+              "  configurePacDraft,\n  configureTemporaryRuleDraft,\n  NEX_TOOLBAR_WORKFLOW_CHANNEL,\n  POPUP_TEMPORARY_RULE_CHANNEL,",
+          )
+          replace_once(
+              chromium,
+              "  RUNTIME_PAC_SCRIPT,\n} from './nex-toolbar-profile-trace-scenarios.mjs';",
+              "  RUNTIME_PAC_SCRIPT,\n  temporaryRuleCases,\n} from './nex-toolbar-profile-trace-scenarios.mjs';",
+          )
+          replace_once(
+              chromium,
+              "    defaultDetail: chrome.i18n.getMessage('browserAction_defaultRuleDetails'),\n  }));",
+              "    defaultDetail: chrome.i18n.getMessage('browserAction_defaultRuleDetails'),\n    temporaryPrefix: chrome.i18n.getMessage('browserAction_tempRulePrefix'),\n  }));",
+          )
+          replace_once(
+              chromium,
+              "  const runtimePacCases = pacCases({ pacUrl });\n  const switchTabs = await openCases(extensionPage, switchCases);",
+              "  const runtimePacCases = pacCases({ pacUrl });\n  const temporaryCases = temporaryRuleCases({\n    proxyPort: address.port,\n    ...localization,\n  });\n  const switchTabs = await openCases(extensionPage, switchCases);",
+          )
+          replace_once(
+              chromium,
+              "  const pacTabs = await openCases(extensionPage, runtimePacCases);",
+              "  const pacTabs = await openCases(extensionPage, runtimePacCases);\n  const temporaryTabs = await openCases(extensionPage, [\n    temporaryCases.matched,\n    temporaryCases.unmatched,\n  ]);",
+          )
+          replace_once(
+              chromium,
+              "  const pacScenario = configurePacDraft(draft, pacUrl);",
+              "  const pacScenario = configurePacDraft(draft, pacUrl);\n  const temporaryScenario = configureTemporaryRuleDraft(draft, address.port);",
+          )
+          replace_once(
+              chromium,
+              "  for (const { capture, tabId } of pacTabs) {\n    await waitForActionState(\n      extensionPage,\n      tabId,\n      await expectedActionState(extensionPage, capture, popup),\n      `Chromium PAC case ${capture.id} failed`,\n    );\n  }\n\n  console.log(`Chromium Toolbar profile trace E2E passed for ${extensionId}.`);",
+              "  for (const { capture, tabId } of pacTabs) {\n    await waitForActionState(\n      extensionPage,\n      tabId,\n      await expectedActionState(extensionPage, capture, popup),\n      `Chromium PAC case ${capture.id} failed`,\n    );\n  }\n\n  await activateProfile(\n    extensionPage,\n    applied.state.applied.revision.id,\n    temporaryScenario.baseProfileId,\n    'Temporary rule base',\n  );\n  const toggled = await sendWorkflowCommand(extensionPage, {\n    channel: POPUP_TEMPORARY_RULE_CHANNEL,\n    action: 'toggle',\n    expectedAppliedRevisionId: applied.state.applied.revision.id,\n    domain: temporaryScenario.domain,\n    route: { kind: 'profile', profileId: temporaryScenario.fixedProfileId },\n  });\n  assert.equal(toggled?.ok, true, `Chromium temporary rule toggle failed: ${JSON.stringify(toggled)}`);\n  for (const { capture, tabId } of temporaryTabs) {\n    await waitForActionState(\n      extensionPage,\n      tabId,\n      await expectedActionState(extensionPage, capture, popup),\n      `Chromium temporary rule case ${capture.id} failed`,\n    );\n  }\n  const removed = await sendWorkflowCommand(extensionPage, {\n    channel: POPUP_TEMPORARY_RULE_CHANNEL,\n    action: 'remove',\n    expectedAppliedRevisionId: applied.state.applied.revision.id,\n    domain: temporaryScenario.domain,\n  });\n  assert.equal(removed?.ok, true, `Chromium temporary rule removal failed: ${JSON.stringify(removed)}`);\n  const matchedTab = temporaryTabs.find(({ capture }) => capture.id === temporaryCases.matched.id);\n  assert.ok(matchedTab, 'Chromium temporary rule matched tab was not found');\n  await waitForActionState(\n    extensionPage,\n    matchedTab.tabId,\n    await expectedActionState(extensionPage, temporaryCases.removed, popup),\n    'Chromium removed temporary rule did not retain the hidden default overlay',\n  );\n\n  console.log(`Chromium Toolbar profile trace E2E passed for ${extensionId}.`);",
+          )
+
+          firefox = 'scripts/e2e-firefox-profile-traces-toolbar.mjs'
+          replace_once(
+              firefox,
+              "  configurePacDraft,\n  NEX_TOOLBAR_WORKFLOW_CHANNEL,",
+              "  configurePacDraft,\n  configureTemporaryRuleDraft,\n  NEX_TOOLBAR_WORKFLOW_CHANNEL,\n  POPUP_TEMPORARY_RULE_CHANNEL,",
+          )
+          replace_once(
+              firefox,
+              "  RUNTIME_PAC_SCRIPT,\n} from './nex-toolbar-profile-trace-scenarios.mjs';",
+              "  RUNTIME_PAC_SCRIPT,\n  temporaryRuleCases,\n} from './nex-toolbar-profile-trace-scenarios.mjs';",
+          )
+          replace_once(
+              firefox,
+              "      defaultDetail: browser.i18n.getMessage('browserAction_defaultRuleDetails'),\n    };",
+              "      defaultDetail: browser.i18n.getMessage('browserAction_defaultRuleDetails'),\n      temporaryPrefix: browser.i18n.getMessage('browserAction_tempRulePrefix'),\n    };",
+          )
+          replace_once(
+              firefox,
+              "  const runtimePacCases = pacCases({ pacUrl });\n  const switchTabs = await openCases(switchCases);",
+              "  const runtimePacCases = pacCases({ pacUrl });\n  const temporaryCases = temporaryRuleCases({\n    proxyPort: address.port,\n    ...localization,\n  });\n  const switchTabs = await openCases(switchCases);",
+          )
+          replace_once(
+              firefox,
+              "  const pacTabs = await openCases(runtimePacCases);",
+              "  const pacTabs = await openCases(runtimePacCases);\n  const temporaryTabs = await openCases([temporaryCases.matched, temporaryCases.unmatched]);",
+          )
+          replace_once(
+              firefox,
+              "  await resolveTabIds(pacTabs);",
+              "  await resolveTabIds(pacTabs);\n  await resolveTabIds(temporaryTabs);",
+          )
+          replace_once(
+              firefox,
+              "  const pacScenario = configurePacDraft(draft, pacUrl);",
+              "  const pacScenario = configurePacDraft(draft, pacUrl);\n  const temporaryScenario = configureTemporaryRuleDraft(draft, address.port);",
+          )
+          replace_once(
+              firefox,
+              "  for (const { capture, tabId } of pacTabs) {\n    await waitForActionState(\n      tabId,\n      await localizedActionState(capture, popup),\n      `Firefox PAC case ${capture.id} failed`,\n    );\n  }\n\n  console.log(`Firefox Toolbar profile trace E2E passed for ${addonId}.`);",
+              "  for (const { capture, tabId } of pacTabs) {\n    await waitForActionState(\n      tabId,\n      await localizedActionState(capture, popup),\n      `Firefox PAC case ${capture.id} failed`,\n    );\n  }\n\n  await activateProfile(\n    applied.state.applied.revision.id,\n    temporaryScenario.baseProfileId,\n    'Temporary rule base',\n  );\n  const toggled = await sendWorkflowCommand({\n    channel: POPUP_TEMPORARY_RULE_CHANNEL,\n    action: 'toggle',\n    expectedAppliedRevisionId: applied.state.applied.revision.id,\n    domain: temporaryScenario.domain,\n    route: { kind: 'profile', profileId: temporaryScenario.fixedProfileId },\n  });\n  assert.equal(toggled?.ok, true, `Firefox temporary rule toggle failed: ${JSON.stringify(toggled)}`);\n  for (const { capture, tabId } of temporaryTabs) {\n    await waitForActionState(\n      tabId,\n      await localizedActionState(capture, popup),\n      `Firefox temporary rule case ${capture.id} failed`,\n    );\n  }\n  const removed = await sendWorkflowCommand({\n    channel: POPUP_TEMPORARY_RULE_CHANNEL,\n    action: 'remove',\n    expectedAppliedRevisionId: applied.state.applied.revision.id,\n    domain: temporaryScenario.domain,\n  });\n  assert.equal(removed?.ok, true, `Firefox temporary rule removal failed: ${JSON.stringify(removed)}`);\n  const matchedTab = temporaryTabs.find(({ capture }) => capture.id === temporaryCases.matched.id);\n  assert.ok(matchedTab, 'Firefox temporary rule matched tab was not found');\n  await waitForActionState(\n    matchedTab.tabId,\n    await localizedActionState(temporaryCases.removed, popup),\n    'Firefox removed temporary rule did not retain the hidden default overlay',\n  );\n\n  console.log(`Firefox Toolbar profile trace E2E passed for ${addonId}.`);",
+          )
+          PY
+
+      - name: Format and verify repository
+        run: |
+          pnpm exec prettier --write \
+            scripts/nex-toolbar-profile-trace-scenarios.mjs \
+            scripts/e2e-chromium-profile-traces-toolbar.mjs \
+            scripts/e2e-firefox-profile-traces-toolbar.mjs
+          pnpm run verify
+
+      - name: Commit atomic browser acceptance and self-delete
+        run: |
+          rm .github/workflows/export-original-temp-rule-source.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m 'test(toolbar): verify temporary rules in both browsers'
+          git push origin HEAD:${{ github.head_ref }}
