@@ -46,14 +46,14 @@ The current retained Toolbar architecture includes:
 - serialized startup and profile-workflow transitions;
 - clean-install initialization to the original System route;
 - one browser-independent Original-observable result projection between internal graph decisions and Action rendering;
-- Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, immediate Virtual -> Direct/Fixed proxy/bypass, and the evidence-bounded attached Rule List subset described below;
+- Direct, System, Fixed proxy/bypass, exact one-level Switch -> Direct/Fixed, the exact two-level nested Switch subset described below, immediate Virtual -> Direct/Fixed proxy/bypass, and the evidence-bounded attached Rule List subset described below;
 - original-derived title, multiline detail, Badge truncation, color inputs, and Virtual target suffix behavior for represented shapes;
 - preservation of the original Switch -> Direct two-color icon rule, where the result and Badge are Direct while the inner ring remains the current Switch color;
 - Chromium and Firefox Action acceptance for the represented states;
 - internal-page/default fallback, two-tab isolation, and Chromium Inspect overlay set/clear/isolation;
 - fail-closed behavior for result shapes not yet represented.
 
-The trace projection is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for represented shapes. It does not yet cover nested Switch/Virtual, PAC, temporary-rule, external-control, or attached Rule List shapes beyond the exact 01H evidence subset.
+The trace projection is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for represented shapes. It does not yet cover nested Switch shapes beyond the exact 01I subset, nested Virtual, PAC, temporary-rule, external-control, or attached Rule List shapes beyond the exact 01H subset.
 
 This is slice-level engineering evidence only. It does not close Order 1 or `KG-ICON-001`. Total progress remains 47% and Order 1 remains 35%.
 
@@ -69,7 +69,39 @@ Order 0 is engineering-complete at the current checkpoint:
 - failed write-enabled/per-trace attached-Rule-List workflows and scripts were removed;
 - permanent CI remains read-only.
 
-Future original evidence collection must be parameterized and batched rather than implemented as a new workflow and applicator for every trace.
+Original Toolbar result evidence is now collected through one permanent, read-only, parameterized workflow rather than a new workflow and applicator for every trace.
+
+## Parameterized original evidence and nested Switch checkpoint
+
+The permanent `Original Toolbar Evidence` workflow now:
+
+- downloads the exact official ZeroOmega v3.5.0 Chromium package;
+- verifies the fixed package SHA-256 before execution;
+- accepts a scenario ID, comma-separated scenario IDs, or `all`;
+- runs each scenario in an isolated real Chromium profile;
+- creates profiles through the original `addProfile` API;
+- applies profiles through the original `applyProfile` API;
+- captures original `_actionForUrl` output and runtime state into one auditable JSON artifact;
+- uses read-only repository permissions and does not commit, push, or modify the branch.
+
+The first permanent scenario is documented in `AUDIT_EVIDENCE_01I_ORIGINAL_NESTED_SWITCH_RESULTS.md`. The following exact shapes are implemented and verified through deterministic tests plus real Chromium and Firefox extension Action APIs:
+
+1. applied outer Switch matched rule -> inner Switch matched rule -> Fixed proxy;
+2. applied outer Switch matched rule -> inner Switch default -> Direct;
+3. applied outer Switch default -> Direct, through the existing one-level Switch contract.
+
+For those shapes, the verified contract includes:
+
+- the applied outer Switch remains the visible current profile;
+- every selected nested Switch edge appears in order;
+- intermediate Switch names appear as immediate rule targets rather than being replaced with the final result;
+- the inner default uses the ordinary localized `(default)` line;
+- the final Fixed proxy line is appended after both visible Switch transitions;
+- result profile, four-code-unit Badge and outer result color come from the final route;
+- the Action inner/current color remains the applied outer Switch color rather than the intermediate Switch color;
+- one shared Nex profile-trace scenario definition drives both Chromium and Firefox real Action E2E.
+
+The subprojector intentionally remains fail-closed for outer default -> inner Switch, more than two Switch levels, nested attached Rule List/Virtual/PAC targets, nested Fixed bypass, indeterminate conditions, target-dependent results and every shape not established by 01I evidence. Those are not claimed implemented.
 
 ## Attached Rule List checkpoint
 
@@ -106,12 +138,12 @@ This is recorded as `KG-IMPORT-COLOR-001` under Order 2:
 - required repair: normalize `#RGB` to the visually identical `#RRGGBB` form at the legacy import boundary, preserve any needed original metadata for round-trip evidence, and prove the behavior with real export fixtures;
 - current status: open and release-blocking through `KG-IMPORT-001`.
 
-The Order 1 runtime tests use the canonical internal equivalents `#55bb55` and `#dd6633`; this does not count as fixing the migration blocker.
+The Order 1 runtime tests use canonical internal equivalents `#55bb55` and `#dd6633`; this does not count as fixing the migration blocker.
 
 ## Open Order 1 blockers
 
-- one parameterized original evidence harness for the remaining result families;
-- nested Switch/profile chains;
+- additional parameterized original scenarios for the remaining result families;
+- remaining nested Switch/profile-chain shapes outside the exact 01I subset;
 - nested Virtual and Virtual -> Switch/Rule List/PAC targets;
 - remaining attached Rule List shapes beyond the 01H subset, including exclusive, fallthrough, bypass, multi-line, and chained results where the original supports them;
 - PAC result traces and actual route/result projection;
@@ -138,8 +170,8 @@ All remain release-blocking.
 
 ## Immediate execution order
 
-1. Build one parameterized original evidence harness for the remaining Toolbar/Popup result families.
-2. Extend the unified Original-observable trace model only with evidence-backed nested Switch/Virtual, remaining attached Rule List, PAC, temporary-rule, and external-control states.
+1. Add the next evidence-bounded scenario families to the permanent original Toolbar harness, beginning with nested Virtual.
+2. Extend the unified Original-observable trace model only with captured nested Virtual, remaining attached Rule List, PAC, temporary-rule, and external-control states.
 3. Run one complete Chromium/Firefox Order 1 matrix and produce one exact installable owner-QC build.
 4. Record repository-owner `PASS` or concrete defects.
 5. Only after Order 1 acceptance, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001` normalization.
