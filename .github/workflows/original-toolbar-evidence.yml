@@ -6,7 +6,7 @@ on:
       scenario:
         description: Scenario ID, comma-separated IDs, or all
         required: true
-        default: nested-switch
+        default: all
         type: string
   pull_request:
     branches:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      ZEROOMEGA_ORIGINAL_SCENARIO: ${{ github.event_name == 'workflow_dispatch' && inputs.scenario || 'nested-switch' }}
+      ZEROOMEGA_ORIGINAL_SCENARIO: ${{ github.event_name == 'workflow_dispatch' && inputs.scenario || 'all' }}
       ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
       ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/toolbar-evidence
 
