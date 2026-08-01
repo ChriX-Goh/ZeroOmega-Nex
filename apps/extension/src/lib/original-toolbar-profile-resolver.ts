@@ -52,6 +52,17 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   };
 }
 
+function originalActionMatchedColor(trace: OriginalObservableResultTrace): string {
+  if (
+    trace.routeKind === 'direct' &&
+    !trace.currentProfileStatic &&
+    trace.resultProfile.builtin
+  ) {
+    return trace.currentProfile.color;
+  }
+  return trace.resultProfile.color;
+}
+
 function deriveToolbarState(state: ProfileWorkflowState, trace: OriginalObservableResultTrace) {
   return deriveOriginalToolbarTabState({
     currentProfileName: trace.currentProfile.displayName,
@@ -59,7 +70,7 @@ function deriveToolbarState(state: ProfileWorkflowState, trace: OriginalObservab
     details: trace.details,
     icon: {
       currentProfileColor: trace.currentProfile.color,
-      matchedProfileColor: trace.resultProfile.color,
+      matchedProfileColor: originalActionMatchedColor(trace),
       directProfileColor: trace.directProfileColor,
       directResult: trace.directResult,
       currentProfileStatic: trace.currentProfileStatic,
