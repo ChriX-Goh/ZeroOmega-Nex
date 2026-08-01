@@ -24,13 +24,14 @@ The unified Original-observable projection currently represents:
 - exact nested Switch 01I subset;
 - exact immediate Virtual → Direct/Fixed proxy/bypass;
 - exact nested Virtual 01J subset;
-- exact attached Rule List 01H subset.
+- exact attached Rule List 01H subset;
+- exact URL-backed PAC Toolbar 01K subset.
 
 Real Chromium and Firefox Action E2E covers represented shapes. Native Chromium Inspect covers set, clear, base restoration and tab isolation.
 
 ## Active delivery sequence
 
-1. **Order 1 — installation/startup/Toolbar:** 35%. Capture PAC and remaining result families before consolidated owner acceptance.
+1. **Order 1 — installation/startup/Toolbar:** 35%. PAC static Toolbar state is captured; remaining Rule List, temporary-rule, external-control, fallback/pixel evidence and owner acceptance remain.
 2. **Order 2 — original export → direct Nex use:** blocked by `KG-IMPORT-001` and `KG-IMPORT-COLOR-001`.
 3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open.
 4. **Order 4 — Options / Apply / Discard:** broad layout, workflow and text mismatch remains open.
@@ -52,7 +53,8 @@ The read-only `.github/workflows/original-toolbar-evidence.yml` workflow:
 The scenario registry contains:
 
 - `nested-switch` → evidence 01I;
-- `nested-virtual` → evidence 01J.
+- `nested-virtual` → evidence 01J;
+- `pac` → evidence 01K.
 
 Pull requests execute `all`. New result families must extend this registry and runner instead of creating another per-trace workflow.
 
@@ -60,75 +62,60 @@ Pull requests execute `all`. New result families must extend this registry and r
 
 ### Baseline and one-level profiles
 
-- `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md` — original Chromium baseline Action runtime.
-- `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` — original Firefox baseline Action runtime.
-- `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md` — one-level Switch → Direct/Fixed and original-invalid Switch → System.
-- `AUDIT_EVIDENCE_01G_ORIGINAL_VIRTUAL_RESULTS.md` — immediate Virtual → Direct/Fixed proxy/bypass.
+- `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md` — Chromium baseline.
+- `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` — Firefox baseline.
+- `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md` — one-level Switch.
+- `AUDIT_EVIDENCE_01G_ORIGINAL_VIRTUAL_RESULTS.md` — immediate Virtual.
 
 ### Attached Rule List 01H
 
-`AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md` establishes:
-
-- matched AutoProxy line → Fixed;
-- no match → default Direct;
-- matched AutoProxy line → Direct;
-- no match → default Fixed;
-- exact `(RL) `, `(default)`, hidden attached profile, Badge and color behavior.
+Matched/default AutoProxy results into Direct/Fixed, `(RL) `, `(default)`, hidden attached profile, Badge and color behavior are captured and verified.
 
 ### Nested Switch 01I
 
-`AUDIT_EVIDENCE_01I_ORIGINAL_NESTED_SWITCH_RESULTS.md` establishes:
-
-- outer match → inner match → Fixed proxy;
-- outer match → inner default → Direct;
-- outer default → Direct;
-- each selected nested edge remains visible in order;
-- the final route supplies result name/Badge/outer color while the applied outer Switch supplies the inner/current color.
+Outer match/default through one inner Switch is captured and verified. The final route supplies result name/Badge/outer color while the applied outer Switch supplies inner/current color.
 
 ### Nested Virtual 01J
 
-`AUDIT_EVIDENCE_01J_ORIGINAL_NESTED_VIRTUAL_RESULTS.md` establishes:
+Two-level Virtual into Direct/Fixed proxy/bypass is captured and verified, including immediate-target-only suffix, hidden outer transition, visible inner default, result-dependent current color and literal `DIRECT` bypass detail.
 
-- outer Virtual → inner Virtual → Direct;
-- outer Virtual → inner Virtual → Fixed proxy;
-- outer Virtual → inner Virtual → Fixed bypass;
-- current suffix includes only the immediate inner Virtual;
-- the outer Virtual transition is hidden and the inner default transition is visible;
-- Direct/proxy uses the inner Virtual current color;
-- Fixed bypass uses the final Fixed current color and literal `DIRECT` detail;
-- the applied outer Virtual color is absent from the final Action inputs.
+### URL-backed PAC 01K
+
+`AUDIT_EVIDENCE_01K_ORIGINAL_PAC_RESULTS.md` establishes:
+
+- one URL-backed PAC with cached script;
+- the PAC returns an HTTP proxy for one tab URL and Direct for another;
+- the original Action is identical for both URLs;
+- current/result name is the PAC profile;
+- detail is the exact PAC source URL;
+- Badge is derived from the PAC profile name;
+- both colors come from the PAC profile, producing a one-color icon;
+- no per-URL PAC route result is exposed by the Toolbar.
 
 ## Current Nex runtime
 
 Confirmed in real browsers:
 
 - Direct/System/Fixed proxy and bypass;
-- one-level Switch results;
-- nested Switch 01I;
-- immediate Virtual results, including literal `DIRECT` for Fixed bypass;
-- nested Virtual 01J;
+- one-level Switch and nested Switch 01I;
+- immediate Virtual and nested Virtual 01J;
 - attached Rule List 01H;
+- URL-backed PAC static Toolbar state 01K;
 - internal-page/default fallback and tab isolation;
 - Chromium Inspect overlay restoration/isolation.
 
-The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives both Chromium and Firefox nested Switch/Virtual Action E2E. It configures both graphs in one applied document and verifies separate activations without duplicating browser-independent expected semantics.
+The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives Chromium and Firefox nested Switch, nested Virtual and PAC Action E2E in one applied document. For PAC, two tabs whose script returns different routes must still show the same original Action state.
 
 ## Closed evidence-proven correction
 
-`KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`:
-
-- original immediate Virtual → Fixed bypass uses `localhost => DIRECT`;
-- the generic immediate Virtual projection now emits the literal PAC result `DIRECT`;
-- the deterministic resolver expectation uses the same literal result;
-- Chromium and Firefox Toolbar Action expectations verify the corrected path;
-- Fixed profile bypass remains unchanged under its separately captured localized detail contract.
+`KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`: immediate Virtual → Fixed bypass uses literal `DIRECT` in the projector, deterministic test and both browser expectations. Fixed profile bypass remains a separate localized contract.
 
 ## Remaining Order 1 unknown or missing shapes
 
 - nested Switch beyond 01I;
 - nested Virtual beyond 01J, including Virtual → Switch/Rule List/PAC;
 - attached Rule List beyond 01H;
-- PAC result state;
+- PAC lifecycle beyond 01K: inline/uncached/update/error/header/auth/fallback states;
 - temporary-rule state;
 - external-controller transitions and recovery;
 - renderer fallback and headed pixels where Action API state is insufficient;
@@ -146,6 +133,10 @@ Switch → System is not missing because the original runtime rejects it.
 - `KG-INVENTION-001` — visible behavior without provenance: `FAILED`.
 - `KG-FLOW-001` — complete interaction parity: `FAILED`.
 - `KG-GOV-001` — final owner-acceptance governance: open.
+
+## Next fixed edge
+
+Capture either the highest-value remaining attached Rule List boundary or the original temporary-rule Toolbar transition. Extend the same evidence harness, implement only the captured subset, verify deterministic/Chromium/Firefox behavior, then continue external-control and renderer-fallback evidence.
 
 ## Execution rule
 
