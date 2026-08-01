@@ -1,0 +1,42 @@
+name: Fix status duplicate renderer bullet
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-status-duplicate-renderer-bullet.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Fix and verify
+        run: |
+          python scripts/fix-status-duplicate-renderer-bullet.py
+          pnpm exec prettier --write docs/MILESTONE_8_STATUS.md
+          pnpm verify
+      - name: Commit ordinary files
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/MILESTONE_8_STATUS.md
+          git rm scripts/fix-status-duplicate-renderer-bullet.py
+          git commit -m 'docs: remove duplicate renderer evidence blocker'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
