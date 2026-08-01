@@ -1,6 +1,7 @@
 import { projectOriginalAttachedRuleListTrace } from './original-observable-attached-rule-list';
 import { projectOriginalNestedSwitchTrace } from './original-observable-nested-switch';
 import { projectOriginalNestedVirtualTrace } from './original-observable-nested-virtual';
+import { projectOriginalPacTrace } from './original-observable-pac';
 import {
   ORIGINAL_TOOLBAR_DIRECT_COLOR,
   projectOriginalObservableResultTrace,
@@ -27,6 +28,15 @@ export function projectOriginalObservableResult(
     );
     const directColor =
       input.spec.settings.interface.builtInProfiles?.direct?.color ?? ORIGINAL_TOOLBAR_DIRECT_COLOR;
+
+    if (activeProfile?.kind === 'pac') {
+      const pac = projectOriginalPacTrace({
+        profile: activeProfile,
+        decision: input.decision,
+        directColor,
+      });
+      if (pac !== undefined) return pac;
+    }
 
     if (activeProfile?.kind === 'switch') {
       if (activeProfile.attachedRuleListProfileId !== undefined) {
