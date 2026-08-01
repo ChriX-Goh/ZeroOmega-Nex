@@ -659,8 +659,13 @@ try {
           condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
           route: { kind: 'profile', profileId: 'profile-default-proxy' },
         },
+        {
+          id: 'rule-toolbar-direct',
+          condition: { kind: 'host-wildcard', pattern: 'localhost' },
+          route: { kind: 'direct' },
+        },
       ],
-      defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+      defaultRoute: { kind: 'direct' },
     });
     switchDraft.settings.quickSwitch.routes.push({
       kind: 'profile',
@@ -711,14 +716,23 @@ try {
       )),
       badgeText: 'Tool',
     };
-    const switchDefaultAction = {
+    const switchDirectMatchedAction = {
       ...(await literalFirefoxActionState(
         'Toolbar Switch',
-        'Toolbar Proxy',
-        `${defaultDetail} => Toolbar Proxy\nPROXY 127.0.0.1:${sourceAddress.port}\n`,
+        routeDirect,
+        `localhost => ${routeDirect}\n`,
         toolbarPopup,
       )),
-      badgeText: 'Tool',
+      badgeText: 'Dire',
+    };
+    const switchDirectDefaultAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Switch',
+        routeDirect,
+        `${defaultDetail} => ${routeDirect}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Dire',
     };
     await waitForFirefoxActionState(
       toolbarProxyTabId,
@@ -727,8 +741,8 @@ try {
     );
     await waitForFirefoxActionState(
       toolbarBypassTabId,
-      switchDefaultAction,
-      'Firefox focused Switch default Action state failed',
+      switchDirectMatchedAction,
+      'Firefox focused Switch matched-Direct Action state failed',
     );
     await waitForFirefoxActionState(
       toolbarInternalTabId,
@@ -736,13 +750,14 @@ try {
       'Firefox focused Switch internal-page fallback Action state failed',
     );
 
+    const switchDefaultDirectUrl = `http://127.0.0.1:${sourceAddress.port}/toolbar-switch-default-direct`;
     await driver.switchTo().window(toolbarProxyWindow);
-    await driver.get(sameTabBypassUrl);
+    await driver.get(switchDefaultDirectUrl);
     await driver.switchTo().window(optionsWindow);
     await waitForFirefoxActionState(
       toolbarProxyTabId,
-      switchDefaultAction,
-      'Firefox focused Switch same-tab matched-to-default transition failed',
+      switchDirectDefaultAction,
+      'Firefox focused Switch same-tab Fixed-to-default-Direct transition failed',
     );
     await driver.switchTo().window(toolbarProxyWindow);
     await driver.get(sameTabProxyUrl);
@@ -750,7 +765,7 @@ try {
     await waitForFirefoxActionState(
       toolbarProxyTabId,
       switchMatchedAction,
-      'Firefox focused Switch same-tab default-to-matched transition failed',
+      'Firefox focused Switch same-tab default-Direct-to-Fixed transition failed',
     );
 
     assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);

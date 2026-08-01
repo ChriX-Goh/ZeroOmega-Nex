@@ -113,14 +113,14 @@ function originalSwitchConditionDisplay(condition: Condition): string | undefine
 
 /**
  * Resolve source- and runtime-proven built-in, static Fixed and exact
- * Switch-to-Fixed proxy Action states from the applied profile workflow. Fixed
+ * Switch-to-Direct/Fixed Action states from the applied profile workflow. Fixed
  * details reproduce the original `Profiles.match` arrays consumed by
  * `actionForUrl`: bypass pattern to Direct, scheme to PAC result, or fallback
- * PAC result alone. The Switch slice accepts only a direct matched/default rule
- * into one colored Fixed profile without an attached Rule List. Switch results
- * into Direct/System, nested or attached Rule Lists, Virtual, PAC,
- * temporary-rule and external-control traces remain fail-closed until their
- * complete original `matchProfile.results` display chain is represented.
+ * PAC result alone. The Switch slice accepts one exact matched/default rule into
+ * built-in Direct or one colored Fixed profile without an attached Rule List.
+ * Switch-to-System is explicitly invalid in the original PAC runtime. Nested or
+ * attached Rule Lists, Virtual, PAC, temporary-rule and external-control traces
+ * remain fail-closed until their complete original display chain is represented.
  */
 export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateResolver {
   readonly #repository: OriginalToolbarProfileStateRepository;
@@ -163,7 +163,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     if (decision.status !== 'resolved' || decision.support !== 'exact') return undefined;
 
     if (profile.kind === 'switch') {
-      return this.resolveSwitchFixedProxy(state, profile, decision, request, directColor);
+      return this.resolveSwitchResult(state, profile, decision, request, directColor);
     }
     if (profile.kind !== 'fixed') return undefined;
 
@@ -232,6 +232,101 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
         enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
         resultProfileName: profileName,
         resultProfileBuiltin: false,
+      },
+    });
+  }
+
+  private resolveSwitchResult(
+    state: ProfileWorkflowState,
+    profile: SwitchProfile,
+    decision: GraphDecision,
+    request: ReferenceRequest,
+    directColor: string,
+  ) {
+    if (
+      profile.color === undefined ||
+      profile.attachedRuleListProfileId !== undefined ||
+      decision.status !== 'resolved' ||
+      decision.support !== 'exact'
+    ) {
+      return undefined;
+    }
+
+    if (decision.route.kind === 'direct') {
+      return this.resolveSwitchDirect(state, profile, decision, directColor);
+    }
+    if (decision.route.kind === 'proxy') {
+      return this.resolveSwitchFixedProxy(state, profile, decision, request, directColor);
+    }
+    return undefined;
+  }
+
+  private resolveSwitchDirect(
+    state: ProfileWorkflowState,
+    profile: SwitchProfile,
+    decision: GraphDecision,
+    directColor: string,
+  ) {
+    if (
+      profile.color === undefined ||
+      decision.status !== 'resolved' ||
+      decision.support !== 'exact' ||
+      decision.route.kind !== 'direct'
+    ) {
+      return undefined;
+    }
+
+    const allowedActions = new Set(['enter-profile', 'switch-rule', 'switch-default', 'direct']);
+    if (decision.trace.some((entry) => !allowedActions.has(entry.action))) return undefined;
+
+    const enteredProfiles = decision.trace
+      .filter((entry) => entry.action === 'enter-profile')
+      .map((entry) => entry.profileId);
+    if (enteredProfiles.length !== 1 || enteredProfiles[0] !== profile.id) return undefined;
+
+    const switchEntries = decision.trace.filter((entry) => entry.action === 'switch-rule');
+    if (switchEntries.some((entry) => entry.profileId !== profile.id)) return undefined;
+    const matchedEntries = switchEntries.filter((entry) => entry.matched === true);
+    const defaultEntries = decision.trace.filter((entry) => entry.action === 'switch-default');
+    const directName = this.requireRouteName('direct');
+    const directDisplayName = `[${directName}]`;
+
+    let details: string;
+    if (matchedEntries.length === 1 && defaultEntries.length === 0) {
+      const matchedEntry = matchedEntries[0];
+      const rule = profile.rules.find((candidate) => candidate.id === matchedEntry?.ruleId);
+      if (rule === undefined || rule.route.kind !== 'direct') return undefined;
+      const condition = originalSwitchConditionDisplay(rule.condition);
+      if (condition === undefined) return undefined;
+      details = `${condition} => ${directDisplayName}\n`;
+    } else if (matchedEntries.length === 0 && defaultEntries.length === 1) {
+      if (profile.defaultRoute.kind !== 'direct') return undefined;
+      const defaultDetail = localizeOriginalToolbarDetail(
+        this.#i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
+      );
+      details = `${defaultDetail} => ${directDisplayName}\n`;
+    } else {
+      return undefined;
+    }
+
+    return deriveOriginalToolbarTabState({
+      currentProfileName: profile.name,
+      resultProfileName: directDisplayName,
+      details,
+      icon: {
+        currentProfileColor: profile.color,
+        matchedProfileColor: profile.color,
+        directProfileColor: directColor,
+        directResult: true,
+        currentProfileStatic: false,
+        matchedProfileIsCurrent: false,
+      },
+      badge: {
+        enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+        resultProfileName: directDisplayName,
+        resultProfileBuiltin: true,
+        builtinBadgeText: directName,
       },
     });
   }

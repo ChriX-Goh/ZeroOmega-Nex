@@ -108,10 +108,15 @@ try {
         'Toolbar Proxy',
         `toolbar-a.test => Toolbar Proxy\nPROXY 127.0.0.1:${proxyPort}\n`,
       ),
-      switchDefault: resultTitle(
+      switchDirectMatched: resultTitle(
         'Toolbar Switch',
-        'Toolbar Proxy',
-        `${defaultDetail} => Toolbar Proxy\nPROXY 127.0.0.1:${proxyPort}\n`,
+        `[${directName}]`,
+        `localhost => [${directName}]\n`,
+      ),
+      switchDirectDefault: resultTitle(
+        'Toolbar Switch',
+        `[${directName}]`,
+        `${defaultDetail} => [${directName}]\n`,
       ),
       default: chrome.i18n.getMessage('manifest_icon_default_title'),
     };
@@ -261,8 +266,13 @@ try {
         condition: { kind: 'host-wildcard', pattern: 'toolbar-a.test' },
         route: { kind: 'profile', profileId: proxyProfileId },
       },
+      {
+        id: 'rule-toolbar-direct',
+        condition: { kind: 'host-wildcard', pattern: 'localhost' },
+        route: { kind: 'direct' },
+      },
     ],
-    defaultRoute: { kind: 'profile', profileId: proxyProfileId },
+    defaultRoute: { kind: 'direct' },
   });
   switchDraft.settings.quickSwitch.routes.push({
     kind: 'profile',
@@ -298,7 +308,16 @@ try {
   );
 
   const switchMatchedState = { title: expectedTitles.switchMatched, badgeText: 'Tool', popup };
-  const switchDefaultState = { title: expectedTitles.switchDefault, badgeText: 'Tool', popup };
+  const switchDirectMatchedState = {
+    title: expectedTitles.switchDirectMatched,
+    badgeText: 'Dire',
+    popup,
+  };
+  const switchDirectDefaultState = {
+    title: expectedTitles.switchDirectDefault,
+    badgeText: 'Dire',
+    popup,
+  };
   await waitForActionState(
     extensionPage,
     proxyTabId,
@@ -308,8 +327,8 @@ try {
   await waitForActionState(
     extensionPage,
     bypassTabId,
-    switchDefaultState,
-    'Switch default Action state failed',
+    switchDirectMatchedState,
+    'Switch matched-Direct Action state failed',
   );
   await waitForActionState(
     extensionPage,
@@ -318,19 +337,20 @@ try {
     'Switch internal-page fallback Action state failed',
   );
 
-  await proxyPage.goto(sameTabBypassUrl, { waitUntil: 'domcontentloaded' });
+  const switchDefaultDirectUrl = `http://127.0.0.1:${address.port}/switch-default-direct`;
+  await proxyPage.goto(switchDefaultDirectUrl, { waitUntil: 'domcontentloaded' });
   await waitForActionState(
     extensionPage,
     proxyTabId,
-    switchDefaultState,
-    'Switch same-tab matched-to-default transition failed',
+    switchDirectDefaultState,
+    'Switch same-tab Fixed-to-default-Direct transition failed',
   );
   await proxyPage.goto(sameTabProxyUrl, { waitUntil: 'domcontentloaded' });
   await waitForActionState(
     extensionPage,
     proxyTabId,
     switchMatchedState,
-    'Switch same-tab default-to-matched transition failed',
+    'Switch same-tab default-Direct-to-Fixed transition failed',
   );
 
   console.log(`Chromium toolbar Action E2E passed for ${extensionId}.`);

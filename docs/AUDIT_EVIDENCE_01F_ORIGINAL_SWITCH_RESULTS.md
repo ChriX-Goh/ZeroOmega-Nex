@@ -24,11 +24,11 @@ The probe called the original package's real background `_actionForUrl` method t
 
 ## Exact original Action results
 
-| Case | Current | Result | Details after title header | Badge | Result color | Current/profile color | Prefix |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| matched Direct | `Runtime Switch` | `[Direct]` | `direct-match.test => [Direct]\n` | `Dire` | `#aaaaaa` | `#ffb74d` | empty |
-| matched Fixed | `Runtime Switch` | `Runtime Fixed` | `fixed-match.test => Runtime Fixed\nPROXY 127.0.0.1:18181\n` | `Runt` | `#64b5f6` | `#ffb74d` | empty |
-| default Direct | `Runtime Switch` | `[Direct]` | `(default) => [Direct]\n` | `Dire` | `#aaaaaa` | `#ffb74d` | empty |
+| Case           | Current          | Result          | Details after title header                                   | Badge  | Result color | Current/profile color | Prefix |
+| -------------- | ---------------- | --------------- | ------------------------------------------------------------ | ------ | ------------ | --------------------- | ------ |
+| matched Direct | `Runtime Switch` | `[Direct]`      | `direct-match.test => [Direct]\n`                            | `Dire` | `#aaaaaa`    | `#ffb74d`             | empty  |
+| matched Fixed  | `Runtime Switch` | `Runtime Fixed` | `fixed-match.test => Runtime Fixed\nPROXY 127.0.0.1:18181\n` | `Runt` | `#64b5f6`    | `#ffb74d`             | empty  |
+| default Direct | `Runtime Switch` | `[Direct]`      | `(default) => [Direct]\n`                                    | `Dire` | `#aaaaaa`    | `#ffb74d`             | empty  |
 
 Exact titles:
 

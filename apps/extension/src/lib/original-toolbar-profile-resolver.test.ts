@@ -232,7 +232,78 @@ describe('original toolbar profile resolver', () => {
     });
   });
 
-  it('fails closed for Switch trace shapes outside the exact Fixed slice', async () => {
+  it('reproduces an exact Switch matched-rule trace into Direct', async () => {
+    const workflowState = state(true);
+    workflowState.applied.profiles.push({
+      id: 'profile-switch-direct',
+      name: 'Automatic',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-direct',
+          condition: { kind: 'host-wildcard', pattern: 'direct-match.test' },
+          route: { kind: 'direct' },
+        },
+      ],
+      defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-switch-direct' },
+    }).resolve({ tabId: 22, url: 'http://direct-match.test/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Automatic',
+        resultProfileName: '[Direct]',
+        details: 'direct-match.test => [Direct]\n',
+      },
+      badgeText: 'Dire',
+    });
+  });
+
+  it('reproduces an exact Switch default trace into Direct', async () => {
+    const workflowState = state();
+    workflowState.applied.profiles.push({
+      id: 'profile-switch-direct',
+      name: 'Automatic',
+      color: '#ffb74d',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-fixed',
+          condition: { kind: 'host-wildcard', pattern: 'fixed-match.test' },
+          route: { kind: 'profile', profileId: 'profile-default-proxy' },
+        },
+      ],
+      defaultRoute: { kind: 'direct' },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-switch-direct' },
+    }).resolve({ tabId: 24, url: 'http://default-match.test/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Automatic',
+        resultProfileName: '[Direct]',
+        details: '(default) => [Direct]\n',
+      },
+    });
+  });
+
+  it('fails closed for invalid System and attached-list Switch trace shapes', async () => {
     const workflowState = state();
     const fixed = workflowState.applied.profiles[0];
     if (!fixed || fixed.kind !== 'fixed') throw new Error('missing default Fixed profile');
@@ -242,7 +313,7 @@ describe('original toolbar profile resolver', () => {
       color: '#ffb74d',
       kind: 'switch',
       rules: [],
-      defaultRoute: { kind: 'direct' },
+      defaultRoute: { kind: 'system' },
     });
 
     await expect(
