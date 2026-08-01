@@ -100,6 +100,20 @@ const nestedVirtualOuterDirect = {
   color: '#ff8a65',
 };
 
+const runtimePacScript = `function FindProxyForURL(url, host) {
+  if (host === 'pac-proxy.test') return 'PROXY 127.0.0.1:18186';
+  return 'DIRECT';
+}
+`;
+
+const runtimePac = {
+  name: 'Runtime PAC',
+  profileType: 'PacProfile',
+  color: '#4db6ac',
+  pacUrl: `data:application/x-ns-proxy-autoconfig;charset=utf-8,${encodeURIComponent(runtimePacScript)}`,
+  pacScript: runtimePacScript,
+};
+
 export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
   'nested-switch': Object.freeze({
     id: 'nested-switch',
@@ -150,6 +164,24 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         label: 'outer-virtual-inner-virtual-fixed-bypass',
         profileName: nestedVirtualOuterFixed.name,
         url: 'http://localhost/path',
+      }),
+    ]),
+  }),
+  pac: Object.freeze({
+    id: 'pac',
+    description:
+      'Applied PAC profile returns an explicit HTTP proxy for one host and DIRECT for another host.',
+    profiles: Object.freeze([runtimePac]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'pac-proxy',
+        profileName: runtimePac.name,
+        url: 'http://pac-proxy.test/path',
+      }),
+      Object.freeze({
+        label: 'pac-direct',
+        profileName: runtimePac.name,
+        url: 'http://pac-direct.test/path',
       }),
     ]),
   }),
