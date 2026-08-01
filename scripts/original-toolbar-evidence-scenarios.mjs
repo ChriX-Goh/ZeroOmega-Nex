@@ -51,6 +51,55 @@ const nestedOuter = {
   defaultProfileName: 'direct',
 };
 
+const nestedVirtualFixed = {
+  name: 'Runtime Nested Virtual Fixed',
+  profileType: 'FixedProfile',
+  color: '#64b5f6',
+  bypassList: [
+    {
+      conditionType: 'BypassCondition',
+      pattern: 'localhost',
+    },
+  ],
+  fallbackProxy: {
+    scheme: 'http',
+    host: '127.0.0.1',
+    port: 18185,
+  },
+};
+
+const nestedVirtualInnerFixed = {
+  name: 'Runtime Nested Virtual Inner Fixed Alias',
+  profileType: 'VirtualProfile',
+  defaultProfileName: nestedVirtualFixed.name,
+  rules: [],
+  color: '#81c784',
+};
+
+const nestedVirtualOuterFixed = {
+  name: 'Runtime Nested Virtual Outer Fixed Alias',
+  profileType: 'VirtualProfile',
+  defaultProfileName: nestedVirtualInnerFixed.name,
+  rules: [],
+  color: '#ffb74d',
+};
+
+const nestedVirtualInnerDirect = {
+  name: 'Runtime Nested Virtual Inner Direct Alias',
+  profileType: 'VirtualProfile',
+  defaultProfileName: 'direct',
+  rules: [],
+  color: '#9575cd',
+};
+
+const nestedVirtualOuterDirect = {
+  name: 'Runtime Nested Virtual Outer Direct Alias',
+  profileType: 'VirtualProfile',
+  defaultProfileName: nestedVirtualInnerDirect.name,
+  rules: [],
+  color: '#ff8a65',
+};
+
 export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
   'nested-switch': Object.freeze({
     id: 'nested-switch',
@@ -72,6 +121,35 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         label: 'outer-default-direct',
         profileName: nestedOuter.name,
         url: 'http://outer-default.test/path',
+      }),
+    ]),
+  }),
+  'nested-virtual': Object.freeze({
+    id: 'nested-virtual',
+    description:
+      'Outer Virtual resolves through an inner Virtual into Direct or Fixed, including a Fixed bypass case.',
+    profiles: Object.freeze([
+      nestedVirtualFixed,
+      nestedVirtualInnerFixed,
+      nestedVirtualOuterFixed,
+      nestedVirtualInnerDirect,
+      nestedVirtualOuterDirect,
+    ]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'outer-virtual-inner-virtual-direct',
+        profileName: nestedVirtualOuterDirect.name,
+        url: 'http://nested-virtual-direct.test/path',
+      }),
+      Object.freeze({
+        label: 'outer-virtual-inner-virtual-fixed-proxy',
+        profileName: nestedVirtualOuterFixed.name,
+        url: 'http://nested-virtual-fixed.test/path',
+      }),
+      Object.freeze({
+        label: 'outer-virtual-inner-virtual-fixed-bypass',
+        profileName: nestedVirtualOuterFixed.name,
+        url: 'http://localhost/path',
       }),
     ]),
   }),
