@@ -9,15 +9,26 @@ import { chromium } from '@playwright/test';
 import {
   configureNestedSwitchDraft,
   configureNestedVirtualDraft,
+  configurePacDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
   nestedSwitchCases,
   nestedVirtualCases,
+  pacCases,
   PROFILE_TRACE_HOSTS,
+  RUNTIME_PAC_SCRIPT,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-profile-traces-'));
-const server = createServer((_request, response) => {
+const server = createServer((request, response) => {
+  if (request.url === '/runtime-pac.pac') {
+    response.writeHead(200, {
+      'content-type': 'application/x-ns-proxy-autoconfig; charset=utf-8',
+      'cache-control': 'no-store',
+    });
+    response.end(RUNTIME_PAC_SCRIPT);
+    return;
+  }
   response.writeHead(200, {
     'content-type': 'text/html; charset=utf-8',
     'cache-control': 'no-store',
@@ -32,6 +43,7 @@ const address = server.address();
 if (!address || typeof address === 'string') {
   throw new Error('Chromium profile trace server failed');
 }
+const pacUrl = `http://127.0.0.1:${address.port}/runtime-pac.pac`;
 let context;
 
 async function readActionState(extensionPage, tabId) {
@@ -133,8 +145,10 @@ try {
   }));
   const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
   const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
+  const runtimePacCases = pacCases({ pacUrl });
   const switchTabs = await openCases(extensionPage, switchCases);
   const virtualTabs = await openCases(extensionPage, virtualCases);
+  const pacTabs = await openCases(extensionPage, runtimePacCases);
 
   const current = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -144,6 +158,7 @@ try {
   const draft = structuredClone(current.state.draft);
   const switchScenario = configureNestedSwitchDraft(draft, address.port);
   const virtualScenario = configureNestedVirtualDraft(draft, address.port);
+  const pacScenario = configurePacDraft(draft, pacUrl);
 
   const replaced = await sendWorkflowCommand(extensionPage, {
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -205,6 +220,21 @@ try {
       tabId,
       await expectedActionState(extensionPage, capture, popup),
       `Chromium nested Virtual Fixed case ${capture.id} failed`,
+    );
+  }
+
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    pacScenario.profileId,
+    'PAC',
+  );
+  for (const { capture, tabId } of pacTabs) {
+    await waitForActionState(
+      extensionPage,
+      tabId,
+      await expectedActionState(extensionPage, capture, popup),
+      `Chromium PAC case ${capture.id} failed`,
     );
   }
 
