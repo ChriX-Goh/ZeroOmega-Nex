@@ -25,15 +25,16 @@ The unified Original-observable projection currently represents:
 - exact immediate Virtual → Direct/Fixed proxy/bypass;
 - exact nested Virtual 01J subset;
 - exact attached Rule List 01H subset;
-- exact URL-backed PAC Toolbar 01K subset.
+- exact URL-backed PAC Toolbar 01K subset;
+- exact temporary-rule Toolbar 01L subset.
 
 Real Chromium and Firefox Action E2E covers represented shapes. Native Chromium Inspect covers set, clear, base restoration and tab isolation.
 
 ## Active delivery sequence
 
-1. **Order 1 — installation/startup/Toolbar:** 35%. PAC static Toolbar state is captured; remaining Rule List, temporary-rule, external-control, fallback/pixel evidence and owner acceptance remain.
+1. **Order 1 — installation/startup/Toolbar:** 35%. Temporary-rule 01L is captured and mapped; external-control, renderer fallback, remaining high-value nested/Rule List shapes, headed pixels and owner acceptance remain.
 2. **Order 2 — original export → direct Nex use:** blocked by `KG-IMPORT-001` and `KG-IMPORT-COLOR-001`.
-3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open.
+3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open; complete temporary-rule interaction is not closed by Toolbar 01L.
 4. **Order 4 — Options / Apply / Discard:** broad layout, workflow and text mismatch remains open.
 5. **Order 5 — complete profile journeys:** historical implementation inventory remains pending complete journey re-audit.
 6. **Order 6 — export/restart/rollback/ownership/authentication:** partial engineering assets exist; owner-complete behavior is unproved.
@@ -47,6 +48,7 @@ The read-only `.github/workflows/original-toolbar-evidence.yml` workflow:
 - accepts one scenario ID, comma-separated IDs or `all`;
 - uses an isolated Chromium profile for every scenario;
 - creates and applies profiles through the original runtime APIs;
+- supports evidence-bounded per-capture runtime commands;
 - captures original runtime state and `_actionForUrl` output into an auditable JSON Artifact;
 - cannot commit or push.
 
@@ -54,7 +56,8 @@ The scenario registry contains:
 
 - `nested-switch` → evidence 01I;
 - `nested-virtual` → evidence 01J;
-- `pac` → evidence 01K.
+- `pac` → evidence 01K;
+- `temporary-rule` → evidence 01L.
 
 Pull requests execute `all`. New result families must extend this registry and runner instead of creating another per-trace workflow.
 
@@ -92,19 +95,44 @@ Two-level Virtual into Direct/Fixed proxy/bypass is captured and verified, inclu
 - both colors come from the PAC profile, producing a one-color icon;
 - no per-URL PAC route result is exposed by the Toolbar.
 
+### Temporary rule 01L
+
+`AUDIT_EVIDENCE_01L_ORIGINAL_TEMPORARY_RULE_RESULTS.md` establishes:
+
+- one temporary `*.temp-rule.test` host rule over one empty base Switch;
+- matched host → one Fixed HTTP proxy;
+- localized temporary prefix before the matched condition line;
+- the hidden temporary Switch identity remains invisible;
+- unmatched host → hidden-overlay default to the base Switch, then base default to Direct;
+- deleting the last rule leaves the empty hidden overlay active in the current session;
+- the removed-rule state therefore keeps the same two visible default transitions.
+
 ## Current Nex runtime
 
-Confirmed in real browsers:
+Confirmed in deterministic tests and represented in the real-browser matrix:
 
 - Direct/System/Fixed proxy and bypass;
 - one-level Switch and nested Switch 01I;
 - immediate Virtual and nested Virtual 01J;
 - attached Rule List 01H;
 - URL-backed PAC static Toolbar state 01K;
+- temporary-rule matched/unmatched/last-rule-removed Toolbar state 01L;
 - internal-page/default fallback and tab isolation;
 - Chromium Inspect overlay restoration/isolation.
 
-The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives Chromium and Firefox nested Switch, nested Virtual and PAC Action E2E in one applied document. For PAC, two tabs whose script returns different routes must still show the same original Action state.
+The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives Chromium and Firefox nested Switch, nested Virtual, PAC and temporary-rule Action E2E in one applied document. Temporary-rule tests use the real runtime message channel to toggle and remove the rule, then observe the existing Action coordinator rather than invoking the projector directly.
+
+## Temporary overlay architecture
+
+The 01L implementation preserves original observable state without leaking rewrite internals:
+
+- the temporary-rule model records whether the hidden overlay remains active independently of rule count;
+- removing or clearing the last rule retains the empty active overlay;
+- normal runtime inspection still reports the visible base route;
+- Toolbar-only runtime inspection supplies the synthetic overlay graph to the Original-observable projector;
+- the specialized projector accepts only the captured 01L graph shape;
+- mutations trigger the existing single Action writer and per-tab refresh path;
+- unsupported temporary-rule shapes continue to fail closed.
 
 ## Closed evidence-proven correction
 
@@ -116,7 +144,7 @@ The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives Chro
 - nested Virtual beyond 01J, including Virtual → Switch/Rule List/PAC;
 - attached Rule List beyond 01H;
 - PAC lifecycle beyond 01K: inline/uncached/update/error/header/auth/fallback states;
-- temporary-rule state;
+- temporary-rule lifecycle beyond 01L: multiple rules, other profile families, restart/errors and complete Popup interaction;
 - external-controller transitions and recovery;
 - renderer fallback and headed pixels where Action API state is insufficient;
 - consolidated repository-owner acceptance.
@@ -136,7 +164,7 @@ Switch → System is not missing because the original runtime rejects it.
 
 ## Next fixed edge
 
-Capture either the highest-value remaining attached Rule List boundary or the original temporary-rule Toolbar transition. Extend the same evidence harness, implement only the captured subset, verify deterministic/Chromium/Firefox behavior, then continue external-control and renderer-fallback evidence.
+Capture the original external-control Toolbar transitions and recovery, map only the proven states, verify deterministic/Chromium/Firefox behavior, then continue renderer-fallback evidence and the remaining Order 1 consolidation.
 
 ## Execution rule
 
