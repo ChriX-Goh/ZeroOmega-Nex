@@ -76,10 +76,7 @@ function requireRouteName(
   return name;
 }
 
-function builtinProfile(
-  name: string,
-  color: string,
-): OriginalObservableProfileReference {
+function builtinProfile(name: string, color: string): OriginalObservableProfileReference {
   return {
     displayName: `[${name}]`,
     badgeName: name,
@@ -445,10 +442,7 @@ function projectVirtual(
         profile.name,
       ),
       resultProfile: directProfile,
-      details: localizeOriginalToolbarDetail(
-        input.i18n,
-        ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
-      ),
+      details: localizeOriginalToolbarDetail(input.i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult),
       routeKind: 'direct',
       directProfileColor: directColor,
       directResult: true,
@@ -481,12 +475,7 @@ function projectVirtual(
   const resultProfile = userProfile(targetProfile.name, targetProfile.color);
 
   if (decision.route.kind === 'proxy') {
-    const allowedActions = new Set([
-      'enter-profile',
-      'virtual',
-      'fixed-bypass',
-      'fixed-endpoint',
-    ]);
+    const allowedActions = new Set(['enter-profile', 'virtual', 'fixed-bypass', 'fixed-endpoint']);
     if (decision.trace.some((entry) => !allowedActions.has(entry.action))) return undefined;
     const endpointEntry = decision.trace.findLast((entry) => entry.action === 'fixed-endpoint');
     if (
@@ -554,11 +543,9 @@ export function projectOriginalObservableResultTrace(
   input: ProjectOriginalObservableResultTraceInput,
 ): OriginalObservableResultTrace | undefined {
   const directColor =
-    input.spec.settings.interface.builtInProfiles?.direct?.color ??
-    ORIGINAL_TOOLBAR_DIRECT_COLOR;
+    input.spec.settings.interface.builtInProfiles?.direct?.color ?? ORIGINAL_TOOLBAR_DIRECT_COLOR;
   const systemColor =
-    input.spec.settings.interface.builtInProfiles?.system?.color ??
-    ORIGINAL_TOOLBAR_SYSTEM_COLOR;
+    input.spec.settings.interface.builtInProfiles?.system?.color ?? ORIGINAL_TOOLBAR_SYSTEM_COLOR;
 
   if (input.activeRoute.kind === 'direct' || input.activeRoute.kind === 'system') {
     return projectBuiltIn(input, input.activeRoute.kind, directColor, systemColor);
