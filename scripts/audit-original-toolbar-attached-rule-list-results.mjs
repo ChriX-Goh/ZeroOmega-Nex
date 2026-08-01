@@ -133,7 +133,7 @@ try {
     format: 'AutoProxy',
     matchProfileName: fixedProfile.name,
     defaultProfileName: 'direct',
-    ruleList: '[AutoProxy 0.2.9]\n||attached-fixed.test^\n',
+    ruleList: '[AutoProxy 0.2.9]\n||attached-fixed.test\n',
   };
 
   const directParent = {
@@ -150,7 +150,7 @@ try {
     format: 'AutoProxy',
     matchProfileName: 'direct',
     defaultProfileName: fixedProfile.name,
-    ruleList: '[AutoProxy 0.2.9]\n||attached-direct.test^\n',
+    ruleList: '[AutoProxy 0.2.9]\n||attached-direct.test\n',
   };
 
   for (const profile of [
