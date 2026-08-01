@@ -1,0 +1,94 @@
+name: Staged Chromium System Cleanup Transition
+
+on:
+  workflow_dispatch:
+
+jobs:
+  staged:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Staged patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          path = Path('scripts/e2e-chromium.mjs')
+          text = path.read_text()
+          start_marker = '  const temporaryCleanup = await temporaryManager.evaluate(\n'
+          end_marker = '  await temporaryManager.close();\n'
+          if text.count(start_marker) != 1:
+              raise SystemExit(f'expected one temporary cleanup block, found {text.count(start_marker)}')
+          start = text.index(start_marker)
+          end = text.index(end_marker, start) + len(end_marker)
+          replacement = """  const temporaryCleanup = await temporaryManager.evaluate(async () => {
+            const channel = 'zeroomega-nex/profile-workflow/v1';
+            const current = await chrome.runtime.sendMessage({ channel, action: 'get' });
+            if (current?.ok !== true) return { stage: 'get', response: current };
+
+            let state = current.state;
+            const draft = structuredClone(state.draft);
+            const hasSystemRoute = draft.settings.quickSwitch.routes.some(
+              (route) => route.kind === 'system',
+            );
+            if (!hasSystemRoute) {
+              draft.settings.quickSwitch.routes.push({ kind: 'system' });
+              const replaced = await chrome.runtime.sendMessage({
+                channel,
+                action: 'replace-draft',
+                expectedGeneration: state.generation,
+                draft,
+              });
+              if (replaced?.ok !== true) return { stage: 'replace-draft', response: replaced };
+              const applied = await chrome.runtime.sendMessage({
+                channel,
+                action: 'apply',
+                expectedGeneration: replaced.state.generation,
+              });
+              if (applied?.ok !== true) return { stage: 'apply', response: applied };
+              state = applied.state;
+            }
+
+            const activated = await chrome.runtime.sendMessage({
+              channel,
+              action: 'activate-route',
+              expectedAppliedRevisionId: state.applied.revision.id,
+              route: { kind: 'system' },
+            });
+            return { stage: 'activate-route', response: activated };
+          });
+          assert.equal(
+            temporaryCleanup?.response?.ok,
+            true,
+            `System cleanup after temporary-rule evidence failed at ${temporaryCleanup?.stage}: ${JSON.stringify(temporaryCleanup?.response)}`,
+          );
+          await assertEventually(async () => {
+            const local = await worker.evaluate(async () => chrome.storage.local.get(null));
+            return !String(
+              local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '',
+            ).startsWith('popup-temporary-v1/');
+          }, 'System cleanup did not leave the temporary overlay');
+          await temporaryManager.close();
+"""
+          path.write_text(text[:start] + replacement + text[end:])
+
+          Path('.github/workflows/export-original-temp-rule-source.yml').write_text(
+              "name: Temporary Launcher Cleanup\n\n"
+              "on:\n"
+              "  workflow_dispatch:\n\n"
+              "permissions:\n"
+              "  contents: read\n\n"
+              "jobs:\n"
+              "  noop:\n"
+              "    runs-on: ubuntu-24.04\n"
+              "    steps:\n"
+              "      - run: echo cleanup\n"
+          )
+          subprocess.run(
+              ['pnpm', 'exec', 'prettier', '--write', 'scripts/e2e-chromium.mjs'],
+              check=True,
+          )
+          Path('.github/workflows/apply-temporary-rule-toolbar.yml').unlink()
+          PY
+
+      - name: Format and verify repository
