@@ -251,6 +251,7 @@ export function projectOriginalNestedVirtualTrace(
     return undefined;
   }
 
+  const innerProfileId = input.parent.targetRoute.profileId;
   const resolvedInput: ResolvedNestedVirtualTraceInput = {
     ...input,
     parent: input.parent as ColoredVirtualProfile,
@@ -258,9 +259,7 @@ export function projectOriginalNestedVirtualTrace(
   };
   const inner = input.spec.profiles.find(
     (profile): profile is ColoredVirtualProfile =>
-      profile.id === resolvedInput.parent.targetRoute.profileId &&
-      profile.kind === 'virtual' &&
-      profile.color !== undefined,
+      profile.id === innerProfileId && profile.kind === 'virtual' && profile.color !== undefined,
   );
   if (inner === undefined) return undefined;
 
@@ -268,11 +267,10 @@ export function projectOriginalNestedVirtualTrace(
     return projectNestedDirect(resolvedInput, inner);
   }
 
+  const fixedProfileId = inner.targetRoute.profileId;
   const fixed = input.spec.profiles.find(
     (profile): profile is FixedProfile & { readonly color: string } =>
-      profile.id === inner.targetRoute.profileId &&
-      profile.kind === 'fixed' &&
-      profile.color !== undefined,
+      profile.id === fixedProfileId && profile.kind === 'fixed' && profile.color !== undefined,
   );
   if (fixed === undefined) return undefined;
 
