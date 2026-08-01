@@ -7,9 +7,11 @@ import firefox from 'selenium-webdriver/firefox.js';
 
 import {
   configureNestedSwitchDraft,
-  NESTED_SWITCH_SCENARIO,
+  configureNestedVirtualDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
   nestedSwitchCases,
+  nestedVirtualCases,
+  PROFILE_TRACE_HOSTS,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const server = createServer((_request, response) => {
@@ -37,7 +39,7 @@ const options = new firefox.Options()
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
   .setPreference('network.dns.disableIPv6', true)
-  .setPreference('network.dns.localDomains', NESTED_SWITCH_SCENARIO.hosts.join(','))
+  .setPreference('network.dns.localDomains', PROFILE_TRACE_HOSTS.join(','))
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
 
@@ -150,24 +152,52 @@ async function waitForActionState(tabId, expected, label) {
   }
 }
 
-async function localizedActionState(resultProfileName, details, badgeText, popup) {
+async function localizedActionState(capture, popup) {
   return driver.executeScript(
     `
       return {
         title: browser.i18n.getMessage('browserAction_titleWithResult', [
-          'Runtime Nested Outer Switch',
           arguments[0],
           arguments[1],
+          arguments[2],
         ]),
-        badgeText: arguments[2],
-        popup: arguments[3],
+        badgeText: arguments[3],
+        popup: arguments[4],
       };
     `,
-    resultProfileName,
-    details,
-    badgeText,
+    capture.currentProfileName,
+    capture.resultProfileName,
+    capture.details,
+    capture.badgeText,
     popup,
   );
+}
+
+async function openCases(cases) {
+  const tabs = [];
+  for (const capture of cases) {
+    const url = `http://${capture.host}:${address.port}${capture.path}`;
+    await driver.switchTo().newWindow('tab');
+    await driver.get(url);
+    tabs.push({ capture, url });
+  }
+  return tabs;
+}
+
+async function resolveTabIds(tabs) {
+  for (const tab of tabs) {
+    tab.tabId = await tabIdForUrl(tab.url);
+  }
+}
+
+async function activateProfile(appliedRevisionId, profileId, label) {
+  const activated = await sendWorkflowCommand({
+    channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
+    action: 'activate-route',
+    expectedAppliedRevisionId: appliedRevisionId,
+    route: { kind: 'profile', profileId },
+  });
+  assert.equal(activated?.ok, true, `${label} activation failed: ${JSON.stringify(activated)}`);
 }
 
 try {
@@ -186,19 +216,13 @@ try {
       defaultDetail: browser.i18n.getMessage('browserAction_defaultRuleDetails'),
     };
   `);
-  const cases = nestedSwitchCases({ proxyPort: address.port, ...localization });
-
-  const tabs = [];
-  for (const capture of cases) {
-    const url = `http://${capture.host}:${address.port}${capture.path}`;
-    await driver.switchTo().newWindow('tab');
-    await driver.get(url);
-    tabs.push({ capture, url });
-  }
+  const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
+  const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
+  const switchTabs = await openCases(switchCases);
+  const virtualTabs = await openCases(virtualCases);
   await driver.switchTo().window(optionsWindow);
-  for (const tab of tabs) {
-    tab.tabId = await tabIdForUrl(tab.url);
-  }
+  await resolveTabIds(switchTabs);
+  await resolveTabIds(virtualTabs);
 
   const current = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -206,7 +230,8 @@ try {
   });
   assert.equal(current?.ok, true, `Firefox workflow refresh failed: ${JSON.stringify(current)}`);
   const draft = structuredClone(current.state.draft);
-  const scenario = configureNestedSwitchDraft(draft, address.port);
+  const switchScenario = configureNestedSwitchDraft(draft, address.port);
+  const virtualScenario = configureNestedVirtualDraft(draft, address.port);
 
   const replaced = await sendWorkflowCommand({
     channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
@@ -221,28 +246,47 @@ try {
     expectedGeneration: replaced.state.generation,
   });
   assert.equal(applied?.ok, true, `Firefox Apply failed: ${JSON.stringify(applied)}`);
-  const activated = await sendWorkflowCommand({
-    channel: NEX_TOOLBAR_WORKFLOW_CHANNEL,
-    action: 'activate-route',
-    expectedAppliedRevisionId: applied.state.applied.revision.id,
-    route: { kind: 'profile', profileId: scenario.outerProfileId },
-  });
-  assert.equal(activated?.ok, true, `Firefox activation failed: ${JSON.stringify(activated)}`);
 
-  for (const { capture, tabId } of tabs) {
+  await activateProfile(applied.state.applied.revision.id, switchScenario.outerProfileId, 'Switch');
+  for (const { capture, tabId } of switchTabs) {
     await waitForActionState(
       tabId,
-      await localizedActionState(
-        capture.resultProfileName,
-        capture.details,
-        capture.badgeText,
-        popup,
-      ),
+      await localizedActionState(capture, popup),
       `Firefox nested Switch case ${capture.id} failed`,
     );
   }
 
-  console.log(`Firefox nested Switch toolbar E2E passed for ${addonId}.`);
+  await activateProfile(
+    applied.state.applied.revision.id,
+    virtualScenario.outerDirectProfileId,
+    'Nested Virtual Direct',
+  );
+  for (const { capture, tabId } of virtualTabs.filter(
+    ({ capture }) => capture.activationProfileId === virtualScenario.outerDirectProfileId,
+  )) {
+    await waitForActionState(
+      tabId,
+      await localizedActionState(capture, popup),
+      `Firefox nested Virtual Direct case ${capture.id} failed`,
+    );
+  }
+
+  await activateProfile(
+    applied.state.applied.revision.id,
+    virtualScenario.outerFixedProfileId,
+    'Nested Virtual Fixed',
+  );
+  for (const { capture, tabId } of virtualTabs.filter(
+    ({ capture }) => capture.activationProfileId === virtualScenario.outerFixedProfileId,
+  )) {
+    await waitForActionState(
+      tabId,
+      await localizedActionState(capture, popup),
+      `Firefox nested Virtual Fixed case ${capture.id} failed`,
+    );
+  }
+
+  console.log(`Firefox Toolbar profile trace E2E passed for ${addonId}.`);
 } finally {
   await driver.quit();
   await new Promise((resolveClose) => server.close(resolveClose));
