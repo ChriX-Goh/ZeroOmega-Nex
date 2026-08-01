@@ -63,12 +63,18 @@ Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
   - node `KG-TRACE-001`;
   - converts internal decisions into original current/result/detail/Badge/color/icon inputs;
   - hides rewrite internals and rejects unverified shapes;
-  - may project a captured original static Action state from a specific indeterminate runtime shape without executing arbitrary PAC.
+  - may project captured original static Action states from specific PAC and temporary-overlay runtime shapes without exposing internal graph objects.
+- `TemporaryOverlayBoundary`
+  - session-persisted hidden Switch state;
+  - empty active overlay retained after last-rule removal;
+  - normal runtime inspection reports the visible base route;
+  - Toolbar-only inspection exposes the active synthetic graph to the Original-observable projector;
+  - all mutations refresh the existing single Action writer.
 - `OriginalEvidenceBoundary`
   - node `KG-EVIDENCE-HARNESS-001`;
   - one permanent read-only original-package workflow;
   - fixed official v3.5.0 Chromium package hash;
-  - isolated scenario profiles, original `addProfile`, `applyProfile`, `_actionForUrl`, JSON Artifact.
+  - isolated scenario profiles, original runtime commands and `_actionForUrl`, JSON Artifact.
 - `ActionBoundary`
   - one background writer, global baseline, per-tab coordinator, stale suppression, lifecycle refresh, Inspect overlay and renderer fallback.
 - `NexEvidenceBoundary`
@@ -78,7 +84,7 @@ Stable dependency:
 
 `OriginalProductContract -> OriginalObservableProjection -> ActionBoundary/UserInterfaceBoundary`
 
-The internal `GraphTrace` and arbitrary PAC execution must not be invented as user-facing explanations.
+The internal `GraphTrace`, hidden temporary profile identity and arbitrary PAC execution must not be invented as user-facing explanations.
 
 ## 4. Original-observable represented shapes
 
@@ -91,7 +97,8 @@ The internal `GraphTrace` and arbitrary PAC execution must not be invented as us
 - immediate Virtual → Direct/Fixed proxy/bypass;
 - nested Virtual 01J subset;
 - attached Rule List 01H subset;
-- URL-backed PAC Toolbar 01K subset.
+- URL-backed PAC Toolbar 01K subset;
+- temporary-rule Toolbar 01L subset.
 
 Other result/lifecycle shapes remain `UNKNOWN` or `MISSING_IN_NEX` and must fail closed.
 
@@ -110,7 +117,7 @@ Supporting nodes:
 
 - `KG-EVIDENCE-HARNESS-001`
   - `VERIFIED_AUTOMATION`;
-  - registry: `nested-switch`, `nested-virtual`, `pac`;
+  - registry: `nested-switch`, `nested-virtual`, `pac`, `temporary-rule`;
   - pull requests run `all`.
 - `KG-TRACE-001`
   - `VERIFIED_AUTOMATION` for represented shapes.
@@ -128,7 +135,9 @@ Supporting nodes:
 - `KG-PAC-TRACE-001`
   - 01K URL-backed static Action subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - inline/cache/update/error/header/auth/fallback lifecycle: `UNKNOWN`.
-- `KG-TEMP-RULE-001` — open.
+- `KG-TEMP-RULE-001`
+  - 01L one-host-rule/empty-base-Switch/Fixed-target subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - multiple rules, other profile families, restart/error lifecycle and complete Popup journey: `UNKNOWN`.
 - `KG-EXTERNAL-CONTROL-001` — open.
 - `KG-ACTION-FALLBACK-001` — open.
 - `KG-TOOLBAR-PIXEL-001` — open where Action API is insufficient.
@@ -223,7 +232,37 @@ Unrepresented:
 - download, cache, update and invalid-script states;
 - custom headers, credentials and fallback profiles;
 - SOCKS/HTTPS chains;
-- temporary/external prefixes and complete PAC lifecycle.
+- complete PAC lifecycle.
+
+### Temporary rule 01L
+
+`OriginalTemporaryRule01L (SOURCE_CAPTURED)`  
+`-> KG-EVIDENCE-HARNESS-001 scenario temporary-rule (VERIFIED_AUTOMATION)`  
+`-> KG-TEMP-RULE-001 (MAPPED subset)`  
+`-> session-preserved hidden overlay + specialized projector (IMPLEMENTED)`  
+`-> deterministic model/runtime/Toolbar tests (VERIFIED_AUTOMATION)`  
+`-> shared Chromium profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> shared Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> KG-ICON-001 (open)`
+
+Represented:
+
+- one `*.temp-rule.test` temporary host rule;
+- one empty colored base Switch with default Direct;
+- one colored Fixed HTTP proxy target without bypass;
+- matched Fixed result with localized temporary prefix;
+- unmatched overlay fallthrough with two visible default transitions;
+- deletion of the last rule while the empty hidden overlay remains active;
+- visible base-profile identity, result-dependent Badge/colors and immediate single-writer refresh.
+
+Unrepresented:
+
+- multiple temporary rules, ordering and replacement;
+- other condition types;
+- other base/target profile families and nested graphs;
+- restart restoration and browser-session boundaries;
+- invalid routes, activation failure and rollback;
+- complete Popup temporary-rule interaction and owner acceptance.
 
 ## 7. Active defect graph
 
@@ -238,10 +277,10 @@ Unrepresented:
 
 ## 8. Progress and next edge
 
-Formal progress remains 47% total and 35% for Order 1. `KG-PAC-TRACE-001` is verified for the strict 01K URL-backed static Toolbar subset; complete PAC lifecycle remains open.
+Formal progress remains 47% total and 35% for Order 1. `KG-TEMP-RULE-001` is verified for the strict 01L Toolbar subset; the complete temporary-rule/Popup lifecycle remains open.
 
 The next fixed edge is:
 
-`remaining attached Rule List or temporary-rule original runtime -> mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
+`external-control original source/runtime -> KG-EXTERNAL-CONTROL-001 mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
 
 No candidate, merge or release is authorized.
