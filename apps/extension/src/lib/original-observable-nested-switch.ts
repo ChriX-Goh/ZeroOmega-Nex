@@ -7,6 +7,9 @@ import type {
   OriginalObservableResultTrace,
 } from './original-observable-result-trace';
 
+type ResolvedGraphDecision = Extract<GraphDecision, { readonly status: 'resolved' }>;
+type ColoredSwitchProfile = SwitchProfile & { readonly color: string };
+
 interface ProjectOriginalNestedSwitchTraceInput {
   readonly spec: ProfileSpec;
   readonly parent: SwitchProfile;
@@ -15,6 +18,14 @@ interface ProjectOriginalNestedSwitchTraceInput {
   readonly i18n: OriginalToolbarI18nApi;
   readonly directColor: string;
 }
+
+type ResolvedNestedSwitchTraceInput = Omit<
+  ProjectOriginalNestedSwitchTraceInput,
+  'parent' | 'decision'
+> & {
+  readonly parent: ColoredSwitchProfile;
+  readonly decision: ResolvedGraphDecision;
+};
 
 function userProfile(name: string, color: string): OriginalObservableProfileReference {
   return {
@@ -65,9 +76,9 @@ function matchedHostWildcard(
 }
 
 function traceProfiles(decision: GraphDecision): string[] {
-  return decision.trace
-    .filter((entry) => entry.action === 'enter-profile')
-    .map((entry) => entry.profileId);
+  return decision.trace.flatMap((entry) =>
+    entry.action === 'enter-profile' && entry.profileId !== undefined ? [entry.profileId] : [],
+  );
 }
 
 function onlySwitchProfiles(
@@ -84,7 +95,7 @@ function onlySwitchProfiles(
 }
 
 function projectNestedDirect(
-  input: ProjectOriginalNestedSwitchTraceInput,
+  input: ResolvedNestedSwitchTraceInput,
   inner: SwitchProfile,
   outerSelection: { readonly pattern: string; readonly targetProfileId: string },
 ): OriginalObservableResultTrace | undefined {
@@ -123,7 +134,7 @@ function projectNestedDirect(
   if (resultProfile === undefined || defaultDetail.length === 0) return undefined;
 
   return {
-    currentProfile: userProfile(input.parent.name, input.parent.color!),
+    currentProfile: userProfile(input.parent.name, input.parent.color),
     resultProfile,
     details:
       `${outerSelection.pattern} => ${inner.name}\n` +
@@ -137,7 +148,7 @@ function projectNestedDirect(
 }
 
 function projectNestedFixed(
-  input: ProjectOriginalNestedSwitchTraceInput,
+  input: ResolvedNestedSwitchTraceInput,
   inner: SwitchProfile,
   outerSelection: { readonly pattern: string; readonly targetProfileId: string },
 ): OriginalObservableResultTrace | undefined {
@@ -191,7 +202,7 @@ function projectNestedFixed(
   }
 
   return {
-    currentProfile: userProfile(input.parent.name, input.parent.color!),
+    currentProfile: userProfile(input.parent.name, input.parent.color),
     resultProfile: userProfile(fixed.name, fixed.color),
     details:
       `${outerSelection.pattern} => ${inner.name}\n` +
@@ -217,8 +228,13 @@ export function projectOriginalNestedSwitchTrace(
     return undefined;
   }
 
-  const entered = traceProfiles(input.decision);
-  if (entered.length < 2 || entered[0] !== input.parent.id) return undefined;
+  const resolvedInput: ResolvedNestedSwitchTraceInput = {
+    ...input,
+    parent: input.parent as ColoredSwitchProfile,
+    decision: input.decision,
+  };
+  const entered = traceProfiles(resolvedInput.decision);
+  if (entered.length < 2 || entered[0] !== resolvedInput.parent.id) return undefined;
   const inner = input.spec.profiles.find(
     (profile): profile is SwitchProfile =>
       profile.id === entered[1] &&
@@ -228,14 +244,14 @@ export function projectOriginalNestedSwitchTrace(
   );
   if (inner === undefined) return undefined;
 
-  const outerSelection = matchedHostWildcard(input.parent, input.decision);
+  const outerSelection = matchedHostWildcard(resolvedInput.parent, resolvedInput.decision);
   if (outerSelection === undefined) return undefined;
 
-  if (input.decision.route.kind === 'direct') {
-    return projectNestedDirect(input, inner, outerSelection);
+  if (resolvedInput.decision.route.kind === 'direct') {
+    return projectNestedDirect(resolvedInput, inner, outerSelection);
   }
-  if (input.decision.route.kind === 'proxy') {
-    return projectNestedFixed(input, inner, outerSelection);
+  if (resolvedInput.decision.route.kind === 'proxy') {
+    return projectNestedFixed(resolvedInput, inner, outerSelection);
   }
   return undefined;
 }
