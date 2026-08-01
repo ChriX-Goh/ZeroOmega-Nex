@@ -79,9 +79,24 @@ Product commit `b55b2b61404f9cdaf4cf3d8f5d664f5b7d1e22b9` adds a deliberately na
 
 The resolver gained three focused tests, bringing the unit total to `520`. Dedicated transaction `30672598304` passed full `pnpm verify`, Chromium real Action acceptance and three consecutive Firefox focused Action journeys covering matched, default, internal fallback and same-tab matched ↔ default transitions. Clean Head `5ce5a21a865a569e327a78062d7d255fe0f76126` then passed CI `30672861182`, Browser E2E `30672861154`, Parity Documentation `30672861161` and Milestone 8 Visual Evidence `30672861171`.
 
+## Exact original Switch → Direct runtime and Nex integration
+
+Official package workflow `30673848467` directly called the original v3.5.0 `_actionForUrl` implementation and is preserved in `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md`:
+
+- matched Direct title detail: `direct-match.test => [Direct]`;
+- default Direct title detail: `(default) => [Direct]`;
+- optional result Badge: `Dire`;
+- result/current colors: Direct `#aaaaaa` plus active Switch `#ffb74d`;
+- matched Fixed retains the condition transition followed by the final PAC-result line;
+- `system` is absent from valid result profiles and original Apply rejects a Switch targeting System with `SystemProfile cannot be used in PAC scripts`.
+
+Product commit `f8e5892bc4a5a7a1b538a9f649e8ec98d61d6dcd` extends the strict resolver from Switch → Fixed to exact matched/default Switch → Direct/Fixed results. It accepts only one colored Switch without an attached Rule List, an exact graph trace and either built-in Direct or one colored Fixed target. Nested/attached/PAC/Virtual/temp/external shapes remain fail-closed.
+
+Two focused tests bring the unit total to `522`. Dedicated transaction `30674297543` passed full `pnpm verify`, Chromium real Action acceptance and three consecutive Firefox focused Action journeys covering matched Fixed, matched Direct, default Direct, internal fallback and same-tab Fixed ↔ Direct transitions. Clean Head `0ffd09ad00d67b79c29a341a484f32d40c7d0122` passed CI `30674564650`, Browser E2E `30674564634`, Parity Documentation `30674564648` and Milestone 8 Visual Evidence `30674564598`. The first native Inspect attempt in the permanent Browser E2E run missed the menu result; the unchanged failed job was rerun on the same Head and passed, while Chromium and Firefox Switch jobs passed on their first attempt.
+
 ## Remaining Order 1 work
 
-- Switch results into Direct/System, nested or attached Rule Lists, plus PAC default and matched-result traces;
+- nested Switch/profile chains, attached Rule Lists, plus PAC default and matched-result traces; Switch → System is original-invalid, not a missing result state;
 - Virtual and attached Rule List traces;
 - temporary-rule and external-control transitions through the single writer;
 - forced dynamic-render failure/static-fallback evidence where feasible;
@@ -90,7 +105,7 @@ The resolver gained three focused tests, bringing the unit total to `520`. Dedic
 
 ## Next gate
 
-1. Preserve and integrate the remaining original `matchProfile.results` traces for Switch→Direct/System, nested/attached Rule Lists, PAC/Virtual/temporary-rule/external-control states.
+1. Preserve and integrate the remaining original `matchProfile.results` traces for nested Switch/profile chains, attached Rule Lists, PAC/Virtual/temporary-rule/external-control states.
 2. Force dynamic-render failure/static fallback where feasible and capture headed toolbar pixels only where Action API state is insufficient.
 3. Run focused repository-owner acceptance for startup/System, Direct, user Fixed, two-tab isolation, Popup and Inspect.
 4. Keep progress at 47% / 35% until the remaining real-browser and owner-acceptance gates close.

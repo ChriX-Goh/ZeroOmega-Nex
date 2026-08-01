@@ -16,20 +16,20 @@ It records the current real audit position. Historical matrix counts, implementa
 - Merge/release/candidate generation: prohibited.
 - Progress authority: `docs/PROJECT_PROGRESS_MODEL.md`.
 - Active journey: Order 1 at 35%.
-- Current implementation registers one background owner for real browser Action writes and composes the repository resolver, global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Resolver coverage now includes Direct/System/Fixed and a strict exact Switch → Fixed matched/default slice. Startup establishes a browser-level System/Direct Action baseline, serializes profile-workflow commands through activation follow-up, repairs missing proxy runtime from the saved startup route and refreshes all tabs after activation or recovery. Top-level `webNavigation.onCommitted` remains a final-URL coordinator input.
-- Exact official Chromium and Firefox packages cover the basic original reference states. Nex now has direct Chromium and Firefox Action acceptance for System, Direct, Fixed proxy, Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass, the exact Switch → Fixed matched/default path, two-tab isolation, runtime-localized title and per-tab Popup; Chromium also verifies four-code-unit Badge truncation, while native Inspect verifies set/clear/base restoration/isolation. Remaining inclusive traces and owner acceptance remain open.
+- Current implementation registers one background owner for real browser Action writes and composes the repository resolver, global/per-tab coordinator, exact renderer, runtime localization and Inspect overlay. Resolver coverage now includes Direct/System/Fixed and strict exact Switch matched/default results into Direct or one Fixed proxy. Startup establishes a browser-level System/Direct Action baseline, serializes profile-workflow commands through activation follow-up, repairs missing proxy runtime from the saved startup route and refreshes all tabs after activation or recovery. Top-level `webNavigation.onCommitted` remains a final-URL coordinator input.
+- Exact official Chromium and Firefox packages cover the basic original reference states. Nex now has direct Chromium and Firefox Action acceptance for System, Direct, Fixed proxy, Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass, exact Switch matched/default paths into Direct/Fixed, two-tab isolation, runtime-localized title and per-tab Popup; Chromium also verifies four-code-unit Badge truncation, while native Inspect verifies set/clear/base restoration/isolation. Remaining inclusive traces and owner acceptance remain open.
 
 ## Active delivery sequence
 
-| Order | Journey                                                  | Contract/order                       | Evidence                                                                                    | Current state                                                                                                                                                                                                                                                                                                                                        | Next gate                                                                                                                            |
-| ----: | -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | Original source/package/runtime evidence plus permanent Nex Chromium and Firefox Action E2E | Background single-writer runtime, durable global Action baseline, serialized original System startup, Direct/System/Fixed plus exact Switch→Fixed resolver, top-level navigation refresh, Inspect overlay and real Action state are verified in both targets; remaining Switch/PAC/Virtual/Rule List/temp/external traces and owner PASS remain open | Complete the remaining original trace inputs, renderer fallback/pixel evidence where needed, then run focused owner acceptance       |
-|     2 | Real original export → direct Nex use                    | pending                              | pending real-export corpus                                                                  | `FAILED`; owner’s real original export did not become directly usable                                                                                                                                                                                                                                                                                | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
-|     3 | Popup                                                    | pending                              | original Popup source and basic Chromium/Firefox runtime surfaces captured                  | broad mismatch reported; complete state hierarchy remains open                                                                                                                                                                                                                                                                                       | Capture original dimensions, hierarchy and all states; compare independently with Nex                                                |
-|     4 | Options / Apply / Discard                                | pending                              | source notes and basic installed Chromium/Firefox Options surfaces                          | broad mismatch reported                                                                                                                                                                                                                                                                                                                              | Page/control/dialog/help-text inventory before code changes                                                                          |
-|     5 | Complete profile journeys                                | pending                              | historical implementation inventory only                                                    | untrusted pending re-audit                                                                                                                                                                                                                                                                                                                           | Fixed → Switch → PAC → Virtual → Rule List complete journey maps                                                                     |
-|     6 | Export / restart / rollback / ownership / authentication | pending                              | partial implementation/tests exist                                                          | not owner-complete                                                                                                                                                                                                                                                                                                                                   | Revalidate against original-facing behavior and real imported data                                                                   |
-|     7 | Localization / density / visual alignment                | pending                              | generated Nex screenshots are not original comparison evidence                              | broad mismatch reported                                                                                                                                                                                                                                                                                                                              | Full original runtime captures and side-by-side owner order                                                                          |
+| Order | Journey                                                  | Contract/order                       | Evidence                                                                                    | Current state                                                                                                                                                                                                                                                                                                                                               | Next gate                                                                                                                            |
+| ----: | -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+|     1 | Installation / startup / toolbar                         | `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | Original source/package/runtime evidence plus permanent Nex Chromium and Firefox Action E2E | Background single-writer runtime, durable global Action baseline, serialized original System startup, Direct/System/Fixed plus exact Switch→Direct/Fixed resolver, top-level navigation refresh, Inspect overlay and real Action state are verified in both targets; remaining Switch/PAC/Virtual/Rule List/temp/external traces and owner PASS remain open | Complete the remaining original trace inputs, renderer fallback/pixel evidence where needed, then run focused owner acceptance       |
+|     2 | Real original export → direct Nex use                    | pending                              | pending real-export corpus                                                                  | `FAILED`; owner’s real original export did not become directly usable                                                                                                                                                                                                                                                                                       | Capture exact original backup semantics and first real sanitized owner export; build field/reference/startup/Quick Switch comparison |
+|     3 | Popup                                                    | pending                              | original Popup source and basic Chromium/Firefox runtime surfaces captured                  | broad mismatch reported; complete state hierarchy remains open                                                                                                                                                                                                                                                                                              | Capture original dimensions, hierarchy and all states; compare independently with Nex                                                |
+|     4 | Options / Apply / Discard                                | pending                              | source notes and basic installed Chromium/Firefox Options surfaces                          | broad mismatch reported                                                                                                                                                                                                                                                                                                                                     | Page/control/dialog/help-text inventory before code changes                                                                          |
+|     5 | Complete profile journeys                                | pending                              | historical implementation inventory only                                                    | untrusted pending re-audit                                                                                                                                                                                                                                                                                                                                  | Fixed → Switch → PAC → Virtual → Rule List complete journey maps                                                                     |
+|     6 | Export / restart / rollback / ownership / authentication | pending                              | partial implementation/tests exist                                                          | not owner-complete                                                                                                                                                                                                                                                                                                                                          | Revalidate against original-facing behavior and real imported data                                                                   |
+|     7 | Localization / density / visual alignment                | pending                              | generated Nex screenshots are not original comparison evidence                              | broad mismatch reported                                                                                                                                                                                                                                                                                                                                     | Full original runtime captures and side-by-side owner order                                                                          |
 
 ## Order 1 checkpoint
 
@@ -48,6 +48,13 @@ It records the current real audit position. Historical matrix counts, implementa
 
 Chromium evidence is durable in `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`.
 
+Switch-result runtime evidence is durable in `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md` and records official Chromium workflow `30673848467`:
+
+- matched/default Switch → Direct titles and `Dire` Badge;
+- Direct result color plus current Switch color;
+- matched Switch → Fixed multiline details;
+- original rejection of Switch → System.
+
 Firefox evidence is durable in `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` and records:
 
 - successful exact-package run `30597356624`;
@@ -61,7 +68,7 @@ Firefox evidence is durable in `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md` 
 The following original states remain `UNKNOWN` in one or both targets:
 
 - user-created Fixed profile state;
-- Switch/PAC result and two-color icon state;
+- PAC result state and Switch shapes beyond direct Direct/Fixed targets;
 - Virtual and attached Rule List state;
 - temporary-rule state;
 - Inspect state;
@@ -73,16 +80,16 @@ The following original states remain `UNKNOWN` in one or both targets:
 Confirmed real runtime:
 
 - the background constructs the real Action/i18n/tabs/webNavigation/OffscreenCanvas boundary and registers one Action writer;
-- the repository-backed resolver covers Direct, System, Fixed proxy/bypass and an exact Switch matched/default transition directly into one Fixed proxy;
+- the repository-backed resolver covers Direct, System, Fixed proxy/bypass and exact Switch matched/default transitions directly into Direct or one Fixed proxy;
 - the race-safe coordinator owns the global baseline, tab creation, URL updates, activation, all-tab refresh, stale-result suppression and cache invalidation; top-level `webNavigation.onCommitted` supplies the committed URL when Firefox tab events are incomplete;
 - clean installations proactively initialize to System without opening Popup or Options; command serialization prevents half-initialized concurrent reads, and missing proxy runtime is repaired from the saved startup route;
 - Inspect is an overlay input to the same executor rather than a competing title/Badge writer;
-- permanent Chromium and Firefox Action E2E read real tab IDs across System → Direct → Fixed proxy / Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass and exact Switch → Fixed matched/default transitions; native Chromium Inspect captures set/clear/base restoration/isolation;
+- permanent Chromium and Firefox Action E2E read real tab IDs across System → Direct → Fixed proxy / Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass and exact Switch matched/default transitions into Direct/Fixed; native Chromium Inspect captures set/clear/base restoration/isolation;
 - cross-document revision archives are filtered by current `documentId` before current-document validation.
 
 Remaining gap:
 
-- Switch results into Direct/System, nested or attached Rule Lists, plus PAC, Virtual, temporary-rule and external-control states still lack the complete original result trace;
+- nested Switch/profile chains, attached Rule Lists, plus PAC, Virtual, temporary-rule and external-control states still lack the complete original result trace; Switch → System is original-invalid;
 - forced renderer-fallback evidence and headed toolbar pixels remain open where browser-readable Action state is insufficient;
 - no toolbar row is owner-complete until focused repository-owner acceptance passes.
 
@@ -92,7 +99,7 @@ Remaining gap:
 - original title/detail localization, result-Badge preference and four-code-unit truncation;
 - target-specific manifest Action contract, exact required `webNavigation` permission guard and isolated browser Action adapter;
 - pure state → localization → renderer → executor path;
-- repository-backed Direct/System/Fixed resolver plus strict exact Switch → Fixed matched/default reconstruction;
+- repository-backed Direct/System/Fixed resolver plus strict exact Switch matched/default reconstruction into Direct/Fixed;
 - race-safe per-tab coordinator with creation/update/activation coverage, top-level navigation-commit refresh and background runtime manager;
 - single-writer Inspect overlay;
 - proactive System initialization, serialized workflow commands and missing-runtime recovery;
@@ -105,14 +112,14 @@ These close implementation and automation slices only. They do not close `KG-ICO
 
 ### Last fully green engineering slice
 
-Clean Head `5ce5a21a865a569e327a78062d7d255fe0f76126` passed all permanent gates after the exact Switch-to-Fixed toolbar trace slice and temporary-file cleanup:
+Clean Head `0ffd09ad00d67b79c29a341a484f32d40c7d0122` passed all permanent gates after exact original Switch-to-Direct/Fixed trace integration and temporary-file cleanup:
 
-- CI `30672861182`;
-- Browser E2E `30672861154`;
-- Parity Documentation `30672861161`;
-- Milestone 8 Visual Evidence `30672861171`.
+- CI `30674564650`;
+- Browser E2E `30674564634`;
+- Parity Documentation `30674564648`;
+- Milestone 8 Visual Evidence `30674564598`.
 
-The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, simultaneous Fixed proxy / Fixed bypass, internal/default fallback, same-tab proxy ↔ bypass and exact Switch → Fixed matched/default transitions. Native Inspect verifies tab-local set/clear/base restoration/isolation. Dedicated transaction `30672598304` passed full verification, Chromium Switch acceptance and three consecutive focused Firefox Switch journeys.
+The permanent Browser E2E run passed Chromium full/toolbar, Firefox full/focused-toolbar and native Chromium Inspect acceptance. Both targets verify System, Direct, simultaneous Fixed proxy / Fixed bypass, internal/default fallback, same-tab transitions and exact Switch matched/default results into Direct/Fixed. Native Inspect verifies tab-local set/clear/base restoration/isolation. Dedicated transaction `30674297543` passed full verification, Chromium Switch-to-Direct acceptance and three consecutive focused Firefox Switch-to-Direct journeys.
 
 The listener only requests a coordinator refresh for top-level commits; it never writes Action state directly. The exact manifest audit requires `webNavigation` in both targets and still forbids global host access.
 
@@ -129,7 +136,8 @@ Exact official v3.5.0 packages are captured:
 - both ZIP integrity tests passed;
 - package evidence: `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`;
 - Chromium runtime evidence: `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`;
-- Firefox runtime evidence: `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`.
+- Firefox runtime evidence: `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`;
+- Switch-result runtime evidence: `AUDIT_EVIDENCE_01F_ORIGINAL_SWITCH_RESULTS.md`.
 
 A later GitHub runner exposed Firefox `153.0`, whose Marionette navigation rejected direct `moz-extension://` navigation. Permanent Nex E2E now navigates all extension pages through WebDriver BiDi and passes on Firefox `153.0`. The historical original-package evidence remains fixed to its successful Firefox `152.0.6` run; rerunning that separate audit still requires the same BiDi migration or a pinned runtime.
 
