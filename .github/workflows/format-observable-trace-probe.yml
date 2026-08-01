@@ -1,9 +1,7 @@
 name: Format Observable Trace Probe
 
 on:
-  push:
-    branches:
-      - feat/m8-profile-workflow
+  pull_request:
     paths:
       - .github/workflows/format-observable-trace-probe.yml
 
