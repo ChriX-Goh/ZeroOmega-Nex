@@ -117,9 +117,7 @@ async function runScenario(scenario) {
         if (latest?.currentProfileName === name) return latest;
         await pause();
       }
-      throw new Error(
-        `Original current profile did not become ${name}: ${JSON.stringify(latest)}`,
-      );
+      throw new Error(`Original current profile did not become ${name}: ${JSON.stringify(latest)}`);
     }
 
     await waitForCurrentProfile('system');
