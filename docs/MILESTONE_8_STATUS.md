@@ -46,14 +46,14 @@ The current retained Toolbar architecture includes:
 - serialized startup and profile-workflow transitions;
 - clean-install initialization to the original System route;
 - one browser-independent Original-observable result projection between internal graph decisions and Action rendering;
-- Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, and immediate Virtual -> Direct/Fixed proxy/bypass result handling through that projection;
+- Direct, System, Fixed proxy/bypass, exact Switch -> Direct/Fixed, immediate Virtual -> Direct/Fixed proxy/bypass, and the evidence-bounded attached Rule List subset described below;
 - original-derived title, multiline detail, Badge truncation, color inputs, and Virtual target suffix behavior for represented shapes;
 - preservation of the original Switch -> Direct two-color icon rule, where the result and Badge are Direct while the inner ring remains the current Switch color;
 - Chromium and Firefox Action acceptance for the represented states;
 - internal-page/default fallback, two-tab isolation, and Chromium Inspect overlay set/clear/isolation;
 - fail-closed behavior for result shapes not yet represented.
 
-The trace projection is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for the represented shapes. It does not yet cover nested Switch/Virtual, attached Rule List, PAC, temporary-rule, or external-control result families.
+The trace projection is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for represented shapes. It does not yet cover nested Switch/Virtual, PAC, temporary-rule, external-control, or attached Rule List shapes beyond the exact 01H evidence subset.
 
 This is slice-level engineering evidence only. It does not close Order 1 or `KG-ICON-001`. Total progress remains 47% and Order 1 remains 35%.
 
@@ -75,16 +75,45 @@ Future original evidence collection must be parameterized and batched rather tha
 
 Exact original attached Rule List evidence is retained in `AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md`.
 
-The attempted one-time implementation applicator did not land product code: its verification stopped at formatting before commit/push. The write-enabled applicator, per-trace audit workflow, and temporary scripts were removed.
+The previous one-time implementation applicator did not land product code. Its write-enabled workflow, per-trace audit workflow, and temporary scripts were removed rather than repaired.
 
-The unified Original-observable trace layer now exists, so attached Rule List implementation no longer requires a separate result engine. The remaining work is to map only the evidence-backed attached Rule List trace shapes into that layer. No attached Rule List result is claimed implemented yet.
+The permanent implementation now uses the unified Original-observable result projection and one evidence-bounded attached Rule List subprojector. The following exact 01H shapes are implemented and verified through deterministic tests plus real Chromium and Firefox extension Action APIs:
+
+1. matched AutoProxy line -> Fixed result;
+2. no match -> default Direct;
+3. matched AutoProxy line -> Direct result;
+4. no match -> default Fixed.
+
+For those shapes, the verified contract includes:
+
+- parent Switch remains the current profile;
+- hidden `__ruleListOf_<parent>` profile remains hidden from the title;
+- `(RL) ` appears only on matched attached Rule List details;
+- `(default)` appears on no-match fallback details;
+- matched source line, result profile, proxy endpoint detail, four-code-unit Badge, Popup binding, and two-color Action semantics match the captured original evidence;
+- the implementation is exercised by permanent Chromium and Firefox attached Rule List Toolbar E2E commands inside `Browser E2E`.
+
+The subprojector intentionally remains fail-closed for parent Switch rules, exclusive rules, multiple source lines, non-AutoProxy formats, Fixed bypass, fallthrough, chained results, nested profile graphs, and every result shape not established by 01H evidence. Those are not claimed implemented.
+
+## Newly exposed migration blocker
+
+The 01H original evidence uses valid three-digit CSS colors such as `#5b5` and `#d63`. Current ProfileSpec accepts canonical six-digit colors, while the legacy importer currently copies original color strings unchanged. A real original export containing `#RGB` can therefore reach ProfileSpec validation without normalization.
+
+This is recorded as `KG-IMPORT-COLOR-001` under Order 2:
+
+- original input: valid `#RGB` or `#RRGGBB` profile colors;
+- current risk: shorthand values may fail the six-digit ProfileSpec contract after import;
+- required repair: normalize `#RGB` to the visually identical `#RRGGBB` form at the legacy import boundary, preserve any needed original metadata for round-trip evidence, and prove the behavior with real export fixtures;
+- current status: open and release-blocking through `KG-IMPORT-001`.
+
+The Order 1 runtime tests use the canonical internal equivalents `#55bb55` and `#dd6633`; this does not count as fixing the migration blocker.
 
 ## Open Order 1 blockers
 
 - one parameterized original evidence harness for the remaining result families;
 - nested Switch/profile chains;
 - nested Virtual and Virtual -> Switch/Rule List/PAC targets;
-- attached Rule List result prefixes, matched lines, defaults, and details;
+- remaining attached Rule List shapes beyond the 01H subset, including exclusive, fallthrough, bypass, multi-line, and chained results where the original supports them;
 - PAC result traces and actual route/result projection;
 - temporary-rule transitions through the single Action writer;
 - external-control transitions and recovery;
@@ -98,6 +127,7 @@ Switch -> System is not an open parity feature because the original runtime reje
 
 - `KG-ICON-001` — Toolbar icon, title, Badge, result detail, and per-tab state.
 - `KG-IMPORT-001` — real original export direct import and immediate equivalent use.
+- `KG-IMPORT-COLOR-001` — original shorthand color normalization at the import boundary.
 - `KG-UI-001` — layout, density, dialogs, controls, and action hierarchy.
 - `KG-EXTRA-001` — unnecessary descriptions and extra workflow.
 - `KG-INVENTION-001` — visible behavior without original evidence or accepted difference.
@@ -109,10 +139,10 @@ All remain release-blocking.
 ## Immediate execution order
 
 1. Build one parameterized original evidence harness for the remaining Toolbar/Popup result families.
-2. Extend the unified Original-observable trace model only with evidence-backed attached Rule List, nested Switch/Virtual, PAC, temporary-rule, and external-control states.
+2. Extend the unified Original-observable trace model only with evidence-backed nested Switch/Virtual, remaining attached Rule List, PAC, temporary-rule, and external-control states.
 3. Run one complete Chromium/Firefox Order 1 matrix and produce one exact installable owner-QC build.
 4. Record repository-owner `PASS` or concrete defects.
-5. Only after Order 1 acceptance, begin the real original-export migration corpus.
+5. Only after Order 1 acceptance, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001` normalization.
 
 ## Candidate prohibition
 
