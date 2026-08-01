@@ -4,13 +4,13 @@ import type {
 } from '@zeroomega-nex/profile-workflow';
 import { evaluateProfileGraph, type ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
 
-import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
+import { projectOriginalObservableResult } from './original-observable-result-projector';
 import {
   ORIGINAL_TOOLBAR_DIRECT_COLOR,
   ORIGINAL_TOOLBAR_SYSTEM_COLOR,
-  projectOriginalObservableResultTrace,
   type OriginalObservableResultTrace,
 } from './original-observable-result-trace';
+import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
 import { deriveOriginalToolbarTabState } from './original-toolbar-tab-state';
 import type { OriginalToolbarTabStateResolver } from './original-toolbar-tab-coordinator';
 
@@ -110,7 +110,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     if (activeRoute === undefined) return undefined;
 
     if (activeRoute.kind === 'direct' || activeRoute.kind === 'system') {
-      const trace = projectOriginalObservableResultTrace({
+      const trace = projectOriginalObservableResult({
         spec: state.applied,
         activeRoute,
         i18n: this.#i18n,
@@ -121,7 +121,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
     const decision = evaluateProfileGraph(state.applied, activeRoute, request);
-    const trace = projectOriginalObservableResultTrace({
+    const trace = projectOriginalObservableResult({
       spec: state.applied,
       activeRoute,
       request,
