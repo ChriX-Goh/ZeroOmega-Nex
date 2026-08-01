@@ -68,7 +68,8 @@ class BrowserSessionPopupTemporaryRuleRepository {
 
   async write(state: PopupTemporaryRuleState): Promise<void> {
     const normalized = parsePopupTemporaryRuleState(state);
-    if (normalized.rules.length === 0) {
+    const overlayActive = normalized.overlayActive ?? normalized.rules.length > 0;
+    if (normalized.rules.length === 0 && !overlayActive) {
       await this.#area.remove(POPUP_TEMPORARY_RULE_STORAGE_KEY);
       return;
     }
@@ -92,6 +93,17 @@ function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRoute
     ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)
     : undefined;
   return temporaryBase ?? runtime.activeRoute;
+}
+
+function temporaryOverlayActive(state: PopupTemporaryRuleState): boolean {
+  return state.overlayActive ?? state.rules.length > 0;
+}
+
+export interface PopupTemporaryToolbarRuntimeView extends ProfileWorkflowRuntimeView {
+  readonly toolbarProjection?: {
+    readonly spec: ProfileSpec;
+    readonly activeRoute: ProfileRouteTarget;
+  };
 }
 
 export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationDriver {
@@ -133,13 +145,13 @@ export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationD
     const previousRuntime = await this.#base.inspectRuntime?.();
     const baseRoute = requestedRoute ?? candidate.settings.startup.route ?? { kind: 'direct' };
     let state = await this.#repository.read();
-    if (state.rules.length > 0 && isPopupTemporaryBaseRouteSupported(candidate, baseRoute)) {
+    if (temporaryOverlayActive(state) && isPopupTemporaryBaseRouteSupported(candidate, baseRoute)) {
       const sanitized = sanitizePopupTemporaryRuleState(state, candidate, baseRoute);
       if (sanitized !== state) {
         state = sanitized;
         await this.#repository.write(state);
       }
-      if (state.rules.length > 0) {
+      if (temporaryOverlayActive(state)) {
         const overlay = buildPopupTemporaryRuleOverlay(candidate, state, baseRoute);
         const activated = await this.#base.activate(overlay.spec, overlay.startRoute);
         if (previousRuntime?.activeSnapshotId !== activated.snapshotId) {
@@ -178,6 +190,37 @@ export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationD
     return {
       ...runtime,
       ...(baseRoute === undefined ? {} : { activeRoute: baseRoute }),
+    };
+  }
+
+  async inspectToolbarRuntime(applied: ProfileSpec): Promise<PopupTemporaryToolbarRuntimeView> {
+    const runtime = (await this.#base.inspectRuntime?.()) ?? {};
+    const baseRoute = baseRouteFromRuntime(runtime);
+    const baseView = {
+      ...runtime,
+      ...(baseRoute === undefined ? {} : { activeRoute: baseRoute }),
+    };
+    if (
+      baseRoute === undefined ||
+      runtime.activeSnapshotId === undefined ||
+      !isPopupTemporarySnapshotId(runtime.activeSnapshotId) ||
+      !isPopupTemporaryBaseRouteSupported(applied, baseRoute)
+    ) {
+      return baseView;
+    }
+
+    let state = await this.#repository.read();
+    if (!temporaryOverlayActive(state)) return baseView;
+    const sanitized = sanitizePopupTemporaryRuleState(state, applied, baseRoute);
+    if (sanitized !== state) {
+      state = sanitized;
+      await this.#repository.write(state);
+    }
+    if (!temporaryOverlayActive(state)) return baseView;
+    const overlay = buildPopupTemporaryRuleOverlay(applied, state, baseRoute);
+    return {
+      ...baseView,
+      toolbarProjection: { spec: overlay.spec, activeRoute: overlay.startRoute },
     };
   }
 
@@ -308,7 +351,7 @@ export class PopupTemporaryRuleCoordinator implements ProfileWorkflowActivationD
     const hadTemporarySnapshot =
       proxyState.activeSnapshotId !== undefined &&
       isPopupTemporarySnapshotId(proxyState.activeSnapshotId);
-    if (!hadTemporarySnapshot && state.rules.length === 0) return false;
+    if (!hadTemporarySnapshot && !temporaryOverlayActive(state)) return false;
     await this.#serialize(() => this.#activateNow(applied, baseRoute ?? state.baseRoute));
     return true;
   }
@@ -330,9 +373,14 @@ export interface RegisteredPopupTemporaryRuleRuntime {
   dispose(): void;
 }
 
+export interface PopupTemporaryRuleRuntimeOptions {
+  readonly onActivationSucceeded?: () => void | Promise<void>;
+}
+
 export function registerPopupTemporaryRuleRuntime(
   api: PopupTemporaryRuleRuntimeApi,
   coordinator: PopupTemporaryRuleCoordinator,
+  options: PopupTemporaryRuleRuntimeOptions = {},
 ): RegisteredPopupTemporaryRuleRuntime {
   const workflow = new BrowserStorageProfileWorkflowRepository(api.storage.local);
   const handleMessage = async (
@@ -355,13 +403,16 @@ export function registerPopupTemporaryRuleRuntime(
       );
     }
     try {
+      let view: PopupTemporaryRuleView;
       if (message.action === 'toggle') {
-        return response(await coordinator.toggle(state.applied, message.domain, message.route));
+        view = await coordinator.toggle(state.applied, message.domain, message.route);
+      } else if (message.action === 'remove') {
+        view = await coordinator.remove(state.applied, message.domain);
+      } else {
+        view = await coordinator.clear(state.applied);
       }
-      if (message.action === 'remove') {
-        return response(await coordinator.remove(state.applied, message.domain));
-      }
-      return response(await coordinator.clear(state.applied));
+      await options.onActivationSucceeded?.();
+      return response(view);
     } catch (error) {
       return failure(
         'activation-failed',

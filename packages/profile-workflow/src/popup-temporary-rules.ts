@@ -19,6 +19,7 @@ export interface PopupTemporaryRule {
 export interface PopupTemporaryRuleState {
   readonly schemaVersion: typeof POPUP_TEMPORARY_RULE_SCHEMA_VERSION;
   readonly generation: number;
+  readonly overlayActive?: boolean;
   readonly rules: readonly PopupTemporaryRule[];
   readonly baseRoute?: ProfileRouteTarget;
 }
@@ -147,7 +148,12 @@ export function listPopupTemporaryRuleResultRoutes(
 }
 
 export function createPopupTemporaryRuleState(): PopupTemporaryRuleState {
-  return { schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION, generation: 0, rules: [] };
+  return {
+    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
+    generation: 0,
+    overlayActive: false,
+    rules: [],
+  };
 }
 
 export function parsePopupTemporaryRuleState(value: unknown): PopupTemporaryRuleState {
@@ -182,9 +188,14 @@ export function parsePopupTemporaryRuleState(value: unknown): PopupTemporaryRule
   const baseRoute = record.baseRoute === undefined ? undefined : routeFromUnknown(record.baseRoute);
   if (record.baseRoute !== undefined && !baseRoute)
     throw new TypeError('temporary rule base route is invalid');
+  let overlayActive: boolean;
+  if (record.overlayActive === undefined) overlayActive = rules.length > 0;
+  else if (typeof record.overlayActive === 'boolean') overlayActive = record.overlayActive;
+  else throw new TypeError('temporary rule overlay state is invalid');
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: Number(record.generation),
+    overlayActive,
     rules,
     ...(baseRoute === undefined ? {} : { baseRoute }),
   };
@@ -207,6 +218,7 @@ export function sanitizePopupTemporaryRuleState(
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: state.generation + 1,
+    overlayActive: state.overlayActive ?? state.rules.length > 0,
     rules: rules.map((rule) => structuredClone(rule)),
     baseRoute: structuredClone(baseRoute),
   };
@@ -227,6 +239,7 @@ export function togglePopupTemporaryRule(
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: state.generation + 1,
+    overlayActive: true,
     rules,
     baseRoute: structuredClone(baseRoute),
   };
@@ -244,6 +257,7 @@ export function removePopupTemporaryRule(
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: state.generation + 1,
+    overlayActive: state.overlayActive ?? state.rules.length > 0,
     rules,
     ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),
   };
@@ -254,6 +268,7 @@ export function clearPopupTemporaryRules(state: PopupTemporaryRuleState): PopupT
   return {
     schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,
     generation: state.generation + 1,
+    overlayActive: state.overlayActive ?? state.rules.length > 0,
     rules: [],
     ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),
   };
@@ -329,9 +344,14 @@ export function buildPopupTemporaryRuleOverlay(
   if (spec.profiles.some((profile) => profile.id === profileId || profile.name === profileId)) {
     throw new TypeError('temporary runtime profile ID conflicts with an applied profile');
   }
+  const baseProfile =
+    baseRoute.kind === 'profile'
+      ? spec.profiles.find((profile) => profile.id === baseRoute.profileId)
+      : undefined;
   spec.profiles.push({
     id: profileId,
     name: profileId,
+    ...(baseProfile?.color === undefined ? {} : { color: baseProfile.color }),
     kind: 'switch',
     rules: state.rules.map((rule, index) => ({
       id: `${profileId}:rule:${index}`,

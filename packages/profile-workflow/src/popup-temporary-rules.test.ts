@@ -48,6 +48,7 @@ describe('Popup temporary rule model', () => {
       { kind: 'profile', profileId: 'profile-primary' },
       base,
     );
+    expect(first.overlayActive).toBe(true);
     expect(first.rules).toEqual([
       { domain: 'example.com', route: { kind: 'profile', profileId: 'profile-primary' } },
     ]);
@@ -56,8 +57,12 @@ describe('Popup temporary rule model', () => {
     expect(
       togglePopupTemporaryRule(replaced, 'example.com', { kind: 'direct' }, base).rules,
     ).toEqual([]);
-    expect(removePopupTemporaryRule(first, 'example.com').rules).toEqual([]);
-    expect(clearPopupTemporaryRules(first).rules).toEqual([]);
+    const removed = removePopupTemporaryRule(first, 'example.com');
+    expect(removed.rules).toEqual([]);
+    expect(removed.overlayActive).toBe(true);
+    const cleared = clearPopupTemporaryRules(first);
+    expect(cleared.rules).toEqual([]);
+    expect(cleared.overlayActive).toBe(true);
   });
 
   it('lists only PAC-compilable, visible result routes', () => {
@@ -95,6 +100,24 @@ describe('Popup temporary rule model', () => {
           route: { kind: 'profile', profileId: 'profile-primary' },
         },
       ],
+    });
+  });
+
+  it('builds an empty hidden overlay after the last temporary rule is removed', () => {
+    const base = { kind: 'profile', profileId: 'profile-switch' } as const;
+    const active = togglePopupTemporaryRule(
+      createPopupTemporaryRuleState(),
+      'example.com',
+      { kind: 'profile', profileId: 'profile-primary' },
+      base,
+    );
+    const removed = removePopupTemporaryRule(active, 'example.com');
+    const overlay = buildPopupTemporaryRuleOverlay(spec(), removed, base);
+    expect(overlay.spec.profiles.at(-1)).toMatchObject({
+      id: popupTemporaryProfileIdForBaseRoute(base),
+      kind: 'switch',
+      rules: [],
+      defaultRoute: base,
     });
   });
 

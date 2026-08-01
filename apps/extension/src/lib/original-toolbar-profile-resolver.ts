@@ -1,3 +1,4 @@
+import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
@@ -22,8 +23,15 @@ export interface OriginalToolbarProfileStateRepository {
   read(): Promise<ProfileWorkflowState | undefined>;
 }
 
+export interface OriginalToolbarRuntimeView extends ProfileWorkflowRuntimeView {
+  readonly toolbarProjection?: {
+    readonly spec: ProfileSpec;
+    readonly activeRoute: ProfileRouteTarget;
+  };
+}
+
 export interface OriginalToolbarRuntimeInspector {
-  inspectRuntime(): Promise<ProfileWorkflowRuntimeView>;
+  inspectRuntime(applied: ProfileSpec): Promise<OriginalToolbarRuntimeView>;
 }
 
 export interface OriginalToolbarProfileResolverOptions {
@@ -105,13 +113,14 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     const state = await this.#repository.read();
     if (state === undefined) return undefined;
 
-    const runtime = await this.#runtime.inspectRuntime();
-    const activeRoute = runtime.activeRoute;
+    const runtime = await this.#runtime.inspectRuntime(state.applied);
+    const projectionSpec = runtime.toolbarProjection?.spec ?? state.applied;
+    const activeRoute = runtime.toolbarProjection?.activeRoute ?? runtime.activeRoute;
     if (activeRoute === undefined) return undefined;
 
     if (activeRoute.kind === 'direct' || activeRoute.kind === 'system') {
       const trace = projectOriginalObservableResult({
-        spec: state.applied,
+        spec: projectionSpec,
         activeRoute,
         i18n: this.#i18n,
       });
@@ -120,9 +129,9 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
 
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
-    const decision = evaluateProfileGraph(state.applied, activeRoute, request);
+    const decision = evaluateProfileGraph(projectionSpec, activeRoute, request);
     const trace = projectOriginalObservableResult({
-      spec: state.applied,
+      spec: projectionSpec,
       activeRoute,
       request,
       decision,

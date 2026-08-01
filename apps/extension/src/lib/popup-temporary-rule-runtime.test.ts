@@ -100,6 +100,27 @@ describe('Popup temporary rule coordinator', () => {
     });
   });
 
+  it('keeps an empty overlay active after removing the last rule and exposes it to Toolbar', async () => {
+    const area = new Area();
+    const driver = new Driver();
+    const coordinator = new PopupTemporaryRuleCoordinator(driver, area);
+    await coordinator.toggle(spec(), 'example.com', { kind: 'profile', profileId: 'fixed' });
+    const removed = await coordinator.remove(spec(), 'example.com');
+    expect(removed.rules).toEqual([]);
+    expect(removed.active).toBe(true);
+    const toolbar = await coordinator.inspectToolbarRuntime(spec());
+    expect(toolbar.activeRoute).toEqual({ kind: 'profile', profileId: 'switch' });
+    expect(toolbar.toolbarProjection?.activeRoute).toEqual({
+      kind: 'profile',
+      profileId: popupTemporaryProfileIdForBaseRoute({ kind: 'profile', profileId: 'switch' }),
+    });
+    expect(toolbar.toolbarProjection?.spec.profiles.at(-1)).toMatchObject({
+      kind: 'switch',
+      rules: [],
+      defaultRoute: { kind: 'profile', profileId: 'switch' },
+    });
+  });
+
   it('retains rules but does not wrap System Proxy', async () => {
     const area = new Area();
     const driver = new Driver();

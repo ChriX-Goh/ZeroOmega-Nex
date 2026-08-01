@@ -121,7 +121,10 @@ export default defineBackground(() => {
     api: currentOriginalToolbarBrowserRuntimeApi(),
     repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
     runtime: {
-      inspectRuntime: async () => (await activationDriver.inspectRuntime?.()) ?? {},
+      inspectRuntime: async (applied) =>
+        temporaryRuleCoordinator
+          ? temporaryRuleCoordinator.inspectToolbarRuntime(applied)
+          : ((await baseActivationDriver.inspectRuntime?.()) ?? {}),
     },
     tabRemoved: browser.tabs
       .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
@@ -147,7 +150,9 @@ export default defineBackground(() => {
   });
   profileWorkflowRuntime = workflowRuntime;
   popupTemporaryRuleRuntime = temporaryRuleCoordinator
-    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)
+    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator, {
+        onActivationSucceeded: () => refreshToolbar('temporary rule'),
+      })
     : undefined;
   proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
   requestDiagnosticsRuntime = registerRequestDiagnosticsRuntime(
