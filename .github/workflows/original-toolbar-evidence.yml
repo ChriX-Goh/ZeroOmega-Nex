@@ -1,5 +1,6 @@
 name: Original Toolbar Evidence
 
+# Pull-request runs execute every registered original scenario, including temporary-rule evidence.
 on:
   workflow_dispatch:
     inputs:
