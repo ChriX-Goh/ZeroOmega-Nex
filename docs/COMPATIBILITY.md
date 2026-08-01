@@ -31,18 +31,18 @@ References in the new model may use stable IDs internally, but user-visible name
 
 ## 3. Profile matrix
 
-| Legacy profile | Import target | Required expectation |
-| --- | --- | --- |
-| `DirectProfile` | Built-in direct route | Original-equivalent |
-| `SystemProfile` | Browser/system control mode | Original-equivalent subject to recorded platform control limits |
-| `FixedProfile` | Fixed proxy policy | Original-equivalent supported mappings, bypass behavior, and authentication boundaries |
-| `SwitchProfile` | Ordered decision profile | Original-equivalent supported conditions, attached Rule Lists, defaults, references, and nested results |
-| `VirtualProfile` | Referenced/derived profile behavior | Original-equivalent graph semantics and observable result projection |
-| `RuleListProfile` | Rule source plus decision behavior | Original-equivalent recognized formats, update/cache behavior, and result details |
-| `SwitchyRuleListProfile` | Rule source adapter | Original-equivalent supported semantics |
-| `AutoProxyRuleListProfile` | Rule source adapter | Original-equivalent supported semantics; precise report for unsupported syntax |
-| `PacProfile` | PAC source/profile | Preserve and execute subject only to proven browser and security limits |
-| `AutoDetectProfile` | Browser capability adapter | Original-equivalent where current browser APIs permit; otherwise accepted `DR-xxxx` |
+Required expectations by original profile type:
+
+- `DirectProfile` maps to the built-in direct route and remains original-equivalent.
+- `SystemProfile` maps to browser/system control mode and remains original-equivalent subject only to recorded platform-control limits.
+- `FixedProfile` maps to fixed proxy policy and preserves supported mappings, bypass behavior, and authentication boundaries.
+- `SwitchProfile` maps to ordered decision behavior and preserves supported conditions, attached Rule Lists, defaults, references, and nested results.
+- `VirtualProfile` preserves original graph semantics and observable result projection.
+- `RuleListProfile` preserves recognized formats, update/cache behavior, target profiles, and result details.
+- `SwitchyRuleListProfile` uses a format adapter while preserving supported original semantics.
+- `AutoProxyRuleListProfile` uses a format adapter while precisely reporting unsupported syntax.
+- `PacProfile` preserves and executes PAC subject only to proven browser and security limits.
+- `AutoDetectProfile` remains original-equivalent where current browser APIs permit; otherwise it requires an accepted `DR-xxxx` record.
 
 No profile is treated as complete solely because its JSON shape imports.
 
