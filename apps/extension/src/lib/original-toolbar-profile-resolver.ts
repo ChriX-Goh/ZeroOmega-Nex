@@ -2,10 +2,7 @@ import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
 } from '@zeroomega-nex/profile-workflow';
-import {
-  evaluateProfileGraph,
-  type ReferenceRequest,
-} from '@zeroomega-nex/reference-interpreter';
+import { evaluateProfileGraph, type ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
 
 import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
 import {
@@ -55,10 +52,7 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   };
 }
 
-function deriveToolbarState(
-  state: ProfileWorkflowState,
-  trace: OriginalObservableResultTrace,
-) {
+function deriveToolbarState(state: ProfileWorkflowState, trace: OriginalObservableResultTrace) {
   return deriveOriginalToolbarTabState({
     currentProfileName: trace.currentProfile.displayName,
     resultProfileName: trace.resultProfile.displayName,
@@ -75,9 +69,7 @@ function deriveToolbarState(
       enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
       resultProfileName: trace.resultProfile.badgeName,
       resultProfileBuiltin: trace.resultProfile.builtin,
-      ...(trace.resultProfile.builtin
-        ? { builtinBadgeText: trace.resultProfile.badgeName }
-        : {}),
+      ...(trace.resultProfile.builtin ? { builtinBadgeText: trace.resultProfile.badgeName } : {}),
     },
     ...(trace.detailPrefix === undefined ? {} : { detailPrefix: trace.detailPrefix }),
   });
