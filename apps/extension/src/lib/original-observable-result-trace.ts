@@ -547,8 +547,9 @@ export function projectOriginalObservableResultTrace(
   const systemColor =
     input.spec.settings.interface.builtInProfiles?.system?.color ?? ORIGINAL_TOOLBAR_SYSTEM_COLOR;
 
-  if (input.activeRoute.kind === 'direct' || input.activeRoute.kind === 'system') {
-    return projectBuiltIn(input, input.activeRoute.kind, directColor, systemColor);
+  const activeRoute = input.activeRoute;
+  if (activeRoute.kind === 'direct' || activeRoute.kind === 'system') {
+    return projectBuiltIn(input, activeRoute.kind, directColor, systemColor);
   }
 
   if (input.request === undefined || input.decision === undefined) return undefined;
@@ -557,7 +558,7 @@ export function projectOriginalObservableResultTrace(
   }
 
   const profile = input.spec.profiles.find(
-    (candidate) => candidate.id === input.activeRoute.profileId,
+    (candidate) => candidate.id === activeRoute.profileId,
   );
   if (profile === undefined) return undefined;
 
