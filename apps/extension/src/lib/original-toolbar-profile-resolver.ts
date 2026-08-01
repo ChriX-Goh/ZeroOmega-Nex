@@ -52,7 +52,9 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   };
 }
 
-function originalActionMatchedColor(trace: OriginalObservableResultTrace): string {
+function originalActionMatchedColor(
+  trace: OriginalObservableResultTrace,
+): string {
   if (
     trace.routeKind === 'direct' &&
     !trace.currentProfileStatic &&
