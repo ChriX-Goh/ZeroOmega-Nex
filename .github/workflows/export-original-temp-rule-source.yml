@@ -1,0 +1,78 @@
+name: Launch Temporary Rule Toolbar Parity
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-original-temp-rule-source.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Extract and execute staged patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          source = Path('.github/workflows/apply-temporary-rule-toolbar.yml').read_text()
+          start_marker = "          python - <<'PY'\n"
+          end_marker = "\n          PY\n\n      - name: Format and verify repository"
+          if source.count(start_marker) != 1 or source.count(end_marker) != 1:
+              raise SystemExit('staged patch markers are not unique')
+          body = source.split(start_marker, 1)[1].split(end_marker, 1)[0]
+          Path('/tmp/apply-temporary-rule-toolbar.py').write_text(textwrap.dedent(body))
+          PY
+          python /tmp/apply-temporary-rule-toolbar.py
+
+      - name: Format and verify repository
+        shell: bash
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/popup-temporary-rules.ts \
+            packages/profile-workflow/src/popup-temporary-rules.test.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.test.ts \
+            apps/extension/src/lib/original-toolbar-profile-resolver.ts \
+            apps/extension/src/lib/original-observable-result-projector.ts \
+            apps/extension/src/lib/original-observable-temporary-rule.ts \
+            apps/extension/src/lib/original-toolbar-temporary-rule.test.ts \
+            apps/extension/src/entrypoints/background.ts
+          pnpm run verify
+
+      - name: Commit atomic implementation and self-delete
+        shell: bash
+        run: |
+          rm .github/workflows/export-original-temp-rule-source.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat(toolbar): reproduce original temporary-rule states'
+          git push origin HEAD:${{ github.head_ref }}
