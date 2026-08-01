@@ -34,7 +34,8 @@ The retained Toolbar architecture currently includes:
 - the exact two-level nested Virtual 01J subset;
 - the exact attached Rule List 01H subset;
 - the exact URL-backed PAC Toolbar 01K subset;
-- original-derived title, detail, four-code-unit Badge, color and suffix behavior for represented shapes;
+- the exact temporary-rule Toolbar 01L subset, including the empty active overlay after last-rule removal;
+- original-derived title, detail, four-code-unit Badge, color, prefix and suffix behavior for represented shapes;
 - Chromium and Firefox real Action acceptance for represented states;
 - internal-page/default fallback, tab isolation and Chromium Inspect set/clear/base restoration/isolation;
 - fail-closed behavior for result shapes outside captured evidence.
@@ -53,7 +54,7 @@ The permanent read-only `Original Toolbar Evidence` workflow:
 - captures original `_actionForUrl` output and runtime state into one auditable JSON Artifact;
 - cannot commit, push or modify the branch.
 
-The registry now contains `nested-switch`, `nested-virtual` and `pac`. Pull requests execute `all`, so a newly registered scenario cannot remain unexecuted by default.
+The registry now contains `nested-switch`, `nested-virtual`, `pac` and `temporary-rule`. Pull requests execute `all`, so a newly registered scenario cannot remain unexecuted by default.
 
 ## Nested Switch 01I checkpoint
 
@@ -105,6 +106,25 @@ Nex preserves the strategy interpreter's `target-dependent/indeterminate` PAC de
 
 The represented subset requires one enabled URL-backed PAC profile with a cached script, no headers, no credentials and no fallback route. Inline-only PAC, uncached URL PAC, update/download failures, headers, credentials, fallback profiles, invalid scripts and PAC lifecycle transitions remain fail-closed or open.
 
+## Temporary rule 01L checkpoint
+
+`AUDIT_EVIDENCE_01L_ORIGINAL_TEMPORARY_RULE_RESULTS.md` establishes and the single Action writer verifies:
+
+1. one temporary `*.temp-rule.test` host rule → one Fixed HTTP proxy;
+2. the active temporary overlay misses and falls through to an empty base Switch → Direct;
+3. removing the last rule leaves the hidden empty temporary overlay active for the current session.
+
+Exact observable behavior:
+
+- the visible current profile remains the base profile;
+- the hidden temporary Switch name is never displayed;
+- a matched rule prepends the localized temporary prefix before the condition-to-result line;
+- the Fixed result supplies Badge/result color while the base profile supplies current color;
+- an unmatched rule and the empty overlay after removal both show two `(default)` transitions;
+- temporary-rule mutations refresh the existing global/per-tab Action coordinator rather than writing Action state through a second path.
+
+The represented subset is limited to one host rule, one empty base Switch with default Direct and one Fixed HTTP proxy target without bypass. Multiple rules, other conditions, other base/target profile families, restart restoration, activation failures and the complete Popup journey remain open or fail closed.
+
 ## Closed evidence-proven correction
 
 `KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`.
@@ -124,7 +144,7 @@ The represented subset requires one enabled URL-backed PAC profile with a cached
 - nested Virtual and Virtual → Switch/Rule List/PAC shapes outside 01J;
 - attached Rule List shapes outside 01H;
 - PAC lifecycle shapes outside 01K, including inline/cache/update/error/header/auth/fallback states;
-- temporary-rule transitions through the single Action writer;
+- temporary-rule shapes outside 01L, including multiple rules, other profile families and restart/error lifecycle;
 - external-control transitions and recovery;
 - forced dynamic-render failure and static fallback evidence;
 - headed Toolbar pixels where Action API state is insufficient;
@@ -145,10 +165,11 @@ Switch → System is not an open parity feature because the original runtime rej
 
 ## Immediate execution order
 
-1. Capture the next high-value attached Rule List or temporary-rule Toolbar boundary in the permanent original harness.
-2. Continue external-control and renderer-fallback states.
-3. Run one complete Chromium/Firefox Order 1 matrix and focused owner acceptance.
-4. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
+1. Capture and verify external-control Toolbar transitions and recovery.
+2. Capture forced dynamic-render failure and static fallback behavior.
+3. Complete remaining high-value nested/attached result families needed for one consolidated Order 1 matrix.
+4. Run focused repository-owner acceptance for the complete corrected Toolbar journey.
+5. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
 
 ## Candidate prohibition
 
