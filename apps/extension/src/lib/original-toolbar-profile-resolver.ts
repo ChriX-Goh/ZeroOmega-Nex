@@ -52,14 +52,8 @@ function referenceRequest(url: string): ReferenceRequest | undefined {
   };
 }
 
-function originalActionMatchedColor(
-  trace: OriginalObservableResultTrace,
-): string {
-  if (
-    trace.routeKind === 'direct' &&
-    !trace.currentProfileStatic &&
-    trace.resultProfile.builtin
-  ) {
+function originalActionMatchedColor(trace: OriginalObservableResultTrace): string {
+  if (trace.routeKind === 'direct' && !trace.currentProfileStatic && trace.resultProfile.builtin) {
     return trace.currentProfile.color;
   }
   return trace.resultProfile.color;
