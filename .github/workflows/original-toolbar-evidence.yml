@@ -1,5 +1,6 @@
 name: Apply Chromium Temporary Overlay Correction
 
+# Second connector-authored update triggers this registered one-time workflow.
 on:
   pull_request:
     branches:
