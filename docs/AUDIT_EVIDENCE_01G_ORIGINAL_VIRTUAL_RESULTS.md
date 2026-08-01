@@ -23,11 +23,11 @@ The one-time audit also confirmed an original data-shape boundary: `VirtualProfi
 
 ## Exact original Action results
 
-| Case | Current name in title | Result name | Details after title header | Badge | Result color | Profile color |
-| --- | --- | --- | --- | --- | --- | --- |
-| Virtual → Direct | `Runtime Virtual Direct Alias [[Direct]]` | `[Direct]` | `(not using any proxy)` | `Dire` | `#aaaaaa` | `#aaaaaa` |
-| Virtual → Fixed proxy | `Runtime Virtual Fixed Alias [Runtime Virtual Fixed]` | `Runtime Virtual Fixed` | `PROXY 127.0.0.1:18182\n` | `Runt` | `#64b5f6` | `#64b5f6` |
-| Virtual → Fixed bypass | `Runtime Virtual Fixed Alias [Runtime Virtual Fixed]` | `Runtime Virtual Fixed` | `localhost => DIRECT\n` | `Runt` | `#aaaaaa` | `#64b5f6` |
+| Case                   | Current name in title                                 | Result name             | Details after title header | Badge  | Result color | Profile color |
+| ---------------------- | ----------------------------------------------------- | ----------------------- | -------------------------- | ------ | ------------ | ------------- |
+| Virtual → Direct       | `Runtime Virtual Direct Alias [[Direct]]`             | `[Direct]`              | `(not using any proxy)`    | `Dire` | `#aaaaaa`    | `#aaaaaa`     |
+| Virtual → Fixed proxy  | `Runtime Virtual Fixed Alias [Runtime Virtual Fixed]` | `Runtime Virtual Fixed` | `PROXY 127.0.0.1:18182\n`  | `Runt` | `#64b5f6`    | `#64b5f6`     |
+| Virtual → Fixed bypass | `Runtime Virtual Fixed Alias [Runtime Virtual Fixed]` | `Runtime Virtual Fixed` | `localhost => DIRECT\n`    | `Runt` | `#aaaaaa`    | `#64b5f6`     |
 
 Exact titles:
 

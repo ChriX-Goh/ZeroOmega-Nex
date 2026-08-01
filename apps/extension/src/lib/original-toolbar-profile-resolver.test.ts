@@ -303,6 +303,110 @@ describe('original toolbar profile resolver', () => {
     });
   });
 
+  it('reproduces the exact Virtual-to-Direct display contract', async () => {
+    const workflowState = state(true);
+    workflowState.applied.profiles.push({
+      id: 'profile-virtual-direct',
+      name: 'Virtual Direct Alias',
+      kind: 'virtual',
+      targetRoute: { kind: 'direct' },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-virtual-direct' },
+    }).resolve({ tabId: 26, url: 'http://virtual-direct.test/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#aaaaaa',
+      },
+      titleArguments: {
+        currentProfileName: 'Virtual Direct Alias [[Direct]]',
+        resultProfileName: '[Direct]',
+        details: '(not using any proxy)',
+      },
+      badgeText: 'Dire',
+    });
+  });
+
+  it('reproduces the exact Virtual-to-Fixed proxy display contract', async () => {
+    const workflowState = state(true);
+    workflowState.applied.profiles.push({
+      id: 'profile-virtual-fixed',
+      name: 'Virtual Fixed Alias',
+      kind: 'virtual',
+      targetRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-virtual-fixed' },
+    }).resolve({ tabId: 27, url: 'http://virtual-fixed.test/' });
+
+    expect(result).toEqual({
+      icon: { mode: 'single-color', outerCircleColor: '#64b5f6' },
+      titleArguments: {
+        currentProfileName: 'Virtual Fixed Alias [Proxy]',
+        resultProfileName: 'Proxy',
+        details: 'PROXY 127.0.0.1:7890\n',
+      },
+      badgeText: 'Prox',
+    });
+  });
+
+  it('reproduces the exact Virtual-to-Fixed bypass display contract', async () => {
+    const workflowState = state(true);
+    workflowState.applied.profiles.push({
+      id: 'profile-virtual-fixed',
+      name: 'Virtual Fixed Alias',
+      kind: 'virtual',
+      targetRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+    });
+
+    const result = await resolver(workflowState, {
+      activeRoute: { kind: 'profile', profileId: 'profile-virtual-fixed' },
+    }).resolve({ tabId: 28, url: 'http://localhost/' });
+
+    expect(result).toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#64b5f6',
+      },
+      titleArguments: {
+        currentProfileName: 'Virtual Fixed Alias [Proxy]',
+        resultProfileName: 'Proxy',
+        details: 'localhost => (not using any proxy)\n',
+      },
+      badgeText: 'Prox',
+    });
+  });
+
+  it('fails closed for nested Virtual targets outside the captured contract', async () => {
+    const workflowState = state();
+    workflowState.applied.profiles.push(
+      {
+        id: 'profile-virtual-inner',
+        name: 'Inner Virtual',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+      },
+      {
+        id: 'profile-virtual-outer',
+        name: 'Outer Virtual',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-virtual-inner' },
+      },
+    );
+
+    await expect(
+      resolver(workflowState, {
+        activeRoute: { kind: 'profile', profileId: 'profile-virtual-outer' },
+      }).resolve({ tabId: 29, url: 'http://nested-virtual.test/' }),
+    ).resolves.toBeUndefined();
+  });
+
   it('fails closed for invalid System and attached-list Switch trace shapes', async () => {
     const workflowState = state();
     const fixed = workflowState.applied.profiles[0];

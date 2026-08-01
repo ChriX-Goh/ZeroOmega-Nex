@@ -118,6 +118,21 @@ try {
         `[${directName}]`,
         `${defaultDetail} => [${directName}]\n`,
       ),
+      virtualFixedProxy: resultTitle(
+        'Toolbar Virtual [Toolbar Proxy]',
+        'Toolbar Proxy',
+        `PROXY 127.0.0.1:${proxyPort}\n`,
+      ),
+      virtualFixedBypass: resultTitle(
+        'Toolbar Virtual [Toolbar Proxy]',
+        'Toolbar Proxy',
+        `localhost => ${directDetail}\n`,
+      ),
+      virtualDirect: resultTitle(
+        `Toolbar Virtual Direct [[${directName}]]`,
+        `[${directName}]`,
+        directDetail,
+      ),
       default: chrome.i18n.getMessage('manifest_icon_default_title'),
     };
   }, address.port);
@@ -351,6 +366,117 @@ try {
     proxyTabId,
     switchMatchedState,
     'Switch same-tab default-Direct-to-Fixed transition failed',
+  );
+
+  const virtualCurrent = await sendWorkflowCommand(extensionPage, { channel, action: 'get' });
+  assert.equal(
+    virtualCurrent?.ok,
+    true,
+    `Virtual workflow refresh failed: ${JSON.stringify(virtualCurrent)}`,
+  );
+  const virtualDraft = structuredClone(virtualCurrent.state.draft);
+  const virtualFixed = virtualDraft.profiles.find((candidate) => candidate.id === proxyProfileId);
+  assert.equal(virtualFixed?.kind, 'fixed', 'Virtual target Fixed Profile was not found');
+  virtualFixed.bypass = [{ id: 'bypass-toolbar-localhost', pattern: 'localhost' }];
+  virtualDraft.profiles.push(
+    {
+      id: 'profile-toolbar-virtual-fixed',
+      name: 'Toolbar Virtual',
+      kind: 'virtual',
+      targetRoute: { kind: 'profile', profileId: proxyProfileId },
+    },
+    {
+      id: 'profile-toolbar-virtual-direct',
+      name: 'Toolbar Virtual Direct',
+      kind: 'virtual',
+      targetRoute: { kind: 'direct' },
+    },
+  );
+  virtualDraft.settings.quickSwitch.routes.push(
+    { kind: 'profile', profileId: 'profile-toolbar-virtual-fixed' },
+    { kind: 'profile', profileId: 'profile-toolbar-virtual-direct' },
+  );
+  const virtualReplaced = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'replace-draft',
+    expectedGeneration: virtualCurrent.state.generation,
+    draft: virtualDraft,
+  });
+  assert.equal(
+    virtualReplaced?.ok,
+    true,
+    `Virtual draft replacement failed: ${JSON.stringify(virtualReplaced)}`,
+  );
+  const virtualApplied = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'apply',
+    expectedGeneration: virtualReplaced.state.generation,
+  });
+  assert.equal(virtualApplied?.ok, true, `Virtual Apply failed: ${JSON.stringify(virtualApplied)}`);
+  const virtualFixedActivated = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'activate-route',
+    expectedAppliedRevisionId: virtualApplied.state.applied.revision.id,
+    route: { kind: 'profile', profileId: 'profile-toolbar-virtual-fixed' },
+  });
+  assert.equal(
+    virtualFixedActivated?.ok,
+    true,
+    `Virtual Fixed activation failed: ${JSON.stringify(virtualFixedActivated)}`,
+  );
+
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    { title: expectedTitles.virtualFixedProxy, badgeText: 'Tool', popup },
+    'Virtual-to-Fixed proxy Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    bypassTabId,
+    { title: expectedTitles.virtualFixedBypass, badgeText: 'Tool', popup },
+    'Virtual-to-Fixed bypass Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    internalTabId,
+    { title: expectedTitles.default, badgeText: '', popup },
+    'Virtual-to-Fixed internal-page fallback Action state failed',
+  );
+
+  const virtualDirectActivated = await sendWorkflowCommand(extensionPage, {
+    channel,
+    action: 'activate-route',
+    expectedAppliedRevisionId: virtualApplied.state.applied.revision.id,
+    route: { kind: 'profile', profileId: 'profile-toolbar-virtual-direct' },
+  });
+  assert.equal(
+    virtualDirectActivated?.ok,
+    true,
+    `Virtual Direct activation failed: ${JSON.stringify(virtualDirectActivated)}`,
+  );
+  const virtualDirectState = {
+    title: expectedTitles.virtualDirect,
+    badgeText: 'Dire',
+    popup,
+  };
+  await waitForActionState(
+    extensionPage,
+    proxyTabId,
+    virtualDirectState,
+    'Virtual-to-Direct proxy-tab Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    bypassTabId,
+    virtualDirectState,
+    'Virtual-to-Direct bypass-tab Action state failed',
+  );
+  await waitForActionState(
+    extensionPage,
+    internalTabId,
+    { title: expectedTitles.default, badgeText: '', popup },
+    'Virtual-to-Direct internal-page fallback Action state failed',
   );
 
   console.log(`Chromium toolbar Action E2E passed for ${extensionId}.`);

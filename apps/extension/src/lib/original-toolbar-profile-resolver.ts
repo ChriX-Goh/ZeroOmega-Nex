@@ -1,4 +1,9 @@
-import type { Condition, FixedProfile, SwitchProfile } from '@zeroomega-nex/profile-spec';
+import type {
+  Condition,
+  FixedProfile,
+  SwitchProfile,
+  VirtualProfile,
+} from '@zeroomega-nex/profile-spec';
 import type {
   ProfileWorkflowRuntimeView,
   ProfileWorkflowState,
@@ -155,7 +160,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     }
 
     const profile = state.applied.profiles.find((candidate) => candidate.id === route.profileId);
-    if (profile === undefined || profile.color === undefined) return undefined;
+    if (profile === undefined) return undefined;
 
     const request = referenceRequest(input.url);
     if (request === undefined) return undefined;
@@ -165,7 +170,10 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     if (profile.kind === 'switch') {
       return this.resolveSwitchResult(state, profile, decision, request, directColor);
     }
-    if (profile.kind !== 'fixed') return undefined;
+    if (profile.kind === 'virtual') {
+      return this.resolveVirtualResult(state, profile, decision, request, directColor);
+    }
+    if (profile.kind !== 'fixed' || profile.color === undefined) return undefined;
 
     if (decision.route.kind === 'proxy') {
       const scheme = request.scheme as 'http' | 'https' | 'ftp';
@@ -434,6 +442,157 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
       badge: {
         enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
         resultProfileName: resultProfile.name,
+        resultProfileBuiltin: false,
+      },
+    });
+  }
+
+  private resolveVirtualResult(
+    state: ProfileWorkflowState,
+    profile: VirtualProfile,
+    decision: GraphDecision,
+    request: ReferenceRequest,
+    directColor: string,
+  ) {
+    if (decision.status !== 'resolved' || decision.support !== 'exact') return undefined;
+
+    const virtualEntries = decision.trace.filter((entry) => entry.action === 'virtual');
+    if (virtualEntries.length !== 1 || virtualEntries[0]?.profileId !== profile.id) {
+      return undefined;
+    }
+    const enteredProfiles = decision.trace
+      .filter((entry) => entry.action === 'enter-profile')
+      .map((entry) => entry.profileId);
+    if (enteredProfiles[0] !== profile.id) return undefined;
+
+    if (profile.targetRoute.kind === 'direct') {
+      const allowedActions = new Set(['enter-profile', 'virtual', 'direct']);
+      if (
+        decision.route.kind !== 'direct' ||
+        enteredProfiles.length !== 1 ||
+        decision.trace.some((entry) => !allowedActions.has(entry.action))
+      ) {
+        return undefined;
+      }
+      const directName = this.requireRouteName('direct');
+      const directDisplayName = `[${directName}]`;
+      const details = localizeOriginalToolbarDetail(
+        this.#i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
+      );
+      return deriveOriginalToolbarTabState({
+        currentProfileName: `${profile.name} [${directDisplayName}]`,
+        resultProfileName: directDisplayName,
+        details,
+        icon: {
+          currentProfileColor: directColor,
+          matchedProfileColor: directColor,
+          directProfileColor: directColor,
+          directResult: true,
+          currentProfileStatic: true,
+          matchedProfileIsCurrent: true,
+        },
+        badge: {
+          enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+          resultProfileName: directDisplayName,
+          resultProfileBuiltin: true,
+          builtinBadgeText: directName,
+        },
+      });
+    }
+
+    const targetProfile = state.applied.profiles.find(
+      (candidate): candidate is FixedProfile =>
+        profile.targetRoute.kind === 'profile' &&
+        candidate.id === profile.targetRoute.profileId &&
+        candidate.kind === 'fixed' &&
+        candidate.color !== undefined,
+    );
+    if (
+      targetProfile === undefined ||
+      targetProfile.color === undefined ||
+      enteredProfiles.length !== 2 ||
+      enteredProfiles[1] !== targetProfile.id
+    ) {
+      return undefined;
+    }
+
+    const currentProfileName = `${profile.name} [${targetProfile.name}]`;
+    if (decision.route.kind === 'proxy') {
+      const allowedActions = new Set([
+        'enter-profile',
+        'virtual',
+        'fixed-bypass',
+        'fixed-endpoint',
+      ]);
+      if (decision.trace.some((entry) => !allowedActions.has(entry.action))) return undefined;
+      const endpointEntry = decision.trace.findLast((entry) => entry.action === 'fixed-endpoint');
+      if (
+        endpointEntry?.action !== 'fixed-endpoint' ||
+        endpointEntry.profileId !== targetProfile.id ||
+        endpointEntry.endpointId !== decision.route.endpointId
+      ) {
+        return undefined;
+      }
+      const scheme = request.scheme as 'http' | 'https' | 'ftp';
+      const hasSpecificEndpoint = targetProfile.proxyByScheme[scheme] !== undefined;
+      const pacResult = originalPacResult(decision.route.endpoint);
+      const details = `${hasSpecificEndpoint ? `${scheme} => ` : ''}${pacResult}\n`;
+      return deriveOriginalToolbarTabState({
+        currentProfileName,
+        resultProfileName: targetProfile.name,
+        details,
+        icon: {
+          currentProfileColor: targetProfile.color,
+          matchedProfileColor: targetProfile.color,
+          directProfileColor: directColor,
+          directResult: false,
+          currentProfileStatic: true,
+          matchedProfileIsCurrent: true,
+        },
+        badge: {
+          enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+          resultProfileName: targetProfile.name,
+          resultProfileBuiltin: false,
+        },
+      });
+    }
+
+    if (decision.route.kind !== 'direct') return undefined;
+    const allowedActions = new Set(['enter-profile', 'virtual', 'fixed-bypass', 'direct']);
+    if (decision.trace.some((entry) => !allowedActions.has(entry.action))) return undefined;
+    const matchedBypassEntries = decision.trace.filter(
+      (entry) =>
+        entry.action === 'fixed-bypass' &&
+        entry.profileId === targetProfile.id &&
+        entry.matched === true,
+    );
+    if (matchedBypassEntries.length !== 1) return undefined;
+    const matchedBypass = matchedBypassEntries[0];
+    const bypass =
+      matchedBypass?.action === 'fixed-bypass'
+        ? targetProfile.bypass.find((candidate) => candidate.id === matchedBypass.bypassId)
+        : undefined;
+    if (bypass === undefined) return undefined;
+    const directDetail = localizeOriginalToolbarDetail(
+      this.#i18n,
+      ORIGINAL_TOOLBAR_DETAIL_KEYS.directResult,
+    );
+    return deriveOriginalToolbarTabState({
+      currentProfileName,
+      resultProfileName: targetProfile.name,
+      details: `${bypass.pattern} => ${directDetail}\n`,
+      icon: {
+        currentProfileColor: targetProfile.color,
+        matchedProfileColor: targetProfile.color,
+        directProfileColor: directColor,
+        directResult: true,
+        currentProfileStatic: true,
+        matchedProfileIsCurrent: false,
+      },
+      badge: {
+        enabled: state.applied.settings.interface.showResultProfileOnActionBadgeText,
+        resultProfileName: targetProfile.name,
         resultProfileBuiltin: false,
       },
     });

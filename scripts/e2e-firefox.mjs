@@ -768,6 +768,142 @@ try {
       'Firefox focused Switch same-tab default-Direct-to-Fixed transition failed',
     );
 
+    const virtualCurrent = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'get',
+    });
+    assert.equal(
+      virtualCurrent?.ok,
+      true,
+      `Firefox Virtual workflow refresh failed: ${JSON.stringify(virtualCurrent)}`,
+    );
+    const virtualDraft = structuredClone(virtualCurrent.state.draft);
+    const virtualFixed = virtualDraft.profiles.find(
+      (candidate) => candidate.id === 'profile-default-proxy',
+    );
+    assert.equal(virtualFixed?.kind, 'fixed', 'Firefox Virtual target Fixed Profile was not found');
+    virtualFixed.bypass = [{ id: 'bypass-toolbar-localhost', pattern: 'localhost' }];
+    virtualDraft.profiles.push(
+      {
+        id: 'profile-toolbar-virtual-fixed',
+        name: 'Toolbar Virtual',
+        kind: 'virtual',
+        targetRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
+      },
+      {
+        id: 'profile-toolbar-virtual-direct',
+        name: 'Toolbar Virtual Direct',
+        kind: 'virtual',
+        targetRoute: { kind: 'direct' },
+      },
+    );
+    virtualDraft.settings.quickSwitch.routes.push(
+      { kind: 'profile', profileId: 'profile-toolbar-virtual-fixed' },
+      { kind: 'profile', profileId: 'profile-toolbar-virtual-direct' },
+    );
+    const virtualReplaced = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'replace-draft',
+      expectedGeneration: virtualCurrent.state.generation,
+      draft: virtualDraft,
+    });
+    assert.equal(
+      virtualReplaced?.ok,
+      true,
+      `Firefox Virtual draft replacement failed: ${JSON.stringify(virtualReplaced)}`,
+    );
+    const virtualApplied = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'apply',
+      expectedGeneration: virtualReplaced.state.generation,
+    });
+    assert.equal(
+      virtualApplied?.ok,
+      true,
+      `Firefox Virtual Apply failed: ${JSON.stringify(virtualApplied)}`,
+    );
+    const virtualFixedActivated = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'activate-route',
+      expectedAppliedRevisionId: virtualApplied.state.applied.revision.id,
+      route: { kind: 'profile', profileId: 'profile-toolbar-virtual-fixed' },
+    });
+    assert.equal(
+      virtualFixedActivated?.ok,
+      true,
+      `Firefox Virtual Fixed activation failed: ${JSON.stringify(virtualFixedActivated)}`,
+    );
+
+    const virtualFixedProxyAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Virtual [Toolbar Proxy]',
+        'Toolbar Proxy',
+        `PROXY 127.0.0.1:${sourceAddress.port}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    const virtualFixedBypassAction = {
+      ...(await literalFirefoxActionState(
+        'Toolbar Virtual [Toolbar Proxy]',
+        'Toolbar Proxy',
+        `localhost => ${localizedDirectResult}\n`,
+        toolbarPopup,
+      )),
+      badgeText: 'Tool',
+    };
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      virtualFixedProxyAction,
+      'Firefox focused Virtual-to-Fixed proxy Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarBypassTabId,
+      virtualFixedBypassAction,
+      'Firefox focused Virtual-to-Fixed bypass Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarInternalTabId,
+      defaultAction,
+      'Firefox focused Virtual-to-Fixed internal-page fallback failed',
+    );
+
+    const virtualDirectActivated = await sendFirefoxWorkflowCommand({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'activate-route',
+      expectedAppliedRevisionId: virtualApplied.state.applied.revision.id,
+      route: { kind: 'profile', profileId: 'profile-toolbar-virtual-direct' },
+    });
+    assert.equal(
+      virtualDirectActivated?.ok,
+      true,
+      `Firefox Virtual Direct activation failed: ${JSON.stringify(virtualDirectActivated)}`,
+    );
+    const virtualDirectAction = {
+      ...(await literalFirefoxActionState(
+        `Toolbar Virtual Direct [${routeDirect}]`,
+        routeDirect,
+        localizedDirectResult,
+        toolbarPopup,
+      )),
+      badgeText: 'Dire',
+    };
+    await waitForFirefoxActionState(
+      toolbarProxyTabId,
+      virtualDirectAction,
+      'Firefox focused Virtual-to-Direct proxy-tab Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarBypassTabId,
+      virtualDirectAction,
+      'Firefox focused Virtual-to-Direct bypass-tab Action state failed',
+    );
+    await waitForFirefoxActionState(
+      toolbarInternalTabId,
+      defaultAction,
+      'Firefox focused Virtual-to-Direct internal-page fallback failed',
+    );
+
     assert.notEqual(toolbarBypassWindow, toolbarProxyWindow);
     assert.notEqual(toolbarInternalWindow, toolbarProxyWindow);
     console.log(`Firefox toolbar Action E2E passed for ${installedId}.`);
