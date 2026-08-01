@@ -26,8 +26,7 @@ export function projectOriginalObservableResult(
       (candidate) => candidate.id === activeRoute.profileId,
     );
     const directColor =
-      input.spec.settings.interface.builtInProfiles?.direct?.color ??
-      ORIGINAL_TOOLBAR_DIRECT_COLOR;
+      input.spec.settings.interface.builtInProfiles?.direct?.color ?? ORIGINAL_TOOLBAR_DIRECT_COLOR;
 
     if (activeProfile?.kind === 'switch') {
       if (activeProfile.attachedRuleListProfileId !== undefined) {
