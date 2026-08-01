@@ -1,0 +1,611 @@
+name: Apply Temporary Rule Toolbar Parity
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-temporary-rule-toolbar.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply evidence-bounded implementation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one replacement target, found {count}')
+              target.write_text(text.replace(old, new, 1))
+
+          model = 'packages/profile-workflow/src/popup-temporary-rules.ts'
+          replace_once(
+              model,
+              "export interface PopupTemporaryRuleState {\n  readonly schemaVersion: typeof POPUP_TEMPORARY_RULE_SCHEMA_VERSION;\n  readonly generation: number;\n  readonly rules: readonly PopupTemporaryRule[];",
+              "export interface PopupTemporaryRuleState {\n  readonly schemaVersion: typeof POPUP_TEMPORARY_RULE_SCHEMA_VERSION;\n  readonly generation: number;\n  readonly overlayActive?: boolean;\n  readonly rules: readonly PopupTemporaryRule[];",
+          )
+          replace_once(
+              model,
+              "export function createPopupTemporaryRuleState(): PopupTemporaryRuleState {\n  return { schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION, generation: 0, rules: [] };\n}",
+              "export function createPopupTemporaryRuleState(): PopupTemporaryRuleState {\n  return {\n    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: 0,\n    overlayActive: false,\n    rules: [],\n  };\n}",
+          )
+          replace_once(
+              model,
+              "  const baseRoute = record.baseRoute === undefined ? undefined : routeFromUnknown(record.baseRoute);\n  if (record.baseRoute !== undefined && !baseRoute)\n    throw new TypeError('temporary rule base route is invalid');\n  return {\n    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: Number(record.generation),\n    rules,",
+              "  const baseRoute = record.baseRoute === undefined ? undefined : routeFromUnknown(record.baseRoute);\n  if (record.baseRoute !== undefined && !baseRoute)\n    throw new TypeError('temporary rule base route is invalid');\n  let overlayActive: boolean;\n  if (record.overlayActive === undefined) overlayActive = rules.length > 0;\n  else if (typeof record.overlayActive === 'boolean') overlayActive = record.overlayActive;\n  else throw new TypeError('temporary rule overlay state is invalid');\n  return {\n    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: Number(record.generation),\n    overlayActive,\n    rules,",
+          )
+          replace_once(
+              model,
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    rules: rules.map((rule) => structuredClone(rule)),\n    baseRoute: structuredClone(baseRoute),",
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    overlayActive: state.overlayActive ?? state.rules.length > 0,\n    rules: rules.map((rule) => structuredClone(rule)),\n    baseRoute: structuredClone(baseRoute),",
+          )
+          replace_once(
+              model,
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    rules,\n    baseRoute: structuredClone(baseRoute),\n  };\n}\n\nexport function removePopupTemporaryRule",
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    overlayActive: true,\n    rules,\n    baseRoute: structuredClone(baseRoute),\n  };\n}\n\nexport function removePopupTemporaryRule",
+          )
+          replace_once(
+              model,
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    rules,\n    ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),\n  };\n}\n\nexport function clearPopupTemporaryRules",
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    overlayActive: state.overlayActive ?? state.rules.length > 0,\n    rules,\n    ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),\n  };\n}\n\nexport function clearPopupTemporaryRules",
+          )
+          replace_once(
+              model,
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    rules: [],\n    ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),\n  };\n}\n\nfunction routeToken",
+              "    schemaVersion: POPUP_TEMPORARY_RULE_SCHEMA_VERSION,\n    generation: state.generation + 1,\n    overlayActive: state.overlayActive ?? state.rules.length > 0,\n    rules: [],\n    ...(state.baseRoute === undefined ? {} : { baseRoute: structuredClone(state.baseRoute) }),\n  };\n}\n\nfunction routeToken",
+          )
+          replace_once(
+              model,
+              "  spec.profiles.push({\n    id: profileId,\n    name: profileId,\n    kind: 'switch',",
+              "  const baseProfile =\n    baseRoute.kind === 'profile'\n      ? spec.profiles.find((profile) => profile.id === baseRoute.profileId)\n      : undefined;\n  spec.profiles.push({\n    id: profileId,\n    name: profileId,\n    ...(baseProfile?.color === undefined ? {} : { color: baseProfile.color }),\n    kind: 'switch',",
+          )
+
+          runtime = 'apps/extension/src/lib/popup-temporary-rule-runtime.ts'
+          replace_once(
+              runtime,
+              "    if (normalized.rules.length === 0) {\n      await this.#area.remove(POPUP_TEMPORARY_RULE_STORAGE_KEY);\n      return;\n    }",
+              "    const overlayActive = normalized.overlayActive ?? normalized.rules.length > 0;\n    if (normalized.rules.length === 0 && !overlayActive) {\n      await this.#area.remove(POPUP_TEMPORARY_RULE_STORAGE_KEY);\n      return;\n    }",
+          )
+          replace_once(
+              runtime,
+              "function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRouteTarget | undefined {\n  const temporaryBase = runtime.activeSnapshotId\n    ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)\n    : undefined;\n  return temporaryBase ?? runtime.activeRoute;\n}\n\nexport class PopupTemporaryRuleCoordinator",
+              "function baseRouteFromRuntime(runtime: ProfileWorkflowRuntimeView): ProfileRouteTarget | undefined {\n  const temporaryBase = runtime.activeSnapshotId\n    ? decodePopupTemporarySnapshotId(runtime.activeSnapshotId)\n    : undefined;\n  return temporaryBase ?? runtime.activeRoute;\n}\n\nfunction temporaryOverlayActive(state: PopupTemporaryRuleState): boolean {\n  return state.overlayActive ?? state.rules.length > 0;\n}\n\nexport interface PopupTemporaryToolbarRuntimeView extends ProfileWorkflowRuntimeView {\n  readonly toolbarProjection?: {\n    readonly spec: ProfileSpec;\n    readonly activeRoute: ProfileRouteTarget;\n  };\n}\n\nexport class PopupTemporaryRuleCoordinator",
+          )
+          replace_once(
+              runtime,
+              "    if (state.rules.length > 0 && isPopupTemporaryBaseRouteSupported(candidate, baseRoute)) {\n      const sanitized = sanitizePopupTemporaryRuleState(state, candidate, baseRoute);\n      if (sanitized !== state) {\n        state = sanitized;\n        await this.#repository.write(state);\n      }\n      if (state.rules.length > 0) {\n        const overlay = buildPopupTemporaryRuleOverlay(candidate, state, baseRoute);\n        const activated = await this.#base.activate(overlay.spec, overlay.startRoute);\n        if (previousRuntime?.activeSnapshotId !== activated.snapshotId) {\n          await this.#cleanupSnapshot(previousRuntime?.activeSnapshotId);\n        }\n        return activated;\n      }\n    }",
+              "    if (temporaryOverlayActive(state) && isPopupTemporaryBaseRouteSupported(candidate, baseRoute)) {\n      const sanitized = sanitizePopupTemporaryRuleState(state, candidate, baseRoute);\n      if (sanitized !== state) {\n        state = sanitized;\n        await this.#repository.write(state);\n      }\n      if (temporaryOverlayActive(state)) {\n        const overlay = buildPopupTemporaryRuleOverlay(candidate, state, baseRoute);\n        const activated = await this.#base.activate(overlay.spec, overlay.startRoute);\n        if (previousRuntime?.activeSnapshotId !== activated.snapshotId) {\n          await this.#cleanupSnapshot(previousRuntime?.activeSnapshotId);\n        }\n        return activated;\n      }\n    }",
+          )
+          replace_once(
+              runtime,
+              "  async inspectRuntime(): Promise<ProfileWorkflowRuntimeView> {\n    const runtime = (await this.#base.inspectRuntime?.()) ?? {};\n    const baseRoute = baseRouteFromRuntime(runtime);\n    return {\n      ...runtime,\n      ...(baseRoute === undefined ? {} : { activeRoute: baseRoute }),\n    };\n  }\n\n  async view(applied: ProfileSpec): Promise<PopupTemporaryRuleView> {",
+              "  async inspectRuntime(): Promise<ProfileWorkflowRuntimeView> {\n    const runtime = (await this.#base.inspectRuntime?.()) ?? {};\n    const baseRoute = baseRouteFromRuntime(runtime);\n    return {\n      ...runtime,\n      ...(baseRoute === undefined ? {} : { activeRoute: baseRoute }),\n    };\n  }\n\n  async inspectToolbarRuntime(applied: ProfileSpec): Promise<PopupTemporaryToolbarRuntimeView> {\n    const runtime = (await this.#base.inspectRuntime?.()) ?? {};\n    const baseRoute = baseRouteFromRuntime(runtime);\n    const baseView = {\n      ...runtime,\n      ...(baseRoute === undefined ? {} : { activeRoute: baseRoute }),\n    };\n    if (\n      baseRoute === undefined ||\n      runtime.activeSnapshotId === undefined ||\n      !isPopupTemporarySnapshotId(runtime.activeSnapshotId) ||\n      !isPopupTemporaryBaseRouteSupported(applied, baseRoute)\n    ) {\n      return baseView;\n    }\n\n    let state = await this.#repository.read();\n    if (!temporaryOverlayActive(state)) return baseView;\n    const sanitized = sanitizePopupTemporaryRuleState(state, applied, baseRoute);\n    if (sanitized !== state) {\n      state = sanitized;\n      await this.#repository.write(state);\n    }\n    if (!temporaryOverlayActive(state)) return baseView;\n    const overlay = buildPopupTemporaryRuleOverlay(applied, state, baseRoute);\n    return {\n      ...baseView,\n      toolbarProjection: { spec: overlay.spec, activeRoute: overlay.startRoute },\n    };\n  }\n\n  async view(applied: ProfileSpec): Promise<PopupTemporaryRuleView> {",
+          )
+          replace_once(
+              runtime,
+              "    if (!hadTemporarySnapshot && state.rules.length === 0) return false;",
+              "    if (!hadTemporarySnapshot && !temporaryOverlayActive(state)) return false;",
+          )
+          replace_once(
+              runtime,
+              "export interface RegisteredPopupTemporaryRuleRuntime {\n  dispose(): void;\n}\n\nexport function registerPopupTemporaryRuleRuntime(\n  api: PopupTemporaryRuleRuntimeApi,\n  coordinator: PopupTemporaryRuleCoordinator,\n): RegisteredPopupTemporaryRuleRuntime {",
+              "export interface RegisteredPopupTemporaryRuleRuntime {\n  dispose(): void;\n}\n\nexport interface PopupTemporaryRuleRuntimeOptions {\n  readonly onActivationSucceeded?: () => void | Promise<void>;\n}\n\nexport function registerPopupTemporaryRuleRuntime(\n  api: PopupTemporaryRuleRuntimeApi,\n  coordinator: PopupTemporaryRuleCoordinator,\n  options: PopupTemporaryRuleRuntimeOptions = {},\n): RegisteredPopupTemporaryRuleRuntime {",
+          )
+          replace_once(
+              runtime,
+              "      if (message.action === 'toggle') {\n        return response(await coordinator.toggle(state.applied, message.domain, message.route));\n      }\n      if (message.action === 'remove') {\n        return response(await coordinator.remove(state.applied, message.domain));\n      }\n      return response(await coordinator.clear(state.applied));",
+              "      let view: PopupTemporaryRuleView;\n      if (message.action === 'toggle') {\n        view = await coordinator.toggle(state.applied, message.domain, message.route);\n      } else if (message.action === 'remove') {\n        view = await coordinator.remove(state.applied, message.domain);\n      } else {\n        view = await coordinator.clear(state.applied);\n      }\n      await options.onActivationSucceeded?.();\n      return response(view);",
+          )
+
+          resolver = 'apps/extension/src/lib/original-toolbar-profile-resolver.ts'
+          replace_once(
+              resolver,
+              "import type {\n  ProfileWorkflowRuntimeView,\n  ProfileWorkflowState,\n} from '@zeroomega-nex/profile-workflow';",
+              "import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';\nimport type {\n  ProfileWorkflowRuntimeView,\n  ProfileWorkflowState,\n} from '@zeroomega-nex/profile-workflow';",
+          )
+          replace_once(
+              resolver,
+              "export interface OriginalToolbarRuntimeInspector {\n  inspectRuntime(): Promise<ProfileWorkflowRuntimeView>;\n}",
+              "export interface OriginalToolbarRuntimeView extends ProfileWorkflowRuntimeView {\n  readonly toolbarProjection?: {\n    readonly spec: ProfileSpec;\n    readonly activeRoute: ProfileRouteTarget;\n  };\n}\n\nexport interface OriginalToolbarRuntimeInspector {\n  inspectRuntime(applied: ProfileSpec): Promise<OriginalToolbarRuntimeView>;\n}",
+          )
+          replace_once(
+              resolver,
+              "    const runtime = await this.#runtime.inspectRuntime();\n    const activeRoute = runtime.activeRoute;\n    if (activeRoute === undefined) return undefined;\n\n    if (activeRoute.kind === 'direct' || activeRoute.kind === 'system') {\n      const trace = projectOriginalObservableResult({\n        spec: state.applied,",
+              "    const runtime = await this.#runtime.inspectRuntime(state.applied);\n    const projectionSpec = runtime.toolbarProjection?.spec ?? state.applied;\n    const activeRoute = runtime.toolbarProjection?.activeRoute ?? runtime.activeRoute;\n    if (activeRoute === undefined) return undefined;\n\n    if (activeRoute.kind === 'direct' || activeRoute.kind === 'system') {\n      const trace = projectOriginalObservableResult({\n        spec: projectionSpec,",
+          )
+          replace_once(
+              resolver,
+              "    const decision = evaluateProfileGraph(state.applied, activeRoute, request);\n    const trace = projectOriginalObservableResult({\n      spec: state.applied,",
+              "    const decision = evaluateProfileGraph(projectionSpec, activeRoute, request);\n    const trace = projectOriginalObservableResult({\n      spec: projectionSpec,",
+          )
+
+          projector = 'apps/extension/src/lib/original-observable-result-projector.ts'
+          replace_once(
+              projector,
+              "import { projectOriginalPacTrace } from './original-observable-pac';",
+              "import { projectOriginalPacTrace } from './original-observable-pac';\nimport { projectOriginalTemporaryRuleTrace } from './original-observable-temporary-rule';",
+          )
+          replace_once(
+              projector,
+              "    if (activeProfile?.kind === 'pac') {",
+              "    if (activeProfile?.kind === 'switch' && activeProfile.id === 'zeroomega-nex.popup-temporary') {\n      return projectOriginalTemporaryRuleTrace({\n        spec: input.spec,\n        temporary: activeProfile,\n        decision: input.decision,\n        request: input.request,\n        i18n: input.i18n,\n        directColor,\n      });\n    }\n\n    if (activeProfile?.kind === 'pac') {",
+          )
+
+          background = 'apps/extension/src/entrypoints/background.ts'
+          replace_once(
+              background,
+              "    runtime: {\n      inspectRuntime: async () => (await activationDriver.inspectRuntime?.()) ?? {},\n    },",
+              "    runtime: {\n      inspectRuntime: async (applied) =>\n        temporaryRuleCoordinator\n          ? temporaryRuleCoordinator.inspectToolbarRuntime(applied)\n          : (await baseActivationDriver.inspectRuntime?.()) ?? {},\n    },",
+          )
+          replace_once(
+              background,
+              "  popupTemporaryRuleRuntime = temporaryRuleCoordinator\n    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator)\n    : undefined;",
+              "  popupTemporaryRuleRuntime = temporaryRuleCoordinator\n    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator, {\n        onActivationSucceeded: () => refreshToolbar('temporary rule'),\n      })\n    : undefined;",
+          )
+
+          Path('apps/extension/src/lib/original-observable-temporary-rule.ts').write_text(r'''import type { FixedProfile, ProfileSpec, SwitchProfile } from '@zeroomega-nex/profile-spec';
+import { POPUP_TEMPORARY_PROFILE_ID_PREFIX } from '@zeroomega-nex/profile-workflow';
+import type { GraphDecision, ReferenceRequest } from '@zeroomega-nex/reference-interpreter';
+
+import {
+  localizeOriginalToolbarDetail,
+  ORIGINAL_TOOLBAR_DETAIL_KEYS,
+  type OriginalToolbarI18nApi,
+} from './original-toolbar-i18n';
+import type {
+  OriginalObservableProfileReference,
+  OriginalObservableResultTrace,
+} from './original-observable-result-trace';
+
+interface ProjectOriginalTemporaryRuleTraceInput {
+  readonly spec: ProfileSpec;
+  readonly temporary: SwitchProfile;
+  readonly decision: GraphDecision;
+  readonly request: ReferenceRequest;
+  readonly i18n: OriginalToolbarI18nApi;
+  readonly directColor: string;
+}
+
+function userProfile(name: string, color: string): OriginalObservableProfileReference {
+  return { displayName: name, badgeName: name, color, builtin: false };
+}
+
+function directProfile(
+  i18n: OriginalToolbarI18nApi,
+  color: string,
+): OriginalObservableProfileReference | undefined {
+  const name = i18n.getMessage('routeDirect');
+  return name.length === 0
+    ? undefined
+    : { displayName: `[${name}]`, badgeName: name, color, builtin: true };
+}
+
+function baseProfile(spec: ProfileSpec, temporary: SwitchProfile): SwitchProfile | undefined {
+  if (
+    temporary.id !== POPUP_TEMPORARY_PROFILE_ID_PREFIX ||
+    temporary.name !== POPUP_TEMPORARY_PROFILE_ID_PREFIX ||
+    temporary.defaultRoute.kind !== 'profile' ||
+    temporary.attachedRuleListProfileId !== undefined ||
+    temporary.rules.length > 1
+  ) {
+    return undefined;
+  }
+  const base = spec.profiles.find(
+    (profile): profile is SwitchProfile =>
+      profile.id === temporary.defaultRoute.profileId &&
+      profile.kind === 'switch' &&
+      profile.enabled !== false &&
+      profile.color !== undefined &&
+      profile.rules.length === 0 &&
+      profile.defaultRoute.kind === 'direct' &&
+      profile.attachedRuleListProfileId === undefined,
+  );
+  if (base === undefined || temporary.color !== base.color) return undefined;
+  return base;
+}
+
+function fixedResult(
+  spec: ProfileSpec,
+  temporary: SwitchProfile,
+): FixedProfile | undefined {
+  const rule = temporary.rules[0];
+  if (
+    rule === undefined ||
+    rule.enabled === false ||
+    rule.condition.kind !== 'host-wildcard' ||
+    !rule.condition.pattern.startsWith('*.') ||
+    rule.condition.pattern.length <= 2 ||
+    rule.condition.pattern.includes('\n') ||
+    rule.condition.pattern.includes('\r') ||
+    rule.route.kind !== 'profile'
+  ) {
+    return undefined;
+  }
+  return spec.profiles.find(
+    (profile): profile is FixedProfile =>
+      profile.id === rule.route.profileId &&
+      profile.kind === 'fixed' &&
+      profile.enabled !== false &&
+      profile.color !== undefined &&
+      profile.bypass.length === 0,
+  );
+}
+
+export function projectOriginalTemporaryRuleTrace(
+  input: ProjectOriginalTemporaryRuleTraceInput,
+): OriginalObservableResultTrace | undefined {
+  const { decision, i18n, spec, temporary } = input;
+  if (decision.status !== 'resolved' || decision.support !== 'exact') return undefined;
+  const base = baseProfile(spec, temporary);
+  if (base === undefined || base.color === undefined) return undefined;
+  const trace = decision.trace;
+  let index = 0;
+  if (trace[index]?.action !== 'enter-profile' || trace[index]?.profileId !== temporary.id) {
+    return undefined;
+  }
+  index += 1;
+
+  const rule = temporary.rules[0];
+  if (rule !== undefined) {
+    const ruleEntry = trace[index];
+    if (
+      ruleEntry?.action !== 'switch-rule' ||
+      ruleEntry.profileId !== temporary.id ||
+      ruleEntry.ruleId !== rule.id
+    ) {
+      return undefined;
+    }
+    index += 1;
+
+    if (ruleEntry.matched === true) {
+      const fixed = fixedResult(spec, temporary);
+      if (
+        fixed === undefined ||
+        fixed.color === undefined ||
+        decision.route.kind !== 'proxy' ||
+        decision.route.endpoint.protocol !== 'http' ||
+        fixed.proxyByScheme.fallback !== decision.route.endpointId ||
+        fixed.proxyByScheme.http !== undefined ||
+        trace[index]?.action !== 'enter-profile' ||
+        trace[index]?.profileId !== fixed.id ||
+        trace[index + 1]?.action !== 'fixed-endpoint' ||
+        trace[index + 1]?.profileId !== fixed.id ||
+        trace[index + 1]?.endpointId !== decision.route.endpointId ||
+        trace.length !== index + 2
+      ) {
+        return undefined;
+      }
+      const prefix = localizeOriginalToolbarDetail(
+        i18n,
+        ORIGINAL_TOOLBAR_DETAIL_KEYS.temporaryRulePrefix,
+      );
+      return {
+        currentProfile: userProfile(base.name, base.color),
+        resultProfile: userProfile(fixed.name, fixed.color),
+        details:
+          `${prefix}${rule.condition.kind === 'host-wildcard' ? rule.condition.pattern : ''} => ${fixed.name}\n` +
+          `PROXY ${decision.route.endpoint.host}:${decision.route.endpoint.port}\n`,
+        routeKind: 'proxy',
+        directProfileColor: input.directColor,
+        directResult: false,
+        currentProfileStatic: false,
+        matchedProfileIsCurrent: false,
+        detailPrefix: prefix,
+      };
+    }
+    if (ruleEntry.matched !== false) return undefined;
+  }
+
+  if (
+    decision.route.kind !== 'direct' ||
+    trace[index]?.action !== 'switch-default' ||
+    trace[index]?.profileId !== temporary.id ||
+    trace[index + 1]?.action !== 'enter-profile' ||
+    trace[index + 1]?.profileId !== base.id ||
+    trace[index + 2]?.action !== 'switch-default' ||
+    trace[index + 2]?.profileId !== base.id ||
+    trace[index + 3]?.action !== 'direct' ||
+    trace.length !== index + 4
+  ) {
+    return undefined;
+  }
+  const direct = directProfile(i18n, input.directColor);
+  const defaultDetail = localizeOriginalToolbarDetail(
+    i18n,
+    ORIGINAL_TOOLBAR_DETAIL_KEYS.defaultRule,
+  );
+  if (direct === undefined) return undefined;
+  return {
+    currentProfile: userProfile(base.name, base.color),
+    resultProfile: direct,
+    details:
+      `${defaultDetail} => ${base.name}\n` + `${defaultDetail} => ${direct.displayName}\n`,
+    routeKind: 'direct',
+    directProfileColor: input.directColor,
+    directResult: true,
+    currentProfileStatic: false,
+    matchedProfileIsCurrent: false,
+  };
+}
+''')
+
+          Path('apps/extension/src/lib/original-toolbar-temporary-rule.test.ts').write_text(r'''import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
+import {
+  buildPopupTemporaryRuleOverlay,
+  createPopupTemporaryRuleState,
+  createProfileWorkflowState,
+  removePopupTemporaryRule,
+  togglePopupTemporaryRule,
+  type ProfileWorkflowRuntimeView,
+  type ProfileWorkflowState,
+} from '@zeroomega-nex/profile-workflow';
+import { describe, expect, it } from 'vitest';
+
+import type { OriginalToolbarI18nApi } from './original-toolbar-i18n';
+import {
+  OriginalToolbarProfileResolver,
+  type OriginalToolbarProfileStateRepository,
+  type OriginalToolbarRuntimeInspector,
+  type OriginalToolbarRuntimeView,
+} from './original-toolbar-profile-resolver';
+
+class MemoryRepository implements OriginalToolbarProfileStateRepository {
+  constructor(readonly state: ProfileWorkflowState) {}
+  async read(): Promise<ProfileWorkflowState> {
+    return this.state;
+  }
+}
+
+class ProjectedRuntime implements OriginalToolbarRuntimeInspector {
+  constructor(readonly view: OriginalToolbarRuntimeView) {}
+  async inspectRuntime(): Promise<OriginalToolbarRuntimeView> {
+    return this.view;
+  }
+}
+
+class EnglishI18n implements OriginalToolbarI18nApi {
+  getMessage(name: string): string {
+    if (name === 'routeDirect') return 'Direct';
+    if (name === 'browserAction_defaultRuleDetails') return '(default)';
+    if (name === 'browserAction_tempRulePrefix') return '(TEMP) ';
+    return '';
+  }
+}
+
+function fixture(): {
+  readonly state: ProfileWorkflowState;
+  readonly baseRoute: ProfileRouteTarget;
+  readonly fixedRoute: ProfileRouteTarget;
+} {
+  const spec: ProfileSpec = {
+    schemaVersion: '1.0',
+    documentId: 'temporary-rule-toolbar',
+    revision: { id: 'temporary-rule-revision', createdAt: '2026-08-02T04:42:00.000Z' },
+    profiles: [
+      {
+        id: 'temporary-fixed',
+        name: 'Runtime Temporary Fixed',
+        color: '#64b5f6',
+        kind: 'fixed',
+        proxyByScheme: { fallback: 'temporary-endpoint' },
+        bypass: [],
+      },
+      {
+        id: 'temporary-base',
+        name: 'Runtime Temporary Base',
+        color: '#ffb74d',
+        kind: 'switch',
+        rules: [],
+        defaultRoute: { kind: 'direct' },
+      },
+    ],
+    proxyEndpoints: [
+      {
+        id: 'temporary-endpoint',
+        name: 'Temporary endpoint',
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 18187,
+      },
+    ],
+    ruleSources: [],
+    settings: {
+      startup: {
+        route: { kind: 'profile', profileId: 'temporary-base' },
+        revertProxyChanges: true,
+      },
+      quickSwitch: { enabled: true, routes: [], refreshOnChange: false },
+      interface: {
+        confirmDeletion: true,
+        showInspectMenu: true,
+        addConditionsToBottom: false,
+        showResultProfileOnActionBadgeText: true,
+        showExternalProfile: true,
+        showAdvancedConditions: false,
+        exportLegacyRuleList: false,
+        builtInProfiles: { direct: { color: '#aaaaaa' } },
+      },
+      ruleSourceUpdateIntervalMinutes: 1440,
+    },
+  };
+  return {
+    state: createProfileWorkflowState(spec),
+    baseRoute: { kind: 'profile', profileId: 'temporary-base' },
+    fixedRoute: { kind: 'profile', profileId: 'temporary-fixed' },
+  };
+}
+
+async function resolve(
+  state: ProfileWorkflowState,
+  projection: { readonly spec: ProfileSpec; readonly activeRoute: ProfileRouteTarget },
+  url: string,
+) {
+  const runtime: ProfileWorkflowRuntimeView = { activeRoute: { kind: 'profile', profileId: 'temporary-base' } };
+  return new OriginalToolbarProfileResolver({
+    repository: new MemoryRepository(state),
+    runtime: new ProjectedRuntime({ ...runtime, toolbarProjection: projection }),
+    i18n: new EnglishI18n(),
+  }).resolve({ tabId: 71, url });
+}
+
+describe('original temporary-rule Toolbar projection', () => {
+  it('reproduces the matched Fixed result and TEMP prefix', async () => {
+    const { state, baseRoute, fixedRoute } = fixture();
+    const temporary = togglePopupTemporaryRule(
+      createPopupTemporaryRuleState(),
+      'temp-rule.test',
+      fixedRoute,
+      baseRoute,
+    );
+    const projection = buildPopupTemporaryRuleOverlay(state.applied, temporary, baseRoute);
+    await expect(resolve(state, projection, 'http://temp-rule.test/path')).resolves.toEqual({
+      icon: {
+        mode: 'two-color',
+        outerCircleColor: '#64b5f6',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Runtime Temporary Base',
+        resultProfileName: 'Runtime Temporary Fixed',
+        details:
+          '(TEMP) *.temp-rule.test => Runtime Temporary Fixed\n' +
+          'PROXY 127.0.0.1:18187\n',
+      },
+      badgeText: 'Runt',
+      detailPrefix: '(TEMP) ',
+    });
+  });
+
+  it('keeps the hidden overlay default transition before and after removing the last rule', async () => {
+    const { state, baseRoute, fixedRoute } = fixture();
+    const active = togglePopupTemporaryRule(
+      createPopupTemporaryRuleState(),
+      'temp-rule.test',
+      fixedRoute,
+      baseRoute,
+    );
+    const expected = {
+      icon: {
+        mode: 'two-color' as const,
+        outerCircleColor: '#aaaaaa',
+        innerCircleColor: '#ffb74d',
+      },
+      titleArguments: {
+        currentProfileName: 'Runtime Temporary Base',
+        resultProfileName: '[Direct]',
+        details: '(default) => Runtime Temporary Base\n(default) => [Direct]\n',
+      },
+      badgeText: 'Dire',
+    };
+    await expect(
+      resolve(
+        state,
+        buildPopupTemporaryRuleOverlay(state.applied, active, baseRoute),
+        'http://temp-rule-default.test/path',
+      ),
+    ).resolves.toEqual(expected);
+
+    const removed = removePopupTemporaryRule(active, 'temp-rule.test');
+    expect(removed.overlayActive).toBe(true);
+    await expect(
+      resolve(
+        state,
+        buildPopupTemporaryRuleOverlay(state.applied, removed, baseRoute),
+        'http://temp-rule.test/path',
+      ),
+    ).resolves.toEqual(expected);
+  });
+});
+''')
+
+          model_test = 'packages/profile-workflow/src/popup-temporary-rules.test.ts'
+          replace_once(
+              model_test,
+              "    expect(first.rules).toEqual([\n      { domain: 'example.com', route: { kind: 'profile', profileId: 'profile-primary' } },\n    ]);",
+              "    expect(first.overlayActive).toBe(true);\n    expect(first.rules).toEqual([\n      { domain: 'example.com', route: { kind: 'profile', profileId: 'profile-primary' } },\n    ]);",
+          )
+          replace_once(
+              model_test,
+              "    expect(removePopupTemporaryRule(first, 'example.com').rules).toEqual([]);\n    expect(clearPopupTemporaryRules(first).rules).toEqual([]);",
+              "    const removed = removePopupTemporaryRule(first, 'example.com');\n    expect(removed.rules).toEqual([]);\n    expect(removed.overlayActive).toBe(true);\n    const cleared = clearPopupTemporaryRules(first);\n    expect(cleared.rules).toEqual([]);\n    expect(cleared.overlayActive).toBe(true);",
+          )
+          replace_once(
+              model_test,
+              "  it('uses a valid fixed profile ID and round-trips the base route through snapshot IDs', () => {",
+              "  it('builds an empty hidden overlay after the last temporary rule is removed', () => {\n    const base = { kind: 'profile', profileId: 'profile-switch' } as const;\n    const active = togglePopupTemporaryRule(\n      createPopupTemporaryRuleState(),\n      'example.com',\n      { kind: 'profile', profileId: 'profile-primary' },\n      base,\n    );\n    const removed = removePopupTemporaryRule(active, 'example.com');\n    const overlay = buildPopupTemporaryRuleOverlay(spec(), removed, base);\n    expect(overlay.spec.profiles.at(-1)).toMatchObject({\n      id: popupTemporaryProfileIdForBaseRoute(base),\n      color: undefined,\n      kind: 'switch',\n      rules: [],\n      defaultRoute: base,\n    });\n  });\n\n  it('uses a valid fixed profile ID and round-trips the base route through snapshot IDs', () => {",
+          )
+
+          runtime_test = 'apps/extension/src/lib/popup-temporary-rule-runtime.test.ts'
+          replace_once(
+              runtime_test,
+              "  it('retains rules but does not wrap System Proxy', async () => {",
+              "  it('keeps an empty overlay active after removing the last rule and exposes it to Toolbar', async () => {\n    const area = new Area();\n    const driver = new Driver();\n    const coordinator = new PopupTemporaryRuleCoordinator(driver, area);\n    await coordinator.toggle(spec(), 'example.com', { kind: 'profile', profileId: 'fixed' });\n    const removed = await coordinator.remove(spec(), 'example.com');\n    expect(removed.rules).toEqual([]);\n    expect(removed.active).toBe(true);\n    const toolbar = await coordinator.inspectToolbarRuntime(spec());\n    expect(toolbar.activeRoute).toEqual({ kind: 'profile', profileId: 'switch' });\n    expect(toolbar.toolbarProjection?.activeRoute).toEqual({\n      kind: 'profile',\n      profileId: popupTemporaryProfileIdForBaseRoute({ kind: 'profile', profileId: 'switch' }),\n    });\n    expect(toolbar.toolbarProjection?.spec.profiles.at(-1)).toMatchObject({\n      kind: 'switch',\n      rules: [],\n      defaultRoute: { kind: 'profile', profileId: 'switch' },\n    });\n  });\n\n  it('retains rules but does not wrap System Proxy', async () => {",
+          )
+
+          Path('.github/workflows/apply-temporary-rule-toolbar.yml').unlink()
+          PY
+
+      - name: Format and verify repository
+        shell: bash
+        run: |
+          pnpm exec prettier --write \
+            packages/profile-workflow/src/popup-temporary-rules.ts \
+            packages/profile-workflow/src/popup-temporary-rules.test.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.test.ts \
+            apps/extension/src/lib/original-toolbar-profile-resolver.ts \
+            apps/extension/src/lib/original-observable-result-projector.ts \
+            apps/extension/src/lib/original-observable-temporary-rule.ts \
+            apps/extension/src/lib/original-toolbar-temporary-rule.test.ts \
+            apps/extension/src/entrypoints/background.ts
+          pnpm run verify
+
+      - name: Commit atomic temporary-rule implementation
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            packages/profile-workflow/src/popup-temporary-rules.ts \
+            packages/profile-workflow/src/popup-temporary-rules.test.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.ts \
+            apps/extension/src/lib/popup-temporary-rule-runtime.test.ts \
+            apps/extension/src/lib/original-toolbar-profile-resolver.ts \
+            apps/extension/src/lib/original-observable-result-projector.ts \
+            apps/extension/src/lib/original-observable-temporary-rule.ts \
+            apps/extension/src/lib/original-toolbar-temporary-rule.test.ts \
+            apps/extension/src/entrypoints/background.ts \
+            .github/workflows/apply-temporary-rule-toolbar.yml
+          git diff --cached --check
+          git commit -m 'feat(toolbar): reproduce original temporary-rule states'
+          git push origin HEAD:${{ github.head_ref }}
