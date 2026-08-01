@@ -43,8 +43,10 @@ jobs:
           ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
           ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/virtual-results
         run: |
+          pnpm exec prettier --write scripts/audit-original-toolbar-virtual-results.mjs
           node --check scripts/audit-original-toolbar-virtual-results.mjs
-          pnpm exec prettier --check scripts/audit-original-toolbar-virtual-results.mjs
+          cp scripts/audit-original-toolbar-virtual-results.mjs \
+            original-runtime/virtual-results/formatted-audit-script.mjs
           node scripts/audit-original-toolbar-virtual-results.mjs \
             | tee original-runtime/virtual-results/audit.log
       - name: Upload original Virtual evidence
