@@ -1,0 +1,47 @@
+name: Export Original Temporary Rule Source
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-original-temp-rule-source.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download exact official ZeroOmega v3.5.0 Chromium package
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            -o chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  chromium-release.zip' | sha256sum -c -
+          mkdir -p original-release/chromium
+          unzip -q chromium-release.zip -d original-release/chromium
+          test -f original-release/chromium/manifest.json
+
+      - name: Inventory temporary-rule source candidates
+        shell: bash
+        run: |
+          find original-release/chromium -type f -printf '%P\n' | sort > original-release/file-inventory.txt
+          grep -RIniE --include='*.js' --include='*.html' --include='*.json' \
+            'temporary|tempRule|temp rule|addCondition|setDefaultProfile|currentProfileName|_actionForUrl' \
+            original-release/chromium > original-release/temporary-rule-grep.txt || true
+
+      - name: Upload exact original package and inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-v3.5.0-temporary-rule-source
+          path: |
+            original-release/chromium
+            original-release/file-inventory.txt
+            original-release/temporary-rule-grep.txt
+          if-no-files-found: error
