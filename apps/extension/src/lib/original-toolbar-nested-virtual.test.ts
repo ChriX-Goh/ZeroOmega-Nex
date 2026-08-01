@@ -148,8 +148,7 @@ describe('original nested Virtual toolbar projection', () => {
         currentProfileName:
           'Runtime Nested Virtual Outer Fixed Alias [Runtime Nested Virtual Inner Fixed Alias]',
         resultProfileName: 'Runtime Nested Virtual Fixed',
-        details:
-          '(default) => Runtime Nested Virtual Fixed\n' + 'PROXY 127.0.0.1:18185\n',
+        details: '(default) => Runtime Nested Virtual Fixed\n' + 'PROXY 127.0.0.1:18185\n',
       },
       badgeText: 'Runt',
     });
