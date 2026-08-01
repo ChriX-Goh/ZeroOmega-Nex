@@ -1,26 +1,37 @@
-name: Apply Chromium Temporary Overlay Correction
+name: Original Toolbar Evidence
 
-# Second connector-authored update triggers this registered one-time workflow.
+# Pull-request runs execute every registered original scenario, including temporary-rule evidence.
 on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario ID, comma-separated IDs, or all
+        required: true
+        default: all
+        type: string
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/original-toolbar-evidence.yml
+      - scripts/audit-original-toolbar-scenarios.mjs
+      - scripts/original-toolbar-evidence-scenarios.mjs
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply:
+  chromium:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 20
+    env:
+      ZEROOMEGA_ORIGINAL_SCENARIO: ${{ github.event_name == 'workflow_dispatch' && inputs.scenario || 'all' }}
+      ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
+      ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/toolbar-evidence
+
     steps:
-      - name: Checkout branch head
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -35,81 +46,31 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Replace outdated Chromium expectation
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Download exact official ZeroOmega v3.5.0 Chromium package
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            -o chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  chromium-release.zip' | sha256sum -c -
+          mkdir -p "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          unzip -q chromium-release.zip -d "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          test -f "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH/manifest.json"
+
+      - name: Capture parameterized original Toolbar evidence
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
+          set -o pipefail
+          node scripts/audit-original-toolbar-scenarios.mjs 2>&1 | tee original-toolbar-evidence.log
 
-          path = Path('scripts/e2e-chromium.mjs')
-          text = path.read_text()
-          old = """  await assertEventually(async () => {
-    const [local, session] = await worker.evaluate(async () =>
-      Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
-    );
-    return (
-      session['zeroomega-nex/popup-temporary-rules/v1/state'] === undefined &&
-      !String(local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '').startsWith(
-        'popup-temporary-v1/',
-      )
-    );
-  }, 'Deleting the final temporary rule did not restore the underlying route');
-  await temporaryManager.close();
-"""
-          new = """  await assertEventually(async () => {
-    const [local, session] = await worker.evaluate(async () =>
-      Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
-    );
-    const temporaryState = session['zeroomega-nex/popup-temporary-rules/v1/state'];
-    return (
-      temporaryState?.overlayActive === true &&
-      Array.isArray(temporaryState.rules) &&
-      temporaryState.rules.length === 0 &&
-      String(local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '').startsWith(
-        'popup-temporary-v1/',
-      )
-    );
-  }, 'Deleting the final temporary rule did not retain the original empty overlay');
-
-  const temporaryCleanup = await worker.evaluate(async (expectedAppliedRevisionId) =>
-    chrome.runtime.sendMessage({
-      channel: 'zeroomega-nex/profile-workflow/v1',
-      action: 'activate-route',
-      expectedAppliedRevisionId,
-      route: { kind: 'system' },
-    }), popupWorkflow.applied.revision.id);
-  assert.equal(
-    temporaryCleanup?.ok,
-    true,
-    `System cleanup after temporary-rule evidence failed: ${JSON.stringify(temporaryCleanup)}`,
-  );
-  await assertEventually(async () => {
-    const local = await worker.evaluate(async () => chrome.storage.local.get(null));
-    return !String(
-      local['zeroomega-nex/browser-proxy/v1/state']?.activeSnapshotId ?? '',
-    ).startsWith('popup-temporary-v1/');
-  }, 'System cleanup did not leave the temporary overlay');
-  await temporaryManager.close();
-"""
-          count = text.count(old)
-          if count != 1:
-              raise SystemExit(f'expected one outdated Chromium assertion, found {count}')
-          path.write_text(text.replace(old, new, 1))
-          PY
-
-      - name: Format and verify repository
-        run: |
-          pnpm exec prettier --write scripts/e2e-chromium.mjs
-          pnpm run verify
-
-      - name: Restore permanent workflow and commit
-        shell: bash
-        run: |
-          echo 'bmFtZTogT3JpZ2luYWwgVG9vbGJhciBFdmlkZW5jZQoKIyBQdWxsLXJlcXVlc3QgcnVucyBleGVjdXRlIGV2ZXJ5IHJlZ2lzdGVyZWQgb3JpZ2luYWwgc2NlbmFyaW8sIGluY2x1ZGluZyB0ZW1wb3JhcnktcnVsZSBldmlkZW5jZS4Kb246CiAgd29ya2Zsb3dfZGlzcGF0Y2g6CiAgICBpbnB1dHM6CiAgICAgIHNjZW5hcmlvOgogICAgICAgIGRlc2NyaXB0aW9uOiBTY2VuYXJpbyBJRCwgY29tbWEtc2VwYXJhdGVkIElEcywgb3IgYWxsCiAgICAgICAgcmVxdWlyZWQ6IHRydWUKICAgICAgICBkZWZhdWx0OiBhbGwKICAgICAgICB0eXBlOiBzdHJpbmcKICBwdWxsX3JlcXVlc3Q6CiAgICBicmFuY2hlczoKICAgICAgLSBtYWluCiAgICBwYXRoczoKICAgICAgLSAuZ2l0aHViL3dvcmtmbG93cy9vcmlnaW5hbC10b29sYmFyLWV2aWRlbmNlLnltbAogICAgICAtIHNjcmlwdHMvYXVkaXQtb3JpZ2luYWwtdG9vbGJhci1zY2VuYXJpb3MubWpzCiAgICAgIC0gc2NyaXB0cy9vcmlnaW5hbC10b29sYmFyLWV2aWRlbmNlLXNjZW5hcmlvcy5tanMKCnBlcm1pc3Npb25zOgogIGNvbnRlbnRzOiByZWFkCgpqb2JzOgogIGNocm9taXVtOgogICAgcnVucy1vbjogdWJ1bnR1LTI0LjA0CiAgICB0aW1lb3V0LW1pbnV0ZXM6IDIwCiAgICBlbnY6CiAgICAgIFpFUk9PTUVHQV9PUklHSU5BTF9TQ0VOQVJJTzogJHt7IGdpdGh1Yi5ldmVudF9uYW1lID09ICd3b3JrZmxvd19kaXNwYXRjaCcgJiYgaW5wdXRzLnNjZW5hcmlvIHx8ICdhbGwnIH19CiAgICAgIFpFUk9PTUVHQV9PUklHSU5BTF9DSFJPTUlVTV9QQVRIOiBvcmlnaW5hbC1yZWxlYXNlL2Nocm9taXVtCiAgICAgIFpFUk9PTUVHQV9PUklHSU5BTF9SVU5USU1FX09VVFBVVDogb3JpZ2luYWwtcnVudGltZS90b29sYmFyLWV2aWRlbmNlCgogICAgc3RlcHM6CiAgICAgIC0gbmFtZTogQ2hlY2tvdXQKICAgICAgICB1c2VzOiBhY3Rpb25zL2NoZWNrb3V0QHY0CgogICAgICAtIG5hbWU6IFNldCB1cCBOb2RlLmpzCiAgICAgICAgdXNlczogYWN0aW9ucy9zZXR1cC1ub2RlQHY0CiAgICAgICAgd2l0aDoKICAgICAgICAgIG5vZGUtdmVyc2lvbjogMjQKCiAgICAgIC0gbmFtZTogQWN0aXZhdGUgcG5wbQogICAgICAgIHJ1bjogfAogICAgICAgICAgY29yZXBhY2sgZW5hYmxlCiAgICAgICAgICBjb3JlcGFjayBwcmVwYXJlIHBucG1AMTEuNC4wIC0tYWN0aXZhdGUKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBsb2NrZWQgZGVwZW5kZW5jaWVzCiAgICAgICAgcnVuOiBwbnBtIGluc3RhbGwgLS1mcm96ZW4tbG9ja2ZpbGUKCiAgICAgIC0gbmFtZTogSW5zdGFsbCBQbGF5d3JpZ2h0IENocm9taXVtCiAgICAgICAgcnVuOiBwbnBtIGV4ZWMgcGxheXdyaWdodCBpbnN0YWxsIC0td2l0aC1kZXBzIGNocm9taXVtCgogICAgICAtIG5hbWU6IERvd25sb2FkIGV4YWN0IG9mZmljaWFsIFplcm9PbWVnYSB2My41LjAgQ2hyb21pdW0gcGFja2FnZQogICAgICAgIHJ1bjogfAogICAgICAgICAgY3VybCAtTCAtLWZhaWwgLS1yZXRyeSAzIFwKICAgICAgICAgICAgaHR0cHM6Ly9naXRodWIuY29tL3plcm8tcGVhay9aZXJvT21lZ2EvcmVsZWFzZXMvZG93bmxvYWQvdjMuNS4wL2Nocm9taXVtLXJlbGVhc2UuemlwIFwKICAgICAgICAgICAgLW8gY2hyb21pdW0tcmVsZWFzZS56aXAKICAgICAgICAgIGVjaG8gJzRmYzMyMGFmMzI0NjFhN2VmYzdkNmI3YTcwMDEwMDUyMmFmMjlhZmE2YmQxMjcwYWVmMTkzZjkxMjFiMTYwY2UgIGNocm9taXVtLXJlbGVhc2UuemlwJyB8IHNoYTI1NnN1bSAtYyAtCiAgICAgICAgICBta2RpciAtcCAiJFpFUk9PTUVHQV9PUklHSU5BTF9DSFJPTUlVTV9QQVRIIgogICAgICAgICAgdW56aXAgLXEgY2hyb21pdW0tcmVsZWFzZS56aXAgLWQgIiRaRVJPT01FR0FfT1JJR0lOQUxfQ0hST01JVU1fUEFUSCIKICAgICAgICAgIHRlc3QgLWYgIiRaRVJPT01FR0FfT1JJR0lOQUxfQ0hST01JVU1fUEFUSC9tYW5pZmVzdC5qc29uIgoKICAgICAgLSBuYW1lOiBDYXB0dXJlIHBhcmFtZXRlcml6ZWQgb3JpZ2luYWwgVG9vbGJhciBldmlkZW5jZQogICAgICAgIHNoZWxsOiBiYXNoCiAgICAgICAgcnVuOiB8CiAgICAgICAgICBzZXQgLW8gcGlwZWZhaWwKICAgICAgICAgIG5vZGUgc2NyaXB0cy9hdWRpdC1vcmlnaW5hbC10b29sYmFyLXNjZW5hcmlvcy5tanMgMj4mMSB8IHRlZSBvcmlnaW5hbC10b29sYmFyLWV2aWRlbmNlLmxvZwoKICAgICAgLSBuYW1lOiBVcGxvYWQgZXhhY3Qgb3JpZ2luYWwgVG9vbGJhciBldmlkZW5jZQogICAgICAgIGlmOiBhbHdheXMoKQogICAgICAgIHVzZXM6IGFjdGlvbnMvdXBsb2FkLWFydGlmYWN0QHY0CiAgICAgICAgd2l0aDoKICAgICAgICAgIG5hbWU6IG9yaWdpbmFsLXRvb2xiYXItZXZpZGVuY2UtdjMuNS4wCiAgICAgICAgICBwYXRoOiB8CiAgICAgICAgICAgIG9yaWdpbmFsLXJ1bnRpbWUvdG9vbGJhci1ldmlkZW5jZS9ydW50aW1lLmpzb24KICAgICAgICAgICAgb3JpZ2luYWwtdG9vbGJhci1ldmlkZW5jZS5sb2cKICAgICAgICAgIGlmLW5vLWZpbGVzLWZvdW5kOiB3YXJuCg==' | base64 -d > .github/workflows/original-toolbar-evidence.yml
-          rm -f .github/workflows/export-original-temp-rule-source.yml
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add scripts/e2e-chromium.mjs .github/workflows/original-toolbar-evidence.yml .github/workflows/export-original-temp-rule-source.yml
-          git diff --cached --check
-          git commit -m 'test(chromium): preserve empty temporary overlay contract'
-          git push origin HEAD:${{ github.head_ref }}
+      - name: Upload exact original Toolbar evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-toolbar-evidence-v3.5.0
+          path: |
+            original-runtime/toolbar-evidence/runtime.json
+            original-toolbar-evidence.log
+          if-no-files-found: warn
