@@ -1046,20 +1046,46 @@ try {
     );
   }, 'Deleting the final temporary rule did not retain the original empty overlay');
 
-  const temporaryCleanup = await temporaryManager.evaluate(
-    async (expectedAppliedRevisionId) =>
-      chrome.runtime.sendMessage({
-        channel: 'zeroomega-nex/profile-workflow/v1',
-        action: 'activate-route',
-        expectedAppliedRevisionId,
-        route: { kind: 'system' },
-      }),
-    popupWorkflow.applied.revision.id,
-  );
+  const temporaryCleanup = await temporaryManager.evaluate(async () => {
+    const channel = 'zeroomega-nex/profile-workflow/v1';
+    const current = await chrome.runtime.sendMessage({ channel, action: 'get' });
+    if (current?.ok !== true) return { stage: 'get', response: current };
+
+    let state = current.state;
+    const draft = structuredClone(state.draft);
+    const hasSystemRoute = draft.settings.quickSwitch.routes.some(
+      (route) => route.kind === 'system',
+    );
+    if (!hasSystemRoute) {
+      draft.settings.quickSwitch.routes.push({ kind: 'system' });
+      const replaced = await chrome.runtime.sendMessage({
+        channel,
+        action: 'replace-draft',
+        expectedGeneration: state.generation,
+        draft,
+      });
+      if (replaced?.ok !== true) return { stage: 'replace-draft', response: replaced };
+      const applied = await chrome.runtime.sendMessage({
+        channel,
+        action: 'apply',
+        expectedGeneration: replaced.state.generation,
+      });
+      if (applied?.ok !== true) return { stage: 'apply', response: applied };
+      state = applied.state;
+    }
+
+    const activated = await chrome.runtime.sendMessage({
+      channel,
+      action: 'activate-route',
+      expectedAppliedRevisionId: state.applied.revision.id,
+      route: { kind: 'system' },
+    });
+    return { stage: 'activate-route', response: activated };
+  });
   assert.equal(
-    temporaryCleanup?.ok,
+    temporaryCleanup?.response?.ok,
     true,
-    `System cleanup after temporary-rule evidence failed: ${JSON.stringify(temporaryCleanup)}`,
+    `System cleanup after temporary-rule evidence failed at ${temporaryCleanup?.stage}: ${JSON.stringify(temporaryCleanup?.response)}`,
   );
   await assertEventually(async () => {
     const local = await worker.evaluate(async () => chrome.storage.local.get(null));
