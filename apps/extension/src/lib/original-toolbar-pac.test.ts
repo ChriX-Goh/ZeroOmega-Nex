@@ -60,7 +60,9 @@ function fixture(source: PacProfile['source']): {
 function resolve(state: ProfileWorkflowState, profile: PacProfile, url: string) {
   return new OriginalToolbarProfileResolver({
     repository: new MemoryRepository(state),
-    runtime: new FixedRuntime({ activeRoute: { kind: 'profile', profileId: profile.id } }),
+    runtime: new FixedRuntime({
+      activeRoute: { kind: 'profile', profileId: profile.id },
+    }),
     i18n: new EmptyI18n(),
   }).resolve({ tabId: 61, url });
 }
@@ -94,9 +96,14 @@ describe('original URL-backed PAC toolbar projection', () => {
       kind: 'inline',
       script: "function FindProxyForURL() { return 'DIRECT'; }",
     });
-    await expect(resolve(inline.state, inline.profile, 'http://direct.test/')).resolves.toBeUndefined();
+    await expect(
+      resolve(inline.state, inline.profile, 'http://direct.test/'),
+    ).resolves.toBeUndefined();
 
-    const uncached = fixture({ kind: 'url', url: 'https://pac.example.test/uncached.pac' });
+    const uncached = fixture({
+      kind: 'url',
+      url: 'https://pac.example.test/uncached.pac',
+    });
     await expect(
       resolve(uncached.state, uncached.profile, 'http://direct.test/'),
     ).resolves.toBeUndefined();
