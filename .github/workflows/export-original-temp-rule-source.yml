@@ -54,6 +54,45 @@ jobs:
           PY
           python /tmp/apply-temporary-rule-toolbar.py
 
+      - name: Apply exact type refinements
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one refinement target, found {count}')
+              target.write_text(text.replace(old, new, 1))
+
+          projector = 'apps/extension/src/lib/original-observable-temporary-rule.ts'
+          replace_once(
+              projector,
+              "  const base = spec.profiles.find(\n    (profile): profile is SwitchProfile =>\n      profile.id === temporary.defaultRoute.profileId &&",
+              "  const baseProfileId = temporary.defaultRoute.profileId;\n  const base = spec.profiles.find(\n    (profile): profile is SwitchProfile =>\n      profile.id === baseProfileId &&",
+          )
+          replace_once(
+              projector,
+              "  return spec.profiles.find(\n    (profile): profile is FixedProfile =>\n      profile.id === rule.route.profileId &&",
+              "  const fixedProfileId = rule.route.profileId;\n  return spec.profiles.find(\n    (profile): profile is FixedProfile =>\n      profile.id === fixedProfileId &&",
+          )
+
+          test = 'apps/extension/src/lib/original-toolbar-temporary-rule.test.ts'
+          replace_once(
+              test,
+              "  projection: { readonly spec: ProfileSpec; readonly activeRoute: ProfileRouteTarget },",
+              "  projection: { readonly spec: ProfileSpec; readonly startRoute: ProfileRouteTarget },",
+          )
+          replace_once(
+              test,
+              "    runtime: new ProjectedRuntime({ ...runtime, toolbarProjection: projection }),",
+              "    runtime: new ProjectedRuntime({\n      ...runtime,\n      toolbarProjection: { spec: projection.spec, activeRoute: projection.startRoute },\n    }),",
+          )
+          PY
+
       - name: Format and verify repository
         shell: bash
         run: |
