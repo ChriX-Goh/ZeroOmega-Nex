@@ -22,7 +22,7 @@ The unified Original-observable projection currently represents:
 - Fixed proxy and bypass;
 - exact one-level Switch → Direct/Fixed;
 - exact nested Switch 01I subset;
-- immediate Virtual → Direct/Fixed proxy/bypass, with `KG-VIRTUAL-BYPASS-DETAIL-001` open for the immediate bypass detail;
+- exact immediate Virtual → Direct/Fixed proxy/bypass;
 - exact nested Virtual 01J subset;
 - exact attached Rule List 01H subset.
 
@@ -30,7 +30,7 @@ Real Chromium and Firefox Action E2E covers represented shapes. Native Chromium 
 
 ## Active delivery sequence
 
-1. **Order 1 — installation/startup/Toolbar:** 35%. Repair the immediate Virtual bypass detail, then capture PAC and remaining result families before owner acceptance.
+1. **Order 1 — installation/startup/Toolbar:** 35%. Capture PAC and remaining result families before consolidated owner acceptance.
 2. **Order 2 — original export → direct Nex use:** blocked by `KG-IMPORT-001` and `KG-IMPORT-COLOR-001`.
 3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open.
 4. **Order 4 — Options / Apply / Discard:** broad layout, workflow and text mismatch remains open.
@@ -105,7 +105,7 @@ Confirmed in real browsers:
 - Direct/System/Fixed proxy and bypass;
 - one-level Switch results;
 - nested Switch 01I;
-- immediate Virtual results;
+- immediate Virtual results, including literal `DIRECT` for Fixed bypass;
 - nested Virtual 01J;
 - attached Rule List 01H;
 - internal-page/default fallback and tab isolation;
@@ -113,17 +113,15 @@ Confirmed in real browsers:
 
 The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives both Chromium and Firefox nested Switch/Virtual Action E2E. It configures both graphs in one applied document and verifies separate activations without duplicating browser-independent expected semantics.
 
-## Evidence-proven defect
+## Closed evidence-proven correction
 
-`KG-VIRTUAL-BYPASS-DETAIL-001`:
+`KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`:
 
 - original immediate Virtual → Fixed bypass uses `localhost => DIRECT`;
-- nested Virtual 01J now reproduces this correctly;
-- the older generic immediate Virtual projection still uses the localized standalone Direct description;
-- current edge: `BROKEN_IN_NEX`;
-- next gate: repair projector, deterministic expectation and Chromium/Firefox toolbar expectations.
-
-Immediate Virtual bypass must not be called exact while this node is open.
+- the generic immediate Virtual projection now emits the literal PAC result `DIRECT`;
+- the deterministic resolver expectation uses the same literal result;
+- Chromium and Firefox Toolbar Action expectations verify the corrected path;
+- Fixed profile bypass remains unchanged under its separately captured localized detail contract.
 
 ## Remaining Order 1 unknown or missing shapes
 
@@ -141,7 +139,6 @@ Switch → System is not missing because the original runtime rejects it.
 ## Active blockers
 
 - `KG-ICON-001` — complete Toolbar journey: `FAILED`.
-- `KG-VIRTUAL-BYPASS-DETAIL-001` — immediate Virtual bypass detail: `BROKEN_IN_NEX`.
 - `KG-IMPORT-001` — original export direct use: `FAILED`.
 - `KG-IMPORT-COLOR-001` — original `#RGB` normalization: open.
 - `KG-UI-001` — Options/Popup presentation and hierarchy: `FAILED`.
