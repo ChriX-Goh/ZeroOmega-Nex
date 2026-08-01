@@ -1,0 +1,56 @@
+name: Audit original Virtual toolbar results
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/audit-original-toolbar-virtual-results.yml
+      - scripts/audit-original-toolbar-virtual-results.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Download exact original Chromium package
+        run: |
+          mkdir -p original-release/chromium original-runtime/virtual-results
+          curl --fail --location --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            --output original-release/chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  original-release/chromium-release.zip' \
+            | sha256sum --check
+          unzip -q original-release/chromium-release.zip -d original-release/chromium
+          test "$(node -p "require('./original-release/chromium/manifest.json').version")" = '3.5.0'
+      - name: Run original Virtual Action audit
+        env:
+          ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
+          ZEROOMEGA_ORIGINAL_RUNTIME_OUTPUT: original-runtime/virtual-results
+        run: |
+          node --check scripts/audit-original-toolbar-virtual-results.mjs
+          pnpm exec prettier --check scripts/audit-original-toolbar-virtual-results.mjs
+          node scripts/audit-original-toolbar-virtual-results.mjs \
+            | tee original-runtime/virtual-results/audit.log
+      - name: Upload original Virtual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-toolbar-virtual-results-v3.5.0
+          path: original-runtime/virtual-results
+          if-no-files-found: error
