@@ -155,9 +155,7 @@ try {
   captures.push(
     await applyAndCapture(virtualDirectProfile.name, 'http://virtual-direct.test/direct'),
   );
-  captures.push(
-    await applyAndCapture(virtualFixedProfile.name, 'http://virtual-fixed.test/proxy'),
-  );
+  captures.push(await applyAndCapture(virtualFixedProfile.name, 'http://virtual-fixed.test/proxy'));
   captures.push(await applyAndCapture(virtualFixedProfile.name, 'http://localhost/bypass'));
 
   const result = {
