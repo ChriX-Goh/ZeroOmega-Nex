@@ -222,7 +222,12 @@ describe('original attached Rule List toolbar projection', () => {
       matchRoute: { kind: 'direct' },
       defaultRoute: { kind: 'profile', profileId: 'profile-default-proxy' },
     });
-    parent.rules.push({
+    const appliedParent = state.applied.profiles.find(
+      (candidate): candidate is SwitchProfile =>
+        candidate.id === parent.id && candidate.kind === 'switch',
+    );
+    if (appliedParent === undefined) throw new Error('missing applied attached Switch');
+    appliedParent.rules.push({
       id: 'unsupported-parent-rule',
       condition: { kind: 'true' },
       route: { kind: 'direct' },
