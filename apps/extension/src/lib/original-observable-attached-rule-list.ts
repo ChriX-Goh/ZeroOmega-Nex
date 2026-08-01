@@ -48,23 +48,19 @@ function significantAutoProxyLines(content: string): readonly string[] {
   return content
     .split(/\r?\n/u)
     .map((line) => line.trim())
-    .filter(
-      (line) =>
-        line.length > 0 && !line.startsWith('!') && !/^\[AutoProxy\b/iu.test(line),
-    );
+    .filter((line) => line.length > 0 && !line.startsWith('!') && !/^\[AutoProxy\b/iu.test(line));
 }
 
 function routeMatches(route: ProfileRouteTarget, expected: ProfileRouteTarget): boolean {
   if (route.kind !== expected.kind) return false;
-  return route.kind !== 'profile' ||
+  return (
+    route.kind !== 'profile' ||
     expected.kind !== 'profile' ||
-    route.profileId === expected.profileId;
+    route.profileId === expected.profileId
+  );
 }
 
-function attachedProfile(
-  spec: ProfileSpec,
-  parent: SwitchProfile,
-): RuleListProfile | undefined {
+function attachedProfile(spec: ProfileSpec, parent: SwitchProfile): RuleListProfile | undefined {
   const attachedId = parent.attachedRuleListProfileId;
   if (
     attachedId === undefined ||
@@ -89,14 +85,13 @@ function attachedProfile(
   return profile;
 }
 
-function fixedResult(
-  spec: ProfileSpec,
-  route: ProfileRouteTarget,
-): FixedProfile | undefined {
+function fixedResult(spec: ProfileSpec, route: ProfileRouteTarget): FixedProfile | undefined {
   if (route.kind !== 'profile') return undefined;
   return spec.profiles.find(
     (candidate): candidate is FixedProfile =>
-      candidate.id === route.profileId && candidate.kind === 'fixed' && candidate.color !== undefined,
+      candidate.id === route.profileId &&
+      candidate.kind === 'fixed' &&
+      candidate.color !== undefined,
   );
 }
 
@@ -169,17 +164,11 @@ export function projectOriginalAttachedRuleListTrace(
 
   if (matched) {
     selectedRoute = attached.matchRoute;
-    detailPrefix = localizeOriginalToolbarDetail(
-      i18n,
-      ORIGINAL_TOOLBAR_DETAIL_KEYS.attachedPrefix,
-    );
+    detailPrefix = localizeOriginalToolbarDetail(i18n, ORIGINAL_TOOLBAR_DETAIL_KEYS.attachedPrefix);
     transition = `${detailPrefix}${ruleEntry.sourceLine} => `;
   } else {
     const defaultEntry = trace[selectionIndex];
-    if (
-      defaultEntry?.action !== 'rule-list-default' ||
-      defaultEntry.profileId !== attached.id
-    ) {
+    if (defaultEntry?.action !== 'rule-list-default' || defaultEntry.profileId !== attached.id) {
       return undefined;
     }
     resultIndex += 1;
