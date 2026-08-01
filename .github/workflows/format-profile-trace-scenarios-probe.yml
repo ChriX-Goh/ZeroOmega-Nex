@@ -1,0 +1,42 @@
+name: Format Profile Trace Scenarios Probe
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/format-profile-trace-scenarios-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format shared profile trace scenarios
+        run: pnpm exec prettier --write scripts/nex-toolbar-profile-trace-scenarios.mjs
+
+      - name: Upload formatted file
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-profile-trace-scenarios
+          path: scripts/nex-toolbar-profile-trace-scenarios.mjs
+          if-no-files-found: error
