@@ -204,8 +204,7 @@ export function nestedVirtualCases({ proxyPort, directName, defaultDetail }) {
       resultProfileName: 'Runtime Nested Virtual Fixed',
       badgeText: 'Runt',
       details:
-        `${defaultDetail} => Runtime Nested Virtual Fixed\n` +
-        `PROXY 127.0.0.1:${proxyPort}\n`,
+        `${defaultDetail} => Runtime Nested Virtual Fixed\n` + `PROXY 127.0.0.1:${proxyPort}\n`,
     }),
     Object.freeze({
       id: 'outer-virtual-inner-virtual-fixed-bypass',
