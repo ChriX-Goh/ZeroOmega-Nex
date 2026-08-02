@@ -42,7 +42,9 @@ import {
 import {
   currentProxyOwnershipRuntimeApi,
   registerProxyOwnershipRuntime,
+  shouldActivateStartupRouteAfterProxyRestore,
   shouldPreserveExternalProxyState,
+  type ProxyRuntimeRestoreDisposition,
   type RegisteredProxyOwnershipRuntime,
 } from '../lib/proxy-ownership-runtime';
 import {
@@ -63,7 +65,7 @@ let requestDiagnosticsRuntime: RegisteredRequestDiagnosticsRuntime | undefined;
 async function restoreProxyRuntime(
   manager: ProxyAuthenticationRuntimeManager,
   temporaryRules: PopupTemporaryRuleCoordinator | undefined,
-): Promise<void> {
+): Promise<ProxyRuntimeRestoreDisposition> {
   const authenticationStatus = await manager.initialize();
   console.info(`[${productIdentity.name}] proxy authentication state: ${authenticationStatus}.`);
 
@@ -78,7 +80,7 @@ async function restoreProxyRuntime(
     : await recoverPendingActivation(runtime.repository, runtime.driver, new Date().toISOString());
   if (recovered.status === 'failed') {
     console.error(`[${productIdentity.name}] proxy activation recovery failed:`, recovered.message);
-    return;
+    return 'failed';
   }
 
   if (
@@ -87,7 +89,7 @@ async function restoreProxyRuntime(
     (repaired || (await temporaryRules.reconcileStartup(workflow.applied, runtime.repository)))
   ) {
     console.info(`[${productIdentity.name}] temporary-rule proxy runtime reconciled.`);
-    return;
+    return 'startup-complete';
   }
 
   const activationState = await runtime.repository.getState();
@@ -95,7 +97,7 @@ async function restoreProxyRuntime(
     const platformState = await runtime.driver.readState();
     if (shouldPreserveExternalProxyState(activationState.activeBuiltInMode, platformState)) {
       console.info(`[${productIdentity.name}] external proxy state preserved in System mode.`);
-      return;
+      return 'startup-complete';
     }
   }
 
@@ -105,9 +107,10 @@ async function restoreProxyRuntime(
       `[${productIdentity.name}] active proxy snapshot restore failed:`,
       restored.message,
     );
-    return;
+    return 'failed';
   }
   console.info(`[${productIdentity.name}] proxy runtime state: ${restored.status}.`);
+  return 'inspect-startup-route';
 }
 
 export default defineBackground(() => {
@@ -213,9 +216,18 @@ export default defineBackground(() => {
         throw new Error('profile workflow initialization command failed');
       }
       if (response.appliedSnapshotId === undefined) {
-        await restoreProxyRuntime(authentication, temporaryRuleCoordinator);
+        const restoreDisposition = await restoreProxyRuntime(
+          authentication,
+          temporaryRuleCoordinator,
+        );
+        if (restoreDisposition === 'failed') return;
         const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
-        if (restoredRuntime.activeRoute === undefined) {
+        if (
+          shouldActivateStartupRouteAfterProxyRestore(
+            restoreDisposition,
+            restoredRuntime.activeRoute !== undefined,
+          )
+        ) {
           const startupRoute = response.state.applied.settings.startup.route ?? { kind: 'system' };
           await activationDriver.activate(response.state.applied, startupRoute);
         }

@@ -4,7 +4,7 @@
 
 This checkpoint is subordinate to `PRODUCT_CONSTITUTION.md`, `DELIVERY_PLAN.md`, `MILESTONE_8_STATUS.md`, `ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md` and the preceding Original Entry evidence.
 
-It records one bounded browser-runtime correction. It is not an acceptance candidate or completion claim.
+It records an active browser-runtime correction. It is not an acceptance candidate or completion claim.
 
 ## Repeated failure
 
@@ -12,7 +12,7 @@ Multiple ordinary-Head Browser E2E runs failed at the same Chromium step:
 
 `External proxy state did not converge to an importable Fixed candidate`
 
-Firefox, Chromium native Inspect, CI and the other permanent gates remained healthy. Retrying the Chromium job sometimes passed, which initially resembled browser-state propagation variance. Repetition across unrelated Heads proved that relying on retries was not an acceptable permanent contract.
+Firefox, Chromium native Inspect, CI and the other permanent gates remained healthy. Retrying Chromium sometimes passed, but repetition across unrelated Heads proved that retries were not an acceptable contract.
 
 ## Evidence sequence
 
@@ -23,35 +23,42 @@ The Chromium journey first gained explicit completion and read-back checks for `
 - required `fixed_servers` mode;
 - required fallback SOCKS and HTTP hosts.
 
-Ordinary Head `12b2e2a6cab66ea51ad961717ee2f1eff36ea0de` still failed after all those assertions passed. This proved that Chrome accepted the external proxy, but another runtime path later replaced it.
+Those assertions passed while ownership still failed. Diagnostics then proved:
 
-A diagnostic Head then recorded every remaining ownership precondition. Its failure proved:
-
-- control level was `controlled_by_this_extension`;
+- control level remained `controlled_by_this_extension`;
 - persisted activation remained `activeBuiltInMode: system`;
 - `showExternalProfile` remained `true`;
-- the browser initially exposed the expected external Fixed configuration;
+- Chrome initially exposed the expected external Fixed configuration;
 - the ownership response was healthy but contained no external candidate;
-- by the time ownership read the platform state, the effective proxy had reverted to `{ mode: "system" }`.
+- by ownership inspection, the effective setting had reverted to `{ mode: "system" }`.
 
-## Root cause
+## Two-stage root cause
 
-The MV3 service worker can restart while System is the persisted built-in mode. Background startup recovery always called `restoreActiveSnapshot()`, which reapplied System before the ownership command inspected the current browser state. A valid external Fixed or PAC configuration was therefore overwritten during worker startup, making external-profile discovery inherently race-prone.
+The MV3 service worker can restart while System is the persisted built-in mode.
 
-The proxy-settings change listener was not the writer; it only refreshed Toolbar state. The overwrite came from startup recovery.
+The first identified writer was `restoreActiveSnapshot()`. A guard was added so System-mode recovery reads the effective platform state and preserves a valid external Fixed or PAC candidate instead of immediately restoring System.
 
-## Verified product correction
+That first correction passed one ordinary Chromium run, but Head `af425f36be1c44b72a06658e04cc6b26c642f715` later reproduced the same overwrite. Source tracing exposed a second, deterministic write after the preservation return:
 
-System-mode startup recovery now reads the effective platform proxy state before restoring the persisted built-in mode.
+1. `restoreProxyRuntime()` detected the external candidate and returned;
+2. its caller inspected the internal runtime route;
+3. external browser state has no internal `activeRoute`;
+4. the caller interpreted the missing route as an uninitialized browser;
+5. it activated the configured startup route, defaulting to System.
 
-When:
+The preservation guard therefore skipped only snapshot restoration, not the later startup activation.
 
-- the persisted built-in mode is System; and
-- the effective Chromium state parses as a valid external Fixed or PAC profile;
+## Corrected startup contract
 
-background startup preserves that external state instead of reapplying `{ mode: "system" }`. The ordinary ownership path can then expose the candidate for import.
+Proxy startup recovery now returns an explicit disposition:
 
-The correction does not alter:
+- `startup-complete` — external state was preserved or temporary-rule startup reconciliation completed;
+- `inspect-startup-route` — normal recovery completed and the caller may inspect whether a startup route is still required;
+- `failed` — recovery failed and no additional activation may run.
+
+The default startup route is activated only for `inspect-startup-route` when no internal active route exists. `startup-complete` can never fall through to System activation.
+
+This keeps unchanged:
 
 - Direct recovery;
 - genuine System recovery when the effective state is already System;
@@ -59,14 +66,12 @@ The correction does not alter:
 - pending activation rollback;
 - temporary-rule recovery;
 - invalid external configurations;
-- external-profile duplicate detection or import validation.
+- external-profile duplicate detection and import validation.
 
-A pure decision helper is covered by unit tests for valid Fixed, valid PAC, Direct mode, built-in System and invalid Fixed configurations. The Chromium E2E retains all explicit preconditions and detailed diagnostics.
+Pure unit tests cover every disposition with and without an existing active route, in addition to valid Fixed/PAC preservation and invalid/built-in states. Chromium E2E retains its explicit platform read-back, ownership preconditions and detailed failure diagnostics.
 
 ## Verification boundary
 
-The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation in the atomic finalizer. Temporary patch scripts were removed in the same transaction.
-
-A fresh normal-Head Browser E2E run must pass Chromium on its first attempt and continue through every Toolbar specialist step. A manual rerun is not success evidence.
+The correction must pass the atomic repository validation, then a fresh ordinary-Head Chromium main E2E on its first attempt and every Toolbar specialist step. A manual rerun is not success evidence.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.

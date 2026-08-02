@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { PROXY_OWNERSHIP_MESSAGE_CHANNEL, isProxyOwnershipCommand } from './proxy-ownership-client';
-import { shouldPreserveExternalProxyState } from './proxy-ownership-runtime';
+import {
+  shouldActivateStartupRouteAfterProxyRestore,
+  shouldPreserveExternalProxyState,
+} from './proxy-ownership-runtime';
 
 vi.mock('./browser-proxy-runtime', () => ({
   currentBrowserProxyRuntime: () => ({
@@ -59,6 +62,14 @@ describe('proxy ownership message contract', () => {
     expect(shouldPreserveExternalProxyState('system', fixed)).toBe(true);
     expect(shouldPreserveExternalProxyState('system', pac)).toBe(true);
     expect(shouldPreserveExternalProxyState('direct', fixed)).toBe(false);
+  });
+
+  it('skips the default startup route after external or temporary startup completion', () => {
+    expect(shouldActivateStartupRouteAfterProxyRestore('startup-complete', false)).toBe(false);
+    expect(shouldActivateStartupRouteAfterProxyRestore('startup-complete', true)).toBe(false);
+    expect(shouldActivateStartupRouteAfterProxyRestore('failed', false)).toBe(false);
+    expect(shouldActivateStartupRouteAfterProxyRestore('inspect-startup-route', true)).toBe(false);
+    expect(shouldActivateStartupRouteAfterProxyRestore('inspect-startup-route', false)).toBe(true);
   });
 
   it('does not preserve built-in or invalid proxy states', () => {

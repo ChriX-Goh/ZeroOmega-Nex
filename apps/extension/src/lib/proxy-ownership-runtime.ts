@@ -39,6 +39,18 @@ export interface RegisteredProxyOwnershipRuntime {
   dispose(): void;
 }
 
+export type ProxyRuntimeRestoreDisposition =
+  | 'inspect-startup-route'
+  | 'startup-complete'
+  | 'failed';
+
+export function shouldActivateStartupRouteAfterProxyRestore(
+  disposition: ProxyRuntimeRestoreDisposition,
+  hasActiveRoute: boolean,
+): boolean {
+  return disposition === 'inspect-startup-route' && !hasActiveRoute;
+}
+
 export function shouldPreserveExternalProxyState(
   activeBuiltInMode: BuiltInProxyMode | undefined,
   platformState: PlatformProxyState,

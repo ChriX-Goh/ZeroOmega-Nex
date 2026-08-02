@@ -12,7 +12,7 @@ The latest paired screenshot and saved official v3.5.0 About DOM prove that the 
 
 ```html
 <div class="media-left">
-  <img src="img/icons/omega-action-32.png" class="media-object">
+  <img src="img/icons/omega-action-32.png" class="media-object" />
 </div>
 ```
 
