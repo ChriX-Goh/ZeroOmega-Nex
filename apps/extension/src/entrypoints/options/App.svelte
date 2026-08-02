@@ -1085,7 +1085,7 @@
   <aside class="sidebar">
     <header class="side-brand">
       <button type="button" onclick={() => void navigate('about')}>
-        <span>Zero Omega</span>
+        <span>ZeroOmega</span>
       </button>
     </header>
 

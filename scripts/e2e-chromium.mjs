@@ -459,7 +459,7 @@ try {
   );
 
   await popup.bringToFront();
-  const direct = popup.getByRole('button', { name: /直接连接/u });
+  const direct = popup.getByRole('button', { name: '直接连接', exact: true });
   if (!(await direct.isDisabled())) await direct.click();
   await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
 
