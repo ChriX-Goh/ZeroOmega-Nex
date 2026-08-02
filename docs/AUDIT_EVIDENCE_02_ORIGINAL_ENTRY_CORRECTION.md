@@ -75,6 +75,14 @@ The Options application no longer contains the History section type, hash route,
 
 Firefox main E2E also exposed a Selenium-specific race: after changing the advanced-condition preference, the background workflow was still saving when the test immediately clicked the disabled New Profile button. The browser correctly ignored the disabled click. Both Firefox profile-creation paths now wait for the New Profile action to become enabled before clicking; no product behavior was changed to accommodate the test.
 
+## Background rollback localization and external ownership synchronization
+
+The localization validator still required the deleted History confirmation control as proof of rollback coverage. It now requires the real Chromium `rollback-snapshot` command, explicit failure handling and convergence of browser, Applied and Draft state.
+
+Firefox main E2E no longer navigates to the removed `#/history` surface after authentication coverage.
+
+Chromium external-profile coverage now waits for the browser proxy state and the background ownership projection to converge to an importable Fixed candidate before opening Popup. This preserves the original external-profile feature while removing a one-shot browser-state propagation race; it does not fabricate a candidate or bypass ownership checks.
+
 The combined correction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before being committed. Its temporary patch scripts were removed in the same transaction.
 
 ## Evidence boundary
