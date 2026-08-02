@@ -16,153 +16,164 @@ Milestone 8 is not complete or release-ready. The former `98%` and broad `DONE` 
 
 ## Product contract
 
-ZeroOmega Nex is a bottom-layer rewrite of ZeroOmega v3.5.0, not a modernization redesign. Supported original exports must import directly and become immediately usable. Experienced original users must not be forced to rebuild profiles, reinterpret settings or learn a replacement workflow. Visible differences require exact evidence, a minimized browser limitation and repository-owner acceptance.
+ZeroOmega Nex is a bottom-layer rewrite of ZeroOmega v3.5.0, not a modernization redesign. Supported original exports must import directly and become immediately usable. Experienced original users must not be forced to rebuild profiles, reinterpret settings or learn a replacement workflow. Visible differences require exact original evidence, a minimized browser limitation and repository-owner acceptance.
 
 ## Verified Order 1 engineering slice
 
-The retained Toolbar architecture currently includes:
+The retained Toolbar architecture currently verifies:
 
 - one background owner for all real Action writes;
-- a browser-global Action baseline followed by per-tab overrides;
-- serialized startup and profile-workflow transitions;
-- clean-install initialization to the original System route;
+- browser-global baseline plus per-tab overrides;
+- serialized startup/profile activation and clean-install System initialization;
 - one browser-independent Original-observable projection between internal graph decisions and Action rendering;
 - Direct, System and Fixed proxy/bypass;
 - exact one-level Switch → Direct/Fixed;
-- the exact two-level nested Switch 01I subset;
+- exact nested Switch 01I subset;
 - exact immediate Virtual → Direct/Fixed proxy/bypass;
-- the exact two-level nested Virtual 01J subset;
-- the exact attached Rule List 01H subset;
-- the exact URL-backed PAC Toolbar 01K subset;
-- the exact temporary-rule Toolbar 01L subset, including the empty active overlay after last-rule removal;
-- the exact external-control Toolbar 01M subset, including Direct warning state, automatic content recovery and the latched warning-red Badge background;
-- original-derived title, detail, four-code-unit Badge, color, prefix and suffix behavior for represented shapes;
-- Chromium and Firefox real Action acceptance for represented states;
-- internal-page/default fallback, tab isolation and Chromium Inspect set/clear/base restoration/isolation;
-- fail-closed behavior for result shapes outside captured evidence.
+- exact nested Virtual 01J subset;
+- exact attached Rule List 01H subset;
+- exact URL-backed PAC Toolbar 01K subset;
+- exact temporary-rule Toolbar 01L subset;
+- exact external-control Toolbar 01M subset;
+- exact renderer-fallback 01N subset;
+- exact mixed Virtual → Switch 01O subset;
+- original-derived title, detail, four-code-unit Badge, current/result colors and one-/two-color Ω inputs for represented shapes;
+- real Chromium and Firefox Action acceptance;
+- internal-page/default fallback, tab isolation and native Chromium Inspect set/clear/base restoration/isolation;
+- fail-closed behavior outside captured evidence.
 
-These are slice-level engineering results. They do not close Order 1 or `KG-ICON-001`. Total progress remains 47% and Order 1 remains 35%.
+These are slice-level engineering results. They do not close `KG-ICON-001`, Order 1 or repository-owner acceptance. Formal progress remains 47% total and 35% for Order 1.
 
-## Parameterized original evidence harness
+## Permanent original evidence harness
 
-The permanent read-only `Original Toolbar Evidence` workflow:
+The read-only `Original Toolbar Evidence` workflow:
 
-- downloads the exact official ZeroOmega v3.5.0 Chromium package;
-- verifies its fixed SHA-256 before execution;
+- downloads the official ZeroOmega v3.5.0 Chromium package;
+- verifies fixed SHA-256 `4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce`;
 - accepts one scenario ID, comma-separated IDs or `all`;
 - runs each scenario in an isolated real Chromium profile;
-- creates and applies profiles through the original runtime APIs;
-- captures original `_actionForUrl` output and runtime state into one auditable JSON Artifact;
-- cannot commit, push or modify the branch.
+- creates and applies profiles through original runtime APIs;
+- captures original runtime state, `_actionForUrl`, ownership and bounded renderer probes into a JSON Artifact;
+- has `contents: read` and cannot commit or push.
 
-The registry now contains `nested-switch`, `nested-virtual`, `pac`, `temporary-rule` and `external-control`. Pull requests execute `all`, so a newly registered scenario cannot remain unexecuted by default.
+The permanent registry contains:
 
-## Nested Switch 01I checkpoint
+- `nested-switch` → 01I;
+- `nested-virtual` → 01J;
+- `pac` → 01K;
+- `temporary-rule` → 01L;
+- `external-control` → 01M;
+- `renderer-fallback` → 01N;
+- `virtual-switch` → 01O.
 
-`AUDIT_EVIDENCE_01I_ORIGINAL_NESTED_SWITCH_RESULTS.md` establishes and the unified projection verifies:
+Pull requests execute `all`. New result families must extend this registry rather than creating one workflow per trace.
 
-1. outer matched rule → inner matched rule → Fixed proxy;
+## Order 1 checkpoints
+
+### Attached Rule List 01H
+
+`AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md` verifies matched/default AutoProxy results into Direct/Fixed, hidden attached profile identity, `(RL) `, `(default)`, Badge and color behavior. Parent rules, exclusive/multi-line/non-AutoProxy behavior, bypass, fallthrough and deeper chains remain outside the represented subset.
+
+### Nested Switch 01I
+
+`AUDIT_EVIDENCE_01I_ORIGINAL_NESTED_SWITCH_RESULTS.md` verifies:
+
+1. outer matched rule → inner matched rule → Fixed;
 2. outer matched rule → inner default → Direct;
-3. outer default → Direct through the existing one-level Switch contract.
+3. outer default → Direct through the one-level contract.
 
-Every selected Switch edge appears in order. The applied outer Switch remains current; the final route controls result name, Badge and outer color; the applied outer Switch supplies the Action inner/current color.
+Every selected Switch edge appears in order. The applied outer Switch remains current; the final route supplies result name/Badge/result color; the applied outer Switch supplies current/inner color. Deeper Switch chains and nested bypass/Rule List/Virtual/PAC remain fail closed.
 
-Outer default → inner Switch, deeper chains, nested bypass and nested Rule List/Virtual/PAC remain fail-closed.
+### Nested Virtual 01J
 
-## Nested Virtual 01J checkpoint
+`AUDIT_EVIDENCE_01J_ORIGINAL_NESTED_VIRTUAL_RESULTS.md` verifies:
 
-`AUDIT_EVIDENCE_01J_ORIGINAL_NESTED_VIRTUAL_RESULTS.md` establishes and the unified projection verifies:
+1. outer Virtual → inner Virtual → Direct;
+2. outer Virtual → inner Virtual → Fixed proxy;
+3. outer Virtual → inner Virtual → Fixed bypass.
 
-1. outer Virtual → inner Virtual → built-in Direct;
-2. outer Virtual → inner Virtual → one Fixed proxy;
-3. outer Virtual → inner Virtual → that Fixed profile's captured `localhost` bypass.
+The current name contains only the outer and immediate inner Virtual. The outer transition is hidden; the immediate target/default remains visible according to the captured contract. Deeper and mixed Virtual targets remain outside 01J.
 
-The current name contains only the applied outer Virtual and immediate inner Virtual. The outer default transition is hidden; the inner default transition is visible. Direct/proxy uses the inner Virtual current color, while Fixed bypass uses the final Fixed current color and literal `DIRECT` detail.
+### URL-backed PAC 01K
 
-More than two Virtual levels, Virtual → Switch/Rule List/PAC/System, cycles, multiple bypass entries, scheme-specific mappings and target-dependent results remain fail-closed.
+`AUDIT_EVIDENCE_01K_ORIGINAL_PAC_RESULTS.md` proves that the original Toolbar does not expose per-URL PAC return values for the captured URL-backed PAC profile. Both proxy and Direct PAC outcomes display the applied PAC profile as current/result, the exact PAC URL as detail, profile Badge text and one-color PAC icon. Inline/cache/update/error/header/auth/fallback lifecycle remains open.
 
-## Attached Rule List 01H checkpoint
+### Temporary rule 01L
 
-`AUDIT_EVIDENCE_01H_ORIGINAL_ATTACHED_RULE_LIST_RESULTS.md` establishes and the unified projection verifies:
+`AUDIT_EVIDENCE_01L_ORIGINAL_TEMPORARY_RULE_RESULTS.md` verifies one temporary host rule over an empty base Switch:
 
-1. matched AutoProxy line → Fixed;
-2. no match → default Direct;
-3. matched AutoProxy line → Direct;
-4. no match → default Fixed.
+- matched host → one Fixed HTTP proxy with localized temporary prefix;
+- unmatched host → hidden-overlay default to base Switch, then base default to Direct;
+- removing the last rule retains the empty hidden overlay for the captured browser session;
+- visible current identity remains the base profile;
+- all mutations refresh the existing single Action writer.
 
-The parent Switch remains current, the hidden attached profile stays hidden, `(RL) ` is limited to matched details and `(default)` is used for fallback. Parent rules, exclusive/multi-line/non-AutoProxy behavior, bypass, fallthrough, chains and uncaptured nesting remain fail-closed.
+Multiple rules, other profile families, restart/error lifecycle and complete Popup interaction remain open.
 
-## URL-backed PAC 01K checkpoint
+### External control 01M
 
-`AUDIT_EVIDENCE_01K_ORIGINAL_PAC_RESULTS.md` establishes a non-obvious original contract:
+`AUDIT_EVIDENCE_01M_ORIGINAL_EXTERNAL_CONTROL_RESULTS.md` verifies one applied Fixed profile and one competing extension:
 
-- the browser PAC runtime may return `PROXY ...` for one tab and `DIRECT` for another;
-- the original Toolbar does not expose those per-URL PAC return values;
-- both tabs show the applied PAC profile as current and result;
-- the exact PAC source URL is the detail line;
-- the profile name supplies Badge text;
-- the PAC profile color supplies both Action colors, producing a one-color icon.
+- normal state begins with transparent Badge background;
+- takeover produces built-in Direct content, `Dire` Badge and warning-red `#da4f49` background;
+- release automatically restores Fixed title/detail/Badge;
+- warning-red remains latched after recovery and explicit re-application in the captured runtime lifetime.
 
-Nex preserves the strategy interpreter's `target-dependent/indeterminate` PAC decision and projects only this original static PAC Action state. It does not execute arbitrary PAC merely to manufacture a per-tab explanation.
+Nex reads the real browser control level and refreshes through `proxy.settings.onChange` without adding a second Action writer. Policy/not-controllable variants, multiple competitors, non-Fixed profiles and restart/latch lifetime remain open.
 
-The represented subset requires one enabled URL-backed PAC profile with a cached script, no headers, no credentials and no fallback route. Inline-only PAC, uncached URL PAC, update/download failures, headers, credentials, fallback profiles, invalid scripts and PAC lifecycle transitions remain fail-closed or open.
+### Renderer fallback 01N
 
-## Temporary rule 01L checkpoint
+`AUDIT_EVIDENCE_01N_ORIGINAL_RENDERER_FALLBACK.md` verifies:
 
-`AUDIT_EVIDENCE_01L_ORIGINAL_TEMPORARY_RULE_RESULTS.md` establishes and the single Action writer verifies:
+- alpha `255` privacy-style rejection returns no dynamic icon while title/detail/Badge remain available;
+- failed colors are retried on later requests rather than terminally cached;
+- restored pixels for the same colors return dynamic sizes `16`, `19`, `24`, `32`, `38`;
+- no dynamic image causes no `setIcon` call;
+- manifest/current browser icon remains untouched during failure;
+- original/Nex default PNG assets are byte-identical;
+- a rejected full dynamic write retries with the original `19`/`38` subset.
 
-1. one temporary `*.temp-rule.test` host rule → one Fixed HTTP proxy;
-2. the active temporary overlay misses and falls through to an empty base Switch → Direct;
-3. removing the last rule leaves the hidden empty temporary overlay active for the current session.
+The E2E probe is build-gated by `WXT_ICON_RENDERER_E2E=1` and is absent from normal CI, production and native Inspect builds. Arbitrary context errors, both browser writes failing, restart behavior and headed post-success failure pixels remain open.
 
-Exact observable behavior:
+### Virtual → Switch 01O
 
-- the visible current profile remains the base profile;
-- the hidden temporary Switch name is never displayed;
-- a matched rule prepends the localized temporary prefix before the condition-to-result line;
-- the Fixed result supplies Badge/result color while the base profile supplies current color;
-- an unmatched rule and the empty overlay after removal both show two `(default)` transitions;
-- temporary-rule mutations refresh the existing global/per-tab Action coordinator rather than writing Action state through a second path.
+`AUDIT_EVIDENCE_01O_ORIGINAL_VIRTUAL_SWITCH_RESULTS.md` verifies one applied Virtual whose immediate target is one ordinary Switch:
 
-The represented subset is limited to one host rule, one empty base Switch with default Direct and one Fixed HTTP proxy target without bypass. Multiple rules, other conditions, other base/target profile families, restart restoration, activation failures and the complete Popup journey remain open or fail closed.
+1. inner matched host rule → one Fixed HTTP fallback proxy;
+2. inner matched host rule → Direct;
+3. inner Switch default → Direct.
 
-## External control 01M checkpoint
+Exact observable contract:
 
-`AUDIT_EVIDENCE_01M_ORIGINAL_EXTERNAL_CONTROL_RESULTS.md` establishes and the single Action writer verifies:
+- current name is `outer Virtual [immediate Switch]`;
+- the outer Virtual transition line is hidden;
+- the inner Switch matched/default transition is visible;
+- the immediate Switch supplies current/inner icon color;
+- the final Fixed or Direct route supplies result name, Badge and result/outer color;
+- the outer Virtual color does not appear in this captured two-color result.
 
-1. one applied Fixed HTTP profile starts with transparent Badge background;
-2. a second extension takes proxy control and the observable Toolbar switches to built-in Direct with Badge `Dire` and warning-red background `#da4f49`;
-3. after the second extension releases control, the Toolbar automatically returns to the Fixed title/detail and Badge `Runt`;
-4. the warning-red Badge background remains latched after automatic recovery and after explicit re-application within the captured runtime lifetime.
+Nex accepts only the exact one-Virtual/one-Switch shape, no attached Rule List, one host-wildcard rule or Direct default, and one Fixed HTTP fallback without bypass/scheme override. Switch → Switch, bypass, PAC/System/Rule List and other mixed targets remain fail closed.
 
-The Toolbar follows effective browser ownership rather than a stale internal current-profile name. Nex reads the real proxy control level, refreshes through `proxy.settings.onChange`, reuses the existing Direct projection and retains one Action writer. Popup ownership blocking remains a separate surface.
+## Evidence-proven correction
 
-The represented subset is limited to one Fixed HTTP fallback profile and one competing extension. Policy/not-controllable states, multiple competitors, non-Fixed profiles, ownership loss during other workflows, restart/latch lifetime and complete Popup/Options recovery remain open or fail closed.
-
-## Closed evidence-proven correction
-
-`KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`.
-
-- Original immediate Virtual → Fixed bypass evidence in 01G uses `localhost => DIRECT`.
-- The generic immediate Virtual projector emits the literal PAC result `DIRECT`.
-- Deterministic and real Chromium/Firefox Toolbar expectations use the same literal result.
-- Fixed profile bypass remains unchanged under its separately captured localized detail contract.
+`KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`: immediate Virtual → Fixed bypass uses literal `DIRECT` in the projector, deterministic test and Chromium/Firefox expectations. Fixed-profile bypass remains a separately captured localized contract.
 
 ## Migration blocker
 
-`KG-IMPORT-COLOR-001` remains open under Order 2. Original profiles validly use three-digit colors such as `#5b5` and `#d63`, while ProfileSpec accepts canonical six-digit colors and the legacy importer currently copies the original value unchanged. The import boundary must normalize `#RGB` to equivalent `#RRGGBB` and prove the result with real original exports, browser activation, restart and semantic re-export.
+`KG-IMPORT-COLOR-001` remains open under Order 2. Original profiles validly use shorthand colors such as `#5b5` and `#d63`, while ProfileSpec expects canonical six-digit colors and the importer currently copies the original value. The import boundary must normalize `#RGB` to equivalent `#RRGGBB` and prove the result with real original exports, activation, restart and semantic re-export.
 
 ## Open Order 1 blockers
 
 - nested Switch shapes outside 01I;
-- nested Virtual and Virtual → Switch/Rule List/PAC shapes outside 01J;
+- nested Virtual shapes outside 01J;
+- mixed Virtual → Switch shapes outside 01O;
 - attached Rule List shapes outside 01H;
-- PAC lifecycle shapes outside 01K, including inline/cache/update/error/header/auth/fallback states;
-- temporary-rule shapes outside 01L, including multiple rules, other profile families and restart/error lifecycle;
-- external-control shapes outside 01M, including policy/not-controllable states, non-Fixed profiles, workflow races and restart/latch lifetime;
-- forced dynamic-render failure and static fallback evidence;
+- PAC lifecycle outside 01K;
+- temporary-rule lifecycle outside 01L;
+- external-control lifecycle outside 01M;
+- renderer failures outside 01N;
 - headed Toolbar pixels where Action API state is insufficient;
-- one consolidated repository-owner `PASS` for the corrected Order 1 journey.
+- consolidated repository-owner `PASS` for the corrected Order 1 journey.
 
 Switch → System is not an open parity feature because the original runtime rejects it.
 
@@ -179,11 +190,13 @@ Switch → System is not an open parity feature because the original runtime rej
 
 ## Immediate execution order
 
-1. Capture forced dynamic-render failure and static fallback behavior.
-2. Complete remaining high-value nested/attached result families needed for one consolidated Order 1 matrix.
-3. Run focused repository-owner acceptance for the complete corrected Toolbar journey.
-4. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
+1. Capture the next high-value unrepresented mixed/nested or attached result family.
+2. Map and implement only the exact captured subset.
+3. Verify deterministic tests and shared Chromium/Firefox profile-trace E2E.
+4. Capture headed pixels only where Action API state is insufficient.
+5. Run consolidated repository-owner acceptance for Order 1.
+6. Only after Order 1 `PASS`, begin real original-export migration corpus work, including `KG-IMPORT-COLOR-001`.
 
 ## Candidate prohibition
 
-No new candidate, merge or release may be declared from green automation alone. A candidate requires a complete exact-build evidence package and explicit repository-owner acceptance under the product constitution.
+No candidate, merge or release may be declared from green automation alone. A candidate requires a complete exact-build evidence package and explicit repository-owner acceptance under the product constitution.
