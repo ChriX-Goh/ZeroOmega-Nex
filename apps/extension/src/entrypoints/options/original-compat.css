@@ -1,0 +1,150 @@
+/*
+ * Original ZeroOmega v3.5.0 compatibility shell.
+ * Engineering state and delivery concepts belong in code/docs, not ordinary UI.
+ */
+.side-brand {
+  padding: 18px 30px 22px;
+}
+
+.side-brand button {
+  color: #337ab7;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.side-navigation {
+  padding: 0 30px 24px;
+}
+
+.nav-group h2 {
+  margin: 18px 0 10px;
+  color: #999;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.nav-group > button,
+.about-navigation {
+  min-height: 36px;
+  padding: 7px 14px;
+  color: #337ab7;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.nav-group > button:hover,
+.about-navigation:hover,
+.nav-group > button.active,
+.about-navigation.active {
+  color: #23527c;
+  background: transparent;
+}
+
+.nav-group.actions > button {
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.nav-group.actions > button.discard {
+  color: #777;
+  border-color: transparent;
+}
+
+.about-navigation {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.editor {
+  padding: 20px 26px 48px;
+}
+
+.editor-heading {
+  margin-bottom: 26px;
+  border-bottom: 1px solid #eee;
+}
+
+.editor-heading h1 {
+  margin: 0 0 18px;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.editor-heading > div > p,
+.profile-title p {
+  display: none;
+}
+
+.original-about-page {
+  max-width: 920px;
+}
+
+.about-product {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.about-mark {
+  color: #29abe2;
+  font-size: 50px;
+  line-height: 1;
+}
+
+.about-product h2,
+.about-product p,
+.about-license p,
+.about-notices p {
+  margin: 0 0 6px;
+}
+
+.about-product h2 {
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.about-actions {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.about-actions a,
+.about-actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  text-decoration: none;
+}
+
+.about-actions .report-issues {
+  border-color: #46b8da;
+  background: #5bc0de;
+  color: #fff;
+}
+
+.about-actions .danger {
+  border-color: #d43f3a;
+  background: #d9534f;
+  color: #fff;
+}
+
+.about-notices {
+  margin-top: 18px;
+}
+
+.about-license {
+  margin-top: 90px;
+}
