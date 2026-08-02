@@ -251,29 +251,26 @@ async function runScenario(scenario) {
     }
 
     async function readActualAction(tabId) {
-      return optionsPage.evaluate(
-        async (targetTabId) => {
-          const action = chrome.action ?? chrome.browserAction;
-          const invoke = (method, details) =>
-            new Promise((resolveValue, rejectValue) => {
-              method.call(action, details, (value) => {
-                if (chrome.runtime.lastError) {
-                  rejectValue(new Error(chrome.runtime.lastError.message));
-                  return;
-                }
-                resolveValue(value);
-              });
+      return optionsPage.evaluate(async (targetTabId) => {
+        const action = chrome.action ?? chrome.browserAction;
+        const invoke = (method, details) =>
+          new Promise((resolveValue, rejectValue) => {
+            method.call(action, details, (value) => {
+              if (chrome.runtime.lastError) {
+                rejectValue(new Error(chrome.runtime.lastError.message));
+                return;
+              }
+              resolveValue(value);
             });
-          return {
-            title: await invoke(action.getTitle, { tabId: targetTabId }),
-            badgeText: await invoke(action.getBadgeText, { tabId: targetTabId }),
-            badgeBackgroundColor: await invoke(action.getBadgeBackgroundColor, {
-              tabId: targetTabId,
-            }),
-          };
-        },
-        tabId,
-      );
+          });
+        return {
+          title: await invoke(action.getTitle, { tabId: targetTabId }),
+          badgeText: await invoke(action.getBadgeText, { tabId: targetTabId }),
+          badgeBackgroundColor: await invoke(action.getBadgeBackgroundColor, {
+            tabId: targetTabId,
+          }),
+        };
+      }, tabId);
     }
 
     await waitForCurrentProfile('system');
