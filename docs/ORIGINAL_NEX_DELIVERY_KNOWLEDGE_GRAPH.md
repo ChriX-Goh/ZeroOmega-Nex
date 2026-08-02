@@ -4,7 +4,7 @@
 
 `PRODUCT_CONSTITUTION.md` is the highest-authority product contract. `DELIVERY_PLAN.md` defines delivery order and acceptance. `MILESTONE_8_STATUS.md` is the single hand-maintained progress summary. Draft PR #11 and GitHub Checks provide exact moving Head and workflow conclusions.
 
-This graph records stable product nodes, semantic architecture nodes, Original ↔ Nex mappings, evidence edges, defects and acceptance dependencies. It is not a competing product constitution or moving SHA database.
+This graph records stable product nodes, semantic architecture nodes, Original ↔ Nex mappings, evidence edges, defects and acceptance dependencies. It is not a competing constitution or moving-SHA database.
 
 ## 1. Status and edge vocabulary
 
@@ -12,7 +12,7 @@ Statuses:
 
 - `SOURCE_CAPTURED` — exact original source/package/runtime/data evidence exists.
 - `NEX_CAPTURED` — current Nex source and real behavior are independently captured.
-- `MAPPED` — explicit Original ↔ Nex relationship and gap classification exists.
+- `MAPPED` — an explicit Original ↔ Nex relationship and gap classification exists.
 - `IMPLEMENTED` — code exists but required verification is incomplete.
 - `VERIFIED_AUTOMATION` — deterministic tests and required browser automation pass.
 - `VERIFIED_REAL_DATA` — representative original data passes complete real journeys.
@@ -20,11 +20,20 @@ Statuses:
 - `FAILED` — a demonstrated defect or journey failure exists.
 - `UNKNOWN` — evidence is incomplete.
 
-Edges: `EXACT_EQUIVALENT`, `MODERNIZED_EQUIVALENT`, `INTENTIONAL_DIVERGENCE`, `MISSING_IN_NEX`, `BROKEN_IN_NEX`, `EXTRA_IN_NEX`, `UNJUSTIFIED_INVENTION`, `UNKNOWN`.
+Edges:
 
-Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
+- `EXACT_EQUIVALENT`;
+- `MODERNIZED_EQUIVALENT`;
+- `INTENTIONAL_DIVERGENCE`;
+- `MISSING_IN_NEX`;
+- `BROKEN_IN_NEX`;
+- `EXTRA_IN_NEX`;
+- `UNJUSTIFIED_INVENTION`;
+- `UNKNOWN`.
 
-`Original source/runtime -> input data -> Nex mapping -> implementation -> deterministic tests -> Chromium -> Firefox -> owner result`
+Only `OWNER_ACCEPTED` closes a product journey. Every product node closes through:
+
+`Original source/runtime -> original input data -> Nex mapping -> implementation -> deterministic tests -> Chromium -> Firefox -> owner result`
 
 ## 2. Layer A — product contract graph
 
@@ -32,7 +41,7 @@ Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
 
 - `DirectMigrationContract`
   - supported original export decoding;
-  - names, colors, ordering, identity, startup and Quick Switch;
+  - original names, colors, ordering, identity, startup and Quick Switch;
   - Fixed/Switch/PAC/Virtual/Rule List/bypass/temporary-rule semantics;
   - supported authentication metadata;
   - immediate use, restart and semantic export round trip.
@@ -41,136 +50,234 @@ Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
 - `ToolbarContract`
   - Ω geometry, title/detail/Badge/colors;
   - global baseline and per-tab state;
-  - nested profile paths, Rule List prefixes/defaults;
-  - PAC profile state;
-  - temporary-rule, Inspect, external-control and renderer fallback.
-- `PopupContract`, `OptionsContract`, `CrossBrowserReliabilityContract`, `PresentationContract` remain complete-journey nodes.
+  - nested and mixed profile paths;
+  - Rule List prefixes/defaults;
+  - PAC static Action state;
+  - temporary rules, Inspect, external control and renderer failure.
+- `PopupContract`
+  - Quick Switch hierarchy, result selectors, current-site actions, temporary rules and ownership blocking.
+- `OptionsContract`
+  - profile navigation, editors, Apply/Discard, validation, import/export and history.
+- `CrossBrowserReliabilityContract`
+  - Chromium/Firefox capability differences, startup/restart/rollback, permissions and ownership.
+- `PresentationContract`
+  - original-facing density, wording, layout, dialogs and visual hierarchy.
+
+Layer-A closure requires complete journeys and owner acceptance. Slice-level Toolbar automation cannot independently close these nodes.
 
 ## 3. Layer B — semantic architecture graph
 
-`NexArchitecture`
+### `LegacyBoundary`
 
-- `LegacyBoundary`
-  - bounded decoder/importer, metadata classification and secret references;
-  - `KG-IMPORT-COLOR-001`: normalize original `#RGB` to equivalent `#RRGGBB`.
-- `ProfileSpecBoundary`
-  - stable IDs, ordered Direct/System/Fixed/Switch/PAC/Virtual/Rule List/AutoDetect profiles;
-  - startup/Quick Switch, validation, migration and serialization.
-- `PolicyOracle`
-  - request normalization, ordered rules, recursive graph resolution, cycle/depth protection;
-  - arbitrary PAC remains `target-dependent/indeterminate` and is delegated to a browser PAC runtime.
-- `OriginalObservableProjection`
-  - node `KG-TRACE-001`;
-  - converts internal decisions into original current/result/detail/Badge/color/icon inputs;
-  - hides rewrite internals and rejects unverified shapes;
-  - may project captured original static Action states from specific PAC, temporary-overlay and proxy-ownership runtime shapes without exposing internal graph objects.
-- `TemporaryOverlayBoundary`
-  - session-persisted hidden Switch state;
-  - empty active overlay retained after last-rule removal;
-  - normal runtime inspection reports the visible base route;
-  - Toolbar-only inspection exposes the active synthetic graph to the Original-observable projector;
-  - all mutations refresh the existing single Action writer.
-- `ExternalControlBoundary`
-  - real browser proxy control level enters the Toolbar runtime view;
-  - `proxy.settings.onChange` refreshes the existing coordinator;
-  - exact competing-extension ownership projects the captured Direct warning state;
-  - restored control returns normal profile content while the warning-red Badge background remains latched for the captured runtime lifetime;
-  - Popup ownership blocking remains a separate surface.
-- `OriginalEvidenceBoundary`
-  - node `KG-EVIDENCE-HARNESS-001`;
-  - one permanent read-only original-package workflow;
-  - fixed official v3.5.0 Chromium package hash;
-  - isolated scenario profiles, original runtime commands and `_actionForUrl`, JSON Artifact.
-- `ActionBoundary`
-  - one background writer, global baseline, per-tab coordinator, stale suppression, lifecycle refresh, Inspect overlay and renderer fallback.
-- `NexEvidenceBoundary`
-  - deterministic tests, shared profile-trace fixtures, focused ownership E2E, Chromium/Firefox E2E, native Inspect, visual evidence, future real exports and owner acceptance.
+- bounded decoder/importer and metadata classification;
+- no credential leakage into ordinary profile documents;
+- `KG-IMPORT-COLOR-001`: normalize valid original `#RGB` to equivalent canonical `#RRGGBB` at the import boundary.
+
+### `ProfileSpecBoundary`
+
+- stable IDs and ordered Direct/System/Fixed/Switch/PAC/Virtual/Rule List/AutoDetect profiles;
+- startup, Quick Switch, validation, migration and serialization;
+- internal representation may differ, but exported observable semantics must remain original-compatible.
+
+### `PolicyOracle`
+
+- request normalization;
+- ordered rules;
+- recursive graph resolution;
+- cycle/depth protection;
+- arbitrary PAC remains `target-dependent/indeterminate` and is delegated to the browser PAC runtime.
+
+### `OriginalObservableProjection`
+
+Node: `KG-TRACE-001`.
+
+Responsibilities:
+
+- convert internal graph decisions into original current/result/detail/Badge/color/icon inputs;
+- hide rewrite-only graph identities and transitions;
+- preserve original immediate-target visibility rules;
+- project captured PAC, temporary-overlay and ownership static Action states;
+- reject uncaptured shapes rather than inventing explanations.
+
+Current represented route families:
+
+- Direct/System;
+- Fixed proxy/bypass;
+- one-level Switch;
+- nested Switch 01I;
+- immediate Virtual;
+- nested Virtual 01J;
+- attached Rule List 01H;
+- URL PAC 01K;
+- temporary rule 01L;
+- external control 01M;
+- mixed Virtual → Switch 01O.
+
+Renderer fallback 01N belongs primarily to `ActionBoundary`, not route projection.
+
+### `TemporaryOverlayBoundary`
+
+- session-persisted hidden Switch state;
+- empty overlay remains active after final rule removal;
+- normal runtime inspection reports visible base route;
+- Toolbar-only inspection supplies synthetic graph to Original projection;
+- all mutations refresh the existing Action coordinator;
+- no second Action writer.
+
+### `ExternalControlBoundary`
+
+- real browser proxy control level enters Toolbar runtime view;
+- `proxy.settings.onChange` refreshes existing coordinator;
+- captured competing-extension state projects built-in Direct warning content;
+- restored ownership returns normal profile content;
+- warning-red Badge background remains latched for captured runtime lifetime;
+- Popup ownership blocking remains a separate surface.
+
+### `RendererFallbackBoundary`
+
+- one shared `300 × 300` OffscreenCanvas;
+- output sizes `16`, `19`, `24`, `32`, `38`;
+- only successful dynamic images enter color cache;
+- privacy-style failure returns no dynamic icon and remains retryable;
+- absent image causes no browser `setIcon` call;
+- manifest/current icon remains fallback boundary;
+- rejected full dynamic write retries `19`/`38` ImageData;
+- E2E instrumentation exists only in explicitly gated test builds.
+
+### `OriginalEvidenceBoundary`
+
+Node: `KG-EVIDENCE-HARNESS-001`.
+
+- one permanent read-only original-package workflow;
+- exact official v3.5.0 Chromium package hash;
+- isolated scenario profiles;
+- original runtime commands and `_actionForUrl`;
+- bounded ownership/renderer probes;
+- auditable JSON Artifact;
+- pull requests execute all registered scenarios.
+
+### `ActionBoundary`
+
+- one background writer;
+- global Action baseline;
+- per-tab coordinator;
+- stale-update suppression;
+- startup/navigation/profile/ownership refresh;
+- Inspect overlay through the same executor;
+- dynamic Ω renderer and browser compatibility fallback.
+
+### `NexEvidenceBoundary`
+
+- deterministic unit/component tests;
+- shared cross-browser profile-trace fixture;
+- focused ownership and renderer E2E;
+- Chromium/Firefox full E2E;
+- native Chromium Inspect;
+- visual evidence;
+- future real original-export corpus and owner acceptance.
 
 Stable dependency:
 
 `OriginalProductContract -> OriginalObservableProjection -> ActionBoundary/UserInterfaceBoundary`
 
-The internal `GraphTrace`, hidden temporary profile identity and arbitrary PAC execution must not be invented as user-facing explanations.
+Internal `GraphTrace`, hidden temporary identities and arbitrary PAC execution must not leak into visible explanations.
 
-## 4. Original-observable represented shapes
-
-`KG-TRACE-001` is `IMPLEMENTED` and `VERIFIED_AUTOMATION` for:
-
-- Direct and System;
-- Fixed proxy and bypass;
-- one-level Switch → Direct/Fixed;
-- nested Switch 01I subset;
-- immediate Virtual → Direct/Fixed proxy/bypass;
-- nested Virtual 01J subset;
-- attached Rule List 01H subset;
-- URL-backed PAC Toolbar 01K subset;
-- temporary-rule Toolbar 01L subset;
-- external-control Toolbar 01M competing-extension subset.
-
-Other result/lifecycle shapes remain `UNKNOWN` or `MISSING_IN_NEX` and must fail closed.
-
-## 5. Layer C — acceptance journey graph
+## 4. Layer C — acceptance journey graph
 
 ### `Order0Governance`
 
-- `KG-CONTRACT-001`, `KG-GOV-HEAD-001`, `KG-GOV-WORKFLOW-001`, `KG-GOV-GRAPH-001`: `VERIFIED_AUTOMATION`.
+- `KG-CONTRACT-001`: constitution is authoritative — `VERIFIED_AUTOMATION`.
+- `KG-GOV-HEAD-001`: exact moving Head read from PR/Checks — `VERIFIED_AUTOMATION`.
+- `KG-GOV-WORKFLOW-001`: permanent workflows are read-only — `VERIFIED_AUTOMATION`.
+- `KG-GOV-GRAPH-001`: current graph/status/index are synchronized — `VERIFIED_AUTOMATION` after exact-head checks.
 - Green automation cannot declare product completion.
 
 ### `Order1ToolbarJourney`
 
-Parent node: `KG-ICON-001` — complete journey `FAILED`.
+Parent: `KG-ICON-001` — complete journey `FAILED` until consolidated owner acceptance.
 
 Supporting nodes:
 
 - `KG-EVIDENCE-HARNESS-001`
-  - `VERIFIED_AUTOMATION`;
-  - registry: `nested-switch`, `nested-virtual`, `pac`, `temporary-rule`, `external-control`;
+  - status: `VERIFIED_AUTOMATION`;
+  - registry through 01O;
   - pull requests run `all`.
 - `KG-TRACE-001`
-  - `VERIFIED_AUTOMATION` for represented shapes.
-- `KG-SWITCH-NESTED-001`
-  - 01I: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - status: `VERIFIED_AUTOMATION` for represented route families;
+  - remaining route/lifecycle shapes: `UNKNOWN`.
+- `KG-ATTACHED-RULELIST-001`
+  - 01H subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - remaining shapes: `UNKNOWN`.
+- `KG-SWITCH-NESTED-001`
+  - 01I subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - deeper/other results: `UNKNOWN`.
 - `KG-VIRTUAL-NESTED-001`
-  - 01J: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - 01J subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - deeper/mixed targets: `UNKNOWN`.
 - `KG-VIRTUAL-BYPASS-DETAIL-001`
   - literal `DIRECT`: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`.
-- `KG-ATTACHED-RULELIST-001`
-  - 01H: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
-  - remaining shapes: `UNKNOWN`.
 - `KG-PAC-TRACE-001`
   - 01K URL-backed static Action subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - inline/cache/update/error/header/auth/fallback lifecycle: `UNKNOWN`.
 - `KG-TEMP-RULE-001`
   - 01L one-host-rule/empty-base-Switch/Fixed-target subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
-  - multiple rules, other profile families, restart/error lifecycle and complete Popup journey: `UNKNOWN`.
+  - other conditions/families/restart/error/complete Popup: `UNKNOWN`.
 - `KG-EXTERNAL-CONTROL-001`
-  - 01M one-Fixed-profile/one-competing-extension subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
-  - policy/not-controllable states, non-Fixed profiles, workflow races, restart/latch lifetime and complete Popup/Options recovery: `UNKNOWN`.
-- `KG-ACTION-FALLBACK-001` — open.
-- `KG-TOOLBAR-PIXEL-001` — open where Action API is insufficient.
-- `KG-OWNER-ORDER1-001` — not run.
+  - 01M one-Fixed/one-competitor subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - policy/not-controllable/non-Fixed/race/restart/complete recovery: `UNKNOWN`.
+- `KG-ACTION-FALLBACK-001`
+  - 01N alpha-rejection/no-write/retry/recovery subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - arbitrary context/double-write/restart/headed post-success state: `UNKNOWN`.
+- `KG-VIRTUAL-SWITCH-001`
+  - 01O one-Virtual/one-Switch matched Fixed, matched Direct and Direct default subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - deeper Switch, bypass, attached and mixed targets: `UNKNOWN`.
+- `KG-TOOLBAR-PIXEL-001`
+  - open where Action APIs cannot prove final visual pixels.
+- `KG-OWNER-ORDER1-001`
+  - not run for the consolidated corrected journey.
 
-Original-invalid edge: Switch → System is rejected by original and is not missing.
+Original-invalid edge: Switch → System is rejected by original and is not a missing parity feature.
 
 ### `Order2DirectMigrationJourney`
 
 - parent `KG-IMPORT-001`: `FAILED`;
 - `KG-IMPORT-COLOR-001`: open;
-- requires real original exports, semantic comparison, activation, restart, re-export, Chromium/Firefox and owner acceptance.
+- requires real original exports, semantic comparison, immediate activation, restart, re-export, Chromium/Firefox and owner acceptance.
 
-### `Order3PopupJourney` through `Order8FinalCandidate`
+### `Order3PopupJourney`
 
-Popup, Options, complete profile lifecycle, reliability, presentation and final candidate remain dependent on their existing `KG-FLOW-001`, `KG-UI-001`, `KG-EXTRA-001`, `KG-INVENTION-001`, migration and owner-acceptance nodes.
+- parent dependencies: `KG-FLOW-001`, `KG-UI-001`, `KG-EXTRA-001`, ownership and temporary-rule nodes;
+- Toolbar evidence does not close Popup hierarchy, dialogs or complete interactions.
 
-## 6. Evidence registry and mapping edges
+### `Order4OptionsJourney`
+
+- Apply/Discard, editor hierarchy, validation timing, text density and original workflow remain owner-incomplete.
+
+### `Order5CompleteProfileJourneys`
+
+- every profile family must be exercised through create/import/edit/apply/activate/restart/export/delete where applicable;
+- historical code inventory is insufficient.
+
+### `Order6ReliabilityJourney`
+
+- restart, rollback, ownership, authentication, permission denial and browser-specific capabilities require complete exact-build evidence.
+
+### `Order7PresentationJourney`
+
+- paired original/Nex visual evidence and owner acceptance are required.
+
+### `Order8FinalCandidate`
+
+- depends on all previous journeys and explicit owner authorization;
+- no candidate exists.
+
+## 5. Evidence graph
 
 ### Baseline
 
-- `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`
-- `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`
-- `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`
+- `AUDIT_EVIDENCE_01_ORIGINAL_RELEASE.md`;
+- `AUDIT_EVIDENCE_01C_ORIGINAL_CHROMIUM_RUNTIME.md`;
+- `AUDIT_EVIDENCE_01D_ORIGINAL_FIREFOX_RUNTIME.md`.
 
 ### One-level Switch 01F
 
@@ -188,138 +295,147 @@ Popup, Options, complete profile lifecycle, reliability, presentation and final 
 ### Attached Rule List 01H
 
 `OriginalAttachedRuleList01H (SOURCE_CAPTURED)`  
-`-> KG-ATTACHED-RULELIST-001 (MAPPED subset)`  
-`-> unified subprojector (IMPLEMENTED)`  
+`-> KG-ATTACHED-RULELIST-001 (MAPPED strict subset)`  
+`-> specialized projector (IMPLEMENTED)`  
 `-> deterministic + Chromium + Firefox (VERIFIED_AUTOMATION)`  
 `-> KG-ICON-001 (open)`
-
-Represented: match/default to Direct/Fixed. Unrepresented: parent rules, exclusive/multi-line/non-AutoProxy, bypass, fallthrough, chains and other nesting.
 
 ### Nested Switch 01I
 
 `OriginalNestedSwitch01I (SOURCE_CAPTURED)`  
-`-> KG-EVIDENCE-HARNESS-001 (VERIFIED_AUTOMATION)`  
-`-> KG-SWITCH-NESTED-001 (MAPPED subset)`  
-`-> unified subprojector (IMPLEMENTED)`  
-`-> deterministic + shared Chromium/Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> KG-EVIDENCE-HARNESS-001`  
+`-> KG-SWITCH-NESTED-001 (MAPPED strict subset)`  
+`-> specialized projector`  
+`-> deterministic + shared Chromium/Firefox profile-trace E2E`  
 `-> KG-ICON-001 (open)`
 
 ### Nested Virtual 01J
 
 `OriginalNestedVirtual01J (SOURCE_CAPTURED)`  
-`-> KG-EVIDENCE-HARNESS-001 (VERIFIED_AUTOMATION)`  
-`-> KG-VIRTUAL-NESTED-001 (MAPPED subset)`  
-`-> unified subprojector (IMPLEMENTED)`  
-`-> deterministic + Chromium + Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> KG-EVIDENCE-HARNESS-001`  
+`-> KG-VIRTUAL-NESTED-001 (MAPPED strict subset)`  
+`-> specialized projector`  
+`-> deterministic + shared Chromium/Firefox profile-trace E2E`  
 `-> KG-ICON-001 (open)`
 
 ### URL-backed PAC 01K
 
-`OriginalUrlBackedPac01K (SOURCE_CAPTURED)`  
-`-> KG-EVIDENCE-HARNESS-001 scenario pac (VERIFIED_AUTOMATION)`  
-`-> KG-PAC-TRACE-001 (MAPPED subset)`  
-`-> URL-backed PAC subprojector (IMPLEMENTED)`  
-`-> deterministic tests (VERIFIED_AUTOMATION)`  
-`-> shared Chromium profile-trace E2E (VERIFIED_AUTOMATION)`  
-`-> shared Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`OriginalUrlPac01K (SOURCE_CAPTURED)`  
+`-> KG-EVIDENCE-HARNESS-001 scenario pac`  
+`-> KG-PAC-TRACE-001 (MAPPED strict subset)`  
+`-> static PAC Action projector`  
+`-> deterministic + Chromium + Firefox profile-trace E2E`  
 `-> KG-ICON-001 (open)`
-
-Represented:
-
-- enabled URL-backed PAC with cached script;
-- no headers, credentials or fallback;
-- PAC returning explicit HTTP proxy for one URL and Direct for another;
-- identical original Action for both URLs;
-- current/result name = PAC profile;
-- detail = exact PAC source URL;
-- Badge = PAC profile name truncated to four code units;
-- one-color PAC icon.
-
-Unrepresented:
-
-- inline-only or uncached PAC;
-- download, cache, update and invalid-script states;
-- custom headers, credentials and fallback profiles;
-- SOCKS/HTTPS chains;
-- complete PAC lifecycle.
 
 ### Temporary rule 01L
 
 `OriginalTemporaryRule01L (SOURCE_CAPTURED)`  
-`-> KG-EVIDENCE-HARNESS-001 scenario temporary-rule (VERIFIED_AUTOMATION)`  
-`-> KG-TEMP-RULE-001 (MAPPED subset)`  
-`-> session-preserved hidden overlay + specialized projector (IMPLEMENTED)`  
-`-> deterministic model/runtime/Toolbar tests (VERIFIED_AUTOMATION)`  
-`-> shared Chromium profile-trace E2E (VERIFIED_AUTOMATION)`  
-`-> shared Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> hidden session overlay + Toolbar-only synthetic graph`  
+`-> KG-TEMP-RULE-001 (MAPPED strict subset)`  
+`-> deterministic model/runtime/projector tests`  
+`-> Chromium/Firefox real runtime-message E2E`  
 `-> KG-ICON-001 (open)`
-
-Represented:
-
-- one `*.temp-rule.test` temporary host rule;
-- one empty colored base Switch with default Direct;
-- one colored Fixed HTTP proxy target without bypass;
-- matched Fixed result with localized temporary prefix;
-- unmatched overlay fallthrough with two visible default transitions;
-- deletion of the last rule while the empty hidden overlay remains active;
-- visible base-profile identity, result-dependent Badge/colors and immediate single-writer refresh.
-
-Unrepresented:
-
-- multiple temporary rules, ordering and replacement;
-- other condition types;
-- other base/target profile families and nested graphs;
-- restart restoration and browser-session boundaries;
-- invalid routes, activation failure and rollback;
-- complete Popup temporary-rule interaction and owner acceptance.
 
 ### External control 01M
 
 `OriginalExternalControl01M (SOURCE_CAPTURED)`  
-`-> KG-EVIDENCE-HARNESS-001 scenario external-control (VERIFIED_AUTOMATION)`  
-`-> KG-EXTERNAL-CONTROL-001 (MAPPED subset)`  
-`-> real ownership inspection + existing Direct projector + warning latch (IMPLEMENTED)`  
-`-> deterministic Toolbar test (VERIFIED_AUTOMATION)`  
-`-> real dual-extension Chromium E2E (VERIFIED_AUTOMATION)`  
-`-> real dual-extension Firefox E2E (VERIFIED_AUTOMATION)`  
+`-> real ownership inspection + Direct warning projection + latch`  
+`-> KG-EXTERNAL-CONTROL-001 (MAPPED strict subset)`  
+`-> deterministic test`  
+`-> dual-extension Chromium/Firefox E2E`  
 `-> KG-ICON-001 (open)`
 
-Represented:
+### Renderer fallback 01N
 
-- one applied Fixed HTTP fallback profile without bypass;
-- one second extension taking control;
-- effective control level `controlled_by_other_extensions`;
-- Toolbar Direct title/detail and `Dire` Badge during takeover;
-- warning-red Badge background `#da4f49`;
-- automatic return to Fixed content after release;
-- warning color retained after release and explicit re-application within the captured runtime lifetime;
-- transparent normal Badge background before ownership loss.
+`OriginalRendererFallback01N (SOURCE_CAPTURED)`  
+`-> successful-only cache + no-op absent image + 19/38 retry`  
+`-> KG-ACTION-FALLBACK-001 (MAPPED strict subset)`  
+`-> deterministic renderer/adapter/probe tests`  
+`-> forced-failure Chromium/Firefox E2E`  
+`-> KG-ICON-001 (open)`
 
-Unrepresented:
+### Virtual → Switch 01O
 
-- policy/not-controllable/operating-system states;
-- multiple competitors, disable/uninstall/crash/permission changes;
-- non-Fixed profiles and ownership loss during other workflows;
-- background/service-worker/browser restart and latch lifetime;
-- recovery failure and complete Popup/Options ownership journeys.
+`OriginalVirtualSwitch01O (SOURCE_CAPTURED)`  
+`-> KG-EVIDENCE-HARNESS-001 scenario virtual-switch`  
+`-> KG-VIRTUAL-SWITCH-001 (MAPPED strict subset)`  
+`-> projectOriginalVirtualSwitchTrace (IMPLEMENTED)`  
+`-> deterministic match-Fixed/match-Direct/default-Direct/fail-closed tests`  
+`-> shared Chromium profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> shared Firefox profile-trace E2E (VERIFIED_AUTOMATION)`  
+`-> KG-ICON-001 (open)`
+
+01O represented contract:
+
+- one colored outer Virtual targeting one colored ordinary Switch;
+- outer Virtual transition hidden;
+- current name `outer [inner]`;
+- matched host-wildcard → Direct or one Fixed HTTP fallback;
+- inner Direct default;
+- inner Switch supplies current/inner color;
+- final route supplies result/Badge/result color;
+- no bypass, attached Rule List, deeper Switch or other mixed target.
+
+## 6. Directed dependency graph
+
+```text
+PRODUCT_CONSTITUTION
+  -> Order0Governance
+  -> Order1ToolbarJourney
+       -> KG-EVIDENCE-HARNESS-001
+       -> KG-TRACE-001
+       -> KG-ATTACHED-RULELIST-001 (01H)
+       -> KG-SWITCH-NESTED-001 (01I)
+       -> KG-VIRTUAL-NESTED-001 (01J)
+       -> KG-PAC-TRACE-001 (01K)
+       -> KG-TEMP-RULE-001 (01L)
+       -> KG-EXTERNAL-CONTROL-001 (01M)
+       -> KG-ACTION-FALLBACK-001 (01N)
+       -> KG-VIRTUAL-SWITCH-001 (01O)
+       -> KG-TOOLBAR-PIXEL-001
+       -> KG-OWNER-ORDER1-001
+  -> Order2DirectMigrationJourney
+       -> KG-IMPORT-001
+       -> KG-IMPORT-COLOR-001
+  -> Order3PopupJourney
+  -> Order4OptionsJourney
+  -> Order5CompleteProfileJourneys
+  -> Order6ReliabilityJourney
+  -> Order7PresentationJourney
+  -> Order8FinalCandidate
+```
+
+Order 2 must not displace Order 1 before owner acceptance unless the repository owner explicitly reprioritizes.
 
 ## 7. Active defect graph
 
 - `KG-ICON-001`: complete Toolbar journey — `FAILED`.
 - `KG-IMPORT-001`: direct original export use — `FAILED`.
-- `KG-IMPORT-COLOR-001`: original shorthand colors — open.
+- `KG-IMPORT-COLOR-001`: shorthand original colors — open.
 - `KG-UI-001`: layout/density/dialog/control hierarchy — `FAILED`.
 - `KG-EXTRA-001`: unnecessary descriptions/workflow — `FAILED`.
 - `KG-INVENTION-001`: visible behavior without provenance — `FAILED`.
 - `KG-FLOW-001`: complete interaction parity — `FAILED`.
 - `KG-GOV-001`: final evidence and owner acceptance — open.
 
-## 8. Progress and next edge
+## 8. Automation integrity
 
-Formal progress remains 47% total and 35% for Order 1. `KG-EXTERNAL-CONTROL-001` is verified for the strict 01M Toolbar subset; broader ownership and recovery lifecycle remains open.
+- Permanent workflows remain read-only.
+- Temporary read-only source/formatter workflows used during investigation were deleted.
+- Shared profile-trace E2E is used for nested/mixed route families.
+- Browser E2E 01O Head had one initial Chromium timeout in an older unrelated Popup step. Re-running only that job without code changes passed full Chromium E2E and every 01O/Toolbar step. The final workflow conclusion is success.
+- Green automation establishes engineering evidence, not owner acceptance.
 
-The next fixed edge is:
+## 9. Progress boundary and next edge
 
-`forced dynamic-render failure original behavior -> KG-ACTION-FALLBACK-001 mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
+Formal progress remains 47% total and 35% for Order 1.
+
+01N and 01O are strict represented subsets. They do not close the complete Toolbar journey.
+
+Next fixed edge:
+
+`next high-value unrepresented mixed/nested or attached original family -> original evidence -> explicit KG mapping -> strict implementation -> deterministic tests -> shared Chromium/Firefox E2E -> owner consolidation`
+
+Headed pixel evidence is reserved for states where Action APIs cannot prove the visible result.
 
 No candidate, merge or release is authorized.
