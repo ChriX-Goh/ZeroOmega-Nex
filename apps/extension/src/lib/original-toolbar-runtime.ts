@@ -18,6 +18,7 @@ import {
 } from './original-toolbar-tab-coordinator';
 
 export type OriginalToolbarTabRemovedListener = (tabId: number) => void;
+export type OriginalToolbarProxySettingsChangedListener = () => void;
 
 export interface OriginalToolbarNavigationDetails {
   readonly tabId: number;
@@ -35,6 +36,7 @@ export interface OriginalToolbarRuntimeOptions {
   readonly runtime: OriginalToolbarRuntimeInspector;
   readonly tabRemoved?: OriginalToolbarEvent<OriginalToolbarTabRemovedListener>;
   readonly navigationCommitted?: OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>;
+  readonly proxySettingsChanged?: OriginalToolbarEvent<OriginalToolbarProxySettingsChangedListener>;
   readonly browserRuntime?: OriginalToolbarBrowserRuntimeOptions;
   readonly onError?: (error: unknown, context: OriginalToolbarCoordinatorErrorContext) => void;
 }
@@ -77,6 +79,9 @@ export function registerOriginalToolbarRuntime(
     if (details.frameId !== 0 || details.tabId < 0 || details.url.length === 0) return;
     void coordinator.refreshTab(details.tabId, details.url);
   };
+  const proxySettingsChangedListener: OriginalToolbarProxySettingsChangedListener = () => {
+    void coordinator.refreshAll().catch(() => undefined);
+  };
   let disposed = false;
 
   overlay.setRefreshListener((tabId) => {
@@ -85,6 +90,7 @@ export function registerOriginalToolbarRuntime(
   coordinator.start();
   options.tabRemoved?.addListener(tabRemovedListener);
   options.navigationCommitted?.addListener(navigationCommittedListener);
+  options.proxySettingsChanged?.addListener(proxySettingsChangedListener);
 
   return {
     inspectAction: overlay.inspectAction,
@@ -95,6 +101,7 @@ export function registerOriginalToolbarRuntime(
       disposed = true;
       options.tabRemoved?.removeListener(tabRemovedListener);
       options.navigationCommitted?.removeListener(navigationCommittedListener);
+      options.proxySettingsChanged?.removeListener(proxySettingsChangedListener);
       overlay.setRefreshListener(undefined);
       coordinator.stop();
       overlay.dispose();
