@@ -1,0 +1,61 @@
+/* Original ZeroOmega v3.5.0 popup geometry. */
+.popup-shell {
+  min-width: 320px;
+  background: #fff;
+}
+
+.profile-list {
+  padding: 6px 4px 0;
+}
+
+.profile-row > button,
+.external-profile-button {
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #337ab7;
+  background: #fff;
+}
+
+.profile-row > button:hover,
+.external-profile-button:hover {
+  background: #f5f5f5;
+}
+
+.profile-row > button.active {
+  border-color: #111;
+  background: #337ab7;
+  color: #111;
+}
+
+.current-mark {
+  display: none;
+}
+
+.profile-divider {
+  margin: 4px 0;
+  border-top: 1px solid #ddd;
+}
+
+.popup-footer {
+  display: block;
+  padding: 4px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+}
+
+.settings-button {
+  width: 100%;
+  min-height: 36px;
+  justify-content: flex-start;
+  padding: 6px 8px;
+  color: #337ab7;
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+}
+
+.settings-button:hover {
+  background: #f5f5f5;
+}
