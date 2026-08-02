@@ -1,5 +1,5 @@
 export const productIdentity = {
-  name: 'ZeroOmega Nex',
+  name: 'Zero Omega',
   milestone: 'Milestone 8',
   architecture: 'compile-first',
 } as const;
