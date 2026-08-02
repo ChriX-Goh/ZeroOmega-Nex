@@ -41,3 +41,41 @@ replace_once(
   );
   await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);""",
 )
+
+replace_once(
+    "apps/extension/src/lib/ui-messages.ts",
+    "en: 'ZeroOmega Nex profile switcher'",
+    "en: 'ZeroOmega profile switcher'",
+)
+replace_once(
+    "apps/extension/src/lib/ui-messages.ts",
+    "'zh-CN': 'ZeroOmega Nex 情景模式切换器'",
+    "'zh-CN': 'ZeroOmega 情景模式切换器'",
+)
+replace_once(
+    "apps/extension/src/lib/ui-messages.ts",
+    "'zh-TW': 'ZeroOmega Nex 情境模式切換器'",
+    "'zh-TW': 'ZeroOmega 情境模式切換器'",
+)
+
+replace_once(
+    "apps/extension/src/component-rendering.component.spec.ts",
+    '''    expect(body).toContain('aria-label="ZeroOmega Nex profile switcher"');''',
+    '''    expect(body).toContain('aria-label="ZeroOmega profile switcher"');''',
+)
+replace_once(
+    "apps/extension/src/component-rendering.component.spec.ts",
+    '''    expect(body).toContain('aria-label="Open ZeroOmega Nex options"');''',
+    '''    expect(body).toContain('aria-label="Open ZeroOmega options"');''',
+)
+replace_once(
+    "apps/extension/src/component-rendering.component.spec.ts",
+    '''    expect(traditionalPopup).toContain('aria-label="開啟 ZeroOmega Nex 選項"');''',
+    '''    expect(traditionalPopup).toContain('aria-label="開啟 ZeroOmega 選項"');''',
+)
+replace_once(
+    "apps/extension/src/component-rendering.component.spec.ts",
+    '''    expect(traditionalPopup).not.toContain('Open ZeroOmega Nex options');''',
+    '''    expect(traditionalPopup).not.toContain('Open ZeroOmega options');
+    expect(traditionalPopup).not.toContain('ZeroOmega Nex');''',
+)
