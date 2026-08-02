@@ -54,7 +54,8 @@ try {
   }, targetUrl);
   assert.equal(typeof tabId, 'number', 'Chromium renderer target tab ID was not resolved');
 
-  const send = (message) => optionsPage.evaluate((value) => chrome.runtime.sendMessage(value), message);
+  const send = (message) =>
+    optionsPage.evaluate((value) => chrome.runtime.sendMessage(value), message);
   const sendProbe = (action, details = {}) => send({ channel, action, ...details });
   const current = await send({ channel: 'zeroomega-nex/profile-workflow/v1', action: 'get' });
   assert.equal(current?.ok, true, `Chromium workflow read failed: ${JSON.stringify(current)}`);
@@ -82,7 +83,11 @@ try {
     expectedGeneration: current.state.generation,
     draft,
   });
-  assert.equal(replaced?.ok, true, `Chromium draft replacement failed: ${JSON.stringify(replaced)}`);
+  assert.equal(
+    replaced?.ok,
+    true,
+    `Chromium draft replacement failed: ${JSON.stringify(replaced)}`,
+  );
   const applied = await send({
     channel: 'zeroomega-nex/profile-workflow/v1',
     action: 'apply',
@@ -95,27 +100,38 @@ try {
     expectedAppliedRevisionId: applied.state.applied.revision.id,
     route: { kind: 'profile', profileId: fixed.id },
   });
-  assert.equal(activated?.ok, true, `Chromium Fixed activation failed: ${JSON.stringify(activated)}`);
+  assert.equal(
+    activated?.ok,
+    true,
+    `Chromium Fixed activation failed: ${JSON.stringify(activated)}`,
+  );
 
-  const expectedTitle = await optionsPage.evaluate((profileName) =>
-    chrome.i18n.getMessage('browserAction_titleWithResult', [
-      profileName,
-      profileName,
-      'PROXY 127.0.0.1:18189\n',
-    ]),
-  fixed.name);
+  const expectedTitle = await optionsPage.evaluate(
+    (profileName) =>
+      chrome.i18n.getMessage('browserAction_titleWithResult', [
+        profileName,
+        profileName,
+        'PROXY 127.0.0.1:18189\n',
+      ]),
+    fixed.name,
+  );
   const readAction = () =>
-    optionsPage.evaluate(async (targetTabId) => ({
-      title: await chrome.action.getTitle({ tabId: targetTabId }),
-      badgeText: await chrome.action.getBadgeText({ tabId: targetTabId }),
-    }), tabId);
+    optionsPage.evaluate(
+      async (targetTabId) => ({
+        title: await chrome.action.getTitle({ tabId: targetTabId }),
+        badgeText: await chrome.action.getBadgeText({ tabId: targetTabId }),
+      }),
+      tabId,
+    );
   await waitForValue(
     readAction,
     (value) => value.title === expectedTitle && value.badgeText === 'Runt',
     'Chromium baseline Action did not become the renderer fixture',
   );
 
-  const manifestIcons = await optionsPage.evaluate(() => chrome.runtime.getManifest().action?.default_icon);
+  const manifestIcons = await optionsPage.evaluate(
+    () => chrome.runtime.getManifest().action?.default_icon,
+  );
   assert.deepEqual(manifestIcons, {
     16: 'icon/original-action-16.png',
     19: 'icon/original-action-19.png',
@@ -124,11 +140,23 @@ try {
   });
 
   const configured = await sendProbe('configure', { mode: 'opaque', reset: true });
-  assert.equal(configured?.ok, true, `Chromium renderer configure failed: ${JSON.stringify(configured)}`);
+  assert.equal(
+    configured?.ok,
+    true,
+    `Chromium renderer configure failed: ${JSON.stringify(configured)}`,
+  );
   const firstFailure = await sendProbe('refresh', { clearIconCache: true });
-  assert.equal(firstFailure?.ok, true, `Chromium first renderer refresh failed: ${JSON.stringify(firstFailure)}`);
+  assert.equal(
+    firstFailure?.ok,
+    true,
+    `Chromium first renderer refresh failed: ${JSON.stringify(firstFailure)}`,
+  );
   assert.equal(firstFailure.state.mode, 'opaque');
-  assert.equal(firstFailure.state.imageReads > 0, true, 'Chromium first failure did not read pixels');
+  assert.equal(
+    firstFailure.state.imageReads > 0,
+    true,
+    'Chromium first failure did not read pixels',
+  );
   assert.deepEqual(firstFailure.state.iconWrites, []);
   await waitForValue(
     readAction,
@@ -137,7 +165,11 @@ try {
   );
 
   const secondFailure = await sendProbe('refresh');
-  assert.equal(secondFailure?.ok, true, `Chromium second renderer refresh failed: ${JSON.stringify(secondFailure)}`);
+  assert.equal(
+    secondFailure?.ok,
+    true,
+    `Chromium second renderer refresh failed: ${JSON.stringify(secondFailure)}`,
+  );
   assert.equal(
     secondFailure.state.imageReads > firstFailure.state.imageReads,
     true,
@@ -148,13 +180,21 @@ try {
   const normal = await sendProbe('configure', { mode: 'normal' });
   assert.equal(normal?.ok, true, `Chromium renderer restore failed: ${JSON.stringify(normal)}`);
   const recovered = await sendProbe('refresh');
-  assert.equal(recovered?.ok, true, `Chromium recovered refresh failed: ${JSON.stringify(recovered)}`);
+  assert.equal(
+    recovered?.ok,
+    true,
+    `Chromium recovered refresh failed: ${JSON.stringify(recovered)}`,
+  );
   assert.equal(
     recovered.state.imageReads >= secondFailure.state.imageReads + 5,
     true,
     'Chromium recovered renderer did not produce all five original sizes',
   );
-  assert.equal(recovered.state.iconWrites.length > 0, true, 'Chromium recovery did not write an icon');
+  assert.equal(
+    recovered.state.iconWrites.length > 0,
+    true,
+    'Chromium recovery did not write an icon',
+  );
   assert.equal(
     recovered.state.iconWrites.every(
       (write) =>
