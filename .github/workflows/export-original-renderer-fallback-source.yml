@@ -37,6 +37,20 @@ jobs:
             mkdir -p "exported/$(dirname "$file")"
             cp "$file" "exported/$file"
           done < exported/matches.txt
+          {
+            echo 'ORIGINAL'
+            sha256sum \
+              original-release/chromium/img/icons/omega-action-16.png \
+              original-release/chromium/img/icons/omega-action-19.png \
+              original-release/chromium/img/icons/omega-action-24.png \
+              original-release/chromium/img/icons/omega-action-32.png
+            echo 'NEX'
+            sha256sum \
+              apps/extension/public/icon/original-action-16.png \
+              apps/extension/public/icon/original-action-19.png \
+              apps/extension/public/icon/original-action-24.png \
+              apps/extension/public/icon/original-action-32.png
+          } > exported/icon-sha256.txt
           find exported -type f -maxdepth 8 -print
 
       - name: Upload source export
