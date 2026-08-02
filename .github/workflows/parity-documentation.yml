@@ -10,10 +10,6 @@ permissions:
 
 jobs:
   finalize:
-    if: >-
-      github.repository == 'ChriX-Goh/ZeroOmega-Nex' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/m8-profile-workflow'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
