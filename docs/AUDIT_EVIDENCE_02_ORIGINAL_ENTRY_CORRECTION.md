@@ -44,7 +44,7 @@ The guard is being corrected to require that the helper copy remains absent. Chr
 
 Firefox core entry E2E and the Firefox Toolbar Action E2E already passed before this follow-up. This does not close the complete Firefox job or the product journey.
 
-The correction transaction is intentionally limited to these three demonstrated stale assumptions; it does not alter product behavior or restore any removed UI.
+The correction transaction is intentionally limited to these three demonstrated stale assumptions; it does not alter product behavior or restore any removed UI. Permanent Browser E2E and Parity workflows remain read-only; the temporary writer removes itself in the same correction commit.
 
 ## Evidence boundary
 
