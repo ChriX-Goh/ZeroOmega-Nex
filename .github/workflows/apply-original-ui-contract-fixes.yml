@@ -36,7 +36,20 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Apply original-derived contract corrections
-        run: python scripts/apply-original-ui-contract-fixes.py
+        run: |
+          python scripts/apply-original-ui-contract-fixes.py
+          python <<'PY'
+          from pathlib import Path
+          path = Path('apps/extension/src/entrypoints/options/App.svelte')
+          source = path.read_text()
+          old = '      deviceId: state.applied.revision.deviceId,\n'
+          new = '''      ...(state.applied.revision.deviceId === undefined
+        ? {}
+        : { deviceId: state.applied.revision.deviceId }),
+'''
+          assert source.count(old) == 1, source.count(old)
+          path.write_text(source.replace(old, new, 1))
+          PY
 
       - name: Format and validate
         run: |
