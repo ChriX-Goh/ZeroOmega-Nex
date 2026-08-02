@@ -176,8 +176,10 @@ describe('original Virtual to Switch toolbar projection', () => {
     state.applied.profiles.push(nested);
     const appliedInner = state.applied.profiles.find((profile) => profile.id === inner.id);
     if (!appliedInner || appliedInner.kind !== 'switch') throw new Error('missing applied inner');
+    const firstRule = appliedInner.rules[0];
+    if (firstRule === undefined) throw new Error('missing applied first rule');
     appliedInner.rules[0] = {
-      ...appliedInner.rules[0],
+      ...firstRule,
       route: { kind: 'profile', profileId: nested.id },
     };
 
