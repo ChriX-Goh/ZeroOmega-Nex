@@ -38,6 +38,7 @@
   import { browser } from 'wxt/browser';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import OptionsNavIcon from './OptionsNavIcon.svelte';
   import { currentBrowserTargetCapabilities } from '../../lib/browser-target-capabilities';
   import { currentAppLocale } from '../../lib/i18n';
   import { profileKindText, uiMessage, uiText } from '../../lib/ui-messages';
@@ -1078,6 +1079,7 @@
           type="button"
           onclick={() => void navigate('interface')}
         >
+          <OptionsNavIcon kind="interface" />
           <span>{uiText('options.nav.interface', locale)}</span>
         </button>
         <button
@@ -1085,6 +1087,7 @@
           type="button"
           onclick={() => void navigate('general')}
         >
+          <OptionsNavIcon kind="general" />
           <span>{uiText('options.nav.general', locale)}</span>
         </button>
         <button
@@ -1093,6 +1096,7 @@
           disabled={!state || saving || view?.busy}
           onclick={() => void navigate('import')}
         >
+          <OptionsNavIcon kind="import" />
           <span>{uiText('legacy.pageTitle', locale)}</span>
         </button>
         <button
@@ -1100,6 +1104,7 @@
           type="button"
           onclick={() => void navigate('theme')}
         >
+          <OptionsNavIcon kind="theme" />
           <span>{uiText('options.nav.theme', locale)}</span>
         </button>
       </section>
@@ -1111,9 +1116,8 @@
           type="button"
           onclick={() => void navigate('builtin')}
         >
-          <span class="builtin-marker" aria-hidden="true">◎</span><span
-            >{uiText('options.nav.builtIn', locale)}</span
-          >
+          <OptionsNavIcon kind="builtin" />
+          <span>{uiText('options.nav.builtIn', locale)}</span>
         </button>
         {#each profiles as profile (profile.id)}
           <button
@@ -1123,7 +1127,7 @@
             disabled={saving}
             onclick={() => selectProfile(profile.id)}
           >
-            <ProfileIcon kind={profile.kind} color={profile.color ?? '#90a4ae'} size={22} />
+            <ProfileIcon kind={profile.kind} color={profile.color ?? '#90a4ae'} size={16} />
             <span>{profile.name}</span>
           </button>
         {/each}
@@ -1134,6 +1138,7 @@
           disabled={!state || view?.busy || saving}
           onclick={() => void navigate('new-profile')}
         >
+          <OptionsNavIcon kind="new" />
           <span>{uiText('options.nav.newProfile', locale)}</span>
         </button>
       </section>
@@ -1146,6 +1151,7 @@
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={applyDraft}
         >
+          <OptionsNavIcon kind="apply" />
           <span>{uiText(saving ? 'options.actions.working' : 'options.actions.apply', locale)}</span
           >
         </button>
@@ -1155,6 +1161,7 @@
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={revertDraft}
         >
+          <OptionsNavIcon kind="discard" />
           <span>{uiText('options.actions.discard', locale)}</span>
         </button>
       </section>

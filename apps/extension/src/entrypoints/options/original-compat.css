@@ -149,3 +149,74 @@
 .about-license {
   margin-top: 90px;
 }
+
+/* Paired official Options geometry — desktop baseline. */
+.about-navigation {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  .app-shell {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .side-brand {
+    padding: 18px 0 10px 30px;
+  }
+
+  .side-navigation {
+    padding: 0 0 24px 30px;
+  }
+
+  .nav-group h2 {
+    margin: 10px 0 8px;
+    padding: 7px 0 5px;
+  }
+
+  .nav-group > button {
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 36px;
+    padding: 7px 14px;
+  }
+
+  .nav-group > button > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profiles-nav {
+    flex: 0 0 auto;
+  }
+
+  .actions {
+    margin-top: 0;
+  }
+
+  .editor {
+    padding: 18px 25px 48px;
+  }
+
+  .editor-heading {
+    margin-bottom: 22px;
+    padding-bottom: 8px;
+  }
+
+  .editor-heading h1 {
+    margin: 0 0 6px;
+  }
+
+  .original-about-page {
+    max-width: none;
+  }
+
+  .about-product {
+    margin: 16px 0 22px;
+  }
+
+  .about-license {
+    margin-top: 118px;
+  }
+}
