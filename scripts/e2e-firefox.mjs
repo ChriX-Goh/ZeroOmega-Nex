@@ -1236,6 +1236,7 @@ try {
     until.elementLocated(By.css('[data-new-profile-action]')),
     15_000,
   );
+  await driver.wait(until.elementIsEnabled(newRuleProfileAction), 10_000);
   await newRuleProfileAction.click();
   const newRuleName = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-name-input]')),
@@ -1451,6 +1452,7 @@ try {
     until.elementLocated(By.css('[data-new-profile-action]')),
     15_000,
   );
+  await driver.wait(until.elementIsEnabled(newPacProfileAction), 10_000);
   await newPacProfileAction.click();
   const newPacName = await driver.wait(
     until.elementLocated(By.css('[data-new-profile-name-input]')),

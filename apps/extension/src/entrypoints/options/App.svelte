@@ -75,7 +75,6 @@
   import ProfileRenameDialog from './ProfileRenameDialog.svelte';
   import ProfileReplacementDialog from './ProfileReplacementDialog.svelte';
   import RuleListProfileEditor from './RuleListProfileEditor.svelte';
-  import SnapshotHistoryPanel from './SnapshotHistoryPanel.svelte';
   import SwitchProfileEditor from './SwitchProfileEditor.svelte';
   import ThemePanel from './ThemePanel.svelte';
   import VirtualProfileEditor from './VirtualProfileEditor.svelte';
@@ -87,7 +86,6 @@
     | 'general'
     | 'import'
     | 'theme'
-    | 'history'
     | 'builtin'
     | 'new-profile'
     | 'profile'
@@ -447,17 +445,6 @@
       return false;
     }
     return permission.value;
-  }
-
-  async function rollbackSnapshot(
-    expectedGeneration: number,
-    snapshotId: string,
-  ): Promise<boolean> {
-    return runCommand({
-      action: 'rollback-snapshot',
-      expectedGeneration,
-      snapshotId,
-    });
   }
 
   async function replaceDraftAndSelect(mutation: ProfileWorkflowProfileMutation): Promise<void> {
@@ -875,16 +862,9 @@
     }
     const section = hash as OptionsSection;
     if (
-      [
-        'interface',
-        'general',
-        'import',
-        'theme',
-        'history',
-        'builtin',
-        'new-profile',
-        'about',
-      ].includes(section)
+      ['interface', 'general', 'import', 'theme', 'builtin', 'new-profile', 'about'].includes(
+        section,
+      )
     ) {
       if (!(await navigate(section, undefined, false))) {
         window.history.replaceState(null, '', previousHash);
@@ -1433,20 +1413,6 @@
         onPrepareExport={prepareLegacyExport}
         onAcceptImport={acceptImportedDraft}
         onImportAndApply={acceptImportedAndApply}
-      />
-    {:else if activeSection === 'history' && state}
-      <header class="editor-heading">
-        <div>
-          <h1>{uiText('history.pageTitle', locale)}</h1>
-          <p>{uiText('history.pageHelp', locale)}</p>
-        </div>
-      </header>
-      <SnapshotHistoryPanel
-        {locale}
-        disabled={saving || view?.busy === true}
-        dirty={view?.dirty === true}
-        generation={state.generation}
-        onRollbackSnapshot={rollbackSnapshot}
       />
     {:else if activeSection === 'builtin' && state}
       <header class="editor-heading" data-builtin-settings data-typed-locale={locale}>

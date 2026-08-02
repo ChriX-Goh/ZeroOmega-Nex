@@ -457,16 +457,16 @@ const requirements = [
     'PAC must preserve remote cache and original editor states, install arbitrary scripts only as structurally verified top-level raw snapshots, keep nested composition unsupported, and isolate one all-proxy authentication credential in background storage with Chromium evidence.',
   ],
   [
-    snapshotHistory.includes('data-snapshot-history-panel') &&
-      snapshotHistory.includes('data-typed-locale={locale}') &&
-      snapshotHistory.includes('data-snapshot-rollback-request') &&
-      snapshotHistory.includes('data-snapshot-rollback-confirm') &&
-      snapshotHistory.includes("uiText('history.confirmTitle', locale)") &&
-      optionsApp.includes('<SnapshotHistoryPanel\n        {locale}') &&
-      chromiumE2e.includes('historyRollbackTarget') &&
-      chromiumE2e.includes('data-snapshot-rollback-confirm') &&
-      chromiumE2e.includes('History rollback did not restore browser state'),
-    'Snapshot History must render through the typed catalog and retain a real Chromium rollback that converges browser, Applied, Draft, and UI state.',
+    !optionsApp.includes('import SnapshotHistoryPanel') &&
+      !optionsApp.includes('<SnapshotHistoryPanel') &&
+      !optionsApp.includes("activeSection === 'history'") &&
+      !optionsApp.includes("uiText('history.nav'") &&
+      chromiumE2e.includes("action: 'rollback-snapshot'") &&
+      chromiumE2e.includes('Background snapshot rollback failed') &&
+      chromiumE2e.includes(
+        'History rollback did not restore browser state and both workflow revisions',
+      ),
+    'Snapshot rollback must remain background-tested without exposing Snapshot History in ordinary Options.',
   ],
   [
     popupApp.includes('data-popup-locale={locale}') &&
