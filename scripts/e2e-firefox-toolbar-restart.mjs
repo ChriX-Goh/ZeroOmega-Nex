@@ -104,11 +104,7 @@ async function navigateExtensionPage(driver) {
     wait: 'complete',
   });
   const expectedUrl = `${url}#/about`;
-  assert.equal(
-    result?.url,
-    expectedUrl,
-    'Firefox did not navigate to the extension options page',
-  );
+  assert.equal(result?.url, expectedUrl, 'Firefox did not navigate to the extension options page');
   await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
 }
 

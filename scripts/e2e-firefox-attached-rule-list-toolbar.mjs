@@ -94,11 +94,7 @@ async function navigateExtensionPage(relativeUrl) {
     wait: 'complete',
   });
   const expectedUrl = relativeUrl === 'options.html' ? `${url}#/about` : url;
-  assert.equal(
-    result?.url,
-    expectedUrl,
-    'Firefox navigated to an unexpected extension URL',
-  );
+  assert.equal(result?.url, expectedUrl, 'Firefox navigated to an unexpected extension URL');
 }
 
 async function sendWorkflowCommand(command) {

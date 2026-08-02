@@ -482,7 +482,7 @@ try {
   let externalOwnership;
   await assertEventually(
     async () => {
-      externalOwnership = await worker.evaluate(async () => {
+      externalOwnership = await popup.evaluate(async () => {
         const response = await chrome.runtime.sendMessage({
           channel: 'zeroomega-nex/proxy-ownership/v1',
           action: 'get',
