@@ -186,7 +186,11 @@ try {
     expectedAppliedRevisionId: applied.state.applied.revision.id,
     route: { kind: 'profile', profileId: fixed.id },
   });
-  assert.equal(activated?.ok, true, `Firefox Fixed activation failed: ${JSON.stringify(activated)}`);
+  assert.equal(
+    activated?.ok,
+    true,
+    `Firefox Fixed activation failed: ${JSON.stringify(activated)}`,
+  );
 
   const expectedTitle = await driver.executeScript(
     `
@@ -231,11 +235,23 @@ try {
   });
 
   const configured = await sendProbe('configure', { mode: 'opaque', reset: true });
-  assert.equal(configured?.ok, true, `Firefox renderer configure failed: ${JSON.stringify(configured)}`);
+  assert.equal(
+    configured?.ok,
+    true,
+    `Firefox renderer configure failed: ${JSON.stringify(configured)}`,
+  );
   const firstFailure = await sendProbe('refresh', { clearIconCache: true });
-  assert.equal(firstFailure?.ok, true, `Firefox first renderer refresh failed: ${JSON.stringify(firstFailure)}`);
+  assert.equal(
+    firstFailure?.ok,
+    true,
+    `Firefox first renderer refresh failed: ${JSON.stringify(firstFailure)}`,
+  );
   assert.equal(firstFailure.state.mode, 'opaque');
-  assert.equal(firstFailure.state.imageReads > 0, true, 'Firefox first failure did not read pixels');
+  assert.equal(
+    firstFailure.state.imageReads > 0,
+    true,
+    'Firefox first failure did not read pixels',
+  );
   assert.deepEqual(firstFailure.state.iconWrites, []);
   await waitForValue(
     readAction,
@@ -244,7 +260,11 @@ try {
   );
 
   const secondFailure = await sendProbe('refresh');
-  assert.equal(secondFailure?.ok, true, `Firefox second renderer refresh failed: ${JSON.stringify(secondFailure)}`);
+  assert.equal(
+    secondFailure?.ok,
+    true,
+    `Firefox second renderer refresh failed: ${JSON.stringify(secondFailure)}`,
+  );
   assert.equal(
     secondFailure.state.imageReads > firstFailure.state.imageReads,
     true,
@@ -255,13 +275,21 @@ try {
   const normal = await sendProbe('configure', { mode: 'normal' });
   assert.equal(normal?.ok, true, `Firefox renderer restore failed: ${JSON.stringify(normal)}`);
   const recovered = await sendProbe('refresh');
-  assert.equal(recovered?.ok, true, `Firefox recovered refresh failed: ${JSON.stringify(recovered)}`);
+  assert.equal(
+    recovered?.ok,
+    true,
+    `Firefox recovered refresh failed: ${JSON.stringify(recovered)}`,
+  );
   assert.equal(
     recovered.state.imageReads >= secondFailure.state.imageReads + 5,
     true,
     'Firefox recovered renderer did not produce all five original sizes',
   );
-  assert.equal(recovered.state.iconWrites.length > 0, true, 'Firefox recovery did not write an icon');
+  assert.equal(
+    recovered.state.iconWrites.length > 0,
+    true,
+    'Firefox recovery did not write an icon',
+  );
   assert.equal(
     recovered.state.iconWrites.every(
       (write) =>
