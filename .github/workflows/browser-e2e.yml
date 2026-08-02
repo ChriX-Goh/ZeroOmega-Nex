@@ -114,7 +114,9 @@ jobs:
         run: firefox --version
 
       - name: Build Firefox extension
-        run: WXT_ICON_RENDERER_E2E=1 pnpm build:firefox
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
 
       - name: Run Firefox extension E2E
         shell: bash
