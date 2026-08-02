@@ -1452,7 +1452,6 @@
       <header class="editor-heading" data-builtin-settings data-typed-locale={locale}>
         <div>
           <h1>{uiText('options.nav.builtIn', locale)}</h1>
-          <p>{uiText('options.builtin.help', locale)}</p>
         </div>
       </header>
       <section class="settings-section builtin-grid">
@@ -1461,9 +1460,7 @@
             kind="direct"
             color={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
             size={28}
-          /><strong>{uiText('route.direct', locale)}</strong><span
-            >{uiText('options.builtin.directHelp', locale)}</span
-          ><input
+          /><strong>{uiText('route.direct', locale)}</strong><input
             aria-label={uiText('options.builtin.directColorAria', locale)}
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.direct?.color ?? '#99ccee'}
@@ -1476,9 +1473,7 @@
             kind="system"
             color={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
             size={28}
-          /><strong>{uiText('route.system', locale)}</strong><span
-            >{uiText('options.builtin.systemHelp', locale)}</span
-          ><input
+          /><strong>{uiText('route.system', locale)}</strong><input
             aria-label={uiText('options.builtin.systemColorAria', locale)}
             type="color"
             value={state.draft.settings.interface.builtInProfiles?.system?.color ?? '#ddbb88'}
