@@ -1,0 +1,42 @@
+name: Export Formatted External Control Evidence
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-formatted-external-control-evidence.yml
+      - scripts/audit-original-toolbar-scenarios.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format target in workspace
+        run: pnpm exec prettier --write scripts/audit-original-toolbar-scenarios.mjs
+
+      - name: Upload formatted source
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-external-control-evidence
+          path: scripts/audit-original-toolbar-scenarios.mjs
+          if-no-files-found: error
