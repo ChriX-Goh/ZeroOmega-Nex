@@ -677,7 +677,7 @@
               </svg>
             {/if}
           </button>
-          {#if item.resultRoute && item.resultItems && item.resultItems.length > 0 && sameRoute(runtime?.activeRoute, item.route)}
+          {#if item.resultRoute && item.resultItems && item.resultItems.length !== 0 && sameRoute(runtime?.activeRoute, item.route)}
             <label class="profile-result-control">
               <span>{uiText('popup.result', locale)}</span>
               <select
