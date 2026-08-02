@@ -1,0 +1,150 @@
+name: Finalize Original Entry Contract
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/finalize-original-entry-contract.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: >-
+      github.repository == 'ChriX-Goh/ZeroOmega-Nex' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Apply original-derived entry contracts
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          validator = Path('scripts/validate-ui-compatibility.mjs')
+          source = validator.read_text()
+          marker = (
+              "'Built-in Profiles, About, new-profile shell, empty state, branding, "
+              "and profile export presentation must render through the typed catalog.'"
+          )
+          marker_index = source.index(marker)
+          start = source.rfind('\n  [', 0, marker_index)
+          end_marker = '\n  ],'
+          end = source.index(end_marker, marker_index) + len(end_marker)
+          assert start >= 0 and end > marker_index
+          requirement = '''
+  [
+    optionsApp.includes('data-builtin-settings data-typed-locale={locale}') &&
+      optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&
+      optionsApp.includes('data-about-settings data-typed-locale={locale}') &&
+      optionsApp.includes('const originalCopy =') &&
+      optionsApp.includes("about: '关于'") &&
+      optionsApp.includes('<h2>ZeroOmega</h2>') &&
+      optionsApp.includes('data-new-profile-shell') &&
+      optionsApp.includes('data-empty-profiles') &&
+      !optionsApp.includes('ZeroOmega Nex') &&
+      !optionsApp.includes('<span>Zero Omega</span>') &&
+      !optionsApp.includes("uiText('history.nav'") &&
+      !optionsApp.includes('class="draft-status"') &&
+      !fixedProfile.includes('data-fixed-protocol-capabilities') &&
+      chromiumE2e.includes('Engineering concepts leaked into the normal About page'),
+    'Original-facing Options must keep typed dynamic UI while preserving official fixed product text and excluding Nex branding, History, Draft status, and capability research.',
+  ],'''
+          validator.write_text(source[:start] + requirement + source[end:])
+
+          messages = Path('apps/extension/src/lib/ui-messages.ts')
+          source = messages.read_text()
+          replacements = {
+              "en: 'Open ZeroOmega Nex options'": "en: 'Open ZeroOmega options'",
+              "'zh-CN': '打开 ZeroOmega Nex 选项'": "'zh-CN': '打开 ZeroOmega 选项'",
+              "'zh-TW': '開啟 ZeroOmega Nex 選項'": "'zh-TW': '開啟 ZeroOmega 選項'",
+          }
+          for old, new in replacements.items():
+              assert source.count(old) == 1, (old, source.count(old))
+              source = source.replace(old, new, 1)
+          messages.write_text(source)
+
+          firefox = Path('scripts/e2e-firefox.mjs')
+          source = firefox.read_text()
+          old = '''  assert.equal(result?.url, url, `Firefox BiDi navigated to an unexpected extension URL`);
+  await driver.wait(async () => (await driver.getCurrentUrl()) === url, 20_000);'''
+          new = '''  const expectedUrl = relativeUrl === 'options.html' ? `${url}#/about` : url;
+  assert.equal(
+    result?.url,
+    expectedUrl,
+    `Firefox BiDi navigated to an unexpected extension URL`,
+  );
+  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);'''
+          assert source.count(old) == 1, source.count(old)
+          firefox.write_text(source.replace(old, new, 1))
+
+          chromium = Path('scripts/e2e-chromium.mjs')
+          source = chromium.read_text()
+          replacements = {
+              "getByRole('button', { name: '打开 ZeroOmega Nex 选项', exact: true })":
+                  "getByRole('button', { name: '打开 ZeroOmega 选项', exact: true })",
+              "getByRole('button', { name: /直接连接/u }).waitFor()":
+                  "getByRole('button', { name: '直接连接', exact: true }).waitFor()",
+          }
+          for old, new in replacements.items():
+              assert source.count(old) == 1, (old, source.count(old))
+              source = source.replace(old, new, 1)
+          chromium.write_text(source)
+          PY
+
+      - name: Format and run complete repository verification
+        run: |
+          pnpm exec prettier --write \
+            scripts/validate-ui-compatibility.mjs \
+            apps/extension/src/lib/ui-messages.ts \
+            scripts/e2e-firefox.mjs \
+            scripts/e2e-chromium.mjs
+          pnpm verify
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Chromium original-entry core E2E
+        run: |
+          WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+          pnpm test:e2e:chromium
+
+      - name: Run Firefox original-entry core E2E
+        run: |
+          WXT_ICON_RENDERER_E2E=1 pnpm build:firefox
+          pnpm test:e2e:firefox
+
+      - name: Remove temporary workflows
+        run: |
+          rm -f .github/workflows/finalize-original-entry-contract.yml
+          rm -f .github/workflows/fix-original-ui-validator.yml
+          rm -f .github/workflows/export-ui-validator.yml
+
+      - name: Commit verified entry contracts
+        run: |
+          git config user.name 'ZeroOmega Nex automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: close first original entry contract slice'
+          git push origin HEAD:feat/m8-profile-workflow
