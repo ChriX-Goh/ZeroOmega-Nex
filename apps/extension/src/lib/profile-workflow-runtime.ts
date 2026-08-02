@@ -73,6 +73,9 @@ export interface ProfileWorkflowRuntimeOptions {
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
   readonly ruleSourceDownloader?: ProfileWorkflowRuleSourceDownloader;
   readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => Promise<void> | void;
+  readonly completeInitialization?: (
+    response: ProfileWorkflowCommandResponse,
+  ) => Promise<void> | void;
 }
 
 export interface RegisteredProfileWorkflowRuntime {
@@ -246,19 +249,17 @@ export function registerProfileWorkflowRuntime(
     await notifyProfileWorkflowActivation(command, response, options.onActivationSucceeded);
     return response;
   };
-  const executeCommand = (
-    command: ProfileWorkflowCommand,
-  ): Promise<ProfileWorkflowCommandResponse> => {
-    const run = commandTail.then(
-      () => performCommand(command),
-      () => performCommand(command),
-    );
+  const enqueue = <T>(operation: () => Promise<T>): Promise<T> => {
+    const run = commandTail.then(operation, operation);
     commandTail = run.then(
       () => undefined,
       () => undefined,
     );
     return run;
   };
+  const executeCommand = (
+    command: ProfileWorkflowCommand,
+  ): Promise<ProfileWorkflowCommandResponse> => enqueue(() => performCommand(command));
   const listener = (message: unknown): Promise<ProfileWorkflowCommandResponse> | undefined => {
     if (!isProfileWorkflowCommand(message)) return undefined;
     return executeCommand(message);
@@ -269,9 +270,13 @@ export function registerProfileWorkflowRuntime(
       if (disposed) {
         return Promise.reject(new Error('profile workflow runtime is disposed'));
       }
-      initialization ??= executeCommand({
-        channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
-        action: 'get',
+      initialization ??= enqueue(async () => {
+        const response = await performCommand({
+          channel: PROFILE_WORKFLOW_MESSAGE_CHANNEL,
+          action: 'get',
+        });
+        await options.completeInitialization?.(response);
+        return response;
       }).catch((error: unknown) => {
         initialization = undefined;
         throw error;

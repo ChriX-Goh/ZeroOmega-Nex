@@ -192,6 +192,28 @@ export default defineBackground(() => {
     activationDriver,
     authentication,
     onActivationSucceeded: () => refreshToolbar('profile activation'),
+    completeInitialization: async (response) => {
+      if (!response.ok) {
+        throw new Error('profile workflow initialization command failed');
+      }
+      if (response.appliedSnapshotId !== undefined) return;
+      const restoreDisposition = await restoreProxyRuntime(
+        authentication,
+        temporaryRuleCoordinator,
+      );
+      if (restoreDisposition === 'failed') return;
+      const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
+      if (
+        shouldActivateStartupRouteAfterProxyRestore(
+          restoreDisposition,
+          restoredRuntime.activeRoute !== undefined,
+        )
+      ) {
+        const startupRoute = response.state.applied.settings.startup.route ?? { kind: 'system' };
+        await activationDriver.activate(response.state.applied, startupRoute);
+      }
+      await refreshToolbar('startup recovery');
+    },
   });
   profileWorkflowRuntime = workflowRuntime;
   popupTemporaryRuleRuntime = temporaryRuleCoordinator
@@ -209,32 +231,7 @@ export default defineBackground(() => {
     action: toolbarRuntime.inspectAction,
   });
 
-  void workflowRuntime
-    .initialize()
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error('profile workflow initialization command failed');
-      }
-      if (response.appliedSnapshotId === undefined) {
-        const restoreDisposition = await restoreProxyRuntime(
-          authentication,
-          temporaryRuleCoordinator,
-        );
-        if (restoreDisposition === 'failed') return;
-        const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
-        if (
-          shouldActivateStartupRouteAfterProxyRestore(
-            restoreDisposition,
-            restoredRuntime.activeRoute !== undefined,
-          )
-        ) {
-          const startupRoute = response.state.applied.settings.startup.route ?? { kind: 'system' };
-          await activationDriver.activate(response.state.applied, startupRoute);
-        }
-        await refreshToolbar('startup recovery');
-      }
-    })
-    .catch((error: unknown) => {
-      console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
-    });
+  void workflowRuntime.initialize().catch((error: unknown) => {
+    console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
+  });
 });

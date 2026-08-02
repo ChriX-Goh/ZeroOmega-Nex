@@ -83,7 +83,10 @@ class BlockingDriver extends RecordingDriver {
   }
 }
 
-function harness(driver = new RecordingDriver()) {
+function harness(
+  driver = new RecordingDriver(),
+  completeInitialization?: (response: ProfileWorkflowCommandResponse) => Promise<void> | void,
+) {
   const messages = new MessageEvent();
   const storage = new MemoryArea();
   const activated = vi.fn();
@@ -98,6 +101,7 @@ function harness(driver = new RecordingDriver()) {
     {
       activationDriver: driver,
       onActivationSucceeded: activated,
+      ...(completeInitialization === undefined ? {} : { completeInitialization }),
     },
   );
   return { activated, driver, messages, runtime };
@@ -153,6 +157,35 @@ describe('profile workflow background initialization', () => {
       runtime: { activeRoute: { kind: 'system' } },
     });
     expect(driver.routes).toEqual([{ kind: 'system' }]);
+  });
+
+  it('queues runtime messages behind the complete startup recovery hook', async () => {
+    const started = deferred();
+    const release = deferred();
+    const { messages, runtime } = harness(new RecordingDriver(), async () => {
+      started.resolve();
+      await release.promise;
+    });
+    const listener = [...messages.listeners][0];
+    if (!listener) throw new Error('profile workflow message listener is unavailable');
+
+    const initialization = runtime.initialize();
+    await started.promise;
+    const concurrent = listener({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'get',
+    });
+    if (!concurrent) throw new Error('concurrent profile workflow command was ignored');
+    let concurrentSettled = false;
+    void Promise.resolve(concurrent).then(() => {
+      concurrentSettled = true;
+    });
+    await Promise.resolve();
+    expect(concurrentSettled).toBe(false);
+
+    release.resolve();
+    await Promise.all([initialization, concurrent]);
+    expect(concurrentSettled).toBe(true);
   });
 
   it('returns the settled initialization result without reactivating', async () => {
