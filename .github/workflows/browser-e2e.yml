@@ -14,7 +14,7 @@ permissions:
 jobs:
   chromium:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -51,6 +51,12 @@ jobs:
           set -o pipefail
           pnpm test:e2e:chromium-toolbar 2>&1 | tee chromium-toolbar-e2e.log
 
+      - name: Run Chromium toolbar restart E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium-toolbar-restart 2>&1 | tee chromium-toolbar-restart-e2e.log
+
       - name: Run Chromium attached Rule List toolbar E2E
         shell: bash
         run: |
@@ -83,6 +89,7 @@ jobs:
           path: |
             chromium-e2e.log
             chromium-toolbar-e2e.log
+            chromium-toolbar-restart-e2e.log
             chromium-attached-rule-list-toolbar-e2e.log
             chromium-profile-traces-toolbar-e2e.log
             chromium-external-control-toolbar-e2e.log
@@ -91,7 +98,7 @@ jobs:
 
   firefox:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -130,6 +137,12 @@ jobs:
           set -o pipefail
           pnpm test:e2e:firefox-toolbar 2>&1 | tee firefox-toolbar-e2e.log
 
+      - name: Run Firefox toolbar restart E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-toolbar-restart 2>&1 | tee firefox-toolbar-restart-e2e.log
+
       - name: Run Firefox attached Rule List toolbar E2E
         shell: bash
         run: |
@@ -162,6 +175,7 @@ jobs:
           path: |
             firefox-e2e.log
             firefox-toolbar-e2e.log
+            firefox-toolbar-restart-e2e.log
             firefox-attached-rule-list-toolbar-e2e.log
             firefox-profile-traces-toolbar-e2e.log
             firefox-external-control-toolbar-e2e.log
