@@ -1,0 +1,40 @@
+name: Export Default Contract Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-default-contract-tests.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: default-contract-test-slice
+          path: |
+            packages/core-contracts/src/index.ts
+            packages/core-contracts/src/index.test.ts
+            packages/profile-workflow/src/defaults.ts
+            packages/profile-workflow/src/defaults.test.ts
+            packages/profile-workflow/src/test-fixture.ts
+            apps/extension/src/lib/original-toolbar-profile-resolver.test.ts
+            apps/extension/src/lib/original-toolbar-attached-rule-list.test.ts
+            apps/extension/src/lib/original-toolbar-nested-virtual.test.ts
+            apps/extension/src/lib/original-toolbar-virtual-switch.test.ts
+            apps/extension/src/lib/original-toolbar-nested-switch.test.ts
+            apps/extension/src/lib/inspect-runtime.test.ts
+            apps/extension/src/lib/profile-export.test.ts
+            apps/extension/src/lib/profile-workflow-activation.test.ts
+            apps/extension/src/lib/profile-workflow-runtime.test.ts
+            apps/extension/src/lib/snapshot-rollback-runtime.test.ts
+          if-no-files-found: error
