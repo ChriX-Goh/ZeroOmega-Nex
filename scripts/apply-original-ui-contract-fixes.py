@@ -178,10 +178,10 @@ replace_once(
 )
 replace_once(
     status_path,
-    """- standard CI restored after the verified correction was committed. The permanent paired Original ↔ Nex workflow remains.
+    """All temporary migration, export and diagnostic workflows/scripts were removed after the verified correction was committed. Standard CI was restored. The permanent paired Original ↔ Nex workflow remains.
 
 This slice corrects direction but does not justify increasing progress. Paired evidence still shows remaining Popup and Options differences.""",
-    """- standard CI restored after the verified correction was committed. The permanent paired Original ↔ Nex workflow remains.
+    """All temporary migration, export and diagnostic workflows/scripts were removed after the verified correction was committed. Standard CI was restored. The permanent paired Original ↔ Nex workflow remains.
 
 Subsequent exact evidence also verifies:
 
