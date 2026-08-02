@@ -217,7 +217,9 @@ async function runScenario(scenario) {
                   rawIcon == null
                     ? rawIcon
                     : {
-                        sizes: Object.keys(rawIcon).sort((left, right) => Number(left) - Number(right)),
+                        sizes: Object.keys(rawIcon).sort(
+                          (left, right) => Number(left) - Number(right),
+                        ),
                         images: Object.fromEntries(
                           Object.entries(rawIcon).map(([size, image]) => [
                             size,
@@ -341,7 +343,10 @@ async function runScenario(scenario) {
           Object.defineProperty(probe.prototype, 'getImageData', {
             configurable: true,
             writable: true,
-            value: probe.originalGetImageData,
+            value: function (...args) {
+              probe.calls += 1;
+              return probe.originalGetImageData.apply(this, args);
+            },
           });
           probe.mode = 'original';
         }
@@ -447,9 +452,7 @@ async function runScenario(scenario) {
         ? await readRendererProbe()
         : undefined;
       const action = await readOriginalAction(capture.url, capture.includeIcon === true);
-      const rendererAfterAction = scenario.rendererFallback
-        ? await readRendererProbe()
-        : undefined;
+      const rendererAfterAction = scenario.rendererFallback ? await readRendererProbe() : undefined;
       assert.ok(
         action,
         `Original _actionForUrl returned no result for ${scenario.id}/${capture.label}`,
