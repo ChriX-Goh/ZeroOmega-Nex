@@ -172,8 +172,10 @@ Node: `KG-EVIDENCE-HARNESS-001`.
 - shared cross-browser profile-trace fixture;
 - focused ownership and renderer E2E;
 - Chromium/Firefox full E2E;
+- normal browser close/relaunch with restored Applied ProfileSpec, active route, endpoint and Action state;
 - native Chromium Inspect;
 - visual evidence;
+- exact `browser-builds` acceptance artifact;
 - future real original-export corpus and owner acceptance.
 
 Stable dependency:
@@ -231,10 +233,20 @@ Supporting nodes:
 - `KG-VIRTUAL-SWITCH-001`
   - 01O one-Virtual/one-Switch matched Fixed, matched Direct and Direct default subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - deeper Switch, bypass, attached and mixed targets: `UNKNOWN`.
+- `KG-ORDER1-ACCEPTANCE-BUILD-001`
+  - one exact PR Head passes CI, Browser E2E, Original Toolbar Evidence, Milestone 8 Visual Evidence and Parity Documentation;
+  - Chromium and Firefox verify clean startup, user-edited Fixed proxy/bypass, represented route families, ownership, renderer fallback and normal close/relaunch restoration;
+  - status: `VERIFIED_AUTOMATION`;
+  - exact `browser-builds` artifact is ready for one owner run.
 - `KG-TOOLBAR-PIXEL-001`
-  - open where Action APIs cannot prove final visual pixels.
+  - automated source, Action API and renderer evidence is complete for represented states;
+  - physical visible Ω/title/Badge/detail review remains part of owner acceptance.
 - `KG-OWNER-ORDER1-001`
-  - not run for the consolidated corrected journey.
+  - one-pass acceptance contract exists in `DELIVERY_ORDER_01_OWNER_ACCEPTANCE.md`;
+  - acceptance build ready;
+  - owner result: `NOT RUN`.
+
+Order 1 progress: 80%. `KG-ICON-001` remains `FAILED` until explicit owner `PASS`.
 
 Original-invalid edge: Switch → System is rejected by original and is not a missing parity feature.
 
@@ -376,6 +388,21 @@ Original-invalid edge: Switch → System is rejected by original and is not a mi
 - final route supplies result/Badge/result color;
 - no bypass, attached Rule List, deeper Switch or other mixed target.
 
+### Consolidated Order 1 acceptance build
+
+`Original evidence through 01O (SOURCE_CAPTURED)`  
+`-> Original-observable mappings (MAPPED)`  
+`-> Toolbar/runtime implementation (IMPLEMENTED)`  
+`-> deterministic tests (VERIFIED_AUTOMATION)`  
+`-> Chromium full + Toolbar + restart + represented traces (VERIFIED_AUTOMATION)`  
+`-> Firefox full + Toolbar + restart + represented traces (VERIFIED_AUTOMATION)`  
+`-> native Chromium Inspect + visual evidence + parity documentation (VERIFIED_AUTOMATION)`  
+`-> exact browser-builds artifact`  
+`-> KG-OWNER-ORDER1-001 (NOT RUN)`  
+`-> KG-ICON-001 (FAILED until PASS)`
+
+The restart edge proves one user-edited Fixed profile survives normal browser close/relaunch with its Applied ProfileSpec, active route, endpoint and real Toolbar Action state on both browsers.
+
 ## 6. Directed dependency graph
 
 ```text
@@ -392,6 +419,7 @@ PRODUCT_CONSTITUTION
        -> KG-EXTERNAL-CONTROL-001 (01M)
        -> KG-ACTION-FALLBACK-001 (01N)
        -> KG-VIRTUAL-SWITCH-001 (01O)
+       -> KG-ORDER1-ACCEPTANCE-BUILD-001
        -> KG-TOOLBAR-PIXEL-001
        -> KG-OWNER-ORDER1-001
   -> Order2DirectMigrationJourney
@@ -405,7 +433,7 @@ PRODUCT_CONSTITUTION
   -> Order8FinalCandidate
 ```
 
-Order 2 must not displace Order 1 before owner acceptance unless the repository owner explicitly reprioritizes.
+Order 2 must not begin before the prepared Order 1 acceptance build receives owner `PASS`, unless the repository owner explicitly reprioritizes.
 
 ## 7. Active defect graph
 
@@ -421,21 +449,25 @@ Order 2 must not displace Order 1 before owner acceptance unless the repository 
 ## 8. Automation integrity
 
 - Permanent workflows remain read-only.
-- Temporary read-only source/formatter workflows used during investigation were deleted.
+- Temporary read-only source/formatter/export workflows used during investigation are deleted after their artifacts are consumed.
 - Shared profile-trace E2E is used for nested/mixed route families.
-- Browser E2E 01O Head had one initial Chromium timeout in an older unrelated Popup step. Re-running only that job without code changes passed full Chromium E2E and every 01O/Toolbar step. The final workflow conclusion is success.
+- The exact Order 1 acceptance-build Head passes all five permanent gates.
+- Chromium and Firefox restart acceptance runs inside the permanent Browser E2E workflow.
 - Green automation establishes engineering evidence, not owner acceptance.
 
 ## 9. Progress boundary and next edge
 
-Formal progress remains 47% total and 35% for Order 1.
+Formal progress is 52% total (52.1%; confidence 48%–55%) and 80% for Order 1.
 
-01N and 01O are strict represented subsets. They do not close the complete Toolbar journey.
+Change from the previous baseline: +5 rounded project points and +45 Order 1 points. No denominator correction occurred. The change is caused by one exact build closing the consolidated engineering, automation and real-browser gaps, including dual-browser normal restart restoration.
+
+01H–01O remain strict represented subsets. Exotic uncaptured combinations remain fail closed and move to later delivery orders; they are no longer an open-ended Order 1 expansion mandate.
 
 Next fixed edge:
 
-`next high-value unrepresented mixed/nested or attached original family -> original evidence -> explicit KG mapping -> strict implementation -> deterministic tests -> shared Chromium/Firefox E2E -> owner consolidation`
+`exact green browser-builds artifact -> one-pass repository-owner ordinary-use review -> PASS or first blocking mismatch`
 
-Headed pixel evidence is reserved for states where Action APIs cannot prove the visible result.
+- `PASS` -> `KG-ICON-001` and Order 1 become `OWNER_ACCEPTED` -> begin Order 2 and `KG-IMPORT-COLOR-001`.
+- `FAIL` -> fix only the demonstrated blocker and directly dependent states -> produce a new exact acceptance build.
 
-No candidate, merge or release is authorized.
+No merge or release is authorized. The prepared package is an Order 1 acceptance build, not a release candidate.
