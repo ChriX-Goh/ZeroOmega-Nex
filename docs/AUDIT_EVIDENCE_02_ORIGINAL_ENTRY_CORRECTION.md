@@ -36,7 +36,7 @@ The first correction slice contains:
 
 The first normal-Head run exposed redesign-era test assumptions rather than product regressions:
 
-- the UI validator still required the removed `options.builtin.directHelp` explanatory copy;
+- the UI validator still required removed explanatory copy;
 - Chromium E2E still attempted to open the removed ordinary `配置历史` navigation item;
 - several Firefox specialist scripts still rejected the original-derived `options.html#/about` landing URL;
 - Popup accessibility and Options sidebar branding still contained `ZeroOmega Nex` or the incorrect `Zero Omega` spelling;
@@ -44,7 +44,6 @@ The first normal-Head run exposed redesign-era test assumptions rather than prod
 
 The corrected contracts now:
 
-- require that the removed helper copy remains absent;
 - assert that History is not exposed in ordinary Options while preserving background snapshot and rollback capability;
 - accept `#/about` only for Options navigation in the Firefox main, restart, attached Rule List, profile-trace, external-control and renderer-fallback journeys;
 - use the original `ZeroOmega` product spelling in visible and accessibility surfaces;
@@ -52,7 +51,15 @@ The corrected contracts now:
 
 Firefox core entry E2E, Firefox Toolbar Action E2E and Firefox normal-restart E2E passed while these follow-up contracts were being isolated. The complete Firefox and Chromium jobs still require a fresh normal-Head run.
 
-The final correction transaction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before it was committed. Its temporary patch scripts and writable workflow surface were removed before this checkpoint.
+## Removed rendered helper prose
+
+A diagnostic run proved that the built-in profile page still rendered three Nex-only descriptions even though they were not obvious in the default paired screenshot:
+
+- a page-level explanation that Direct and System Proxy are always available;
+- a Direct card explanation describing connection without a proxy;
+- a System card explanation describing browser or operating-system proxy use.
+
+All three descriptions were removed from ordinary Options. The UI guard now requires all three helper calls to remain absent. The correction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before being committed. Its temporary patch scripts were removed in the same transaction.
 
 ## Evidence boundary
 
