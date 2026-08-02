@@ -53,20 +53,22 @@ It:
 
 - downloads and SHA-256 verifies the official ZeroOmega v3.5.0 Chromium package;
 - builds Nex from the exact PR Head;
-- loads Original and Nex in the same Chromium version, locale, viewport and light theme;
+- loads Original and Nex in the same Chromium version, requested locale, viewport and light theme;
 - captures paired default Popup and Options screenshots;
-- records rendered body text, text lines, page dimensions and hashes;
+- records rendered text, saved body DOM, normalized anchors, dimensions and hashes;
+- records browser/document/extension language signals and packaged locale directories;
+- captures a clean `en-US` / `zh-CN` / `zh-TW` default-text matrix;
 - reports text present only in Nex and text missing from Nex.
 
 Paired official evidence is now the UI authority. Nex-only screenshots remain regression evidence but cannot prove original parity.
 
-## First correction slice — implemented and internally verified
+## Entry correction slices — verified automation, owner-unaccepted
 
 The first original-facing correction slice now contains:
 
 - official default user profiles in original order: `proxy` (`#99ccee`) and `auto switch` (`#99dd99`);
 - original built-in colors: Direct `#aaaaaa`, System `#000000`;
-- original-facing product name `ZeroOmega` rather than `ZeroOmega Nex` or `Zero Omega`;
+- original product spelling by surface: sidebar `Zero Omega`, About/product name `ZeroOmega`, and no `Nex` branding;
 - Options default navigation to About;
 - removal of top-level History navigation from ordinary Options;
 - removal of persistent Draft/application status prose;
@@ -81,7 +83,18 @@ The first original-facing correction slice now contains:
 
 All temporary migration, export and diagnostic workflows/scripts were removed after the verified correction was committed. Standard CI was restored. The permanent paired Original ↔ Nex workflow remains.
 
-This slice corrects direction but does not justify increasing progress. Paired evidence still shows remaining Popup and Options differences.
+Subsequent exact evidence also verifies:
+
+- production defaults to original English under `en-US`, `zh-CN` and `zh-TW`;
+- explicit Chromium and Firefox E2E builds retain Simplified and Traditional Chinese coverage;
+- Popup built-ins use `[Direct]` and `[System Proxy]`;
+- About links, attributions, status/action icons and the 32×32 blue Omega product icon match the original information structure;
+- default Popup/Options text is aligned except the truthful Nex version and original hidden-modal text;
+- complete startup recovery is serialized ahead of runtime messages, preventing delayed System writes over external Fixed/PAC state.
+
+Ordinary Head `92feff8c28fd01740d58bfb144aa5361aa85180f` passed all six permanent gates. Chromium main E2E passed on its first attempt and completed every Toolbar specialist step; Firefox and native Chromium Inspect also completed fully.
+
+These slices correct direction and close demonstrated automation defects but do not justify increasing progress. Paired evidence still shows remaining Popup and Options presentation differences, and the latest owner result remains FAIL.
 
 ## Engineering evidence retained
 
@@ -107,25 +120,27 @@ The ordinary entry journey remains failed until:
 1. the original Popup and Options surface inventory is complete enough to prevent another redesign-by-assumption;
 2. default profiles, default landing page, sidebar hierarchy and Popup structure match the original;
 3. engineering-only descriptions and internal state remain absent from ordinary UI;
-4. Firefox passes the original-derived entry journey;
-5. Chromium confirms the same behavior after Firefox;
-6. paired Original ↔ Nex evidence shows material convergence across the relevant surfaces;
-7. no intermediate user retest is requested before those gates are met.
+4. Firefox automation continues to pass the original-derived entry journey;
+5. Chromium continues to confirm the same behavior after Firefox without reruns;
+6. paired Original ↔ Nex evidence shows material visual convergence across the relevant surfaces;
+7. no intermediate user retest is requested before those gates are met;
+8. the owner explicitly accepts a later exact build.
 
 ## Immediate execution order
 
-1. Run the permanent gates on a normal non-automation Head.
-2. Inspect the new paired Popup and Options evidence rather than Nex-only screenshots.
-3. Remove the remaining extra Popup result-selector block where it lacks original provenance.
-4. Align Popup labels, icons, row geometry, selected state, divider and Options entry.
-5. Align Options sidebar width, grouping, labels, About content and profile editor density.
-6. Expand paired evidence to the next original surface only after the current surface is structurally aligned.
+1. Extend paired evidence with computed layout and typography metrics for Original and Nex.
+2. Align Options light-theme sidebar background, boundary, typography and vertical rhythm.
+3. Re-run paired screenshots/DOM and the six permanent gates.
+4. Align Popup icons, row geometry, selected state, divider and Options entry.
+5. Audit remaining editor/dialog density and visible helper text against original evidence.
+6. Expand paired evidence to the next original surface only after the current surface is aligned.
 7. Validate Firefox first, Chromium second.
 8. Do not request owner retest during this correction phase.
 
 ## Project-wide release blockers
 
 - `KG-ORIGINAL-UI-EVIDENCE-001` — paired original-facing UI capture: active.
+- `KG-STARTUP-OWNERSHIP-001` — serialized startup/external ownership: `VERIFIED_AUTOMATION`.
 - `KG-ICON-001` — complete Toolbar/Popup entry journey: `FAILED`.
 - `KG-UI-001` — layout, density, dialogs, controls and hierarchy: `FAILED`.
 - `KG-EXTRA-001` — unnecessary descriptions and extra workflow: `FAILED`.

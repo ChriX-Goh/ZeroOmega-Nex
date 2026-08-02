@@ -167,9 +167,11 @@ Represented runtime families:
 - permanent read-only paired UI workflow;
 - downloads and verifies official v3.5.0;
 - builds exact Nex Head;
-- same browser version, locale, viewport and theme;
+- same browser version, requested locale, viewport and theme;
 - paired default Popup and Options screenshots;
-- rendered text, text-line differences, page dimensions and hashes;
+- rendered text, saved body DOM, normalized anchors, page dimensions and hashes;
+- browser language signals, document language, extension UI language and packaged locale directories;
+- clean `en-US` / `zh-CN` / `zh-TW` Original ↔ Nex default-text matrix;
 - Nex-only screenshots cannot close parity.
 
 ### `NexEvidenceBoundary`
@@ -210,7 +212,7 @@ Consequences:
 
 Node: `KG-ORIGINAL-UI-CORRECTION-001`.
 
-Status: `IMPLEMENTED`, pre-commit diagnostic `VERIFIED_AUTOMATION`; permanent exact-Head gates pending final normal commit.
+Status: bounded correction slice `VERIFIED_AUTOMATION`; owner acceptance remains absent and the complete entry journey remains open.
 
 Implemented edges:
 
@@ -239,6 +241,49 @@ Explicit non-claims:
 - result-selector provenance remains open;
 - sidebar width/grouping/labels and editor density remain open;
 - this slice does not increase progress above 48% / Order 1 45%.
+
+## 5A. Subsequent entry and reliability convergence
+
+### `KG-ENTRY-CONVERGENCE-002`
+
+Status: `VERIFIED_AUTOMATION` for the bounded default-entry slice.
+
+Evidence-backed corrections:
+
+- production Popup and Options default to English under `en-US`, `zh-CN` and `zh-TW`, matching official v3.5.0;
+- explicit Browser E2E builds retain Simplified Chinese on Chromium and Traditional Chinese on Firefox;
+- Popup built-ins render as `[Direct]` and `[System Proxy]`;
+- Options sidebar brand is the original `Zero Omega`, while the About product name remains `ZeroOmega`;
+- English navigation restores `Import/Export` and `Builtin`;
+- About restores the independently generated 32×32 blue Omega product icon;
+- About action/status icons, official links, author/license attribution and open-source credit are present;
+- default Popup and Options text now match the original matrix except the truthful Nex version and original hidden-modal text;
+- known History, Draft, capability-research and Nex-brand leaks remain absent.
+
+Remaining presentation gaps:
+
+- Options sidebar background, boundary, typography and vertical rhythm;
+- Popup profile icons, row height, selected-state accent and Options entry icon;
+- complete editor/dialog density and interaction audit.
+
+### `KG-STARTUP-OWNERSHIP-001`
+
+Status: `VERIFIED_AUTOMATION` on ordinary Head `92feff8c28fd01740d58bfb144aa5361aa85180f`.
+
+Root-cause chain:
+
+`external Fixed accepted -> detached startup recovery races Popup commands -> delayed System write -> ownership candidate disappears`
+
+Verified correction:
+
+- complete proxy startup recovery runs inside the profile-workflow command queue;
+- runtime messages wait for authentication, pending recovery, temporary-rule reconciliation, external-state preservation, snapshot restoration, conditional startup activation and Toolbar refresh;
+- explicit restore dispositions prevent preserved external state from falling through to the default System route;
+- a blocking unit test proves concurrent messages cannot cross the startup recovery barrier;
+- Chromium main E2E passed on the first attempt and continued through every Toolbar specialist step;
+- Firefox main E2E and all Toolbar specialist steps remained green.
+
+This closes the demonstrated automation defect but does not alter owner acceptance or project progress.
 
 ## 6. Order graph
 
@@ -271,13 +316,14 @@ Valid supporting runtime nodes:
 Open entry nodes:
 
 - `KG-ORIGINAL-UI-EVIDENCE-001` — active.
-- `KG-POPUP-STRUCTURE-001` — `FAILED`.
-- `KG-OPTIONS-STRUCTURE-001` — `FAILED`.
-- `KG-OPTIONS-ABOUT-001` — `PARTIAL`.
+- `KG-POPUP-STRUCTURE-001` — `PARTIAL`; default text/order converged, visual geometry and icons remain open.
+- `KG-OPTIONS-STRUCTURE-001` — `PARTIAL`; hierarchy/default landing converged, presentation remains open.
+- `KG-OPTIONS-ABOUT-001` — `PARTIAL`; text, links and product icon converged, exact styling remains open.
 - `KG-UI-DENSITY-001` — `FAILED`.
 - `KG-ENGINEERING-LEAK-001` — first known leaks removed; complete surface audit open.
-- `KG-FIREFOX-ENTRY-001` — owner failed; automated corrected journey pending exact Head.
-- `KG-CHROMIUM-ENTRY-001` — confirmation pending after Firefox.
+- `KG-FIREFOX-ENTRY-001` — corrected automated journey `VERIFIED_AUTOMATION`; latest owner result remains `FAIL`.
+- `KG-CHROMIUM-ENTRY-001` — corrected journey and specialist confirmation `VERIFIED_AUTOMATION`.
+- `KG-STARTUP-OWNERSHIP-001` — first-attempt dual-browser automation verified.
 - `KG-OWNER-ORDER1-001` — `FAILED`; no retest scheduled.
 
 Original-invalid edge: Switch → System is rejected by original and is not a missing parity feature.
@@ -344,13 +390,22 @@ First capture proved:
 - extra History/Draft/capability UI;
 - Popup branding/order/geometry divergence.
 
-First correction removes those specific inventions but does not close the complete comparison.
+Subsequent captures additionally prove:
+
+- exact default text parity across `en-US`, `zh-CN` and `zh-TW`;
+- original sidebar spelling `Zero Omega` and About product spelling `ZeroOmega`;
+- bracketed built-ins and the official About information structure;
+- the 32×32 blue Omega About product icon;
+- remaining differences are predominantly presentation geometry, icons, typography and truthful version text.
+
+The bounded entry correction and startup ownership repair are automated and exact-Head verified, but the complete comparison and owner acceptance remain open.
 
 ## 8. Active defect graph
 
 - `KG-ICON-001` — complete visible entry journey: `FAILED`.
-- `KG-POPUP-STRUCTURE-001` — Popup original hierarchy/geometry: `FAILED`.
-- `KG-OPTIONS-STRUCTURE-001` — Options original hierarchy/geometry: `FAILED`.
+- `KG-POPUP-STRUCTURE-001` — Popup hierarchy/text converged; geometry/icons: `PARTIAL`.
+- `KG-OPTIONS-STRUCTURE-001` — Options hierarchy/default entry converged; presentation: `PARTIAL`.
+- `KG-STARTUP-OWNERSHIP-001` — serialized startup/external ownership: `VERIFIED_AUTOMATION`.
 - `KG-UI-001` — layout/density/dialog/control hierarchy: `FAILED`.
 - `KG-EXTRA-001` — unnecessary descriptions/workflow: `FAILED`.
 - `KG-INVENTION-001` — visible behavior without provenance: `FAILED`.
@@ -393,10 +448,12 @@ The next edge is not owner acceptance and not another acceptance package.
 
 ```text
 normal exact Head
-  -> six permanent gates
-  -> inspect paired Original/Nex Popup and Options evidence
-  -> remove remaining unproven Popup/result-selector/Options differences
-  -> Firefox corrected entry E2E
+  -> six permanent gates green on 92feff8c
+  -> capture computed Original/Nex layout and typography metrics
+  -> align Options sidebar background/boundary/type/vertical rhythm
+  -> inspect paired screenshots and DOM again
+  -> align Popup icons/rows/selected state/Options entry
+  -> Firefox first
   -> Chromium confirmation
   -> expand paired surface inventory
 ```
