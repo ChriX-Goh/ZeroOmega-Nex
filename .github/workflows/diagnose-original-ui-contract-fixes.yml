@@ -7,6 +7,10 @@ on:
     paths:
       - .github/workflows/diagnose-original-ui-contract-fixes.yml
       - scripts/apply-original-ui-contract-fixes.py
+      - packages/profile-workflow/src/defaults.ts
+      - packages/profile-workflow/src/defaults.test.ts
+      - packages/core-contracts/src/index.ts
+      - packages/core-contracts/src/index.test.ts
 
 permissions:
   contents: read
