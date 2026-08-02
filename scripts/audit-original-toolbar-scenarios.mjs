@@ -123,8 +123,11 @@ async function runScenario(scenario) {
         const name = await candidate
           .evaluate(() => chrome.runtime.getManifest().name)
           .catch(() => '');
-        if (name === 'Original Toolbar External Control Probe') conflictWorker = candidate;
-        else if ((await candidate.evaluate(() => chrome.runtime.getManifest().version)) === '3.5.0') {
+        if (name === 'Original Toolbar External Control Probe') {
+          conflictWorker = candidate;
+        } else if (
+          (await candidate.evaluate(() => chrome.runtime.getManifest().version)) === '3.5.0'
+        ) {
           originalWorker = candidate;
         }
       }
