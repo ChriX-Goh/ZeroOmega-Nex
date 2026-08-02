@@ -146,6 +146,18 @@ const externalControlFixed = {
   },
 };
 
+const rendererFallbackFixed = {
+  name: 'Runtime Renderer Fallback Fixed',
+  profileType: 'FixedProfile',
+  color: '#ab47bc',
+  bypassList: [],
+  fallbackProxy: {
+    scheme: 'http',
+    host: '127.0.0.1',
+    port: 18189,
+  },
+};
+
 export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
   'nested-switch': Object.freeze({
     id: 'nested-switch',
@@ -288,6 +300,40 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         profileName: externalControlFixed.name,
         url: 'http://external-control.test/path',
         expectedOriginalControlLevel: 'controlled_by_this_extension',
+      }),
+    ]),
+  }),
+  'renderer-fallback': Object.freeze({
+    id: 'renderer-fallback',
+    description:
+      'The original dynamic icon renderer is forced to return privacy-blocked pixels twice and then restored for the same Fixed profile color.',
+    rendererFallback: true,
+    profiles: Object.freeze([rendererFallbackFixed]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'renderer-fallback-first-failure',
+        profileName: rendererFallbackFixed.name,
+        url: 'http://renderer-fallback.test/path',
+        rendererCommand: 'force-opaque',
+        includeIcon: true,
+      }),
+      Object.freeze({
+        label: 'renderer-fallback-second-failure',
+        profileName: rendererFallbackFixed.name,
+        url: 'http://renderer-fallback.test/path',
+        applyProfile: false,
+        waitForCurrentProfile: false,
+        rendererCommand: 'keep-opaque',
+        includeIcon: true,
+      }),
+      Object.freeze({
+        label: 'renderer-fallback-restored-success',
+        profileName: rendererFallbackFixed.name,
+        url: 'http://renderer-fallback.test/path',
+        applyProfile: false,
+        waitForCurrentProfile: false,
+        rendererCommand: 'restore',
+        includeIcon: true,
       }),
     ]),
   }),
