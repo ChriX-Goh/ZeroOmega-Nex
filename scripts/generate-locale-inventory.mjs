@@ -50,10 +50,18 @@ function visibleCandidate(value) {
 const formatNames = new Set(['AutoProxy', 'Switchy']);
 const keyboardKeys = new Set(['Enter', 'Escape']);
 const stableTechnicalCodes = new Set(['ERR_TIMEOUT']);
+const originalProductNames = new Set(['ZeroOmega']);
+const originalLegalTexts = new Set([
+  'Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.',
+  'Copyright 2024-2025 The ZeroOmega Authors.',
+  'ZeroOmega is free software licensed under GNU General Public License Version 3 or later.',
+]);
 
 function classifyCandidate(candidate) {
   const { kind, path: pathname, text } = candidate;
   if (stableTechnicalCodes.has(text)) return 'stable-technical-code';
+  if (originalProductNames.has(text)) return 'original-product-name';
+  if (originalLegalTexts.has(text)) return 'original-legal-text';
   if (formatNames.has(text)) return 'format-name';
   if (text === 'URL') return 'standard-technical-term';
   if (keyboardKeys.has(text)) return 'keyboard-key';

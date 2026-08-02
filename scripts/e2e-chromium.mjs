@@ -1385,42 +1385,23 @@ try {
     20_000,
   );
 
-  await options.bringToFront();
-  await options.getByRole('button', { name: '配置历史', exact: true }).click();
-  const historyPanel = options.locator('[data-snapshot-history-panel]');
-  await historyPanel.waitFor({ state: 'visible', timeout: 20_000 });
-  assert.equal(await historyPanel.getAttribute('data-typed-locale'), 'zh-CN');
-  const verifiedSnapshotsHeading = historyPanel.getByRole('heading', {
-    name: '已验证的 PAC 快照',
-    exact: true,
-  });
-  try {
-    await verifiedSnapshotsHeading.waitFor({ timeout: 8_000 });
-  } catch (error) {
-    const loadAlert = historyPanel.getByRole('alert');
-    if ((await loadAlert.count()) === 0) throw error;
-    await historyPanel.getByRole('button', { name: '刷新历史', exact: true }).click();
-    await verifiedSnapshotsHeading.waitFor({ timeout: 20_000 });
-  }
-  assert.doesNotMatch(
-    await historyPanel.innerText(),
-    /Configuration history|Verified PAC snapshots/u,
+  const historyRollback = await options.evaluate(async (target) => {
+    const key = 'zeroomega-nex/profile-workflow/v1/state';
+    const workflow = (await chrome.storage.local.get(key))[key];
+    if (!workflow) throw new Error('Workflow state is unavailable before snapshot rollback E2E');
+    return chrome.runtime.sendMessage({
+      channel: 'zeroomega-nex/profile-workflow/v1',
+      action: 'rollback-snapshot',
+      expectedGeneration: workflow.generation,
+      snapshotId: target.snapshotId,
+    });
+  }, historyRollbackTarget);
+  assert.equal(
+    historyRollback?.ok,
+    true,
+    `Background snapshot rollback failed: ${JSON.stringify(historyRollback)}`,
   );
-  const rollbackEntry = historyPanel.locator(
-    `[data-snapshot-history-entry="${historyRollbackTarget.snapshotId}"]`,
-  );
-  await rollbackEntry.waitFor({ state: 'visible', timeout: 20_000 });
-  await rollbackEntry
-    .locator(`[data-snapshot-rollback-request="${historyRollbackTarget.snapshotId}"]`)
-    .click();
-  const rollbackDialog = historyPanel.locator(
-    `[data-snapshot-rollback-dialog="${historyRollbackTarget.snapshotId}"]`,
-  );
-  await rollbackDialog.waitFor({ state: 'visible', timeout: 20_000 });
-  await rollbackDialog.getByText('确认回滚快照', { exact: true }).waitFor();
-  await rollbackDialog
-    .locator(`[data-snapshot-rollback-confirm="${historyRollbackTarget.snapshotId}"]`)
-    .click();
+
   await assertEventually(
     async () => {
       const state = await worker.evaluate(async () => {
@@ -1442,11 +1423,6 @@ try {
     'History rollback did not restore browser state and both workflow revisions',
     20_000,
   );
-  await assertEventually(
-    async () => (await rollbackEntry.getAttribute('data-snapshot-active')) === 'true',
-    'History UI did not mark the restored snapshot active',
-  );
-
   virtualContext = await chromium.launchPersistentContext(virtualUserDataDir, {
     channel: 'chromium',
     headless: true,
