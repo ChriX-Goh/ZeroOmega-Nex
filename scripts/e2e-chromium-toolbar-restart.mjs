@@ -174,7 +174,10 @@ try {
   const restored = await sendWorkflowCommand(extensionPage, { channel, action: 'get' });
   assert.equal(restored?.ok, true, `Restored workflow failed: ${JSON.stringify(restored)}`);
   assert.deepEqual(restored.runtime?.activeRoute, { kind: 'profile', profileId });
-  assert.equal(restored.state.applied.document.profiles.find((item) => item.id === profileId)?.name, 'Restart Proxy');
+  assert.equal(
+    restored.state.applied.document.profiles.find((item) => item.id === profileId)?.name,
+    'Restart Proxy',
+  );
   assert.deepEqual(
     restored.state.applied.document.proxyEndpoints.find((item) => item.id === endpointId),
     {
