@@ -1290,9 +1290,9 @@ export const typedUiTextCatalog = {
     'zh-TW': '目前網站操作',
   },
   'popup.optionsAria': {
-    en: 'Open ZeroOmega Nex options',
-    'zh-CN': '打开 ZeroOmega Nex 选项',
-    'zh-TW': '開啟 ZeroOmega Nex 選項',
+    en: 'Open ZeroOmega options',
+    'zh-CN': '打开 ZeroOmega 选项',
+    'zh-TW': '開啟 ZeroOmega 選項',
   },
   'popup.opening': { en: 'Opening…', 'zh-CN': '正在打开…', 'zh-TW': '正在開啟…' },
   'popup.options': { en: 'Options', 'zh-CN': '选项', 'zh-TW': '選項' },

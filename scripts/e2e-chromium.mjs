@@ -294,10 +294,8 @@ try {
     await initialPopup.locator('.popup-shell').getAttribute('data-popup-locale'),
     'zh-CN',
   );
-  await initialPopup
-    .getByRole('button', { name: '打开 ZeroOmega Nex 选项', exact: true })
-    .waitFor();
-  await initialPopup.getByRole('button', { name: /直接连接/u }).waitFor();
+  await initialPopup.getByRole('button', { name: '打开 ZeroOmega 选项', exact: true }).waitFor();
+  await initialPopup.getByRole('button', { name: '直接连接', exact: true }).waitFor();
   const initialButtons = initialPopup.locator('.profile-list button');
   assert.match(await initialButtons.nth(0).innerText(), /直接连接/u);
   assert.match(await initialButtons.nth(1).innerText(), /系统代理/u);

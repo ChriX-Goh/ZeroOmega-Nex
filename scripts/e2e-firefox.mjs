@@ -142,8 +142,9 @@ async function navigateExtensionPage(relativeUrl) {
     url,
     wait: 'complete',
   });
-  assert.equal(result?.url, url, `Firefox BiDi navigated to an unexpected extension URL`);
-  await driver.wait(async () => (await driver.getCurrentUrl()) === url, 20_000);
+  const expectedUrl = relativeUrl === 'options.html' ? `${url}#/about` : url;
+  assert.equal(result?.url, expectedUrl, `Firefox BiDi navigated to an unexpected extension URL`);
+  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
 }
 
 async function runtimeDiagnostics() {

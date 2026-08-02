@@ -701,12 +701,17 @@ const requirements = [
     optionsApp.includes('data-builtin-settings data-typed-locale={locale}') &&
       optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&
       optionsApp.includes('data-about-settings data-typed-locale={locale}') &&
-      optionsApp.includes("uiText('options.about.compatibilityTitle', locale)") &&
+      optionsApp.includes('const originalCopy =') &&
+      optionsApp.includes('<h2>ZeroOmega</h2>') &&
       optionsApp.includes('data-new-profile-shell') &&
       optionsApp.includes('data-empty-profiles') &&
+      !optionsApp.includes('ZeroOmega Nex') &&
       !optionsApp.includes('<span>Zero Omega</span>') &&
-      chromiumE2e.includes('Normal Options typed locale coverage regressed'),
-    'Built-in Profiles, About, new-profile shell, empty state, branding, and profile export presentation must render through the typed catalog.',
+      !optionsApp.includes("uiText('history.nav'") &&
+      !optionsApp.includes('class="draft-status"') &&
+      !fixedProfile.includes('data-fixed-protocol-capabilities') &&
+      chromiumE2e.includes('Engineering concepts leaked into the normal About page'),
+    'Original-facing Options must keep typed dynamic UI while preserving official fixed product text and excluding Nex branding, History, Draft status, and capability research.',
   ],
   [
     ['fallback', 'http', 'https', 'ftp'].every((scheme) =>
