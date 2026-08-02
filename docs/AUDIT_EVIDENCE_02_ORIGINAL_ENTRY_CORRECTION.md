@@ -67,6 +67,14 @@ A later Chromium E2E path still attempted to reopen the removed History panel so
 
 The original About page also contains the official `ZeroOmega` product name, upstream copyright notices and GPL notice. These are now explicitly classified as fixed original product/legal text in the generated locale inventory rather than being treated as untranslated replacement UI.
 
+## History route removal and Firefox save synchronization
+
+The ordinary History navigation had been removed, but the Options application still accepted `#/history`, imported and rendered `SnapshotHistoryPanel`, and exposed its rollback adapter. This left engineering UI directly addressable despite being absent from the sidebar.
+
+The Options application no longer contains the History section type, hash route, component import, render branch or UI rollback adapter. The UI guard now requires complete absence of the ordinary History surface while requiring the real Chromium background rollback command and browser/Applied/Draft convergence evidence.
+
+Firefox main E2E also exposed a Selenium-specific race: after changing the advanced-condition preference, the background workflow was still saving when the test immediately clicked the disabled New Profile button. The browser correctly ignored the disabled click. Both Firefox profile-creation paths now wait for the New Profile action to become enabled before clicking; no product behavior was changed to accommodate the test.
+
 The combined correction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before being committed. Its temporary patch scripts were removed in the same transaction.
 
 ## Evidence boundary
