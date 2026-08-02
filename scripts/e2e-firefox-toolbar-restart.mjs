@@ -51,9 +51,13 @@ async function bidiCommand(driver, method, params) {
   const socket = new WebSocket(webSocketUrl);
   await new Promise((resolveOpen, rejectOpen) => {
     socket.addEventListener('open', resolveOpen, { once: true });
-    socket.addEventListener('error', () => rejectOpen(new Error('Firefox BiDi connection failed')), {
-      once: true,
-    });
+    socket.addEventListener(
+      'error',
+      () => rejectOpen(new Error('Firefox BiDi connection failed')),
+      {
+        once: true,
+      },
+    );
   });
   try {
     const id = 1;
