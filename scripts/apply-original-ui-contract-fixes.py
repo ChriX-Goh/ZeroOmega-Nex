@@ -32,7 +32,9 @@ source, count = re.subn(
       documentId: `document-${crypto.randomUUID()}`,
       revisionId: `revision-${crypto.randomUUID()}`,
       createdAt: new Date().toISOString(),
-      deviceId: state.applied.revision.deviceId,
+      ...(state.applied.revision.deviceId === undefined
+        ? {}
+        : { deviceId: state.applied.revision.deviceId }),
     });
     if (
       !(await runCommand({
