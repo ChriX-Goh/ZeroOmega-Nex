@@ -1,0 +1,47 @@
+name: Export Original Renderer Fallback Source
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-original-renderer-fallback-source.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download exact official package
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            -o chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  chromium-release.zip' | sha256sum -c -
+          mkdir -p original-release/chromium
+          unzip -q chromium-release.zip -d original-release/chromium
+
+      - name: Export renderer-related source
+        run: |
+          mkdir -p exported/original-release/chromium
+          cp original-release/chromium/manifest.json exported/original-release/chromium/manifest.json
+          grep -RIlE 'getImageData|setIcon|resistFingerprinting|fingerprint|OffscreenCanvas' \
+            original-release/chromium > exported/matches.txt || true
+          while IFS= read -r file; do
+            test -n "$file" || continue
+            mkdir -p "exported/$(dirname "$file")"
+            cp "$file" "exported/$file"
+          done < exported/matches.txt
+          find exported -type f -maxdepth 8 -print
+
+      - name: Upload source export
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-renderer-fallback-source
+          path: exported
+          if-no-files-found: error
