@@ -69,6 +69,8 @@ The default startup route is activated only for `inspect-startup-route` when no 
 
 A dedicated unit test blocks the complete initialization hook, sends a concurrent runtime message and proves that the message cannot settle until recovery is released. Existing tests continue to cover concurrent initialization deduplication, complete initial activation, every restore disposition, external Fixed/PAC preservation and invalid states.
 
-The correction must pass atomic repository validation, then a fresh ordinary-Head Chromium main E2E on its first attempt and every Toolbar specialist step. A manual rerun is not success evidence.
+Atomic repository validation passed on Actions-generated commit `6cd6be2ee99ce7ed7344d6b4abec9cac5c6fbdb5`, and the temporary patch scripts were removed in the same transaction.
+
+This ordinary evidence Head must now pass Chromium main E2E on its first attempt and continue through every Toolbar specialist step. A manual rerun is not success evidence.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
