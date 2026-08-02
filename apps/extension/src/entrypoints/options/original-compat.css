@@ -257,3 +257,113 @@
 .about-license a:focus-visible {
   text-decoration: underline;
 }
+
+/* Computed Original ↔ Nex metrics — Options light baseline. */
+.app-shell {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+:root[data-theme='light'] .sidebar {
+  background: #fff;
+  border-right: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 761px) {
+  .side-brand {
+    padding: 20px 0 0 30px;
+  }
+
+  .side-brand button {
+    width: 210px;
+    color: #5c6166;
+    font-size: 23.8px;
+    font-weight: 700;
+    line-height: 26.18px;
+  }
+
+  .side-navigation {
+    padding: 0 0 24px 30px;
+  }
+
+  .nav-group {
+    padding: 0;
+    border-top: 0;
+  }
+
+  .nav-group:first-child {
+    padding-top: 35.6875px;
+  }
+
+  .nav-group + .nav-group {
+    margin-top: 2px;
+    padding-top: 9px;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .nav-group h2 {
+    width: 240px;
+    height: 26px;
+    margin: 0 0 2px -15px;
+    padding: 3px 15px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 20px;
+  }
+
+  .nav-group > button {
+    width: 210px;
+    min-height: 0;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  .nav-group > button + button {
+    margin-top: 2px;
+  }
+
+  .nav-group.actions > button {
+    background: #fff;
+    font-weight: 400;
+  }
+
+  .nav-group.actions > button.discard {
+    color: #777;
+    background: transparent;
+    border: 0;
+  }
+
+  .editor {
+    padding-top: 20px;
+  }
+
+  .original-about-page .editor-heading {
+    margin-bottom: 37px;
+  }
+
+  .original-about-page .editor-heading h1 {
+    margin: 0;
+    font-weight: 500;
+    line-height: 33px;
+  }
+
+  .about-product {
+    margin: 14px 0;
+  }
+
+  .about-product p {
+    margin: 0 0 4px;
+  }
+
+  .about-notices p {
+    margin-bottom: 10px;
+  }
+
+  .about-license {
+    margin-top: 98px;
+  }
+}

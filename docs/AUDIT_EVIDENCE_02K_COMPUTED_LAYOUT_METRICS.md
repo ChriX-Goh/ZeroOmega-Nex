@@ -4,47 +4,52 @@
 
 This checkpoint is subordinate to `PRODUCT_CONSTITUTION.md`, `DELIVERY_PLAN.md`, `MILESTONE_8_STATUS.md`, `ORIGINAL_NEX_DELIVERY_KNOWLEDGE_GRAPH.md` and the preceding Original Entry evidence.
 
-It records a read-only paired evidence enhancement. It is not a product correction, acceptance candidate or completion claim.
+It records the first computed-style comparison and one bounded Options presentation correction. It is not an acceptance candidate or completion claim.
 
-## Evidence gap
+## Metric authority
 
-Paired screenshots and saved DOM established the remaining Options and Popup presentation differences, but screenshots alone do not reliably distinguish:
+The permanent paired artifact for ordinary Head `050ddadc78724c7e82ec140a6ad8d2bf280d8fb3` is:
 
-- geometry from typography;
-- inherited font metrics from explicit CSS;
-- background color from shadow or border;
-- padding from margins and grid offsets;
-- row height from line height;
-- layout structure from browser rendering variance.
+- artifact: `original-nex-ui-evidence-050ddadc78724c7e82ec140a6ad8d2bf280d8fb3`;
+- artifact ID: `8835315173`;
+- SHA-256: `5ce247487f338be9932626142bcdc40d00e17f8fb71b9661426beb9b1e025870`;
+- manifest schema: 2.
 
-Changing CSS from visual estimation would risk another redesign-by-assumption.
+Each default Original and Nex Popup/Options capture records semantic element rectangles and computed layout/style properties in addition to screenshots, text, DOM, links and language evidence.
 
-## Computed evidence enhancement
+## Demonstrated Options differences
 
-Each default Original and Nex Popup/Options capture now records semantic layout metrics for corresponding elements.
+The exact light-theme metrics prove:
 
-Recorded properties include:
+- Original base/navigation text: `14px / 20px`, Helvetica-family; Nex: `10.5px / 14.7px`, DejaVu/Arial-family;
+- Original sidebar: transparent white page, no right border, no shadow; Nex: `#f5f5f5`, `1px` right border and `1px 0 3px` shadow;
+- Original brand: `23.8px / 26.18px`, weight `700`, color `#5c6166`; Nex: `24px / 33.6px`, weight `600`, link blue;
+- Original navigation headings: `11px / 20px`, weight `700`; Nex: `12px / 16.8px`, weight `600`;
+- Original Settings items begin at y `109.86`, Profiles at `299.86`, Actions at `489.86` for Apply;
+- Nex equivalents begin at y `115.39`, `321.19` and `526.98`;
+- the Nex Actions heading is `28.33px` too low and Apply is `37.12px` too low;
+- Original notice text uses `14px / 20px` with `10px` paragraph spacing; Nex uses `10.5px / 14.7px` with `6px` spacing;
+- Original license block starts after `98px`; Nex uses `118px`.
 
-- bounding rectangle and element identity;
-- display, position and box sizing;
-- font family, size, weight, line height and letter spacing;
-- foreground and background colors;
-- padding and margins;
-- every border edge and radius;
-- box shadow and opacity;
-- flex/grid alignment, gaps and column definitions;
-- overflow behavior.
+These are computed browser values, not screenshot estimates.
 
-Options mappings cover the shell, sidebar, brand, navigation headings/items/dividers, content, page title, product block/icon, actions, notices and license block.
+## Bounded Options correction
 
-Popup mappings cover the shell, profile rows/actions/icons/names, dividers, active state and Options entry.
+The desktop compatibility layer now:
 
-The manifest schema is now version 2. Existing screenshots, text, DOM, links, language signals, locale directories and three-locale matrix remain unchanged.
+- restores the original Helvetica-family 14px Options baseline;
+- removes the light-theme sidebar gray fill, right border and shadow;
+- restores the original brand color, weight and line height;
+- reproduces the measured group geometry using the original 26px headings, 36px links, 2px row spacing and 1px dividers;
+- restores exact 210px navigation item width and 240px heading span;
+- restores the original Apply/Discard border, weight and color treatment;
+- aligns the About title to a 30px/33px heading at y `20`;
+- restores the measured product, notice and license spacing.
+
+The correction is intentionally limited to desktop Options presentation. Popup styling, responsive layout, dark-theme palette and functional behavior are unchanged.
 
 ## Verification boundary
 
-The enhancement passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation in the atomic finalizer. Temporary patch scripts were removed in the same transaction.
-
-The atomic commit `3b01fc823d70c806e37b454d35bffc6811ad7126` is Actions-generated. This ordinary documentation Head must generate a fresh paired artifact. Its computed metrics become the sole authority for the next Options light-theme sidebar, typography and vertical-rhythm correction.
+The correction must pass architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation in the atomic finalizer. A subsequent normal-Head paired artifact must verify the actual computed positions and styles before any further visual adjustment.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
