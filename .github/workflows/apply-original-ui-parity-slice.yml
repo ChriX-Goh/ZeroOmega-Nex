@@ -160,6 +160,12 @@ jobs:
               assert count == 1, f'capability CSS replacements: {count}'
           fixed.write_text(source)
 
+          component_test = Path('apps/extension/src/component-rendering.component.spec.ts')
+          source = component_test.read_text()
+          target = "        browserTarget: 'firefox',\n"
+          assert source.count(target) == 1, 'Fixed editor browserTarget test prop count'
+          component_test.write_text(source.replace(target, '', 1))
+
           popup = Path('apps/extension/src/entrypoints/popup/App.svelte')
           source = popup.read_text()
           source = source.replace(
@@ -190,6 +196,7 @@ jobs:
             scripts/capture-original-nex-ui-evidence.mjs \
             docs/MILESTONE_8_STATUS.md \
             docs/PROJECT_PROGRESS_MODEL.md \
+            apps/extension/src/component-rendering.component.spec.ts \
             apps/extension/src/entrypoints/options/App.svelte \
             apps/extension/src/entrypoints/options/FixedProfileEditor.svelte \
             apps/extension/src/entrypoints/options/main.ts \
