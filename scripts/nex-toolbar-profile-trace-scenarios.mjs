@@ -20,6 +20,19 @@ export const NESTED_VIRTUAL_SCENARIO = Object.freeze({
   hosts: Object.freeze(['nested-virtual-direct.test', 'nested-virtual-fixed.test']),
 });
 
+export const VIRTUAL_SWITCH_SCENARIO = Object.freeze({
+  id: 'virtual-switch',
+  fixedProfileId: 'profile-virtual-switch-fixed-e2e',
+  fixedEndpointId: 'endpoint-virtual-switch-e2e',
+  innerProfileId: 'profile-virtual-switch-inner-e2e',
+  outerProfileId: 'profile-virtual-switch-outer-e2e',
+  hosts: Object.freeze([
+    'virtual-switch-fixed.test',
+    'virtual-switch-direct.test',
+    'virtual-switch-default.test',
+  ]),
+});
+
 export const PAC_SCENARIO = Object.freeze({
   id: 'pac',
   profileId: 'profile-runtime-pac-e2e',
@@ -46,6 +59,7 @@ export const RUNTIME_PAC_SCRIPT = `function FindProxyForURL(url, host) {
 export const PROFILE_TRACE_HOSTS = Object.freeze([
   ...NESTED_SWITCH_SCENARIO.hosts,
   ...NESTED_VIRTUAL_SCENARIO.hosts,
+  ...VIRTUAL_SWITCH_SCENARIO.hosts,
   ...PAC_SCENARIO.hosts,
   ...TEMPORARY_RULE_SCENARIO.hosts,
 ]);
@@ -165,6 +179,59 @@ export function configureNestedVirtualDraft(draft, proxyPort) {
     { kind: 'profile', profileId: scenario.outerDirectProfileId },
     { kind: 'profile', profileId: scenario.outerFixedProfileId },
   );
+  return scenario;
+}
+
+export function configureVirtualSwitchDraft(draft, proxyPort) {
+  const scenario = VIRTUAL_SWITCH_SCENARIO;
+  draft.settings.interface.showResultProfileOnActionBadgeText = true;
+  draft.proxyEndpoints.push({
+    id: scenario.fixedEndpointId,
+    name: 'Virtual Switch E2E endpoint',
+    protocol: 'http',
+    host: '127.0.0.1',
+    port: proxyPort,
+  });
+  draft.profiles.push(
+    {
+      id: scenario.fixedProfileId,
+      name: 'Runtime Virtual Switch Fixed',
+      color: '#64b5f6',
+      kind: 'fixed',
+      proxyByScheme: { fallback: scenario.fixedEndpointId },
+      bypass: [],
+    },
+    {
+      id: scenario.innerProfileId,
+      name: 'Runtime Virtual Switch Inner',
+      color: '#81c784',
+      kind: 'switch',
+      rules: [
+        {
+          id: 'rule-virtual-switch-fixed-e2e',
+          condition: { kind: 'host-wildcard', pattern: 'virtual-switch-fixed.test' },
+          route: { kind: 'profile', profileId: scenario.fixedProfileId },
+        },
+        {
+          id: 'rule-virtual-switch-direct-e2e',
+          condition: { kind: 'host-wildcard', pattern: 'virtual-switch-direct.test' },
+          route: { kind: 'direct' },
+        },
+      ],
+      defaultRoute: { kind: 'direct' },
+    },
+    {
+      id: scenario.outerProfileId,
+      name: 'Runtime Virtual Switch Outer Alias',
+      color: '#ff8a65',
+      kind: 'virtual',
+      targetRoute: { kind: 'profile', profileId: scenario.innerProfileId },
+    },
+  );
+  draft.settings.quickSwitch.routes.push({
+    kind: 'profile',
+    profileId: scenario.outerProfileId,
+  });
   return scenario;
 }
 
@@ -290,6 +357,40 @@ export function nestedVirtualCases({ proxyPort, directName, defaultDetail }) {
       resultProfileName: 'Runtime Nested Virtual Fixed',
       badgeText: 'Runt',
       details: `${defaultDetail} => Runtime Nested Virtual Fixed\nlocalhost => DIRECT\n`,
+    }),
+  ]);
+}
+
+export function virtualSwitchCases({ proxyPort, directName, defaultDetail }) {
+  return Object.freeze([
+    Object.freeze({
+      id: 'virtual-switch-match-fixed',
+      host: 'virtual-switch-fixed.test',
+      path: '/virtual-switch-fixed',
+      currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
+      resultProfileName: 'Runtime Virtual Switch Fixed',
+      badgeText: 'Runt',
+      details:
+        'virtual-switch-fixed.test => Runtime Virtual Switch Fixed\n' +
+        `PROXY 127.0.0.1:${proxyPort}\n`,
+    }),
+    Object.freeze({
+      id: 'virtual-switch-match-direct',
+      host: 'virtual-switch-direct.test',
+      path: '/virtual-switch-direct',
+      currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
+      resultProfileName: `[${directName}]`,
+      badgeText: 'Dire',
+      details: `virtual-switch-direct.test => [${directName}]\n`,
+    }),
+    Object.freeze({
+      id: 'virtual-switch-default-direct',
+      host: 'virtual-switch-default.test',
+      path: '/virtual-switch-default',
+      currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
+      resultProfileName: `[${directName}]`,
+      badgeText: 'Dire',
+      details: `${defaultDetail} => [${directName}]\n`,
     }),
   ]);
 }
