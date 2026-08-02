@@ -8,10 +8,8 @@ import {
   registerInspectRuntime,
   type RegisteredInspectRuntime,
 } from '../lib/inspect-runtime';
-import {
-  currentOriginalToolbarBrowserRuntimeApi,
-  currentOriginalToolbarCanvasFactory,
-} from '../lib/original-toolbar-browser-runtime';
+import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar-browser-runtime';
+import { currentOriginalToolbarCanvasFactory } from '../lib/original-toolbar-icon-renderer';
 import {
   createOriginalToolbarRendererE2eProbe,
   type OriginalToolbarRendererE2eRuntimeApi,
