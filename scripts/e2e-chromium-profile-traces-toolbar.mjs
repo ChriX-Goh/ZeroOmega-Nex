@@ -11,6 +11,7 @@ import {
   configureNestedVirtualDraft,
   configurePacDraft,
   configureTemporaryRuleDraft,
+  configureVirtualSwitchDraft,
   NEX_TOOLBAR_WORKFLOW_CHANNEL,
   POPUP_TEMPORARY_RULE_CHANNEL,
   nestedSwitchCases,
@@ -19,6 +20,7 @@ import {
   PROFILE_TRACE_HOSTS,
   RUNTIME_PAC_SCRIPT,
   temporaryRuleCases,
+  virtualSwitchCases,
 } from './nex-toolbar-profile-trace-scenarios.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
@@ -149,6 +151,10 @@ try {
   }));
   const switchCases = nestedSwitchCases({ proxyPort: address.port, ...localization });
   const virtualCases = nestedVirtualCases({ proxyPort: address.port, ...localization });
+  const virtualSwitchTraceCases = virtualSwitchCases({
+    proxyPort: address.port,
+    ...localization,
+  });
   const runtimePacCases = pacCases({ pacUrl });
   const temporaryCases = temporaryRuleCases({
     proxyPort: address.port,
@@ -156,6 +162,7 @@ try {
   });
   const switchTabs = await openCases(extensionPage, switchCases);
   const virtualTabs = await openCases(extensionPage, virtualCases);
+  const virtualSwitchTabs = await openCases(extensionPage, virtualSwitchTraceCases);
   const pacTabs = await openCases(extensionPage, runtimePacCases);
   const temporaryTabs = await openCases(extensionPage, [
     temporaryCases.matched,
@@ -170,6 +177,7 @@ try {
   const draft = structuredClone(current.state.draft);
   const switchScenario = configureNestedSwitchDraft(draft, address.port);
   const virtualScenario = configureNestedVirtualDraft(draft, address.port);
+  const virtualSwitchScenario = configureVirtualSwitchDraft(draft, address.port);
   const pacScenario = configurePacDraft(draft, pacUrl);
   const temporaryScenario = configureTemporaryRuleDraft(draft, address.port);
 
@@ -233,6 +241,21 @@ try {
       tabId,
       await expectedActionState(extensionPage, capture, popup),
       `Chromium nested Virtual Fixed case ${capture.id} failed`,
+    );
+  }
+
+  await activateProfile(
+    extensionPage,
+    applied.state.applied.revision.id,
+    virtualSwitchScenario.outerProfileId,
+    'Virtual Switch',
+  );
+  for (const { capture, tabId } of virtualSwitchTabs) {
+    await waitForActionState(
+      extensionPage,
+      tabId,
+      await expectedActionState(extensionPage, capture, popup),
+      `Chromium Virtual to Switch case ${capture.id} failed`,
     );
   }
 
