@@ -21,6 +21,7 @@ export interface OriginalToolbarTabStateInput {
   readonly icon: OriginalToolbarIconStateInput;
   readonly badge: OriginalToolbarBadgeInput;
   readonly detailPrefix?: string;
+  readonly badgeBackgroundColor?: string;
 }
 
 export interface OriginalToolbarTabState {
@@ -28,6 +29,7 @@ export interface OriginalToolbarTabState {
   readonly titleArguments: OriginalToolbarTitleArguments;
   readonly badgeText?: string;
   readonly detailPrefix?: string;
+  readonly badgeBackgroundColor?: string;
 }
 
 /**
@@ -53,5 +55,8 @@ export function deriveOriginalToolbarTabState(
     },
     ...(badgeText === undefined ? {} : { badgeText }),
     ...(input.detailPrefix === undefined ? {} : { detailPrefix: input.detailPrefix }),
+    ...(input.badgeBackgroundColor === undefined
+      ? {}
+      : { badgeBackgroundColor: input.badgeBackgroundColor }),
   };
 }
