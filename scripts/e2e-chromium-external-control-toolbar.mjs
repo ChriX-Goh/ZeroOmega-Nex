@@ -119,7 +119,11 @@ try {
     expectedGeneration: current.state.generation,
     draft,
   });
-  assert.equal(replaced?.ok, true, `Chromium draft replacement failed: ${JSON.stringify(replaced)}`);
+  assert.equal(
+    replaced?.ok,
+    true,
+    `Chromium draft replacement failed: ${JSON.stringify(replaced)}`,
+  );
   const applied = await sendWorkflowCommand({
     channel: 'zeroomega-nex/profile-workflow/v1',
     action: 'apply',
@@ -135,7 +139,11 @@ try {
       route: { kind: 'profile', profileId: fixed.id },
     });
   const activated = await activateFixed();
-  assert.equal(activated?.ok, true, `Chromium Fixed activation failed: ${JSON.stringify(activated)}`);
+  assert.equal(
+    activated?.ok,
+    true,
+    `Chromium Fixed activation failed: ${JSON.stringify(activated)}`,
+  );
 
   const localized = await optionsPage.evaluate((profileName) => {
     const title = (currentProfileName, resultProfileName, details) =>
@@ -188,8 +196,7 @@ try {
   );
 
   await conflictWorker.evaluate(async () => {
-    const claim = () =>
-      chrome.proxy.settings.set({ scope: 'regular', value: { mode: 'direct' } });
+    const claim = () => chrome.proxy.settings.set({ scope: 'regular', value: { mode: 'direct' } });
     await claim();
     globalThis.__zeroomegaClaimTimer = setInterval(() => void claim(), 100);
   });
