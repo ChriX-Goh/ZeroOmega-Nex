@@ -7,7 +7,7 @@
 - Original authority: `zero-peak/ZeroOmega`, tag `v3.5.0`.
 - Nex branch: `feat/m8-profile-workflow`.
 - Defect node: `KG-ICON-001`.
-- Journey progress: 35%.
+- Journey progress: 80%.
 - Delivery status: `FAILED` until one corrected exact build receives repository-owner `PASS`.
 - Previous owner result: `FAIL` for `M8-OWNER-QC-1` on 2026-07-30.
 - Corrected owner journey: `NOT RUN`.
@@ -113,7 +113,8 @@ The current branch is `VERIFIED_AUTOMATION` for these bounded families:
 - internal-page/default fallback;
 - same-tab transitions;
 - two-tab isolation;
-- native Chromium Inspect.
+- native Chromium Inspect;
+- normal Chromium and Firefox restart with restored Applied ProfileSpec, active Fixed route, endpoint and Action state.
 
 Switch → System is not missing: the original runtime rejects it.
 
@@ -172,7 +173,7 @@ A newly discovered exotic graph combination alone is not sufficient to extend Or
 
 ## Consolidated ordinary-use journey
 
-One exact Chromium and Firefox build must complete:
+One exact Chromium and Firefox build now passes the automated portion of this journey. `DELIVERY_ORDER_01_OWNER_ACCEPTANCE.md` defines the remaining physical and visible owner review. The full journey is:
 
 1. clean install and automatic System initialization;
 2. Toolbar and Popup binding without opening Options first;
@@ -195,13 +196,12 @@ The owner journey should expose ordinary behavior, not a laboratory menu of ever
 
 ## Immediate execution order
 
-1. Stop adding new trace families.
-2. Build one deterministic consolidated Order 1 acceptance journey from existing fixtures and browser automation.
-3. Add only missing restart and ordinary user-Fixed coverage needed by that journey.
-4. Prepare one exact installable owner-acceptance build and evidence manifest.
-5. Fix only blockers found by the consolidated journey.
-6. After owner `PASS`, mark `KG-ICON-001` and Order 1 accepted, then begin Order 2 real-export migration including `KG-IMPORT-COLOR-001`.
+1. Use the exact green `browser-builds` artifact for the single owner journey.
+2. Record `PASS` or the first blocking mismatch.
+3. On `FAIL`, fix only the demonstrated blocker and directly dependent state.
+4. On `PASS`, mark `KG-ICON-001` and Order 1 accepted.
+5. Begin Order 2 real-export migration including `KG-IMPORT-COLOR-001`.
 
 ## Candidate prohibition
 
-Green CI alone cannot authorize a candidate. Candidate generation remains prohibited until the consolidated Order 1 journey is complete enough for one exact owner-acceptance build. Merge and release remain prohibited until the applicable project gates pass.
+Green CI alone cannot authorize merge or release. The exact package is an Order 1 owner-acceptance build, not a release candidate. Release-candidate generation remains prohibited until the applicable later project gates pass.
