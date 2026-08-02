@@ -88,6 +88,20 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
   const bytes = await readFile(screenshotPath);
   const text = await page.locator('body').innerText();
   const html = await page.locator('body').evaluate((body) => body.outerHTML);
+  const htmlPath = resolve(outputDir, `${surface}.html`);
+  await writeFile(
+    htmlPath,
+    `${html}
+`,
+  );
+  const links = await page.locator('a').evaluateAll((anchors) =>
+    anchors.map((anchor) => ({
+      text: anchor.textContent?.trim() ?? '',
+      href: anchor.href,
+      target: anchor.target,
+      rel: anchor.rel,
+    })),
+  );
   const viewport = page.viewportSize();
   entries.push({
     implementation,
@@ -102,7 +116,9 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
       .split(/\r?\n/u)
       .map((line) => line.trim())
       .filter(Boolean),
+    html: relative(outputRoot, htmlPath).replaceAll('\\', '/'),
     bodyHtmlSha256: sha256(Buffer.from(html)),
+    links,
   });
 }
 
@@ -227,7 +243,7 @@ await writeFile(
 );
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
+  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM and normalized anchor targets\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
 );
 
 console.log(`Original ↔ Nex UI evidence captured for exact Head ${sourceHead}.`);
