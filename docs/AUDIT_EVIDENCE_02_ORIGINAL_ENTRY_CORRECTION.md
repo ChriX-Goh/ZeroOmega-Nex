@@ -34,17 +34,25 @@ The first correction slice contains:
 
 ## Follow-up guard correction
 
-The first normal-Head run exposed three remaining redesign-era test assumptions rather than product regressions:
+The first normal-Head run exposed redesign-era test assumptions rather than product regressions:
 
 - the UI validator still required the removed `options.builtin.directHelp` explanatory copy;
 - Chromium E2E still attempted to open the removed ordinary `配置历史` navigation item;
-- the dedicated Firefox restart script still rejected the original-derived `options.html#/about` landing URL.
+- several Firefox specialist scripts still rejected the original-derived `options.html#/about` landing URL;
+- Popup accessibility and Options sidebar branding still contained `ZeroOmega Nex` or the incorrect `Zero Omega` spelling;
+- a second Chromium Direct selector remained fuzzy and also matched `auto switch [Direct]`.
 
-The guard is being corrected to require that the helper copy remains absent. Chromium is being corrected to assert that History is not exposed in ordinary Options. The Firefox restart contract is being synchronized with the already passing Firefox core entry journey. Snapshot and rollback capabilities remain available through the background architecture and tests.
+The corrected contracts now:
 
-Firefox core entry E2E and the Firefox Toolbar Action E2E already passed before this follow-up. This does not close the complete Firefox job or the product journey.
+- require that the removed helper copy remains absent;
+- assert that History is not exposed in ordinary Options while preserving background snapshot and rollback capability;
+- accept `#/about` only for Options navigation in the Firefox main, restart, attached Rule List, profile-trace, external-control and renderer-fallback journeys;
+- use the original `ZeroOmega` product spelling in visible and accessibility surfaces;
+- use exact Direct selection where `auto switch [Direct]` is also present.
 
-The correction transaction is intentionally limited to these three demonstrated stale assumptions; it does not alter product behavior or restore any removed UI. Permanent Browser E2E and Parity workflows remain read-only; the temporary writer removes itself in the same correction commit.
+Firefox core entry E2E, Firefox Toolbar Action E2E and Firefox normal-restart E2E passed while these follow-up contracts were being isolated. The complete Firefox and Chromium jobs still require a fresh normal-Head run.
+
+The final correction transaction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before it was committed. Its temporary patch scripts and writable workflow surface were removed before this checkpoint.
 
 ## Evidence boundary
 
