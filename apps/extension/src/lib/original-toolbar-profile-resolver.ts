@@ -1,3 +1,4 @@
+import type { ProxyControlLevel } from '@zeroomega-nex/browser-adapters';
 import type { ProfileRouteTarget, ProfileSpec } from '@zeroomega-nex/profile-spec';
 import type {
   ProfileWorkflowRuntimeView,
@@ -16,6 +17,7 @@ import { deriveOriginalToolbarTabState } from './original-toolbar-tab-state';
 import type { OriginalToolbarTabStateResolver } from './original-toolbar-tab-coordinator';
 
 export { ORIGINAL_TOOLBAR_DIRECT_COLOR, ORIGINAL_TOOLBAR_SYSTEM_COLOR };
+export const ORIGINAL_TOOLBAR_EXTERNAL_CONTROL_BADGE_BACKGROUND_COLOR = '#da4f49';
 
 const FIXED_REQUEST_PROTOCOLS = new Set(['http:', 'https:', 'ftp:']);
 
@@ -24,6 +26,7 @@ export interface OriginalToolbarProfileStateRepository {
 }
 
 export interface OriginalToolbarRuntimeView extends ProfileWorkflowRuntimeView {
+  readonly proxyControlLevel?: ProxyControlLevel;
   readonly toolbarProjection?: {
     readonly spec: ProfileSpec;
     readonly activeRoute: ProfileRouteTarget;
@@ -67,7 +70,11 @@ function originalActionMatchedColor(trace: OriginalObservableResultTrace): strin
   return trace.resultProfile.color;
 }
 
-function deriveToolbarState(state: ProfileWorkflowState, trace: OriginalObservableResultTrace) {
+function deriveToolbarState(
+  state: ProfileWorkflowState,
+  trace: OriginalObservableResultTrace,
+  badgeBackgroundColor?: string,
+) {
   return deriveOriginalToolbarTabState({
     currentProfileName: trace.currentProfile.displayName,
     resultProfileName: trace.resultProfile.displayName,
@@ -87,6 +94,7 @@ function deriveToolbarState(state: ProfileWorkflowState, trace: OriginalObservab
       ...(trace.resultProfile.builtin ? { builtinBadgeText: trace.resultProfile.badgeName } : {}),
     },
     ...(trace.detailPrefix === undefined ? {} : { detailPrefix: trace.detailPrefix }),
+    ...(badgeBackgroundColor === undefined ? {} : { badgeBackgroundColor }),
   });
 }
 
@@ -100,6 +108,7 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
   readonly #repository: OriginalToolbarProfileStateRepository;
   readonly #runtime: OriginalToolbarRuntimeInspector;
   readonly #i18n: OriginalToolbarI18nApi;
+  #externalControlWarningLatched = false;
 
   constructor(options: OriginalToolbarProfileResolverOptions) {
     this.#repository = options.repository;
@@ -114,6 +123,23 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
     if (state === undefined) return undefined;
 
     const runtime = await this.#runtime.inspectRuntime(state.applied);
+    const externalControl = runtime.proxyControlLevel === 'controlled-by-other-extension';
+    if (externalControl) this.#externalControlWarningLatched = true;
+    const badgeBackgroundColor = this.#externalControlWarningLatched
+      ? ORIGINAL_TOOLBAR_EXTERNAL_CONTROL_BADGE_BACKGROUND_COLOR
+      : undefined;
+
+    if (externalControl) {
+      const trace = projectOriginalObservableResult({
+        spec: runtime.toolbarProjection?.spec ?? state.applied,
+        activeRoute: { kind: 'direct' },
+        i18n: this.#i18n,
+      });
+      return trace === undefined
+        ? undefined
+        : deriveToolbarState(state, trace, badgeBackgroundColor);
+    }
+
     const projectionSpec = runtime.toolbarProjection?.spec ?? state.applied;
     const activeRoute = runtime.toolbarProjection?.activeRoute ?? runtime.activeRoute;
     if (activeRoute === undefined) return undefined;
@@ -124,7 +150,9 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
         activeRoute,
         i18n: this.#i18n,
       });
-      return trace === undefined ? undefined : deriveToolbarState(state, trace);
+      return trace === undefined
+        ? undefined
+        : deriveToolbarState(state, trace, badgeBackgroundColor);
     }
 
     const request = referenceRequest(input.url);
@@ -138,6 +166,6 @@ export class OriginalToolbarProfileResolver implements OriginalToolbarTabStateRe
       i18n: this.#i18n,
     });
 
-    return trace === undefined ? undefined : deriveToolbarState(state, trace);
+    return trace === undefined ? undefined : deriveToolbarState(state, trace, badgeBackgroundColor);
   }
 }
