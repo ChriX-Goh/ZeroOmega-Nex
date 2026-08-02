@@ -8,12 +8,13 @@ Progress is not derived from code volume, commit count, old matrix rows, test co
 
 ## Current total progress
 
-- Provisional total progress: **47%**.
-- Unrounded score: **46.7%**.
-- Confidence band: **42%–50%**.
-- Active journey: **Order 1 at 35%**.
-
-The confidence band remains wider until complete Original and Nex surface inventories are captured. Newly discovered scope may reduce a percentage by correcting the denominator; that is not lost implementation.
+- Provisional total progress: **52%**.
+- Unrounded score: **52.1%**.
+- Confidence band: **48%–55%**.
+- Active journey: **Order 1 at 80%**.
+- Previous baseline: **47%** total and **35%** Order 1.
+- Change: **+5 rounded project points** and **+45 Order 1 points**.
+- Denominator correction: none.
 
 The failed `M8-OWNER-QC-1` candidate and historical `98%` estimate are not inputs to this model.
 
@@ -46,32 +47,43 @@ No journey receives owner-acceptance points from inference, silence, generated s
 
 ## Current scored baseline
 
-| Order |   Weight | Current journey completion | Earned project points | Current basis                                                                                                                                                                                                                                                                                          |
-| ----: | -------: | -------------------------: | --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-|     1 |      12% |                        35% |                   4.2 | One Action writer, clean-install System, Direct/System/Fixed, represented Switch/Virtual/Rule List/PAC/temp/external/fallback families through 01O and dual-browser Action evidence exist. The consolidated ordinary-use journey, normal restart, exact acceptance build and owner `PASS` remain open. |
-|     2 |      20% |                        35% |                   7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open.                                                                                  |
-|     3 |      12% |                        46% |                   5.5 | Substantial Popup/runtime implementation and browser checks exist, but complete original hierarchy, density, site-rule interaction and owner review remain open.                                                                                                                                       |
-|     4 |      16% |                        51% |                   8.1 | Options and Draft/Applied foundations are substantial; original layout, dialogs, extra descriptions and interaction parity remain untrusted.                                                                                                                                                           |
-|     5 |      22% |                        60% |                  13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical `DONE` rows require complete-journey re-audit and real migrated-data verification.                                                                                                                                          |
-|     6 |      10% |                        52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete.                                                                                                                                |
-|     7 |       8% |                        44% |                   3.5 | Typed localization and generated Nex visual checks exist; paired original runtime comparison, density cleanup and owner acceptance remain open.                                                                                                                                                        |
-|       | **100%** |                            |        **46.7 → 47%** | Rounded to the nearest whole percentage point.                                                                                                                                                                                                                                                         |
+| Order |   Weight | Current journey completion | Earned project points | Current basis                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----: | -------: | -------------------------: | --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     1 |      12% |                        80% |                   9.6 | One exact Head passes CI, original evidence, visual evidence, parity documentation and complete Chromium/Firefox Browser E2E. The suite covers clean startup, user-edited Fixed proxy/bypass, represented profile traces, ownership, renderer fallback, native Inspect and normal close/relaunch with restored Applied ProfileSpec, active route, endpoint and Action state. Owner acceptance remains open. |
+|     2 |      20% |                        35% |                   7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open.                                                                                                                                                                                                 |
+|     3 |      12% |                        46% |                   5.5 | Substantial Popup/runtime implementation and browser checks exist, but complete original hierarchy, density, site-rule interaction and owner review remain open.                                                                                                                                                                                                                                                    |
+|     4 |      16% |                        51% |                   8.1 | Options and Draft/Applied foundations are substantial; original layout, dialogs, extra descriptions and interaction parity remain untrusted.                                                                                                                                                                                                                                                                        |
+|     5 |      22% |                        60% |                  13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical `DONE` rows require complete-journey re-audit and real migrated-data verification.                                                                                                                                                                                                                                                       |
+|     6 |      10% |                        52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete.                                                                                                                                                                                                                                             |
+|     7 |       8% |                        44% |                   3.5 | Typed localization and generated Nex visual checks exist; paired original runtime comparison, density cleanup and owner acceptance remain open.                                                                                                                                                                                                                                                                     |
+|       | **100%** |                            |        **52.1 → 52%** | Rounded to the nearest whole percentage point.                                                                                                                                                                                                                                                                                                                                                                      |
 
-## Why Order 1 remains 35%
+## Evidence causing the change
 
-Sessions 8 and 9 materially strengthened the engineering evidence without completing the user journey. The represented Toolbar families now cover 01H–01O, but:
+Order 1 moved from 35% to 80% because one exact build now verifies:
 
-- no corrected exact build has passed the consolidated ordinary-use path;
-- normal restart and restored Toolbar state are not yet part of one acceptance journey;
-- ordinary user-created Fixed coverage is not yet consolidated with the other states;
-- owner acceptance has not run;
-- complete Popup, profile lifecycle and migration evidence belongs to later orders.
+- the complete permanent gate set;
+- clean-install System initialization;
+- ordinary Direct and user-edited Fixed activation;
+- Fixed proxy and bypass Action states;
+- same-tab transitions and two-tab isolation;
+- normal Chromium and Firefox close/relaunch;
+- restored Applied ProfileSpec, active Fixed route, endpoint and real Toolbar state;
+- represented Switch, Virtual, Rule List, PAC, temporary-rule and mixed profile traces;
+- external-control recovery and renderer fallback;
+- native Chromium Inspect.
 
-Therefore the new evidence increases confidence in the 35% score rather than automatically increasing the score itself.
+`DELIVERY_ORDER_01_OWNER_ACCEPTANCE.md` converts these engineering results into one owner-facing acceptance run. No owner-acceptance points have been awarded.
 
-## Order 1 closure rule
+## Why Order 1 is not complete
 
-Order 1 is in closure mode. Additional exotic trace families do not add progress unless they are exposed by the ordinary-use acceptance journey, reveal a parity defect or create a security/recovery risk. Unrepresented combinations remain fail closed and move to later orders.
+The remaining 20% covers:
+
+- physical Toolbar/Popup and visible Ω/title/Badge/detail review;
+- one ordinary-use repository-owner run on the exact green artifact;
+- explicit `PASS`, or correction of the first demonstrated blocker.
+
+Exotic uncaptured graph shapes remain fail closed and move to later orders. They no longer prevent Order 1 from reaching owner acceptance.
 
 ## Reporting rules
 
@@ -84,4 +96,4 @@ Every substantive project report must include:
 5. denominator correction caused by newly discovered original scope;
 6. active journey and its percentage.
 
-The percentage must never be described as release readiness. PR #11 remains Draft, no candidate is active, and 100% still requires direct original-export migration, complete two-browser journeys, removal of unjustified UI/workflow and repository-owner `PASS` on one exact final candidate.
+The percentage must never be described as release readiness. PR #11 remains Draft, no release candidate is active, and 100% still requires direct original-export migration, complete two-browser journeys, removal of unjustified UI/workflow and repository-owner `PASS` on one exact final candidate.
