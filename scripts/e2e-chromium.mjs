@@ -452,10 +452,11 @@ try {
   );
   await authenticatedPage.close();
 
-  await options.getByRole('button', { name: '配置历史' }).click();
-  await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
-  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
-  await options.locator('.settings-section').first().waitFor({ timeout: 20_000 });
+  assert.equal(
+    await options.getByRole('button', { name: '配置历史', exact: true }).count(),
+    0,
+    'Original-facing Options exposed Nex-only configuration history navigation',
+  );
 
   await popup.bringToFront();
   const direct = popup.getByRole('button', { name: /直接连接/u });

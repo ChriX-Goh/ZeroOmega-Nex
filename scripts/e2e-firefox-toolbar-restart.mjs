@@ -103,8 +103,13 @@ async function navigateExtensionPage(driver) {
     url,
     wait: 'complete',
   });
-  assert.equal(result?.url, url, 'Firefox did not navigate to the extension options page');
-  await driver.wait(async () => (await driver.getCurrentUrl()) === url, 20_000);
+  const expectedUrl = `${url}#/about`;
+  assert.equal(
+    result?.url,
+    expectedUrl,
+    'Firefox did not navigate to the extension options page',
+  );
+  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
 }
 
 async function sendWorkflowCommand(driver, command) {

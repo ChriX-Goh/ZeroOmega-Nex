@@ -699,7 +699,7 @@ const requirements = [
   ],
   [
     optionsApp.includes('data-builtin-settings data-typed-locale={locale}') &&
-      optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&
+      !optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&
       optionsApp.includes('data-about-settings data-typed-locale={locale}') &&
       optionsApp.includes('const originalCopy =') &&
       optionsApp.includes('<h2>ZeroOmega</h2>') &&

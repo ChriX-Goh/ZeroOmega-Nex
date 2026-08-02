@@ -149,10 +149,10 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
   it('renders the Popup loading state and familiar settings footer', () => {
     const { body } = render(PopupApp);
 
-    expect(body).toContain('aria-label="ZeroOmega Nex profile switcher"');
+    expect(body).toContain('aria-label="ZeroOmega profile switcher"');
     expect(body).toContain('Loading applied profiles');
     expect(body).toContain('popup-footer');
-    expect(body).toContain('aria-label="Open ZeroOmega Nex options"');
+    expect(body).toContain('aria-label="Open ZeroOmega options"');
     expect(body).toContain('<span>Options</span>');
   });
 
@@ -582,10 +582,11 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     }).body;
     expect(traditionalPopup).toContain('data-popup-locale="zh-TW"');
     expect(traditionalPopup).toContain('正在載入已套用的情境模式…');
-    expect(traditionalPopup).toContain('aria-label="開啟 ZeroOmega Nex 選項"');
+    expect(traditionalPopup).toContain('aria-label="開啟 ZeroOmega 選項"');
     expect(traditionalPopup).toContain('選項');
     expect(traditionalPopup).not.toContain('Loading applied profiles');
-    expect(traditionalPopup).not.toContain('Open ZeroOmega Nex options');
+    expect(traditionalPopup).not.toContain('Open ZeroOmega options');
+    expect(traditionalPopup).not.toContain('ZeroOmega Nex');
   });
 
   it('renders history loading and dirty-Draft rollback protection', () => {

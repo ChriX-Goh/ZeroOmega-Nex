@@ -1137,9 +1137,9 @@ export const typedUiTextCatalog = {
     'zh-TW': '「自動」為預設設定，會跟隨目前瀏覽器與作業系統偏好。',
   },
   'popup.switcherAria': {
-    en: 'ZeroOmega Nex profile switcher',
-    'zh-CN': 'ZeroOmega Nex 情景模式切换器',
-    'zh-TW': 'ZeroOmega Nex 情境模式切換器',
+    en: 'ZeroOmega profile switcher',
+    'zh-CN': 'ZeroOmega 情景模式切换器',
+    'zh-TW': 'ZeroOmega 情境模式切換器',
   },
   'popup.profilesAria': { en: 'Profiles', 'zh-CN': '情景模式', 'zh-TW': '情境模式' },
   'popup.loading': {
