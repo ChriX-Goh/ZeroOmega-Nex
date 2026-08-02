@@ -1,0 +1,81 @@
+name: Original Nex UI Evidence
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/original-nex-ui-evidence.yml
+      - scripts/capture-original-nex-ui-evidence.mjs
+      - apps/extension/src/entrypoints/options/**
+      - apps/extension/src/entrypoints/popup/**
+      - apps/extension/src/lib/ui-messages.ts
+      - apps/extension/public/_locales/**
+      - apps/extension/src/components/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ZEROOMEGA_ORIGINAL_CHROMIUM_PATH: original-release/chromium
+      ZEROOMEGA_NEX_CHROMIUM_PATH: dist/chrome-mv3
+      ZEROOMEGA_UI_COMPARISON_OUTPUT: artifacts/original-nex-ui-evidence
+      ZEROOMEGA_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+      ZEROOMEGA_UI_EVIDENCE_LOCALE: zh-CN
+
+    steps:
+      - name: Checkout exact Nex Head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Download exact official ZeroOmega v3.5.0 Chromium package
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/zero-peak/ZeroOmega/releases/download/v3.5.0/chromium-release.zip \
+            -o chromium-release.zip
+          echo '4fc320af32461a7efc7d6b7a700100522af29afa6bd1270aef193f9121b160ce  chromium-release.zip' | sha256sum -c -
+          mkdir -p "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          unzip -q chromium-release.zip -d "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH"
+          test -f "$ZEROOMEGA_ORIGINAL_CHROMIUM_PATH/manifest.json"
+
+      - name: Build Nex Chromium extension
+        run: pnpm build:chromium
+
+      - name: Capture paired original and Nex UI evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/capture-original-nex-ui-evidence.mjs 2>&1 | tee original-nex-ui-evidence.log
+
+      - name: Upload paired UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-nex-ui-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            artifacts/original-nex-ui-evidence
+            original-nex-ui-evidence.log
+          if-no-files-found: error
+          retention-days: 30
