@@ -63,6 +63,8 @@ Ordinary Head `a08f3eabd05ded2385096bfa9dfb42e854f4e245` proved that navigation 
 
 The residual correction uses a light color-scheme selector that excludes explicit dark mode, restores the blue brand link, records a dedicated `brandText` metric, aligns notice and license line/paragraph geometry, reduces the action-icon gap by `1px`, and restores the original inner content width.
 
-A subsequent normal-Head paired artifact must verify the actual residuals before Options is considered visually converged.
+The residual correction passed the full atomic repository validation on Actions-generated commit `d90401ca785a1643c8f83a7a807fba3d91eb4646`; temporary patch scripts were removed in the same transaction.
+
+This ordinary evidence Head must verify the actual residual values and the corrected `brandText` metric before Options is considered visually converged.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
