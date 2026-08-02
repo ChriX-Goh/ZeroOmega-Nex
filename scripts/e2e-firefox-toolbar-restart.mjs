@@ -268,11 +268,11 @@ try {
   const restored = await waitForWorkflowGet(driver);
   assert.deepEqual(restored.runtime?.activeRoute, { kind: 'profile', profileId });
   assert.equal(
-    restored.state.applied.document.profiles.find((item) => item.id === profileId)?.name,
+    restored.state.applied.profiles.find((item) => item.id === profileId)?.name,
     'Restart Proxy',
   );
   assert.deepEqual(
-    restored.state.applied.document.proxyEndpoints.find((item) => item.id === endpointId),
+    restored.state.applied.proxyEndpoints.find((item) => item.id === endpointId),
     {
       id: endpointId,
       name: 'Toolbar restart endpoint',
