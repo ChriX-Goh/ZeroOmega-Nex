@@ -35,6 +35,7 @@ The retained Toolbar architecture currently includes:
 - the exact attached Rule List 01H subset;
 - the exact URL-backed PAC Toolbar 01K subset;
 - the exact temporary-rule Toolbar 01L subset, including the empty active overlay after last-rule removal;
+- the exact external-control Toolbar 01M subset, including Direct warning state, automatic content recovery and the latched warning-red Badge background;
 - original-derived title, detail, four-code-unit Badge, color, prefix and suffix behavior for represented shapes;
 - Chromium and Firefox real Action acceptance for represented states;
 - internal-page/default fallback, tab isolation and Chromium Inspect set/clear/base restoration/isolation;
@@ -54,7 +55,7 @@ The permanent read-only `Original Toolbar Evidence` workflow:
 - captures original `_actionForUrl` output and runtime state into one auditable JSON Artifact;
 - cannot commit, push or modify the branch.
 
-The registry now contains `nested-switch`, `nested-virtual`, `pac` and `temporary-rule`. Pull requests execute `all`, so a newly registered scenario cannot remain unexecuted by default.
+The registry now contains `nested-switch`, `nested-virtual`, `pac`, `temporary-rule` and `external-control`. Pull requests execute `all`, so a newly registered scenario cannot remain unexecuted by default.
 
 ## Nested Switch 01I checkpoint
 
@@ -125,6 +126,19 @@ Exact observable behavior:
 
 The represented subset is limited to one host rule, one empty base Switch with default Direct and one Fixed HTTP proxy target without bypass. Multiple rules, other conditions, other base/target profile families, restart restoration, activation failures and the complete Popup journey remain open or fail closed.
 
+## External control 01M checkpoint
+
+`AUDIT_EVIDENCE_01M_ORIGINAL_EXTERNAL_CONTROL_RESULTS.md` establishes and the single Action writer verifies:
+
+1. one applied Fixed HTTP profile starts with transparent Badge background;
+2. a second extension takes proxy control and the observable Toolbar switches to built-in Direct with Badge `Dire` and warning-red background `#da4f49`;
+3. after the second extension releases control, the Toolbar automatically returns to the Fixed title/detail and Badge `Runt`;
+4. the warning-red Badge background remains latched after automatic recovery and after explicit re-application within the captured runtime lifetime.
+
+The Toolbar follows effective browser ownership rather than a stale internal current-profile name. Nex reads the real proxy control level, refreshes through `proxy.settings.onChange`, reuses the existing Direct projection and retains one Action writer. Popup ownership blocking remains a separate surface.
+
+The represented subset is limited to one Fixed HTTP fallback profile and one competing extension. Policy/not-controllable states, multiple competitors, non-Fixed profiles, ownership loss during other workflows, restart/latch lifetime and complete Popup/Options recovery remain open or fail closed.
+
 ## Closed evidence-proven correction
 
 `KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`.
@@ -145,7 +159,7 @@ The represented subset is limited to one host rule, one empty base Switch with d
 - attached Rule List shapes outside 01H;
 - PAC lifecycle shapes outside 01K, including inline/cache/update/error/header/auth/fallback states;
 - temporary-rule shapes outside 01L, including multiple rules, other profile families and restart/error lifecycle;
-- external-control transitions and recovery;
+- external-control shapes outside 01M, including policy/not-controllable states, non-Fixed profiles, workflow races and restart/latch lifetime;
 - forced dynamic-render failure and static fallback evidence;
 - headed Toolbar pixels where Action API state is insufficient;
 - one consolidated repository-owner `PASS` for the corrected Order 1 journey.
@@ -165,11 +179,10 @@ Switch → System is not an open parity feature because the original runtime rej
 
 ## Immediate execution order
 
-1. Capture and verify external-control Toolbar transitions and recovery.
-2. Capture forced dynamic-render failure and static fallback behavior.
-3. Complete remaining high-value nested/attached result families needed for one consolidated Order 1 matrix.
-4. Run focused repository-owner acceptance for the complete corrected Toolbar journey.
-5. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
+1. Capture forced dynamic-render failure and static fallback behavior.
+2. Complete remaining high-value nested/attached result families needed for one consolidated Order 1 matrix.
+3. Run focused repository-owner acceptance for the complete corrected Toolbar journey.
+4. Only after Order 1 `PASS`, begin the real original-export migration corpus, including `KG-IMPORT-COLOR-001`.
 
 ## Candidate prohibition
 
