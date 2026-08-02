@@ -479,6 +479,25 @@ try {
       },
     }),
   );
+  let externalOwnership;
+  await assertEventually(
+    async () => {
+      externalOwnership = await worker.evaluate(async () => {
+        const response = await chrome.runtime.sendMessage({
+          channel: 'zeroomega-nex/proxy-ownership/v1',
+          action: 'get',
+        });
+        const setting = await chrome.proxy.settings.get({ incognito: false });
+        return { response, setting };
+      });
+      return (
+        externalOwnership?.response?.ok === true &&
+        externalOwnership.response.view?.externalProfile?.kind === 'fixed'
+      );
+    },
+    'External proxy state did not converge to an importable Fixed candidate',
+    20_000,
+  );
   const externalPopup = await context.newPage();
   await externalPopup.goto(`chrome-extension://${extensionId}/popup.html`);
   const externalRow = externalPopup.locator('[data-popup-external-profile]');

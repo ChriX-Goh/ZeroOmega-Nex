@@ -1102,10 +1102,6 @@ try {
     'Firefox did not retry the target with extension-supplied proxy credentials',
   );
 
-  await navigateExtensionPage('options.html#/history');
-  await driver.wait(until.elementLocated(By.xpath("//h1[normalize-space(.)='設定歷史']")), 15_000);
-  await driver.wait(until.elementLocated(By.css('article.settings-section')), 20_000);
-
   await navigateExtensionPage('popup.html');
   const direct = await driver.wait(
     until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),

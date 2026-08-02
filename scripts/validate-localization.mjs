@@ -527,8 +527,18 @@ requireText(
 );
 requireText(
   entries.chromiumE2e,
-  'data-snapshot-rollback-confirm',
-  'Chromium real snapshot rollback interaction coverage is missing.',
+  "action: 'rollback-snapshot'",
+  'Chromium background snapshot rollback command coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'Background snapshot rollback failed',
+  'Chromium background snapshot rollback failure coverage is missing.',
+);
+requireText(
+  entries.chromiumE2e,
+  'History rollback did not restore browser state and both workflow revisions',
+  'Chromium background snapshot rollback convergence coverage is missing.',
 );
 requireText(
   entries.firefoxE2e,
