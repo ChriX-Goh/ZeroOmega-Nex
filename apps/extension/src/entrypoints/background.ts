@@ -8,7 +8,14 @@ import {
   registerInspectRuntime,
   type RegisteredInspectRuntime,
 } from '../lib/inspect-runtime';
-import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar-browser-runtime';
+import {
+  currentOriginalToolbarBrowserRuntimeApi,
+  currentOriginalToolbarCanvasFactory,
+} from '../lib/original-toolbar-browser-runtime';
+import {
+  createOriginalToolbarRendererE2eProbe,
+  type OriginalToolbarRendererE2eRuntimeApi,
+} from '../lib/original-toolbar-renderer-e2e';
 import {
   registerOriginalToolbarRuntime,
   type OriginalToolbarNavigationCommittedListener,
@@ -48,6 +55,7 @@ import {
 let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
 let inspectRuntime: RegisteredInspectRuntime | undefined;
 let originalToolbarRuntime: RegisteredOriginalToolbarRuntime | undefined;
+let originalToolbarRendererE2eRuntime: { dispose(): void } | undefined;
 let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
@@ -100,6 +108,7 @@ export default defineBackground(() => {
   );
 
   inspectRuntime?.dispose();
+  originalToolbarRendererE2eRuntime?.dispose();
   originalToolbarRuntime?.dispose();
   requestDiagnosticsRuntime?.dispose();
   proxyOwnershipRuntime?.dispose();
@@ -118,8 +127,13 @@ export default defineBackground(() => {
     baseActivationDriver,
   );
   const activationDriver = temporaryRuleCoordinator ?? baseActivationDriver;
+  const toolbarApi = currentOriginalToolbarBrowserRuntimeApi();
+  const rendererE2eProbe = createOriginalToolbarRendererE2eProbe(
+    toolbarApi,
+    currentOriginalToolbarCanvasFactory(),
+  );
   const toolbarRuntime = registerOriginalToolbarRuntime({
-    api: currentOriginalToolbarBrowserRuntimeApi(),
+    api: rendererE2eProbe?.api ?? toolbarApi,
     repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
     runtime: {
       inspectRuntime: async (applied) => {
@@ -143,11 +157,18 @@ export default defineBackground(() => {
       .onCommitted as unknown as OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>,
     proxySettingsChanged: browser.proxy.settings
       .onChange as unknown as OriginalToolbarEvent<OriginalToolbarProxySettingsChangedListener>,
+    ...(rendererE2eProbe === undefined
+      ? {}
+      : { browserRuntime: { canvasFactory: rendererE2eProbe.canvasFactory } }),
     onError: (error, context) => {
       console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
     },
   });
   originalToolbarRuntime = toolbarRuntime;
+  originalToolbarRendererE2eRuntime = rendererE2eProbe?.register(
+    browser.runtime as unknown as OriginalToolbarRendererE2eRuntimeApi,
+    (options) => toolbarRuntime.refreshAll(options),
+  );
   const refreshToolbar = async (reason: string, clearIconCache = true): Promise<void> => {
     try {
       await toolbarRuntime.refreshAll(clearIconCache ? { clearIconCache: true } : {});
