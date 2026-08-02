@@ -72,6 +72,17 @@ function validateScenario(scenario) {
         `Scenario ${scenario.id}/${capture.label} has an invalid external command`,
       );
     }
+    if (capture.rendererCommand !== undefined) {
+      assert.equal(
+        scenario.rendererFallback,
+        true,
+        `Scenario ${scenario.id}/${capture.label} uses rendererCommand without rendererFallback`,
+      );
+      assert.ok(
+        ['force-opaque', 'keep-opaque', 'restore'].includes(capture.rendererCommand),
+        `Scenario ${scenario.id}/${capture.label} has an invalid renderer command`,
+      );
+    }
   }
 }
 
@@ -181,6 +192,51 @@ async function runScenario(scenario) {
       throw lastError ?? new Error(`Original runtime message ${method} failed`);
     }
 
+    async function readOriginalAction(url, includeIcon) {
+      return optionsPage.evaluate(
+        async ({ requestUrl, withIcon }) =>
+          new Promise((resolveMessage, rejectMessage) => {
+            chrome.runtime.sendMessage(
+              { method: '_actionForUrl', args: [requestUrl, { skipIcon: !withIcon }] },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  rejectMessage(new Error(chrome.runtime.lastError.message));
+                  return;
+                }
+                if (response?.error) {
+                  rejectMessage(new Error(String(response.error.message ?? response.error)));
+                  return;
+                }
+                const action = response?.result ?? null;
+                if (!withIcon || action === null) {
+                  resolveMessage(action);
+                  return;
+                }
+                const rawIcon = action.icon;
+                const icon =
+                  rawIcon == null
+                    ? rawIcon
+                    : {
+                        sizes: Object.keys(rawIcon).sort((left, right) => Number(left) - Number(right)),
+                        images: Object.fromEntries(
+                          Object.entries(rawIcon).map(([size, image]) => [
+                            size,
+                            {
+                              width: image?.width,
+                              height: image?.height,
+                              firstPixel: Array.from(image?.data ?? []).slice(0, 4),
+                            },
+                          ]),
+                        ),
+                      };
+                resolveMessage({ ...action, icon });
+              },
+            );
+          }),
+        { requestUrl: url, withIcon: includeIcon },
+      );
+    }
+
     async function readState() {
       return sendOriginalMessage('getState', [
         {
@@ -250,6 +306,57 @@ async function runScenario(scenario) {
       });
     }
 
+    async function runRendererCommand(command) {
+      return originalWorker.evaluate((rendererCommand) => {
+        const probeKey = '__zeroomegaRendererFallbackProbe';
+        let probe = globalThis[probeKey];
+        if (probe === undefined) {
+          const context = new OffscreenCanvas(1, 1).getContext('2d', {
+            willReadFrequently: true,
+          });
+          if (context === null) throw new Error('Renderer probe could not create a 2D context');
+          const prototype = Object.getPrototypeOf(context);
+          probe = {
+            prototype,
+            originalGetImageData: prototype.getImageData,
+            calls: 0,
+            mode: 'original',
+          };
+          globalThis[probeKey] = probe;
+        }
+
+        if (rendererCommand === 'force-opaque' || rendererCommand === 'keep-opaque') {
+          Object.defineProperty(probe.prototype, 'getImageData', {
+            configurable: true,
+            writable: true,
+            value: function (...args) {
+              probe.calls += 1;
+              const image = probe.originalGetImageData.apply(this, args);
+              if (image?.data?.length >= 4) image.data[3] = 255;
+              return image;
+            },
+          });
+          probe.mode = 'opaque';
+        } else if (rendererCommand === 'restore') {
+          Object.defineProperty(probe.prototype, 'getImageData', {
+            configurable: true,
+            writable: true,
+            value: probe.originalGetImageData,
+          });
+          probe.mode = 'original';
+        }
+
+        return { calls: probe.calls, mode: probe.mode };
+      }, command);
+    }
+
+    async function readRendererProbe() {
+      return originalWorker.evaluate(() => {
+        const probe = globalThis.__zeroomegaRendererFallbackProbe;
+        return probe === undefined ? undefined : { calls: probe.calls, mode: probe.mode };
+      });
+    }
+
     async function readActualAction(tabId) {
       return optionsPage.evaluate(async (targetTabId) => {
         const action = chrome.action ?? chrome.browserAction;
@@ -310,6 +417,10 @@ async function runScenario(scenario) {
 
     const captures = [];
     for (const capture of scenario.captures) {
+      const rendererCommandResult =
+        capture.rendererCommand === undefined
+          ? undefined
+          : await runRendererCommand(capture.rendererCommand);
       if (capture.applyProfile !== false) {
         await sendOriginalMessage('applyProfile', [capture.profileName]);
         await waitForCurrentProfile(capture.profileName);
@@ -332,7 +443,13 @@ async function runScenario(scenario) {
           ? await readState()
           : await waitForCurrentProfile(capture.profileName);
       await pause(500);
-      const action = await sendOriginalMessage('_actionForUrl', [capture.url, { skipIcon: true }]);
+      const rendererBeforeAction = scenario.rendererFallback
+        ? await readRendererProbe()
+        : undefined;
+      const action = await readOriginalAction(capture.url, capture.includeIcon === true);
+      const rendererAfterAction = scenario.rendererFallback
+        ? await readRendererProbe()
+        : undefined;
       assert.ok(
         action,
         `Original _actionForUrl returned no result for ${scenario.id}/${capture.label}`,
@@ -347,6 +464,9 @@ async function runScenario(scenario) {
         },
         ...(targetTabId === undefined ? {} : { actualAction: await readActualAction(targetTabId) }),
         ...(commandResults.length === 0 ? {} : { commandResults }),
+        ...(rendererCommandResult === undefined ? {} : { rendererCommandResult }),
+        ...(rendererBeforeAction === undefined ? {} : { rendererBeforeAction }),
+        ...(rendererAfterAction === undefined ? {} : { rendererAfterAction }),
       });
     }
 
@@ -359,6 +479,9 @@ async function runScenario(scenario) {
       browserVersion: context.browser()?.version() ?? 'unknown',
       extensionId,
       badgeKey,
+      ...(scenario.rendererFallback
+        ? { manifestAction: await optionsPage.evaluate(() => chrome.runtime.getManifest().action) }
+        : {}),
       profiles: scenario.profiles,
       captures,
     };
