@@ -34,16 +34,17 @@ The first correction slice contains:
 
 ## Follow-up guard correction
 
-The first normal-Head run exposed two remaining redesign-era test assumptions rather than product regressions:
+The first normal-Head run exposed three remaining redesign-era test assumptions rather than product regressions:
 
 - the UI validator still required the removed `options.builtin.directHelp` explanatory copy;
-- Chromium E2E still attempted to open the removed ordinary `配置历史` navigation item.
+- Chromium E2E still attempted to open the removed ordinary `配置历史` navigation item;
+- the dedicated Firefox restart script still rejected the original-derived `options.html#/about` landing URL.
 
-The guard is being corrected to require that the helper copy remains absent, and Chromium is being corrected to assert that History is not exposed in ordinary Options. Snapshot and rollback capabilities remain available through the background architecture and tests.
+The guard is being corrected to require that the helper copy remains absent. Chromium is being corrected to assert that History is not exposed in ordinary Options. The Firefox restart contract is being synchronized with the already passing Firefox core entry journey. Snapshot and rollback capabilities remain available through the background architecture and tests.
 
-Firefox core entry E2E already passed the corrected About-first journey before this follow-up. This does not close the complete Firefox job or the product journey.
+Firefox core entry E2E and the Firefox Toolbar Action E2E already passed before this follow-up. This does not close the complete Firefox job or the product journey.
 
-The correction transaction is intentionally limited to these two demonstrated stale assumptions; it does not alter product behavior or restore any removed UI.
+The correction transaction is intentionally limited to these three demonstrated stale assumptions; it does not alter product behavior or restore any removed UI.
 
 ## Evidence boundary
 
