@@ -76,6 +76,9 @@ export class OriginalToolbarActionExecutor {
       ...(tabId === undefined ? {} : { tabId }),
       title: localizeOriginalToolbarResultTitle(this.#i18n, state.titleArguments),
       ...(state.badgeText === undefined ? {} : { badgeText: state.badgeText }),
+      ...(state.badgeBackgroundColor === undefined
+        ? {}
+        : { badgeBackgroundColor: state.badgeBackgroundColor }),
       ...(imageData === undefined ? {} : { imageData }),
     });
     await this.#action.apply(presentation);
@@ -102,12 +105,13 @@ export class OriginalToolbarActionExecutor {
     readonly tabId?: number;
     readonly title: string;
     readonly badgeText?: string;
+    readonly badgeBackgroundColor?: string;
     readonly imageData?: OriginalToolbarActionImageDataSet;
   }): OriginalToolbarActionPresentation {
     return {
       ...(input.tabId === undefined ? {} : { tabId: input.tabId }),
       title: input.title,
-      badgeBackgroundColor: this.#badgeBackgroundColor,
+      badgeBackgroundColor: input.badgeBackgroundColor ?? this.#badgeBackgroundColor,
       popup: this.#popup,
       fallbackIconPaths: this.#fallbackIconPaths,
       ...(input.badgeText === undefined ? {} : { badgeText: input.badgeText }),
