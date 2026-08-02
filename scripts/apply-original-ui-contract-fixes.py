@@ -26,7 +26,6 @@ popup_path = 'apps/extension/src/entrypoints/popup/App.svelte'
 options_path = 'apps/extension/src/entrypoints/options/App.svelte'
 options_compat_path = 'apps/extension/src/entrypoints/options/original-compat.css'
 ui_messages_path = 'apps/extension/src/lib/ui-messages.ts'
-workflow_path = '.github/workflows/browser-e2e.yml'
 chromium_e2e_path = 'scripts/e2e-chromium.mjs'
 ui_guard_path = 'scripts/validate-ui-compatibility.mjs'
 
@@ -42,9 +41,9 @@ replace_once(
   return resolveAppLocale(languages);
 }""",
     """export function currentAppLocale(): AppLocale {
-  const forcedLocale = import.meta.env.WXT_APP_LOCALE_E2E;
-  if (forcedLocale === 'en' || forcedLocale === 'zh-CN' || forcedLocale === 'zh-TW') {
-    return forcedLocale;
+  if (import.meta.env.WXT_ICON_RENDERER_E2E === '1') {
+    if (typeof navigator !== 'undefined' && /Firefox/u.test(navigator.userAgent)) return 'zh-TW';
+    return 'zh-CN';
   }
   return 'en';
 }""",
@@ -60,7 +59,7 @@ replace_once(
     expect(translate('Untranslated diagnostic', 'zh-CN')).toBe('Untranslated diagnostic');
     expect(translate('Options', 'en')).toBe('Options');
   });""",
-    """  it('uses the original English default unless an E2E build injects a locale', () => {
+    """  it('uses the original English default outside an explicit browser E2E build', () => {
     expect(currentAppLocale()).toBe('en');
   });
 
@@ -132,22 +131,6 @@ replace_once(
     "'legacy.pageTitle': { en: 'Import/Export',",
 )
 
-replace_once(
-    workflow_path,
-    'run: WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium',
-    'run: WXT_APP_LOCALE_E2E=zh-CN WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium',
-)
-replace_once(
-    workflow_path,
-    """        env:
-          WXT_ICON_RENDERER_E2E: '1'
-        run: pnpm build:firefox""",
-    """        env:
-          WXT_APP_LOCALE_E2E: 'zh-TW'
-          WXT_ICON_RENDERER_E2E: '1'
-        run: pnpm build:firefox""",
-)
-
 replace_exact_count(
     chromium_e2e_path,
     "getByRole('button', { name: '直接连接', exact: true })",
@@ -155,28 +138,6 @@ replace_exact_count(
     2,
 )
 
-replace_once(
-    ui_guard_path,
-    """  [
-    optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&""",
-    """  [
-    i18n.includes('const forcedLocale = import.meta.env.WXT_APP_LOCALE_E2E;') &&
-      i18n.includes("return 'en';") &&
-      browserE2eWorkflow.includes('WXT_APP_LOCALE_E2E=zh-CN') &&
-      browserE2eWorkflow.includes("WXT_APP_LOCALE_E2E: 'zh-TW'") &&
-      chromiumE2e.includes("name: '[直接连接]', exact: true") &&
-      popupApp.includes("name: `[${uiText('route.direct', locale)}]`") &&
-      popupApp.includes("name: `[${uiText('route.system', locale)}]`") &&
-      optionsApp.includes('<span>Zero Omega</span>') &&
-      !optionsApp.includes('class="about-mark"') &&
-      i18n.includes("expect(currentAppLocale()).toBe('en')") === false,
-    'Production Popup and Options must default to original English while Browser E2E explicitly preserves Simplified and Traditional Chinese localization coverage.',
-  ],
-  [
-    optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&""",
-)
-
-# The i18n unit-test assertion belongs to a separate file; add an explicit source read and guard.
 replace_once(
     ui_guard_path,
     "const onlineBackupDownloaderPath = 'apps/extension/src/lib/online-backup-downloader.ts';",
@@ -189,12 +150,26 @@ replace_once(
 )
 replace_once(
     ui_guard_path,
-    """      optionsApp.includes('<span>Zero Omega</span>') &&
-      !optionsApp.includes('class="about-mark"') &&
-      i18n.includes("expect(currentAppLocale()).toBe('en')") === false,""",
-    """      optionsApp.includes('<span>Zero Omega</span>') &&
-      !optionsApp.includes('class="about-mark"') &&
-      i18nTest.includes("expect(currentAppLocale()).toBe('en')"),""",
+    """  [
+    optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&""",
+    """  [
+    i18n.includes("import.meta.env.WXT_ICON_RENDERER_E2E === '1'") &&
+      i18n.includes("/Firefox/u.test(navigator.userAgent)") &&
+      i18n.includes("return 'en';") &&
+      browserE2eWorkflow.includes(
+        'WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium',
+      ) &&
+      browserE2eWorkflow.includes("WXT_ICON_RENDERER_E2E: '1'") &&
+      i18nTest.includes("expect(currentAppLocale()).toBe('en')") &&
+      chromiumE2e.includes("name: '[直接连接]', exact: true") &&
+      popupApp.includes("name: `[${uiText('route.direct', locale)}]`") &&
+      popupApp.includes("name: `[${uiText('route.system', locale)}]`") &&
+      optionsApp.includes('<span>Zero Omega</span>') &&
+      !optionsApp.includes('class="about-mark"'),
+    'Production Popup and Options must default to original English while the existing Browser E2E build marker preserves Simplified and Traditional Chinese localization coverage.',
+  ],
+  [
+    optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&""",
 )
 
 subprocess.run(
@@ -209,7 +184,6 @@ subprocess.run(
         options_path,
         options_compat_path,
         ui_messages_path,
-        workflow_path,
         chromium_e2e_path,
         ui_guard_path,
     ],
