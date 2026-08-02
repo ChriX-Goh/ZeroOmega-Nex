@@ -1,0 +1,48 @@
+name: Export Formatted Renderer E2E Probe
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-formatted-renderer-e2e-probe.yml
+      - apps/extension/src/lib/original-toolbar-renderer-e2e.ts
+      - apps/extension/src/lib/original-toolbar-renderer-e2e.test.ts
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format targets in workspace
+        run: >-
+          pnpm exec prettier --write
+          apps/extension/src/lib/original-toolbar-renderer-e2e.ts
+          apps/extension/src/lib/original-toolbar-renderer-e2e.test.ts
+
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-renderer-e2e-probe
+          path: |
+            apps/extension/src/lib/original-toolbar-renderer-e2e.ts
+            apps/extension/src/lib/original-toolbar-renderer-e2e.test.ts
+          if-no-files-found: error
