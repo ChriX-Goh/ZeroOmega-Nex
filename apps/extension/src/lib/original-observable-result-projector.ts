@@ -9,6 +9,7 @@ import {
   type OriginalObservableResultTrace,
   type ProjectOriginalObservableResultTraceInput,
 } from './original-observable-result-trace';
+import { projectOriginalVirtualSwitchTrace } from './original-observable-virtual-switch';
 
 /**
  * Single entry point for Original-observable result projection. Evidence-bounded
@@ -74,6 +75,16 @@ export function projectOriginalObservableResult(
     }
 
     if (activeProfile?.kind === 'virtual') {
+      const virtualSwitch = projectOriginalVirtualSwitchTrace({
+        spec: input.spec,
+        parent: activeProfile,
+        decision: input.decision,
+        request: input.request,
+        i18n: input.i18n,
+        directColor,
+      });
+      if (virtualSwitch !== undefined) return virtualSwitch;
+
       const nestedVirtual = projectOriginalNestedVirtualTrace({
         spec: input.spec,
         parent: activeProfile,
