@@ -22,7 +22,13 @@ The correction therefore:
 - adds Chromium coverage proving the inactive default Switch exposes no result label or selector in the System state;
 - adds Firefox coverage proving the inactive default Switch exposes no result label or selector in the Direct state.
 
-The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and diff validation before being committed. Temporary patch scripts were removed in the same transaction.
+The UI compatibility guard was also corrected from the redesign-era 320-pixel requirement to the paired original evidence contract. It now requires:
+
+- 440-pixel Popup width and absence of the obsolete 320-pixel rule;
+- active-route gating in the Popup renderer;
+- Chromium and Firefox inactive-result regression coverage.
+
+The correction and its evidence guard passed architecture, parity, localization, type checking, unit tests, component tests, lint and diff validation before being committed. Temporary patch scripts were removed in the same transaction.
 
 ## Required evidence
 
