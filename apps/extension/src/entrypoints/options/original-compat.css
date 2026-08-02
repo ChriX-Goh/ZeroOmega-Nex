@@ -367,3 +367,43 @@
     margin-top: 98px;
   }
 }
+
+/* Computed Options residual correction. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .sidebar {
+    background: #fff;
+    border-right: 0;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 761px) {
+  .side-brand button {
+    color: #337ab7;
+  }
+
+  .editor {
+    padding-right: 30px;
+  }
+
+  .about-actions a,
+  .about-actions button {
+    gap: 4px;
+  }
+
+  .about-notices {
+    margin-top: 8.421875px;
+  }
+
+  .about-notices p {
+    line-height: 20px;
+  }
+
+  .about-license {
+    line-height: 20px;
+  }
+
+  .about-license p {
+    margin: 0;
+  }
+}
