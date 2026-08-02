@@ -65,6 +65,10 @@ The residual correction uses a light color-scheme selector that excludes explici
 
 The residual correction passed the full atomic repository validation on Actions-generated commit `d90401ca785a1643c8f83a7a807fba3d91eb4646`; temporary patch scripts were removed in the same transaction.
 
-This ordinary evidence Head must verify the actual residual values and the corrected `brandText` metric before Options is considered visually converged.
+Ordinary Head `5be036c1010b5a0d326144a7bea3b0148f4d1a8e` proves the residual correction succeeded for the sidebar, brand color, content width, action widths and license height. Navigation and action geometry remain within `0.02px` of Original; the visible brand text now has the exact original font, line height, weight and blue color.
+
+One final vertical residual remains: all three notices and the license block are `5.58px` low. Computed margins prove that the `12px` bottom margin on the action container wins the adjacent-margin collapse, preventing the smaller notice margin from taking effect. Both adjacent margins are therefore set to `6.421875px`, and action line height is fixed at `20px`. The Nex `brandText` selector now targets the internal text span instead of the full-width button.
+
+A subsequent normal-Head paired artifact must confirm the final Options vertical residual before work moves to Popup presentation.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.

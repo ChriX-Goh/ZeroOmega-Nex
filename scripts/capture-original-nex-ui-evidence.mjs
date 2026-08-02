@@ -83,7 +83,7 @@ function layoutMetricSelectors(implementation, surface) {
           shell: '.app-shell',
           sidebar: '.sidebar',
           brand: '.side-brand button',
-          brandText: '.side-brand button',
+          brandText: '.side-brand button > span',
           navHeading: '.nav-group h2',
           navItem: '.nav-group > button',
           navDivider: '.nav-group',

@@ -407,3 +407,18 @@
     margin: 0;
   }
 }
+
+/* Final computed Options vertical residual. */
+@media (min-width: 761px) {
+  .about-actions {
+    margin-bottom: 6.421875px;
+  }
+
+  .about-actions > * {
+    line-height: 20px;
+  }
+
+  .about-notices {
+    margin-top: 6.421875px;
+  }
+}
