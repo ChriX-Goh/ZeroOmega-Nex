@@ -30,11 +30,11 @@ replace_once(
 )
 replace_once(
     path,
-    """    links,
-    bodyHtmlSha256: sha256(Buffer.from(html)),""",
-    """    links,
-    language,
-    bodyHtmlSha256: sha256(Buffer.from(html)),""",
+    """    bodyHtmlSha256: sha256(Buffer.from(html)),
+    links,""",
+    """    bodyHtmlSha256: sha256(Buffer.from(html)),
+    links,
+    language,""",
 )
 replace_once(
     path,
