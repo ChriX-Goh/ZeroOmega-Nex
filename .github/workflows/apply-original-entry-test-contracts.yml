@@ -1,9 +1,9 @@
 name: Apply Original Entry Test Contracts
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - feat/m8-profile-workflow
 
 permissions:
   contents: write
