@@ -12,6 +12,7 @@ import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar
 import {
   registerOriginalToolbarRuntime,
   type OriginalToolbarNavigationCommittedListener,
+  type OriginalToolbarProxySettingsChangedListener,
   type OriginalToolbarTabRemovedListener,
   type RegisteredOriginalToolbarRuntime,
 } from '../lib/original-toolbar-runtime';
@@ -121,15 +122,27 @@ export default defineBackground(() => {
     api: currentOriginalToolbarBrowserRuntimeApi(),
     repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
     runtime: {
-      inspectRuntime: async (applied) =>
-        temporaryRuleCoordinator
-          ? temporaryRuleCoordinator.inspectToolbarRuntime(applied)
-          : ((await baseActivationDriver.inspectRuntime?.()) ?? {}),
+      inspectRuntime: async (applied) => {
+        const toolbarView = temporaryRuleCoordinator
+          ? await temporaryRuleCoordinator.inspectToolbarRuntime(applied)
+          : ((await baseActivationDriver.inspectRuntime?.()) ?? {});
+        const proxyRuntime = currentBrowserProxyRuntime();
+        try {
+          const proxyControlLevel = (await proxyRuntime.driver.getCapabilities()).controlLevel;
+          return { ...toolbarView, proxyControlLevel };
+        } catch {
+          return toolbarView;
+        } finally {
+          proxyRuntime.dispose();
+        }
+      },
     },
     tabRemoved: browser.tabs
       .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
     navigationCommitted: browser.webNavigation
       .onCommitted as unknown as OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>,
+    proxySettingsChanged: browser.proxy.settings
+      .onChange as unknown as OriginalToolbarEvent<OriginalToolbarProxySettingsChangedListener>,
     onError: (error, context) => {
       console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
     },
