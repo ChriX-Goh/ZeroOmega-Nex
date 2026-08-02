@@ -59,7 +59,15 @@ A diagnostic run proved that the built-in profile page still rendered three Nex-
 - a Direct card explanation describing connection without a proxy;
 - a System card explanation describing browser or operating-system proxy use.
 
-All three descriptions were removed from ordinary Options. The UI guard now requires all three helper calls to remain absent. The correction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before being committed. Its temporary patch scripts were removed in the same transaction.
+All three descriptions were removed from ordinary Options. The UI guard now requires all three helper calls to remain absent.
+
+## Background-only rollback and fixed original text
+
+A later Chromium E2E path still attempted to reopen the removed History panel solely to exercise snapshot rollback. The journey now invokes the existing background `rollback-snapshot` command and verifies restored browser state plus applied and draft revisions directly. Snapshot rollback remains tested without reintroducing engineering UI.
+
+The original About page also contains the official `ZeroOmega` product name, upstream copyright notices and GPL notice. These are now explicitly classified as fixed original product/legal text in the generated locale inventory rather than being treated as untranslated replacement UI.
+
+The combined correction passed architecture, parity, type checking, unit tests, component tests, lint and diff validation before being committed. Its temporary patch scripts were removed in the same transaction.
 
 ## Evidence boundary
 
