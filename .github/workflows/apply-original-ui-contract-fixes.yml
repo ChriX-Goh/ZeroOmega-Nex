@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - .github/workflows/apply-original-ui-contract-fixes.yml
+      - scripts/apply-original-ui-contract-fixes.py
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,8 +16,9 @@ jobs:
   apply:
     if: >-
       github.repository == 'ChriX-Goh/ZeroOmega-Nex' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'feat/m8-profile-workflow'
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.head.ref == 'feat/m8-profile-workflow'))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
