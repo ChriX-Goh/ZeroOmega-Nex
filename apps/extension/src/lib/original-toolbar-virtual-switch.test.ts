@@ -119,8 +119,7 @@ describe('original Virtual to Switch toolbar projection', () => {
         currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
         resultProfileName: 'Runtime Virtual Switch Fixed',
         details:
-          'virtual-switch-fixed.test => Runtime Virtual Switch Fixed\n' +
-          'PROXY 127.0.0.1:18190\n',
+          'virtual-switch-fixed.test => Runtime Virtual Switch Fixed\n' + 'PROXY 127.0.0.1:18190\n',
       },
       badgeText: 'Runt',
     });
