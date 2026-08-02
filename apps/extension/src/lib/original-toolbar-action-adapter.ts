@@ -89,12 +89,8 @@ export class OriginalToolbarActionAdapter {
       );
     } catch {
       const legacyImageData: OriginalToolbarActionImageDataSet = {
-        ...(presentation.imageData[19] === undefined
-          ? {}
-          : { 19: presentation.imageData[19] }),
-        ...(presentation.imageData[38] === undefined
-          ? {}
-          : { 38: presentation.imageData[38] }),
+        ...(presentation.imageData[19] === undefined ? {} : { 19: presentation.imageData[19] }),
+        ...(presentation.imageData[38] === undefined ? {} : { 38: presentation.imageData[38] }),
       };
       await Promise.resolve(
         this.action.setIcon({
