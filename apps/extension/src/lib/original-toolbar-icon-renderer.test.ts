@@ -129,7 +129,7 @@ describe('original toolbar icon renderer', () => {
     expect(context.imageReads).toHaveLength(10);
   });
 
-  it('detects opaque anti-fingerprinting output, reports once, and caches fallback state', () => {
+  it('reports the first anti-fingerprinting error once and retries failed colors', () => {
     const context = new RecordingCanvasContext();
     context.opaqueFirstPixel = true;
     const { factory } = recordingFactory(context);
@@ -139,12 +139,20 @@ describe('original toolbar icon renderer', () => {
     expect(renderer.render('#32a8e6')).toBeUndefined();
     expect(renderer.render('#32a8e6')).toBeUndefined();
     expect(renderer.render('#f15b40')).toBeUndefined();
-
-    expect(context.imageReads).toHaveLength(2);
+    expect(context.imageReads).toHaveLength(3);
     expect(onFirstError).toHaveBeenCalledTimes(1);
     expect(onFirstError.mock.calls[0]?.[0]).toEqual(
       new Error('Icon drawing blocked by privacy.resistFingerprinting.'),
     );
+
+    context.opaqueFirstPixel = false;
+    const recovered = renderer.render('#32a8e6');
+    const cached = renderer.render('#32a8e6');
+
+    expect(Object.keys(recovered ?? {})).toEqual(['16', '19', '24', '32', '38']);
+    expect(cached).toBe(recovered);
+    expect(context.imageReads).toHaveLength(8);
+    expect(onFirstError).toHaveBeenCalledTimes(1);
   });
 
   it('clears the color cache without replacing the original shared canvas', () => {
