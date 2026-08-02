@@ -50,6 +50,8 @@ The correction is intentionally limited to desktop Options presentation. Popup s
 
 ## Verification boundary
 
-The correction must pass architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation in the atomic finalizer. A subsequent normal-Head paired artifact must verify the actual computed positions and styles before any further visual adjustment.
+The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `af9293df8de7d7808156f41f504027df09d2b33e`. Temporary patch scripts were removed in the same transaction.
+
+This ordinary evidence Head must now regenerate the paired screenshots and schema-v2 metrics. Actual computed positions and styles, not the intended CSS values, determine whether a second adjustment is required.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
