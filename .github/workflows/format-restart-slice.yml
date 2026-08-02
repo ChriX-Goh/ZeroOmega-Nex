@@ -1,0 +1,52 @@
+name: Format Restart Slice
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout exact pull request Head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format closure slice
+        run: |
+          pnpm exec prettier --write \
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md \
+            docs/PROJECT_PROGRESS_MODEL.md \
+            scripts/e2e-chromium-toolbar-restart.mjs \
+            scripts/e2e-firefox-toolbar-restart.mjs
+
+      - name: Upload exact formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-restart-slice
+          path: |
+            docs/DELIVERY_ORDER_01_TOOLBAR_STATE.md
+            docs/PROJECT_PROGRESS_MODEL.md
+            scripts/e2e-chromium-toolbar-restart.mjs
+            scripts/e2e-firefox-toolbar-restart.mjs
+          if-no-files-found: error
