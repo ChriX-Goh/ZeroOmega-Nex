@@ -32,6 +32,17 @@ The first correction slice contains:
 - Chromium Popup assertions made exact so `Direct` cannot be confused with `auto switch [Direct]`;
 - the UI validator changed from enforcing redesign-era About copy to preventing Nex branding, History, Draft status and capability research from re-entering ordinary UI.
 
+## Follow-up guard correction
+
+The first normal-Head run exposed two remaining redesign-era test assumptions rather than product regressions:
+
+- the UI validator still required the removed `options.builtin.directHelp` explanatory copy;
+- Chromium E2E still attempted to open the removed ordinary `配置历史` navigation item.
+
+The guard is being corrected to require that the helper copy remains absent, and Chromium is being corrected to assert that History is not exposed in ordinary Options. Snapshot and rollback capabilities remain available through the background architecture and tests.
+
+Firefox core entry E2E already passed the corrected About-first journey before this follow-up. This does not close the complete Firefox job or the product journey.
+
 ## Evidence boundary
 
 The permanent gates must now run on a normal repository Head:
