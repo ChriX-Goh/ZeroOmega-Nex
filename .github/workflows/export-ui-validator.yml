@@ -1,11 +1,9 @@
-name: Export UI Validator
+name: Export Original Entry Sources
 
 on:
   pull_request:
     branches:
       - main
-    paths:
-      - .github/workflows/export-ui-validator.yml
 
 permissions:
   contents: read
@@ -20,6 +18,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/upload-artifact@v4
         with:
-          name: ui-validator-source
-          path: scripts/validate-ui-compatibility.mjs
+          name: original-entry-source-slice
+          path: |
+            scripts/validate-ui-compatibility.mjs
+            apps/extension/src/lib/ui-messages.ts
+            scripts/e2e-firefox.mjs
+            scripts/e2e-chromium.mjs
           if-no-files-found: error
