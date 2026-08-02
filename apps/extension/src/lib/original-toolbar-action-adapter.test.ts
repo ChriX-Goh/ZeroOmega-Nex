@@ -14,12 +14,16 @@ interface RecordedCall {
 
 class RecordingActionApi implements OriginalToolbarActionApi {
   readonly calls: RecordedCall[] = [];
-  failDynamicIcon = false;
+  failFullDynamicIcon = false;
 
   setIcon(details: Parameters<OriginalToolbarActionApi['setIcon']>[0]): Promise<void> | void {
     this.calls.push({ method: 'setIcon', details });
-    if (this.failDynamicIcon && details.imageData !== undefined) {
-      return Promise.reject(new Error('dynamic icon blocked'));
+    if (
+      this.failFullDynamicIcon &&
+      details.imageData !== undefined &&
+      details.imageData[16] !== undefined
+    ) {
+      return Promise.reject(new Error('full dynamic icon blocked'));
     }
   }
 
@@ -52,6 +56,9 @@ const fallbackIconPaths: OriginalToolbarActionIconPaths = {
 const dynamicImageData: OriginalToolbarActionImageDataSet = {
   16: { width: 16, height: 16, data: new Uint8ClampedArray(16 * 16 * 4) },
   19: { width: 19, height: 19, data: new Uint8ClampedArray(19 * 19 * 4) },
+  24: { width: 24, height: 24, data: new Uint8ClampedArray(24 * 24 * 4) },
+  32: { width: 32, height: 32, data: new Uint8ClampedArray(32 * 32 * 4) },
+  38: { width: 38, height: 38, data: new Uint8ClampedArray(38 * 38 * 4) },
 };
 
 describe('original toolbar Action adapter', () => {
@@ -93,7 +100,7 @@ describe('original toolbar Action adapter', () => {
     ]);
   });
 
-  it('omits tabId when writing the global Action baseline', async () => {
+  it('omits the icon write when rendering returns no dynamic image', async () => {
     const action = new RecordingActionApi();
     const adapter = new OriginalToolbarActionAdapter(action);
 
@@ -105,7 +112,6 @@ describe('original toolbar Action adapter', () => {
     });
 
     expect(action.calls).toEqual([
-      { method: 'setIcon', details: { path: fallbackIconPaths } },
       { method: 'setTitle', details: { title: 'ZeroOmega:: [System Proxy]' } },
       { method: 'setBadgeBackgroundColor', details: { color: '#d90000' } },
       { method: 'setBadgeText', details: { text: '' } },
@@ -113,7 +119,7 @@ describe('original toolbar Action adapter', () => {
     ]);
   });
 
-  it('clears stale Badge text when the derived state has no Badge', async () => {
+  it('clears stale Badge text without replacing the manifest or current icon', async () => {
     const action = new RecordingActionApi();
     const adapter = new OriginalToolbarActionAdapter(action);
 
@@ -129,15 +135,12 @@ describe('original toolbar Action adapter', () => {
       method: 'setBadgeText',
       details: { tabId: 11, text: '' },
     });
-    expect(action.calls[0]).toEqual({
-      method: 'setIcon',
-      details: { tabId: 11, path: fallbackIconPaths },
-    });
+    expect(action.calls.some((call) => call.method === 'setIcon')).toBe(false);
   });
 
-  it('falls back to the original static icon paths when dynamic drawing is rejected', async () => {
+  it('retries a rejected full dynamic icon with the original 19/38 subset', async () => {
     const action = new RecordingActionApi();
-    action.failDynamicIcon = true;
+    action.failFullDynamicIcon = true;
     const adapter = new OriginalToolbarActionAdapter(action);
 
     await adapter.apply({
@@ -156,7 +159,13 @@ describe('original toolbar Action adapter', () => {
       },
       {
         method: 'setIcon',
-        details: { tabId: 19, path: fallbackIconPaths },
+        details: {
+          tabId: 19,
+          imageData: {
+            19: dynamicImageData[19],
+            38: dynamicImageData[38],
+          },
+        },
       },
     ]);
     expect(action.calls).toContainEqual({
