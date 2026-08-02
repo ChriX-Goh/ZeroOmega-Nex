@@ -37,7 +37,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build Chromium extension
-        run: ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
+        run: WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
 
       - name: Run Chromium extension E2E
         shell: bash
@@ -69,6 +69,12 @@ jobs:
           set -o pipefail
           pnpm test:e2e:chromium-external-control-toolbar 2>&1 | tee chromium-external-control-toolbar-e2e.log
 
+      - name: Run Chromium renderer fallback Toolbar E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:chromium-renderer-fallback-toolbar 2>&1 | tee chromium-renderer-fallback-toolbar-e2e.log
+
       - name: Upload Chromium diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,6 +86,7 @@ jobs:
             chromium-attached-rule-list-toolbar-e2e.log
             chromium-profile-traces-toolbar-e2e.log
             chromium-external-control-toolbar-e2e.log
+            chromium-renderer-fallback-toolbar-e2e.log
           if-no-files-found: warn
 
   firefox:
@@ -107,7 +114,7 @@ jobs:
         run: firefox --version
 
       - name: Build Firefox extension
-        run: pnpm build:firefox
+        run: WXT_ICON_RENDERER_E2E=1 pnpm build:firefox
 
       - name: Run Firefox extension E2E
         shell: bash
@@ -139,6 +146,12 @@ jobs:
           set -o pipefail
           pnpm test:e2e:firefox-external-control-toolbar 2>&1 | tee firefox-external-control-toolbar-e2e.log
 
+      - name: Run Firefox renderer fallback Toolbar E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-renderer-fallback-toolbar 2>&1 | tee firefox-renderer-fallback-toolbar-e2e.log
+
       - name: Upload Firefox diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -150,6 +163,7 @@ jobs:
             firefox-attached-rule-list-toolbar-e2e.log
             firefox-profile-traces-toolbar-e2e.log
             firefox-external-control-toolbar-e2e.log
+            firefox-renderer-fallback-toolbar-e2e.log
           if-no-files-found: warn
 
   chromium-native-inspect:
