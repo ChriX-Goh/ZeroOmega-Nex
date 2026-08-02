@@ -39,10 +39,26 @@ The verified correction:
 
 No workflow, profile, Apply, import, proxy or browser-runtime behavior was changed.
 
+## Normal-Head evidence result
+
+The six permanent read-only gates passed on ordinary Head `720838313cd4c44d20decffd182501820628115e`.
+
+Its paired artifact:
+
+- artifact: `original-nex-ui-evidence-720838313cd4c44d20decffd182501820628115e`;
+- artifact ID: `8832728333`;
+- SHA-256: `bae2aaf03b3bb577bee3277d16d338235d5fc387c22557c7c9dad0c81c775698`.
+
+The new screenshot confirms that character-by-character wrapping is gone, Actions follows Profiles, the duplicate About row is gone, and the sidebar/content geometry now follows the original desktop shell. Remaining About differences are fixed copy, button/status glyphs, links, one missing open-source credit line and finer styling rather than the previous structural failure.
+
+## Paired DOM and link evidence
+
+The permanent read-only comparison script now also saves the body DOM for each captured surface and records every anchor's text, absolute href, target and rel attributes in the manifest. This was added because screenshots prove link presence but cannot establish exact original targets. The enhancement passed the atomic full-repository verification and does not change product behavior or capture user data; it operates only on clean default Original and Nex pages.
+
+A fresh normal-Head artifact must supply the exact official privacy, FAQ, license, project and open-source targets before the next About correction is committed.
+
 ## Verification boundary
 
 The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation in the atomic finalizer. Temporary patch scripts were removed in the same transaction.
-
-The six permanent read-only gates must now run on a normal repository Head. The resulting paired Options artifact must be inspected before changing brand spelling, language, About legal/open-source copy or finer Popup styling.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
