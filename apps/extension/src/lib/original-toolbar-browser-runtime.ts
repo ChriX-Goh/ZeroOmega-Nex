@@ -15,7 +15,7 @@ import type {
   OriginalToolbarTabsApi,
 } from './original-toolbar-tab-coordinator';
 
-export const ORIGINAL_TOOLBAR_BADGE_BACKGROUND_COLOR = '#d90000';
+export const ORIGINAL_TOOLBAR_BADGE_BACKGROUND_COLOR = 'rgba(0, 0, 0, 0)';
 export const ORIGINAL_TOOLBAR_RUNTIME_POPUP = 'popup-iframe.html';
 
 export const ORIGINAL_TOOLBAR_FALLBACK_ICON_PATHS: OriginalToolbarActionIconPaths = {
