@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { productIdentity } from '@zeroomega-nex/core-contracts';
   import { cloneProfileSpecDraft } from '@zeroomega-nex/profile-spec';
   import type {
     FixedProfile,
@@ -35,6 +34,7 @@
     ProfileWorkflowView,
   } from '@zeroomega-nex/profile-workflow';
   import { onMount } from 'svelte';
+  import { browser } from 'wxt/browser';
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
   import { currentBrowserTargetCapabilities } from '../../lib/browser-target-capabilities';
@@ -117,7 +117,7 @@
     | 'showAdvancedConditions'
     | 'exportLegacyRuleList';
 
-  let activeSection: OptionsSection = 'profile';
+  let activeSection: OptionsSection = 'about';
   let themeMode: ThemeMode = 'auto';
   let state: ProfileWorkflowState | undefined;
   let view: ProfileWorkflowView | undefined;
@@ -846,7 +846,7 @@
     const previousHash = currentPageHash();
     const hash = window.location.hash.replace(/^#\//u, '');
     if (!hash) {
-      if (!(await navigate('profile', state?.selectedProfileId, false))) {
+      if (!(await navigate('about', undefined, false))) {
         window.history.replaceState(null, '', previousHash);
       }
       return;
@@ -954,6 +954,69 @@
     );
   }
 
+  const originalCopy =
+    locale === 'zh-CN'
+      ? {
+          about: '关于',
+          tagline: '代理设置工具',
+          reportIssues: '报告问题',
+          saveErrorLog: '保存错误日志',
+          resetOptions: '重置选项',
+          resetConfirm: '确定要重置 ZeroOmega 的全部选项吗？',
+          noServices: 'ZeroOmega 不提供代理、VPN 或其他网络服务。',
+          privacy: 'ZeroOmega 不跟踪用户，也不会在网页中插入广告。',
+          help: '使用 ZeroOmega 时遇到问题，请查阅常见问题或报告问题。',
+          version: '版本',
+        }
+      : locale === 'zh-TW'
+        ? {
+            about: '關於',
+            tagline: '代理設定工具',
+            reportIssues: '回報問題',
+            saveErrorLog: '儲存錯誤記錄',
+            resetOptions: '重設選項',
+            resetConfirm: '確定要重設 ZeroOmega 的全部選項嗎？',
+            noServices: 'ZeroOmega 不提供代理、VPN 或其他網路服務。',
+            privacy: 'ZeroOmega 不追蹤使用者，也不會在網頁中插入廣告。',
+            help: '使用 ZeroOmega 時遇到問題，請查閱常見問題或回報問題。',
+            version: '版本',
+          }
+        : {
+            about: 'About',
+            tagline: 'A proxy configuration tool',
+            reportIssues: 'Report issues',
+            saveErrorLog: 'Save error log',
+            resetOptions: 'Reset options',
+            resetConfirm: 'Reset all ZeroOmega options?',
+            noServices: 'ZeroOmega does not provide proxies, VPNs, or other network services.',
+            privacy: 'ZeroOmega does not track you or insert ads into webpages.',
+            help: 'Need help with using ZeroOmega? See the FAQ or report an issue.',
+            version: 'Version',
+          };
+
+  function saveErrorLog(): void {
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      version: browser.runtime.getManifest().version,
+      error: errorMessage || undefined,
+      workflow: state,
+    };
+    const url = URL.createObjectURL(
+      new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' }),
+    );
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `zeroomega-error-log-${Date.now()}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function resetOptions(): Promise<void> {
+    if (!globalThis.confirm(originalCopy.resetConfirm)) return;
+    await browser.storage.local.clear();
+    globalThis.location.replace('options.html#/about');
+  }
+
   onMount(() => {
     themeMode = readThemeMode();
     applyThemeMode(themeMode);
@@ -996,8 +1059,7 @@
   <aside class="sidebar">
     <header class="side-brand">
       <button type="button" onclick={() => void navigate('about')}>
-        <span class="brand-mark" aria-hidden="true">Ω</span>
-        <span>{productIdentity.name}</span>
+        <span>Zero Omega</span>
       </button>
     </header>
 
@@ -1010,14 +1072,14 @@
           type="button"
           onclick={() => void navigate('interface')}
         >
-          <span aria-hidden="true">⌘</span><span>{uiText('options.nav.interface', locale)}</span>
+          <span>{uiText('options.nav.interface', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'general'}
           type="button"
           onclick={() => void navigate('general')}
         >
-          <span aria-hidden="true">⚙</span><span>{uiText('options.nav.general', locale)}</span>
+          <span>{uiText('options.nav.general', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'import'}
@@ -1025,22 +1087,14 @@
           disabled={!state || saving || view?.busy}
           onclick={() => void navigate('import')}
         >
-          <span aria-hidden="true">⇅</span><span>{uiText('legacy.pageTitle', locale)}</span>
+          <span>{uiText('legacy.pageTitle', locale)}</span>
         </button>
         <button
           class:active={activeSection === 'theme'}
           type="button"
           onclick={() => void navigate('theme')}
         >
-          <span aria-hidden="true">◐</span><span>{uiText('options.nav.theme', locale)}</span>
-        </button>
-        <button
-          class:active={activeSection === 'history'}
-          type="button"
-          disabled={!state || saving || view?.busy}
-          onclick={() => void navigate('history')}
-        >
-          <span aria-hidden="true">↶</span><span>{uiText('history.nav', locale)}</span>
+          <span>{uiText('options.nav.theme', locale)}</span>
         </button>
       </section>
 
@@ -1074,7 +1128,7 @@
           disabled={!state || view?.busy || saving}
           onclick={() => void navigate('new-profile')}
         >
-          <span aria-hidden="true">＋</span><span>{uiText('options.nav.newProfile', locale)}</span>
+          <span>{uiText('options.nav.newProfile', locale)}</span>
         </button>
       </section>
 
@@ -1086,8 +1140,7 @@
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={applyDraft}
         >
-          <span aria-hidden="true">✓</span><span
-            >{uiText(saving ? 'options.actions.working' : 'options.actions.apply', locale)}</span
+          <span>{uiText(saving ? 'options.actions.working' : 'options.actions.apply', locale)}</span
           >
         </button>
         <button
@@ -1096,21 +1149,18 @@
           disabled={!hasUnappliedChanges || view?.busy || saving}
           onclick={revertDraft}
         >
-          <span aria-hidden="true">×</span><span>{uiText('options.actions.discard', locale)}</span>
+          <span>{uiText('options.actions.discard', locale)}</span>
         </button>
-        <p class="draft-status" role="status">
-          {uiText(
-            view?.busy
-              ? 'options.draft.applying'
-              : profileEditorDirty
-                ? 'options.draft.sourceDirty'
-                : view?.dirty
-                  ? 'options.draft.dirty'
-                  : 'options.draft.clean',
-            locale,
-          )}
-        </p>
       </section>
+
+      <button
+        class="about-navigation"
+        class:active={activeSection === 'about'}
+        type="button"
+        onclick={() => void navigate('about')}
+      >
+        {originalCopy.about}
+      </button>
     </nav>
   </aside>
 
@@ -1432,17 +1482,43 @@
         />
       {/if}
     {:else if activeSection === 'about'}
-      <div data-about-settings data-typed-locale={locale}>
+      <div data-about-settings data-typed-locale={locale} class="original-about-page">
         <header class="editor-heading">
-          <div>
-            <h1>{productIdentity.name}</h1>
-            <p>{productIdentity.milestone}</p>
-          </div>
+          <h1>{originalCopy.about}</h1>
         </header>
-        <section class="settings-section">
-          <h2>{uiText('options.about.compatibilityTitle', locale)}</h2>
-          <p>{uiText('options.about.compatibilityHelp', locale)}</p>
+        <section class="about-product">
+          <div class="about-mark" aria-hidden="true">Ω</div>
+          <div>
+            <h2>ZeroOmega</h2>
+            <p>{originalCopy.tagline}</p>
+          </div>
         </section>
+        <div class="about-actions">
+          <a
+            class="report-issues"
+            href="https://github.com/zero-peak/ZeroOmega/issues"
+            target="_blank"
+            rel="noreferrer">{originalCopy.reportIssues}</a
+          >
+          <button type="button" onclick={saveErrorLog}>{originalCopy.saveErrorLog}</button>
+          <button type="button" class="danger" onclick={() => void resetOptions()}>
+            {originalCopy.resetOptions}
+          </button>
+        </div>
+        <p>{originalCopy.version} {browser.runtime.getManifest().version}</p>
+        <div class="about-notices">
+          <p>{originalCopy.noServices}</p>
+          <p>{originalCopy.privacy}</p>
+          <p>{originalCopy.help}</p>
+        </div>
+        <footer class="about-license">
+          <p>ZeroOmega</p>
+          <p>Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.</p>
+          <p>Copyright 2024-2025 The ZeroOmega Authors.</p>
+          <p>
+            ZeroOmega is free software licensed under GNU General Public License Version 3 or later.
+          </p>
+        </footer>
       </div>
     {:else if selectedProfile && state}
       <header class="editor-heading">
@@ -1522,7 +1598,6 @@
       {#if fixedProfile}
         <FixedProfileEditor
           {locale}
-          browserTarget={browserTargetCapabilities.target}
           spec={state.draft}
           profileId={fixedProfile.id}
           generation={state.generation}

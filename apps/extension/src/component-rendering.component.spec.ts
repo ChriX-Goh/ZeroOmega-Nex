@@ -163,7 +163,6 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
         spec: mutation.draft,
         profileId: mutation.profileId,
         generation: 0,
-        browserTarget: 'firefox',
         disabled: false,
         idFactory: idFactory(),
         onReplaceDraft: replaceDraft,

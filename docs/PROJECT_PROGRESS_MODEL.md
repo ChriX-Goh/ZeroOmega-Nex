@@ -20,15 +20,15 @@ The correction is caused by an explicit Firefox owner `FAIL` plus paired officia
 
 ## Journey weights
 
-| Order | Complete user journey                                                 | Weight |
-| ----: | --------------------------------------------------------------------- | -----: |
-|     1 | Installation, startup, Toolbar icon/title/Badge and entry experience  |    12% |
-|     2 | Original export file → direct import → immediate equivalent use       |    20% |
-|     3 | Popup selection, result state, current-site rules and temporary rules |    12% |
-|     4 | Options information architecture, dialogs and Apply/Discard lifecycle |    16% |
-|     5 | Fixed, Switch, PAC, Virtual, Rule List and profile lifecycle journeys |    22% |
-|     6 | Export, restart, rollback, ownership and authentication               |    10% |
-|     7 | Localization, information density and visual alignment                |     8% |
+| Order | Complete user journey                                                 |   Weight |
+| ----: | --------------------------------------------------------------------- | -------: |
+|     1 | Installation, startup, Toolbar icon/title/Badge and entry experience  |      12% |
+|     2 | Original export file → direct import → immediate equivalent use       |      20% |
+|     3 | Popup selection, result state, current-site rules and temporary rules |      12% |
+|     4 | Options information architecture, dialogs and Apply/Discard lifecycle |      16% |
+|     5 | Fixed, Switch, PAC, Virtual, Rule List and profile lifecycle journeys |      22% |
+|     6 | Export, restart, rollback, ownership and authentication               |      10% |
+|     7 | Localization, information density and visual alignment                |       8% |
 |       | **Total**                                                             | **100%** |
 
 ## Completion gates inside every journey
@@ -41,22 +41,22 @@ The correction is caused by an explicit Firefox owner `FAIL` plus paired officia
 | Contract automation        |                  15% | Tests verify original-derived contracts rather than Nex-only fixtures. |
 | Real browser/data evidence |                  10% | Clean Firefox/Chromium and real original data pass where applicable.   |
 | Owner acceptance           |                  10% | Repository owner accepts the exact original-facing behavior/build.     |
-| **Total**                  |               **100%** | A journey reaches 100% only after owner acceptance.                  |
+| **Total**                  |             **100%** | A journey reaches 100% only after owner acceptance.                    |
 
 No journey receives owner-acceptance points from inference, silence, generated Nex-only screenshots or automation.
 
 ## Current scored baseline
 
-| Order | Weight | Journey completion | Earned project points | Current basis |
-| ----: | -----: | -----------------: | --------------------: | ------------- |
-| 1 | 12% | 45% | 5.4 | Runtime Action engineering and dual-browser automation remain strong, but Firefox owner use and paired official screenshots prove the entry experience, default profiles, Popup and Options shell are not original-compatible. The prior acceptance build is retired. |
-| 2 | 20% | 35% | 7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open. |
-| 3 | 12% | 46% | 5.5 | Substantial Popup/runtime implementation exists, but the first paired default Popup evidence shows missing `auto switch`, extra branding and altered row geometry/order. Complete original interaction parity remains open. |
-| 4 | 16% | 51% | 8.1 | Options and Draft/Applied foundations are substantial, but paired evidence proves the default landing page, navigation, information hierarchy and visible descriptions are materially different from original. This score may fall as the full original surface inventory is captured. |
-| 5 | 22% | 60% | 13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical completion rows require complete-journey re-audit and real migrated-data verification. |
-| 6 | 10% | 52% | 5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete. |
-| 7 | 8% | 44% | 3.5 | Typed localization and Nex visual capture exist, but paired original evidence now proves substantial density, wording and layout divergence. The score is provisional pending full paired inventory. |
-| | **100%** | | **47.9 → 48%** | Rounded to the nearest whole percentage point. |
+| Order |   Weight | Journey completion | Earned project points | Current basis                                                                                                                                                                                                                                                                          |
+| ----: | -------: | -----------------: | --------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     1 |      12% |                45% |                   5.4 | Runtime Action engineering and dual-browser automation remain strong, but Firefox owner use and paired official screenshots prove the entry experience, default profiles, Popup and Options shell are not original-compatible. The prior acceptance build is retired.                  |
+|     2 |      20% |                35% |                   7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open.                                                                  |
+|     3 |      12% |                46% |                   5.5 | Substantial Popup/runtime implementation exists, but the first paired default Popup evidence shows missing `auto switch`, extra branding and altered row geometry/order. Complete original interaction parity remains open.                                                            |
+|     4 |      16% |                51% |                   8.1 | Options and Draft/Applied foundations are substantial, but paired evidence proves the default landing page, navigation, information hierarchy and visible descriptions are materially different from original. This score may fall as the full original surface inventory is captured. |
+|     5 |      22% |                60% |                  13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical completion rows require complete-journey re-audit and real migrated-data verification.                                                                                                                      |
+|     6 |      10% |                52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete.                                                                                                                |
+|     7 |       8% |                44% |                   3.5 | Typed localization and Nex visual capture exist, but paired original evidence now proves substantial density, wording and layout divergence. The score is provisional pending full paired inventory.                                                                                   |
+|       | **100%** |                    |        **47.9 → 48%** | Rounded to the nearest whole percentage point.                                                                                                                                                                                                                                         |
 
 ## Evidence causing the correction
 

@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, readFile as readTextFile, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readFile as readTextFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { relative, resolve } from 'node:path';
 
@@ -91,7 +98,10 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
     ...pngDimensions(bytes),
     viewport,
     text,
-    textLines: text.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean),
+    textLines: text
+      .split(/\r?\n/u)
+      .map((line) => line.trim())
+      .filter(Boolean),
     bodyHtmlSha256: sha256(Buffer.from(html)),
   });
 }
@@ -128,14 +138,7 @@ async function captureImplementation(implementation, extensionPath, entries) {
     const popup = await context.newPage();
     await popup.setViewportSize({ width: 440, height: 760 });
     await popup.goto(`${baseUrl}/${popupPath.replace(/^\//u, '')}`);
-    await captureSurface(
-      popup,
-      implementation,
-      'popup-default',
-      popupPath,
-      outputDir,
-      entries,
-    );
+    await captureSurface(popup, implementation, 'popup-default', popupPath, outputDir, entries);
     await popup.close();
 
     const options = await context.newPage();
@@ -173,8 +176,9 @@ assert.equal(entries.length, 4, 'paired UI evidence count');
 for (const implementation of ['original-v3.5.0', 'nex']) {
   for (const surface of ['popup-default', 'options-default']) {
     assert.equal(
-      entries.filter((entry) => entry.implementation === implementation && entry.surface === surface)
-        .length,
+      entries.filter(
+        (entry) => entry.implementation === implementation && entry.surface === surface,
+      ).length,
       1,
       `missing ${implementation}/${surface} evidence`,
     );
@@ -202,7 +206,9 @@ const bySurface = Object.fromEntries(
 );
 
 entries.sort((left, right) =>
-  `${left.surface}/${left.implementation}`.localeCompare(`${right.surface}/${right.implementation}`),
+  `${left.surface}/${left.implementation}`.localeCompare(
+    `${right.surface}/${right.implementation}`,
+  ),
 );
 const manifest = {
   schemaVersion: 1,

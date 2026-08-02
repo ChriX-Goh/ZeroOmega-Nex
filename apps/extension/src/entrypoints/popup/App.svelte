@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { productIdentity } from '@zeroomega-nex/core-contracts';
   import type {
     ProfileRouteTarget,
     ProfileSpec,
@@ -634,8 +633,6 @@
           </button>
         </div>
       </section>
-    {:else if !state?.applied.settings.quickSwitch.enabled}
-      <p class="settings-error" role="status">{uiText('popup.quickDisabled', locale)}</p>
     {:else if items.length === 0}
       <p class="settings-error" role="status">{uiText('popup.noRoutes', locale)}</p>
     {:else}
@@ -919,11 +916,6 @@
       </svg>
       <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
     </button>
-    <span class="product-name"
-      >{switching || settingTemporaryRule || importingExternalProfile
-        ? uiText('popup.switching', locale)
-        : productIdentity.name}</span
-    >
   </footer>
 
   {#if errorMessage}<p class="settings-error" role="alert">{errorMessage}</p>{/if}

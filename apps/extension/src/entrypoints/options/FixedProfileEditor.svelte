@@ -5,13 +5,6 @@
     type ProfileSpec,
     type ProxyEndpoint,
   } from '@zeroomega-nex/profile-spec';
-  import {
-    fixedProxySlotCapability,
-    proxyProtocolCapability,
-    type PacTarget,
-    type ProxyDnsCapability,
-    type ProxyProtocolCapability,
-  } from '@zeroomega-nex/pac-compiler';
   import type {
     ProfileWorkflowIdFactory,
     ProfileWorkflowSecretMaterial,
@@ -33,7 +26,6 @@
   export let spec: ProfileSpec;
   export let profileId: string;
   export let locale: AppLocale = currentAppLocale();
-  export let browserTarget: Exclude<PacTarget, 'cross-browser'> = 'chromium';
   export let generation: number;
   export let disabled = false;
   export let idFactory: ProfileWorkflowIdFactory;
@@ -186,33 +178,6 @@
         : protocol === 'socks4'
           ? 'SOCKS4'
           : 'SOCKS5';
-  }
-
-  function protocolCapability(protocol: ProxyProtocol): ProxyProtocolCapability {
-    return proxyProtocolCapability(protocol, browserTarget);
-  }
-
-  function authenticationCapabilityText(
-    capability: ProxyProtocolCapability['authentication'],
-  ): string {
-    return capability === 'web-request-407'
-      ? uiText('fixed.capability.authentication407', locale)
-      : uiText('fixed.capability.authenticationUnsupported', locale);
-  }
-
-  function dnsCapabilityText(capability: ProxyDnsCapability): string {
-    switch (capability) {
-      case 'proxy-protocol-default':
-        return uiText('fixed.capability.dnsProtocolDefault', locale);
-      case 'client-ipv4-only':
-        return uiText('fixed.capability.dnsClientIpv4', locale);
-      case 'proxy-side':
-        return uiText('fixed.capability.dnsProxySide', locale);
-      case 'browser-target-default':
-        return uiText('fixed.capability.dnsBrowserDefault', locale);
-      case 'target-dependent':
-        return uiText('fixed.capability.dnsTargetDependent', locale);
-    }
   }
 
   function rowDisplayLabel(row: SchemeRow): string {
@@ -542,55 +507,6 @@
     </div>
   </section>
 
-  <section
-    class="settings-section protocol-capabilities-section"
-    data-fixed-protocol-capabilities
-    data-browser-target={browserTarget}
-  >
-    <h2>{uiText('fixed.capability.title', locale)}</h2>
-    <p class="section-help">
-      {uiText('fixed.capability.help', locale)}
-    </p>
-    <p class="target-summary" data-fixed-protocol-target>
-      {uiText('fixed.capability.target', locale)}:
-      <strong
-        >{browserTarget === 'firefox'
-          ? uiText('fixed.capability.targetFirefox', locale)
-          : uiText('fixed.capability.targetChromium', locale)}</strong
-      >
-    </p>
-    <div class="table-scroller">
-      <table class="protocol-capabilities-table">
-        <thead>
-          <tr>
-            <th>{uiText('fixed.protocol', locale)}</th>
-            <th>{uiText('fixed.capability.pacDirective', locale)}</th>
-            <th>{uiText('fixed.capability.transport', locale)}</th>
-            <th>{uiText('fixed.authentication', locale)}</th>
-            <th>{uiText('fixed.capability.dns', locale)}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each protocols as protocol (protocol)}
-            {@const capability = protocolCapability(protocol)}
-            <tr data-proxy-protocol-capability={protocol}>
-              <th scope="row">{protocolLabel(protocol)}</th>
-              <td><code>{capability.pacDirective}</code></td>
-              <td>{uiText('fixed.capability.transportSupported', locale)}</td>
-              <td>{authenticationCapabilityText(capability.authentication)}</td>
-              <td>{dnsCapabilityText(capability.dns)}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-    <p class="ftp-capability-note" role="note" data-fixed-ftp-capability>
-      {fixedProxySlotCapability('ftp', browserTarget).request === 'browser-request-removed'
-        ? uiText('fixed.capability.ftpRemoved', locale)
-        : ''}
-    </p>
-  </section>
-
   <section class="settings-section">
     <h2>{uiText('fixed.bypassList', locale)}</h2>
     <p class="section-help">
@@ -701,33 +617,6 @@
 {/if}
 
 <style>
-  .protocol-capabilities-section {
-    margin-top: 18px;
-  }
-
-  .target-summary,
-  .ftp-capability-note {
-    margin: 8px 0;
-  }
-
-  .protocol-capabilities-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .protocol-capabilities-table th,
-  .protocol-capabilities-table td {
-    padding: 7px 8px;
-    border: 1px solid var(--border);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .ftp-capability-note {
-    color: var(--muted);
-  }
-
   .table-scroller {
     overflow-x: auto;
   }
