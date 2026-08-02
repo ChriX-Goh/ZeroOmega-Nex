@@ -26,15 +26,16 @@ The unified Original-observable projection currently represents:
 - exact nested Virtual 01J subset;
 - exact attached Rule List 01H subset;
 - exact URL-backed PAC Toolbar 01K subset;
-- exact temporary-rule Toolbar 01L subset.
+- exact temporary-rule Toolbar 01L subset;
+- exact external-control Toolbar 01M competing-extension subset.
 
 Real Chromium and Firefox Action E2E covers represented shapes. Native Chromium Inspect covers set, clear, base restoration and tab isolation.
 
 ## Active delivery sequence
 
-1. **Order 1 — installation/startup/Toolbar:** 35%. Temporary-rule 01L is captured and mapped; external-control, renderer fallback, remaining high-value nested/Rule List shapes, headed pixels and owner acceptance remain.
+1. **Order 1 — installation/startup/Toolbar:** 35%. External-control 01M is captured and mapped; renderer fallback, remaining high-value nested/Rule List shapes, headed pixels and owner acceptance remain.
 2. **Order 2 — original export → direct Nex use:** blocked by `KG-IMPORT-001` and `KG-IMPORT-COLOR-001`.
-3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open; complete temporary-rule interaction is not closed by Toolbar 01L.
+3. **Order 3 — Popup:** broad hierarchy and state mismatch remains open; complete temporary-rule and ownership interaction is not closed by Toolbar 01L/01M.
 4. **Order 4 — Options / Apply / Discard:** broad layout, workflow and text mismatch remains open.
 5. **Order 5 — complete profile journeys:** historical implementation inventory remains pending complete journey re-audit.
 6. **Order 6 — export/restart/rollback/ownership/authentication:** partial engineering assets exist; owner-complete behavior is unproved.
@@ -49,7 +50,7 @@ The read-only `.github/workflows/original-toolbar-evidence.yml` workflow:
 - uses an isolated Chromium profile for every scenario;
 - creates and applies profiles through the original runtime APIs;
 - supports evidence-bounded per-capture runtime commands;
-- captures original runtime state and `_actionForUrl` output into an auditable JSON Artifact;
+- captures original runtime state, proxy ownership and `_actionForUrl` output into an auditable JSON Artifact;
 - cannot commit or push.
 
 The scenario registry contains:
@@ -57,7 +58,8 @@ The scenario registry contains:
 - `nested-switch` → evidence 01I;
 - `nested-virtual` → evidence 01J;
 - `pac` → evidence 01K;
-- `temporary-rule` → evidence 01L.
+- `temporary-rule` → evidence 01L;
+- `external-control` → evidence 01M.
 
 Pull requests execute `all`. New result families must extend this registry and runner instead of creating another per-trace workflow.
 
@@ -107,6 +109,17 @@ Two-level Virtual into Direct/Fixed proxy/bypass is captured and verified, inclu
 - deleting the last rule leaves the empty hidden overlay active in the current session;
 - the removed-rule state therefore keeps the same two visible default transitions.
 
+### External control 01M
+
+`AUDIT_EVIDENCE_01M_ORIGINAL_EXTERNAL_CONTROL_RESULTS.md` establishes:
+
+- one applied Fixed HTTP fallback profile begins with a transparent Badge background;
+- a real second extension changes the original control level to `controlled_by_other_extensions`;
+- the original observable Toolbar becomes built-in Direct with Badge `Dire` and warning-red background `#da4f49`;
+- the original may still retain the Fixed profile name internally, but the Toolbar follows effective ownership;
+- after the second extension clears its setting, the Toolbar automatically returns to Fixed content without explicit re-application;
+- the warning-red background remains after recovery and explicit re-application in the captured runtime lifetime.
+
 ## Current Nex runtime
 
 Confirmed in deterministic tests and represented in the real-browser matrix:
@@ -117,10 +130,13 @@ Confirmed in deterministic tests and represented in the real-browser matrix:
 - attached Rule List 01H;
 - URL-backed PAC static Toolbar state 01K;
 - temporary-rule matched/unmatched/last-rule-removed Toolbar state 01L;
+- external-control baseline/takeover/release/reapply Toolbar state 01M;
 - internal-page/default fallback and tab isolation;
 - Chromium Inspect overlay restoration/isolation.
 
 The shared `scripts/nex-toolbar-profile-trace-scenarios.mjs` fixture drives Chromium and Firefox nested Switch, nested Virtual, PAC and temporary-rule Action E2E in one applied document. Temporary-rule tests use the real runtime message channel to toggle and remove the rule, then observe the existing Action coordinator rather than invoking the projector directly.
+
+Focused external-control E2E loads Nex and a real second proxy extension in Chromium and Firefox. It uses actual browser ownership APIs and actual Action reads rather than injecting resolver state.
 
 ## Temporary overlay architecture
 
@@ -134,6 +150,19 @@ The 01L implementation preserves original observable state without leaking rewri
 - mutations trigger the existing single Action writer and per-tab refresh path;
 - unsupported temporary-rule shapes continue to fail closed.
 
+## External-control architecture
+
+The 01M implementation preserves the original observable ownership boundary:
+
+- the Toolbar runtime reads the real browser proxy control level;
+- browser `proxy.settings.onChange` refreshes the existing Action coordinator;
+- exact competing-extension ownership reuses the captured Direct projection;
+- normal Fixed content returns when control returns;
+- a resolver-local warning latch retains `#da4f49` for the captured runtime lifetime;
+- the normal pre-loss Badge background is transparent;
+- no second Action writer or Nex-only ownership title is introduced;
+- unsupported ownership states remain outside the mapped subset.
+
 ## Closed evidence-proven correction
 
 `KG-VIRTUAL-BYPASS-DETAIL-001` is `EXACT_EQUIVALENT` and `VERIFIED_AUTOMATION`: immediate Virtual → Fixed bypass uses literal `DIRECT` in the projector, deterministic test and both browser expectations. Fixed profile bypass remains a separate localized contract.
@@ -145,7 +174,7 @@ The 01L implementation preserves original observable state without leaking rewri
 - attached Rule List beyond 01H;
 - PAC lifecycle beyond 01K: inline/uncached/update/error/header/auth/fallback states;
 - temporary-rule lifecycle beyond 01L: multiple rules, other profile families, restart/errors and complete Popup interaction;
-- external-controller transitions and recovery;
+- external-control lifecycle beyond 01M: policy/not-controllable states, non-Fixed profiles, workflow races, restart/latch lifetime and complete Popup/Options recovery;
 - renderer fallback and headed pixels where Action API state is insufficient;
 - consolidated repository-owner acceptance.
 
@@ -164,7 +193,7 @@ Switch → System is not missing because the original runtime rejects it.
 
 ## Next fixed edge
 
-Capture the original external-control Toolbar transitions and recovery, map only the proven states, verify deterministic/Chromium/Firefox behavior, then continue renderer-fallback evidence and the remaining Order 1 consolidation.
+Capture the original forced dynamic-render failure and static Action fallback behavior, map only the proven states, verify deterministic/Chromium/Firefox behavior, then complete the remaining Order 1 consolidation.
 
 ## Execution rule
 
