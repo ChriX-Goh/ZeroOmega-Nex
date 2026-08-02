@@ -1,4 +1,4 @@
-name: Finalize Original UI Guard Correction
+name: Parity Documentation
 
 on:
   pull_request:
@@ -6,74 +6,40 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  finalize:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
-      - name: Checkout exact branch
+      - name: Checkout pull request head
         uses: actions/checkout@v4
         with:
-          ref: feat/m8-profile-workflow
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
+      - name: Validate canonical parity documents
+        run: node scripts/validate-parity-docs.mjs
 
-      - name: Install locked dependencies
+      - name: Require both documents for parity-sensitive commits
+        shell: bash
         run: |
-          corepack enable
-          corepack prepare pnpm@11.4.0 --activate
-          pnpm install --frozen-lockfile
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          printf '%s\n' "$changed"
 
-      - name: Correct original-facing guard and Chromium contract
-        run: |
-          python <<'PY'
-          from pathlib import Path
+          if ! printf '%s\n' "$changed" | grep -Eq '^(apps/extension/src/entrypoints/(options|popup)/|apps/extension/src/lib/i18n|apps/extension/public/_locales/|packages/legacy-zeroomega/|packages/profile-workflow/src/(defaults|profile-operations)|packages/profile-spec/)'; then
+            echo 'Latest commit has no parity-sensitive product changes.'
+            exit 0
+          fi
 
-          validator = Path('scripts/validate-ui-compatibility.mjs')
-          source = validator.read_text()
-          old = '''      optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&'''
-          new = '''      !optionsApp.includes("uiText('options.builtin.directHelp', locale)") &&'''
-          assert source.count(old) == 1, source.count(old)
-          validator.write_text(source.replace(old, new, 1))
+          for required in docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md; do
+            if ! printf '%s\n' "$changed" | grep -Fxq "$required"; then
+              echo "Parity-sensitive commit must also update $required" >&2
+              exit 1
+            fi
+          done
 
-          chromium = Path('scripts/e2e-chromium.mjs')
-          source = chromium.read_text()
-          old = '''  await options.getByRole('button', { name: '配置历史' }).click();
-  await options.getByRole('heading', { name: '配置历史', exact: true, level: 1 }).waitFor();
-  await options.getByRole('heading', { name: '已验证的 PAC 快照', exact: true }).waitFor();
-  await options.locator('.settings-section').first().waitFor({ timeout: 20_000 });'''
-          new = '''  assert.equal(
-    await options.getByRole('button', { name: '配置历史', exact: true }).count(),
-    0,
-    'Original-facing Options exposed Nex-only configuration history navigation',
-  );'''
-          assert source.count(old) == 1, source.count(old)
-          chromium.write_text(source.replace(old, new, 1))
-          PY
-
-      - name: Format and syntax-check correction
-        run: |
-          pnpm exec prettier --write \
-            scripts/validate-ui-compatibility.mjs \
-            scripts/e2e-chromium.mjs
-          node --check scripts/validate-ui-compatibility.mjs
-          node --check scripts/e2e-chromium.mjs
-          git diff --check
-
-      - name: Restore permanent parity workflow
-        run: git checkout HEAD^ -- .github/workflows/parity-documentation.yml
-
-      - name: Commit exact guard correction
-        run: |
-          git config user.name 'ZeroOmega Nex automation'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -A
-          git commit -m 'fix: remove redesign-era UI guard assumptions'
-          git push origin HEAD:feat/m8-profile-workflow
+          echo 'Parity-sensitive commit updated both canonical documents.'
