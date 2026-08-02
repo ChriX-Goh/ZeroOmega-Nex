@@ -490,8 +490,16 @@ const requirements = [
   [popupStyle.includes('font-size: 13px'), 'Popup base type size must remain explicitly fixed.'],
   [popupStyle.includes('line-height: 1.35'), 'Popup line height must remain explicitly fixed.'],
   [
-    popupStyle.includes('width: 320px'),
-    'Popup width must remain deterministic and provide room for larger icons.',
+    popupStyle.includes('width: 440px') &&
+      !popupStyle.includes('width: 320px') &&
+      popupApp.includes('sameRoute(runtime?.activeRoute, item.route)') &&
+      chromiumE2e.includes(
+        'Inactive default Switch exposed a result selector in the System Popup state',
+      ) &&
+      firefoxE2e.includes(
+        'Inactive default Switch exposed a result selector in the Direct Popup state',
+      ),
+    'Popup width and inactive result controls must follow the paired original default evidence.',
   ],
   [
     popupStyle.includes('.profile-list button:focus-visible'),
