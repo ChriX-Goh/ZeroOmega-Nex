@@ -42,6 +42,7 @@ import {
 import {
   currentProxyOwnershipRuntimeApi,
   registerProxyOwnershipRuntime,
+  shouldPreserveExternalProxyState,
   type RegisteredProxyOwnershipRuntime,
 } from '../lib/proxy-ownership-runtime';
 import {
@@ -87,6 +88,15 @@ async function restoreProxyRuntime(
   ) {
     console.info(`[${productIdentity.name}] temporary-rule proxy runtime reconciled.`);
     return;
+  }
+
+  const activationState = await runtime.repository.getState();
+  if (activationState.activeBuiltInMode === 'system') {
+    const platformState = await runtime.driver.readState();
+    if (shouldPreserveExternalProxyState(activationState.activeBuiltInMode, platformState)) {
+      console.info(`[${productIdentity.name}] external proxy state preserved in System mode.`);
+      return;
+    }
   }
 
   const restored = await restoreActiveSnapshot(runtime.repository, runtime.driver);

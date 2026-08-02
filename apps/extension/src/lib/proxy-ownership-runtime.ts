@@ -2,6 +2,8 @@ import {
   inspectProxyOwnership,
   parseExternalProfileCandidate,
   type BrowserStorageArea,
+  type BuiltInProxyMode,
+  type PlatformProxyState,
 } from '@zeroomega-nex/browser-adapters';
 import {
   BrowserStorageProfileWorkflowRepository,
@@ -35,6 +37,15 @@ export interface ProxyOwnershipRuntimeApi {
 
 export interface RegisteredProxyOwnershipRuntime {
   dispose(): void;
+}
+
+export function shouldPreserveExternalProxyState(
+  activeBuiltInMode: BuiltInProxyMode | undefined,
+  platformState: PlatformProxyState,
+): boolean {
+  return (
+    activeBuiltInMode === 'system' && parseExternalProfileCandidate(platformState) !== undefined
+  );
 }
 
 async function inspectCurrentOwnership(api: ProxyOwnershipRuntimeApi): Promise<ProxyOwnershipView> {
