@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/diagnose-original-ui-contract-fixes.yml
       - scripts/apply-original-ui-contract-fixes.py
+      - scripts/apply-original-default-test-fixtures.py
       - packages/profile-workflow/src/defaults.ts
       - packages/profile-workflow/src/defaults.test.ts
       - packages/core-contracts/src/index.ts
@@ -38,7 +39,9 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Apply exact pending correction
-        run: python scripts/apply-original-ui-contract-fixes.py
+        run: |
+          python scripts/apply-original-ui-contract-fixes.py
+          python scripts/apply-original-default-test-fixtures.py
 
       - name: Format pending correction
         run: |
@@ -49,7 +52,12 @@ jobs:
             apps/extension/src/component-rendering.component.spec.ts \
             scripts/e2e-chromium.mjs \
             scripts/e2e-firefox.mjs \
-            scripts/capture-visual-evidence.mjs
+            scripts/capture-visual-evidence.mjs \
+            apps/extension/src/lib/original-toolbar-profile-resolver.test.ts \
+            apps/extension/src/lib/profile-workflow-activation.test.ts \
+            apps/extension/src/lib/snapshot-rollback-runtime.test.ts \
+            apps/extension/src/lib/inspect-runtime.test.ts \
+            apps/extension/src/lib/profile-export.test.ts
 
       - name: Run checks with individual diagnostics
         shell: bash
