@@ -43,7 +43,10 @@ await writeFile(
     browser_specific_settings: { gecko: { id: conflictAddonId } },
   }),
 );
-await writeFile(resolve(conflictExtensionPath, 'background.js'), 'setInterval(() => undefined, 1000);\n');
+await writeFile(
+  resolve(conflictExtensionPath, 'background.js'),
+  'setInterval(() => undefined, 1000);\n',
+);
 await writeFile(
   resolve(conflictExtensionPath, 'control.html'),
   '<!doctype html><html><body>External control probe</body></html>\n',
@@ -215,7 +218,11 @@ try {
       route: { kind: 'profile', profileId: fixed.id },
     });
   const activated = await activateFixed();
-  assert.equal(activated?.ok, true, `Firefox Fixed activation failed: ${JSON.stringify(activated)}`);
+  assert.equal(
+    activated?.ok,
+    true,
+    `Firefox Fixed activation failed: ${JSON.stringify(activated)}`,
+  );
 
   const localized = await driver.executeScript(
     `
@@ -289,7 +296,11 @@ try {
       (error) => done({ ok: false, error: String(error) }),
     );
   `);
-  assert.equal(setResult?.ok, true, `Firefox conflict proxy set failed: ${JSON.stringify(setResult)}`);
+  assert.equal(
+    setResult?.ok,
+    true,
+    `Firefox conflict proxy set failed: ${JSON.stringify(setResult)}`,
+  );
   const readConflictControlLevel = () =>
     executeAsync(`
       const done = arguments[arguments.length - 1];
