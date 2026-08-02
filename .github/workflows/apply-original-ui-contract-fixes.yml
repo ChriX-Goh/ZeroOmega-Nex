@@ -1,0 +1,319 @@
+name: Apply Original UI Contract Fixes
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-original-ui-contract-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: >-
+      github.repository == 'ChriX-Goh/ZeroOmega-Nex' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/m8-profile-workflow'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Apply original-derived contract corrections
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path, old, new, label):
+              source = path.read_text()
+              count = source.count(old)
+              assert count == 1, f'{label}: expected 1, got {count}'
+              path.write_text(source.replace(old, new, 1))
+
+          app = Path('apps/extension/src/entrypoints/options/App.svelte')
+          replace_once(
+              app,
+              '    createFixedProfileDraft,\n',
+              '    createDefaultProfileSpec,\n    createFixedProfileDraft,\n',
+              'default ProfileSpec import',
+          )
+          replace_once(
+              app,
+              '''  async function resetOptions(): Promise<void> {
+            if (!globalThis.confirm(originalCopy.resetConfirm)) return;
+            await browser.storage.local.clear();
+            globalThis.location.replace('options.html#/about');
+          }''',
+              '''  async function resetOptions(): Promise<void> {
+            if (!state || view?.busy || !globalThis.confirm(originalCopy.resetConfirm)) return;
+            const resetSpec = createDefaultProfileSpec({
+              documentId: `document-${crypto.randomUUID()}`,
+              revisionId: `revision-${crypto.randomUUID()}`,
+              createdAt: new Date().toISOString(),
+              deviceId: state.applied.revision.deviceId,
+            });
+            if (
+              !(await runCommand({
+                action: 'replace-draft',
+                expectedGeneration: state.generation,
+                draft: resetSpec,
+              })) ||
+              !state
+            ) {
+              return;
+            }
+            if (
+              !(await runCommand({
+                action: 'apply',
+                expectedGeneration: state.generation,
+              }))
+            ) {
+              return;
+            }
+            globalThis.location.replace('options.html#/about');
+          }''',
+              'reset command boundary',
+          )
+
+          commands = Path('packages/profile-workflow/src/commands.ts')
+          replace_once(
+              commands,
+              '''  if (!state.applied.settings.quickSwitch.enabled) {
+            return 'quick switching is disabled in the applied ProfileSpec';
+          }
+          ''',
+              '',
+              'Popup/keyboard Quick Switch coupling',
+          )
+
+          validator = Path('scripts/validate-parity-docs.mjs')
+          source = validator.read_text()
+          source, count = re.subn(
+              r"requireAll\('Fixed protocol capability UI', fixedProtocolEditor, \[.*?\n\]\);",
+              '''for (const forbiddenToken of [
+            'data-fixed-protocol-capabilities',
+            'data-browser-target',
+            'data-proxy-protocol-capability',
+            'data-fixed-ftp-capability',
+            'fixedProxySlotCapability',
+            'proxyProtocolCapability',
+          ]) {
+            if (fixedProtocolEditor.includes(forbiddenToken)) {
+              failures.push(`Fixed editor must not expose engineering capability UI: ${forbiddenToken}`);
+            }
+          }''',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'Fixed capability UI validator replacements: {count}'
+          source, count = re.subn(
+              r"requireAll\('protocol capability component rendering', protocolComponentRendering, \[.*?\n\]\);",
+              '''requireAll('protocol capability component rendering', protocolComponentRendering, [
+            "not.toContain('data-fixed-protocol-capabilities')",
+          ]);''',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'component capability validator replacements: {count}'
+          source = source.replace(
+              "  'data-fixed-protocol-capabilities',\n  'matrix-socks4.invalid',",
+              "  'matrix-socks4.invalid',",
+              1,
+          )
+          source = source.replace(
+              '''  'data-fixed-protocol-capabilities',
+            'data-browser-target="firefox"',
+            "['http', 'https', 'socks4', 'socks5']",''',
+              '''  "['http', 'https', 'socks4', 'socks5']",''',
+              1,
+          )
+          validator.write_text(source)
+
+          component = Path('apps/extension/src/component-rendering.component.spec.ts')
+          source = component.read_text()
+          source, count = re.subn(
+              r"    expect\(body\)\.toContain\('data-fixed-protocol-capabilities'\);\n.*?    expect\(body\)\.toContain\('Modern Chromium and Firefox no longer issue browser FTP requests'\);\n",
+              "    expect(body).not.toContain('data-fixed-protocol-capabilities');\n",
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'component capability block replacements: {count}'
+          component.write_text(source)
+
+          chromium = Path('scripts/e2e-chromium.mjs')
+          source = chromium.read_text()
+          source = source.replace("    name: 'Proxy',\n", "    name: 'proxy',\n", 1)
+          replace = '''  try {
+            await profileHeading.waitFor({ state: 'visible', timeout: 15_000 });
+          } catch (error) {'''
+          replacement = '''  try {
+            await options.getByRole('heading', { name: '关于', exact: true, level: 1 }).waitFor({
+              state: 'visible',
+              timeout: 15_000,
+            });
+            await options.getByRole('button', { name: 'proxy', exact: true }).click();
+            await profileHeading.waitFor({ state: 'visible', timeout: 15_000 });
+          } catch (error) {'''
+          assert source.count(replace) == 1
+          source = source.replace(replace, replacement, 1)
+          source = source.replace(
+              "  await options.getByText('当前设置已全部应用。', { exact: true }).waitFor();\n",
+              '',
+              1,
+          )
+          source, count = re.subn(
+              r"  await options\.locator\('\.side-brand button'\)\.click\(\);\n  const aboutSettings = .*?  assert\.match\(\n    await chromiumProtocolCapabilities\.locator\('\[data-fixed-ftp-capability\]'\)\.innerText\(\),\n    /不再发起浏览器 FTP 请求/u,\n  \);",
+              '''  await options.locator('.side-brand button').click();
+            const aboutSettings = options.locator('[data-about-settings][data-typed-locale="zh-CN"]');
+            await aboutSettings.waitFor({ state: 'visible', timeout: 20_000 });
+            await aboutSettings.getByRole('heading', { name: '关于', exact: true, level: 1 }).waitFor();
+            assert.doesNotMatch(
+              await aboutSettings.innerText(),
+              /Draft|Applied|revision|compile|snapshot|capability|兼容性优先/u,
+              'Engineering concepts leaked into the normal About page',
+            );
+
+            await options.getByRole('button', { name: 'proxy', exact: true }).click();
+            await profileHeading.waitFor({ state: 'visible' });
+
+            const fixedTable = options.locator('[data-fixed-proxy-table]');
+            await fixedTable.waitFor({ state: 'visible' });
+            assert.equal(
+              await options.locator('[data-fixed-protocol-capabilities]').count(),
+              0,
+              'Fixed editor exposed engineering capability documentation',
+            );''',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'Chromium About/capability replacements: {count}'
+          source = source.replace(
+              "getByRole('button', { name: 'Proxy', exact: true })",
+              "getByRole('button', { name: 'proxy', exact: true })",
+          )
+          source = source.replace(
+              "assert.equal(await renameInput.inputValue(), 'Proxy');",
+              "assert.equal(await renameInput.inputValue(), 'proxy');",
+              1,
+          )
+          source = source.replace(
+              "draft?.name === 'Chromium E2E Proxy' && applied?.name === 'Proxy'",
+              "draft?.name === 'Chromium E2E Proxy' && applied?.name === 'proxy'",
+              1,
+          )
+          source = source.replace(
+              "  await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });\n",
+              '',
+              1,
+          )
+          chromium.write_text(source)
+
+          firefox = Path('scripts/e2e-firefox.mjs')
+          source = firefox.read_text()
+          source, count = re.subn(
+              r"  let profileHeading;\n  try \{\n    profileHeading = await driver\.wait\(.*?    const protocolValues = await driver\.executeScript\(`",
+              '''  let profileHeading;
+            try {
+              const aboutHeading = await driver.wait(
+                until.elementLocated(By.xpath("//h1[normalize-space(.)='關於']")),
+                15_000,
+              );
+              await driver.wait(until.elementIsVisible(aboutHeading), 15_000);
+              const proxyButton = await driver.wait(
+                until.elementLocated(By.xpath("//button[normalize-space(.)='proxy']")),
+                15_000,
+              );
+              await proxyButton.click();
+              profileHeading = await driver.wait(
+                until.elementLocated(By.xpath("//h1[normalize-space(.)='proxy']")),
+                15_000,
+              );
+              await driver.wait(until.elementIsVisible(profileHeading), 15_000);
+              assert.equal(
+                (await driver.findElements(By.css('[data-fixed-protocol-capabilities]'))).length,
+                0,
+                'Fixed editor exposed engineering capability documentation',
+              );
+              const protocolValues = await driver.executeScript(`''',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'Firefox initial/capability replacements: {count}'
+          source = source.replace(
+              "assert.equal(await renameInput.getAttribute('value'), 'Proxy');",
+              "assert.equal(await renameInput.getAttribute('value'), 'proxy');",
+              1,
+          )
+          source, count = re.subn(
+              r"\n    await driver\.wait\(\n      async \(\) => \{\n        const statuses = await driver\.findElements\(By\.css\('\.draft-status'\)\);.*?\n      'Firefox Options did not render the clean Apply status',\n    \);",
+              '',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'Firefox Apply status replacements: {count}'
+          source, count = re.subn(
+              r"\n  await driver\.wait\(\n    async \(\) => \{\n      const statuses = await driver\.findElements\(By\.css\('\.draft-status'\)\);.*?\n    'Firefox Options did not render the clean PAC Apply status',\n  \);",
+              '',
+              source,
+              count=1,
+              flags=re.S,
+          )
+          assert count == 1, f'Firefox PAC status replacements: {count}'
+          firefox.write_text(source)
+
+          visual = Path('scripts/capture-visual-evidence.mjs')
+          replace_once(
+              visual,
+              "getByRole('button', { name: 'Proxy', exact: true })",
+              "getByRole('button', { name: 'proxy', exact: true })",
+              'visual default proxy',
+          )
+          PY
+      - name: Format and validate
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/entrypoints/options/App.svelte \
+            packages/profile-workflow/src/commands.ts \
+            scripts/validate-parity-docs.mjs \
+            apps/extension/src/component-rendering.component.spec.ts \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/capture-visual-evidence.mjs
+          pnpm guard:architecture
+          pnpm validate:parity-docs
+          pnpm check
+          pnpm test
+          pnpm test:components
+          pnpm lint
+          git diff --check
+      - name: Remove temporary workflows
+        run: |
+          rm -f .github/workflows/apply-original-ui-contract-fixes.yml
+          rm -f .github/workflows/export-original-ui-contract-sources.yml
+      - name: Commit exact correction
+        run: |
+          git config user.name 'ZeroOmega Nex automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: enforce original UI contract boundaries'
+          git push origin HEAD:feat/m8-profile-workflow
