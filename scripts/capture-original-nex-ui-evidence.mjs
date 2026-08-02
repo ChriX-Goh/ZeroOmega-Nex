@@ -4,6 +4,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readdir,
   readFile as readTextFile,
   rm,
   writeFile,
@@ -38,6 +39,16 @@ function pngDimensions(buffer) {
 async function readManifest(extensionPath) {
   const source = await readTextFile(resolve(extensionPath, 'manifest.json'), 'utf8');
   return JSON.parse(source);
+}
+
+async function availableLocales(extensionPath) {
+  const entries = await readdir(resolve(extensionPath, '_locales'), { withFileTypes: true }).catch(
+    () => [],
+  );
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
 }
 
 function extensionPages(manifest) {
@@ -134,6 +145,7 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
 
 async function captureImplementation(implementation, extensionPath, entries) {
   const manifest = await readManifest(extensionPath);
+  const locales = await availableLocales(extensionPath);
   const { optionsPath, popupPath } = extensionPages(manifest);
   const userDataDir = await mkdtemp(resolve(tmpdir(), `zeroomega-${implementation}-ui-`));
   const outputDir = resolve(outputRoot, implementation);
@@ -188,6 +200,7 @@ async function captureImplementation(implementation, extensionPath, entries) {
       popupPath,
       browserVersion: context.browser()?.version() ?? 'unknown',
       manifestDefaultLocale: manifest.default_locale ?? null,
+      availableLocales: locales,
     };
   } finally {
     await context?.close();
@@ -254,7 +267,7 @@ await writeFile(
 );
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets and page/extension language signals\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
+  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, page/extension language signals and packaged locale directories\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
 );
 
 console.log(`Original ↔ Nex UI evidence captured for exact Head ${sourceHead}.`);
