@@ -79,8 +79,12 @@ function iconWrite(details: {
   const source = details.imageData ?? details.path;
   return {
     ...(details.tabId === undefined ? {} : { tabId: details.tabId }),
-    kind: details.imageData !== undefined ? 'imageData' : details.path !== undefined ? 'path' : 'empty',
-    sizes: source === undefined ? [] : Object.keys(source).sort((left, right) => Number(left) - Number(right)),
+    kind:
+      details.imageData !== undefined ? 'imageData' : details.path !== undefined ? 'path' : 'empty',
+    sizes:
+      source === undefined
+        ? []
+        : Object.keys(source).sort((left, right) => Number(left) - Number(right)),
   };
 }
 
