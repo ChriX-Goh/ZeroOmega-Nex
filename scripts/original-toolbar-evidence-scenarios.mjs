@@ -100,6 +100,49 @@ const nestedVirtualOuterDirect = {
   color: '#ff8a65',
 };
 
+const virtualSwitchFixed = {
+  name: 'Runtime Virtual Switch Fixed',
+  profileType: 'FixedProfile',
+  color: '#64b5f6',
+  bypassList: [],
+  fallbackProxy: {
+    scheme: 'http',
+    host: '127.0.0.1',
+    port: 18190,
+  },
+};
+
+const virtualSwitchInner = {
+  name: 'Runtime Virtual Switch Inner',
+  profileType: 'SwitchProfile',
+  color: '#81c784',
+  rules: [
+    {
+      condition: {
+        conditionType: 'HostWildcardCondition',
+        pattern: 'virtual-switch-fixed.test',
+      },
+      profileName: virtualSwitchFixed.name,
+    },
+    {
+      condition: {
+        conditionType: 'HostWildcardCondition',
+        pattern: 'virtual-switch-direct.test',
+      },
+      profileName: 'direct',
+    },
+  ],
+  defaultProfileName: 'direct',
+};
+
+const virtualSwitchOuter = {
+  name: 'Runtime Virtual Switch Outer Alias',
+  profileType: 'VirtualProfile',
+  defaultProfileName: virtualSwitchInner.name,
+  rules: [],
+  color: '#ff8a65',
+};
+
 const runtimePacScript = `function FindProxyForURL(url, host) {
   if (host === 'pac-proxy.test') return 'PROXY 127.0.0.1:18186';
   return 'DIRECT';
@@ -208,6 +251,29 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         label: 'outer-virtual-inner-virtual-fixed-bypass',
         profileName: nestedVirtualOuterFixed.name,
         url: 'http://localhost/path',
+      }),
+    ]),
+  }),
+  'virtual-switch': Object.freeze({
+    id: 'virtual-switch',
+    description:
+      'An applied Virtual profile targets one Switch whose matched rules resolve to Fixed or Direct and whose default resolves to Direct.',
+    profiles: Object.freeze([virtualSwitchFixed, virtualSwitchInner, virtualSwitchOuter]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'virtual-switch-match-fixed',
+        profileName: virtualSwitchOuter.name,
+        url: 'http://virtual-switch-fixed.test/path',
+      }),
+      Object.freeze({
+        label: 'virtual-switch-match-direct',
+        profileName: virtualSwitchOuter.name,
+        url: 'http://virtual-switch-direct.test/path',
+      }),
+      Object.freeze({
+        label: 'virtual-switch-default-direct',
+        profileName: virtualSwitchOuter.name,
+        url: 'http://virtual-switch-default.test/path',
       }),
     ]),
   }),
