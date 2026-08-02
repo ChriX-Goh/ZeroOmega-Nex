@@ -1110,6 +1110,16 @@ try {
   await direct.click();
   await driver.wait(until.elementIsDisabled(direct), 15_000);
   assert.equal(
+    (await driver.findElements(By.css('[data-popup-result-profile]'))).length,
+    0,
+    'Inactive default Switch exposed a result selector in the Direct Popup state',
+  );
+  assert.equal(
+    (await driver.findElements(By.css('.profile-result-label'))).length,
+    0,
+    'Inactive default Switch exposed a result label in the Direct Popup state',
+  );
+  assert.equal(
     await driver.executeAsyncScript(`
       const done = arguments[0];
       browser.permissions.remove({

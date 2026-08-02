@@ -638,7 +638,11 @@
     {:else}
       {#each items as item, index (item.key)}
         {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}
-        <div class:has-result={item.resultRoute !== undefined} class="profile-row">
+        <div
+          class:has-result={item.resultRoute !== undefined &&
+            sameRoute(runtime?.activeRoute, item.route)}
+          class="profile-row"
+        >
           <button
             class:active={sameRoute(runtime?.activeRoute, item.route)}
             type="button"
@@ -657,7 +661,7 @@
             <ProfileIcon kind={item.kind} color={item.color} size={21} />
             <span class="profile-name">
               {item.name}
-              {#if item.resultRoute && state}
+              {#if item.resultRoute && state && sameRoute(runtime?.activeRoute, item.route)}
                 <span class="profile-result-label"
                   >[{routeName(state.applied, item.resultRoute)}]</span
                 >
@@ -673,7 +677,7 @@
               </svg>
             {/if}
           </button>
-          {#if item.resultRoute && item.resultItems && item.resultItems.length > 0}
+          {#if item.resultRoute && item.resultItems && item.resultItems.length > 0 && sameRoute(runtime?.activeRoute, item.route)}
             <label class="profile-result-control">
               <span>{uiText('popup.result', locale)}</span>
               <select

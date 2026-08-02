@@ -63,8 +63,8 @@
 
 html,
 body {
-  width: 320px;
-  min-width: 320px;
+  width: 440px;
+  min-width: 440px;
   margin: 0;
   padding: 0;
   background: var(--popup-bg);
@@ -76,7 +76,7 @@ button {
 }
 
 .popup-shell {
-  width: 320px;
+  width: 440px;
   overflow: hidden;
   background: var(--popup-bg);
   color: var(--popup-text);

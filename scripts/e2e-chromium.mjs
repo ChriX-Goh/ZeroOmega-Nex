@@ -296,6 +296,16 @@ try {
   );
   await initialPopup.getByRole('button', { name: '打开 ZeroOmega 选项', exact: true }).waitFor();
   await initialPopup.getByRole('button', { name: '直接连接', exact: true }).waitFor();
+  assert.equal(
+    await initialPopup.locator('[data-popup-result-profile]').count(),
+    0,
+    'Inactive default Switch exposed a result selector in the System Popup state',
+  );
+  assert.equal(
+    await initialPopup.locator('.profile-result-label').count(),
+    0,
+    'Inactive default Switch exposed a result label in the System Popup state',
+  );
   const initialButtons = initialPopup.locator('.profile-list button');
   assert.match(await initialButtons.nth(0).innerText(), /直接连接/u);
   assert.match(await initialButtons.nth(1).innerText(), /系统代理/u);
