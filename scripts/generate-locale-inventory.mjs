@@ -55,6 +55,19 @@ const originalLegalTexts = new Set([
   'Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.',
   'Copyright 2024-2025 The ZeroOmega Authors.',
   'ZeroOmega is free software licensed under GNU General Public License Version 3 or later.',
+  'Copyright 2012-2017',
+  'The SwitchyOmega Authors',
+  'All rights reserved.',
+  'Copyright 2024-2025',
+  'The ZeroOmega Authors',
+  'ZeroOmega is',
+  'free software',
+  'licensed under',
+  'GNU General Public License',
+  'Version 3 or later.',
+  'ZeroOmega is made possible by the',
+  'open source project and other',
+  'open source software',
 ]);
 
 function classifyCandidate(candidate) {

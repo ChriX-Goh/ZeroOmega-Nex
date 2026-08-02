@@ -39,6 +39,7 @@
 
   import ProfileIcon from '../../components/ProfileIcon.svelte';
   import OptionsNavIcon from './OptionsNavIcon.svelte';
+  import OriginalAboutIcon from './OriginalAboutIcon.svelte';
   import { currentBrowserTargetCapabilities } from '../../lib/browser-target-capabilities';
   import { currentAppLocale } from '../../lib/i18n';
   import { profileKindText, uiMessage, uiText } from '../../lib/ui-messages';
@@ -946,8 +947,10 @@
           resetOptions: '重置选项',
           resetConfirm: '确定要重置 ZeroOmega 的全部选项吗？',
           noServices: 'ZeroOmega 不提供代理、VPN 或其他网络服务。',
-          privacy: 'ZeroOmega 不跟踪用户，也不会在网页中插入广告。',
-          help: '使用 ZeroOmega 时遇到问题，请查阅常见问题或报告问题。',
+          privacy: 'ZeroOmega 不跟踪用户，也不会在网页中插入广告。请参阅我们的',
+          privacyPolicy: '隐私政策',
+          help: '还有其他问题？需要有关使用 ZeroOmega 的帮助？请参阅我们的',
+          faq: '常见问题',
           version: '版本',
         }
       : locale === 'zh-TW'
@@ -959,8 +962,10 @@
             resetOptions: '重設選項',
             resetConfirm: '確定要重設 ZeroOmega 的全部選項嗎？',
             noServices: 'ZeroOmega 不提供代理、VPN 或其他網路服務。',
-            privacy: 'ZeroOmega 不追蹤使用者，也不會在網頁中插入廣告。',
-            help: '使用 ZeroOmega 時遇到問題，請查閱常見問題或回報問題。',
+            privacy: 'ZeroOmega 不追蹤使用者，也不會在網頁中插入廣告。請參閱我們的',
+            privacyPolicy: '隱私權政策',
+            help: '還有其他問題？需要有關使用 ZeroOmega 的協助？請參閱我們的',
+            faq: '常見問題',
             version: '版本',
           }
         : {
@@ -971,8 +976,10 @@
             resetOptions: 'Reset options',
             resetConfirm: 'Reset all ZeroOmega options?',
             noServices: 'ZeroOmega does not provide proxies, VPNs, or other network services.',
-            privacy: 'ZeroOmega does not track you or insert ads into webpages.',
-            help: 'Need help with using ZeroOmega? See the FAQ or report an issue.',
+            privacy: 'ZeroOmega does not track you or insert ads into webpages. Please see our',
+            privacyPolicy: 'privacy policy',
+            help: 'Other questions? Need help with using ZeroOmega? Please see our',
+            faq: 'FAQ',
             version: 'Version',
           };
 
@@ -1492,25 +1499,71 @@
             class="report-issues"
             href="https://github.com/zero-peak/ZeroOmega/issues"
             target="_blank"
-            rel="noreferrer">{originalCopy.reportIssues}</a
+            rel="noreferrer"
+            ><OriginalAboutIcon kind="comment" />
+            <span>{originalCopy.reportIssues}</span></a
           >
-          <button type="button" onclick={saveErrorLog}>{originalCopy.saveErrorLog}</button>
+          <button type="button" onclick={saveErrorLog}>
+            <OriginalAboutIcon kind="download" />
+            <span>{originalCopy.saveErrorLog}</span>
+          </button>
           <button type="button" class="danger" onclick={() => void resetOptions()}>
-            {originalCopy.resetOptions}
+            <OriginalAboutIcon kind="alert" />
+            <span>{originalCopy.resetOptions}</span>
           </button>
         </div>
         <p>{originalCopy.version} {browser.runtime.getManifest().version}</p>
         <div class="about-notices">
-          <p>{originalCopy.noServices}</p>
-          <p>{originalCopy.privacy}</p>
-          <p>{originalCopy.help}</p>
+          <p class="text-warning">
+            <OriginalAboutIcon kind="info" />
+            <span>{originalCopy.noServices}</span>
+          </p>
+          <p class="text-success">
+            <OriginalAboutIcon kind="privacy" />
+            <span
+              >{originalCopy.privacy}
+              <a href="https://github.com/FelisCatus/SwitchyOmega/wiki/Privacy#english"
+                >{originalCopy.privacyPolicy}</a
+              >.</span
+            >
+          </p>
+          <p class="text-info">
+            <OriginalAboutIcon kind="help" />
+            <span
+              >{originalCopy.help}
+              <a href="https://github.com/FelisCatus/SwitchyOmega/wiki/FAQ">{originalCopy.faq}</a
+              >.</span
+            >
+          </p>
         </div>
         <footer class="about-license">
           <p>ZeroOmega</p>
-          <p>Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.</p>
-          <p>Copyright 2024-2025 The ZeroOmega Authors.</p>
           <p>
-            ZeroOmega is free software licensed under GNU General Public License Version 3 or later.
+            Copyright 2012-2017
+            <a href="https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS"
+              >The SwitchyOmega Authors</a
+            >. All rights reserved.
+          </p>
+          <p>
+            Copyright 2024-2025
+            <a href="https://github.com/zero-peak/ZeroOmega/graphs/contributors"
+              >The ZeroOmega Authors</a
+            >.
+          </p>
+          <p>
+            ZeroOmega is
+            <a href="https://www.gnu.org/philosophy/free-sw.en.html">free software</a>
+            licensed under
+            <a href="https://www.gnu.org/licenses/gpl.html">GNU General Public License</a>
+            Version 3 or later.
+          </p>
+          <p>
+            ZeroOmega is made possible by the
+            <a href="https://github.com/zero-peak/ZeroOmega">ZeroOmega</a>
+            open source project and other
+            <a href="https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS"
+              >open source software</a
+            >.
           </p>
         </footer>
       </div>

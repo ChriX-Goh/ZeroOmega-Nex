@@ -220,3 +220,40 @@
     margin-top: 118px;
   }
 }
+
+/* Official About semantics and link geometry. */
+.about-actions a,
+.about-actions button {
+  gap: 5px;
+}
+
+.about-notices p {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+}
+
+.about-notices .text-warning {
+  color: #8a6d3b;
+}
+
+.about-notices .text-success {
+  color: #3c763d;
+}
+
+.about-notices .text-info {
+  color: #31708f;
+}
+
+.about-notices a,
+.about-license a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+.about-notices a:hover,
+.about-notices a:focus-visible,
+.about-license a:hover,
+.about-license a:focus-visible {
+  text-decoration: underline;
+}

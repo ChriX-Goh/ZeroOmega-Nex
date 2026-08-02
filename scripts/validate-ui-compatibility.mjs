@@ -1023,6 +1023,22 @@ const requirements = [
     !advancedProfileOperations.includes('! Add AutoProxy rules here.'),
     'New Rule List profiles must not persist instructional text as rule data.',
   ],
+  [
+    optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&
+      optionsApp.includes('<OriginalAboutIcon kind="download" />') &&
+      optionsApp.includes('<OriginalAboutIcon kind="alert" />') &&
+      optionsApp.includes('<OriginalAboutIcon kind="info" />') &&
+      optionsApp.includes('<OriginalAboutIcon kind="privacy" />') &&
+      optionsApp.includes('<OriginalAboutIcon kind="help" />') &&
+      optionsApp.includes('https://github.com/FelisCatus/SwitchyOmega/wiki/Privacy#english') &&
+      optionsApp.includes('https://github.com/FelisCatus/SwitchyOmega/wiki/FAQ') &&
+      optionsApp.includes('https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS') &&
+      optionsApp.includes('https://github.com/zero-peak/ZeroOmega/graphs/contributors') &&
+      optionsApp.includes('https://www.gnu.org/philosophy/free-sw.en.html') &&
+      optionsApp.includes('https://www.gnu.org/licenses/gpl.html') &&
+      optionsApp.includes('ZeroOmega is made possible by the'),
+    'The original About page must retain its action glyphs, status glyphs, official links, author attribution, license links, and open-source credit.',
+  ],
 ];
 
 const failures = requirements.filter(([passed]) => !passed).map(([, message]) => message);

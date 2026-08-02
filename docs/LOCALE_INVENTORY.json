@@ -19,13 +19,13 @@
     "apps/extension/src/entrypoints/temp-rules/App.svelte",
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 30,
+  "candidateCount": 39,
   "untranslatedUserVisibleCount": 0,
   "classificationSummary": {
     "example-placeholder": 1,
     "format-name": 4,
     "keyboard-key": 4,
-    "original-legal-text": 3,
+    "original-legal-text": 12,
     "original-product-name": 1,
     "scanner-code-fragment": 2,
     "source-token": 13,
@@ -96,13 +96,61 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.",
+      "text": "Copyright 2012-2017",
       "classification": "original-legal-text"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "Copyright 2024-2025 The ZeroOmega Authors.",
+      "text": "Copyright 2024-2025",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "free software",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "GNU General Public License",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "licensed under",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "open source project and other",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "open source software",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "The SwitchyOmega Authors",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "The ZeroOmega Authors",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Version 3 or later.",
       "classification": "original-legal-text"
     },
     {
@@ -114,7 +162,13 @@
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
-      "text": "ZeroOmega is free software licensed under GNU General Public License Version 3 or later.",
+      "text": "ZeroOmega is",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega is made possible by the",
       "classification": "original-legal-text"
     },
     {
