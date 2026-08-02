@@ -59,6 +59,134 @@ function extensionPages(manifest) {
   return { optionsPath, popupPath };
 }
 
+function layoutMetricSelectors(implementation, surface) {
+  const original = implementation === 'original-v3.5.0';
+  if (surface === 'options-default') {
+    return original
+      ? {
+          shell: '.container-fluid',
+          sidebar: 'header.side-nav',
+          brand: 'header.side-nav > h1',
+          navHeading: 'header.side-nav .nav-header',
+          navItem: 'header.side-nav nav > li > a',
+          navDivider: 'header.side-nav .divider',
+          content: 'main',
+          title: '.page-header h2',
+          product: '.media',
+          productIcon: '.media-left img',
+          action: 'main section .btn',
+          notice: 'main p.text-warning, main p.text-success, main p.text-info',
+          license: 'main section:last-of-type',
+        }
+      : {
+          shell: '.app-shell',
+          sidebar: '.sidebar',
+          brand: '.side-brand button',
+          navHeading: '.nav-group h2',
+          navItem: '.nav-group > button',
+          navDivider: '.nav-group',
+          content: '.editor',
+          title: '.editor-heading h1',
+          product: '.about-product',
+          productIcon: '.about-mark',
+          action: '.about-actions > *',
+          notice: '.about-notices p',
+          license: '.about-license',
+        };
+  }
+  return original
+    ? {
+        shell: '.om-nav',
+        content: '.om-nav',
+        profileRow: '.om-nav-item',
+        profileAction: '.om-nav-item > a',
+        profileIcon: '.om-nav-item > a > .glyphicon:first-child',
+        profileName: '.om-profile-name',
+        divider: '.om-divider',
+        active: '.om-nav-item.om-active',
+        options: '#js-option',
+      }
+    : {
+        shell: '.popup-shell',
+        content: '.profile-list',
+        profileRow: '.profile-row',
+        profileAction: '.profile-row > button',
+        profileIcon: '.profile-row .profile-type-icon',
+        profileName: '.profile-name',
+        divider: '.profile-divider',
+        active: '.profile-row > button.active',
+        options: '.settings-button',
+      };
+}
+
+async function captureLayoutMetrics(page, implementation, surface) {
+  const metrics = {};
+  for (const [role, selector] of Object.entries(layoutMetricSelectors(implementation, surface))) {
+    metrics[role] = await page.locator(selector).evaluateAll((elements) =>
+      elements.slice(0, 16).map((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return {
+          tag: element.tagName.toLowerCase(),
+          id: element.id,
+          className: element.getAttribute('class') ?? '',
+          text: (element.textContent ?? '').replace(/\s+/gu, ' ').trim().slice(0, 160),
+          rect: {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            left: rect.left,
+          },
+          style: {
+            display: style.display,
+            position: style.position,
+            boxSizing: style.boxSizing,
+            color: style.color,
+            backgroundColor: style.backgroundColor,
+            fontFamily: style.fontFamily,
+            fontSize: style.fontSize,
+            fontWeight: style.fontWeight,
+            lineHeight: style.lineHeight,
+            letterSpacing: style.letterSpacing,
+            textTransform: style.textTransform,
+            opacity: style.opacity,
+            paddingTop: style.paddingTop,
+            paddingRight: style.paddingRight,
+            paddingBottom: style.paddingBottom,
+            paddingLeft: style.paddingLeft,
+            marginTop: style.marginTop,
+            marginRight: style.marginRight,
+            marginBottom: style.marginBottom,
+            marginLeft: style.marginLeft,
+            borderTop: style.borderTop,
+            borderRight: style.borderRight,
+            borderBottom: style.borderBottom,
+            borderLeft: style.borderLeft,
+            borderRadius: style.borderRadius,
+            boxShadow: style.boxShadow,
+            gap: style.gap,
+            rowGap: style.rowGap,
+            columnGap: style.columnGap,
+            alignItems: style.alignItems,
+            justifyContent: style.justifyContent,
+            flex: style.flex,
+            gridTemplateColumns: style.gridTemplateColumns,
+            overflowX: style.overflowX,
+            overflowY: style.overflowY,
+          },
+        };
+      }),
+    );
+  }
+  assert.equal(metrics.shell.length, 1, `${implementation}/${surface} shell metric`);
+  assert.equal(metrics.content.length >= 1, true, `${implementation}/${surface} content metric`);
+  return metrics;
+}
+
 async function resolveExtensionId(context) {
   let [worker] = context.serviceWorkers();
   if (!worker) {
@@ -122,6 +250,7 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
       globalThis.browser?.i18n?.getUILanguage?.() ??
       null,
   }));
+  const layoutMetrics = await captureLayoutMetrics(page, implementation, surface);
   const viewport = page.viewportSize();
   entries.push({
     implementation,
@@ -140,6 +269,7 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
     bodyHtmlSha256: sha256(Buffer.from(html)),
     links,
     language,
+    layoutMetrics,
   });
 }
 
@@ -329,7 +459,7 @@ entries.sort((left, right) =>
   ),
 );
 const manifest = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sourceHead,
   locale,
   original,
@@ -346,7 +476,7 @@ await writeFile(
 );
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
+  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
 );
 
 console.log(`Original ↔ Nex UI evidence captured for exact Head ${sourceHead}.`);
