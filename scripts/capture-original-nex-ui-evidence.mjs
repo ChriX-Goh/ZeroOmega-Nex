@@ -102,6 +102,15 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
       rel: anchor.rel,
     })),
   );
+  const language = await page.evaluate(() => ({
+    navigatorLanguage: navigator.language,
+    navigatorLanguages: [...navigator.languages],
+    documentLanguage: document.documentElement.lang,
+    extensionUiLanguage:
+      globalThis.chrome?.i18n?.getUILanguage?.() ??
+      globalThis.browser?.i18n?.getUILanguage?.() ??
+      null,
+  }));
   const viewport = page.viewportSize();
   entries.push({
     implementation,
@@ -119,6 +128,7 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
     html: relative(outputRoot, htmlPath).replaceAll('\\', '/'),
     bodyHtmlSha256: sha256(Buffer.from(html)),
     links,
+    language,
   });
 }
 
@@ -177,6 +187,7 @@ async function captureImplementation(implementation, extensionPath, entries) {
       optionsPath,
       popupPath,
       browserVersion: context.browser()?.version() ?? 'unknown',
+      manifestDefaultLocale: manifest.default_locale ?? null,
     };
   } finally {
     await context?.close();
@@ -243,7 +254,7 @@ await writeFile(
 );
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM and normalized anchor targets\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
+  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets and page/extension language signals\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
 );
 
 console.log(`Original ↔ Nex UI evidence captured for exact Head ${sourceHead}.`);
