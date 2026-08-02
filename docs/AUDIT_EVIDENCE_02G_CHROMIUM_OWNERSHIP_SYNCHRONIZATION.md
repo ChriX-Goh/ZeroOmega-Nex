@@ -72,6 +72,8 @@ Pure unit tests cover every disposition with and without an existing active rout
 
 ## Verification boundary
 
-The correction must pass the atomic repository validation, then a fresh ordinary-Head Chromium main E2E on its first attempt and every Toolbar specialist step. A manual rerun is not success evidence.
+Atomic repository validation passed on Actions-generated commit `e28f4fc0607022054b24405f7e27d18333600048`, and the temporary patch scripts were removed in the same transaction.
+
+This ordinary evidence Head must now pass Chromium main E2E on its first attempt and continue through every Toolbar specialist step. A manual rerun is not success evidence.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
