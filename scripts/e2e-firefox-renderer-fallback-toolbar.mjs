@@ -109,6 +109,16 @@ async function waitForValue(read, accept, message, timeout = 20_000) {
   assert.fail(`${message}: ${JSON.stringify(actual)}`);
 }
 
+function normalizeManifestIconPaths(iconPaths) {
+  return Object.fromEntries(
+    Object.entries(iconPaths ?? {}).map(([size, path]) => {
+      const value = String(path);
+      const prefix = `moz-extension://${extensionUuid}/`;
+      return [size, value.startsWith(prefix) ? value.slice(prefix.length) : value];
+    }),
+  );
+}
+
 try {
   const install = await bidiCommand('webExtension.install', {
     extensionData: { type: 'path', path: extensionPath },
@@ -213,7 +223,7 @@ try {
   const manifestIcons = await driver.executeScript(
     'return browser.runtime.getManifest().action?.default_icon;',
   );
-  assert.deepEqual(manifestIcons, {
+  assert.deepEqual(normalizeManifestIconPaths(manifestIcons), {
     16: 'icon/original-action-16.png',
     19: 'icon/original-action-19.png',
     24: 'icon/original-action-24.png',
