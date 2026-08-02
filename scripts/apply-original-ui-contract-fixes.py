@@ -43,7 +43,7 @@ Path(css_path).write_text(css)
 
 replace_once(
     evidence_path,
-    """A subsequent normal-Head paired artifact must verify the actual residuals before Options is considered visually converged.""",
+    """This ordinary evidence Head must verify the actual residual values and the corrected `brandText` metric before Options is considered visually converged.""",
     """Ordinary Head `5be036c1010b5a0d326144a7bea3b0148f4d1a8e` proves the residual correction succeeded for the sidebar, brand color, content width, action widths and license height. Navigation and action geometry remain within `0.02px` of Original; the visible brand text now has the exact original font, line height, weight and blue color.
 
 One final vertical residual remains: all three notices and the license block are `5.58px` low. Computed margins prove that the `12px` bottom margin on the action container wins the adjacent-margin collapse, preventing the smaller notice margin from taking effect. Both adjacent margins are therefore set to `6.421875px`, and action line height is fixed at `20px`. The Nex `brandText` selector now targets the internal text span instead of the full-width button.
