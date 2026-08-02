@@ -132,7 +132,13 @@ function projectDirect(
   input: ResolvedVirtualSwitchTraceInput,
   inner: ColoredSwitchProfile,
 ): OriginalObservableResultTrace | undefined {
-  const allowedActions = new Set(['enter-profile', 'virtual', 'switch-rule', 'switch-default', 'direct']);
+  const allowedActions = new Set([
+    'enter-profile',
+    'virtual',
+    'switch-rule',
+    'switch-default',
+    'direct',
+  ]);
   if (
     input.decision.route.kind !== 'direct' ||
     input.decision.trace.some((entry) => !allowedActions.has(entry.action)) ||
