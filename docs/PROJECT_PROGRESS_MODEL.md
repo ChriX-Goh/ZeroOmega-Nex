@@ -19,43 +19,43 @@ The failed `M8-OWNER-QC-1` candidate and historical `98%` estimate are not input
 
 ## Journey weights
 
-| Order | Complete user journey | Weight |
-| ---: | --- | ---: |
-| 1 | Installation, startup, Toolbar icon/title/Badge and per-tab state | 12% |
-| 2 | Original export file → direct import → immediate equivalent use | 20% |
-| 3 | Popup selection, result state, current-site rules and temporary rules | 12% |
-| 4 | Options information architecture, dialogs and Apply/Discard lifecycle | 16% |
-| 5 | Fixed, Switch, PAC, Virtual, Rule List and profile lifecycle journeys | 22% |
-| 6 | Export, restart, rollback, ownership and authentication | 10% |
-| 7 | Localization, information density and visual alignment | 8% |
-| | **Total** | **100%** |
+| Order | Complete user journey                                                 |   Weight |
+| ----: | --------------------------------------------------------------------- | -------: |
+|     1 | Installation, startup, Toolbar icon/title/Badge and per-tab state     |      12% |
+|     2 | Original export file → direct import → immediate equivalent use       |      20% |
+|     3 | Popup selection, result state, current-site rules and temporary rules |      12% |
+|     4 | Options information architecture, dialogs and Apply/Discard lifecycle |      16% |
+|     5 | Fixed, Switch, PAC, Virtual, Rule List and profile lifecycle journeys |      22% |
+|     6 | Export, restart, rollback, ownership and authentication               |      10% |
+|     7 | Localization, information density and visual alignment                |       8% |
+|       | **Total**                                                             | **100%** |
 
 ## Completion gates inside every journey
 
-| Gate | Share inside journey | Meaning |
-| --- | ---: | --- |
-| Original capture | 15% | Original source, runtime, UI and data behavior are captured. |
-| Nex capture and mapping | 10% | Current Nex behavior is independently captured and explicitly mapped. |
-| Implementation | 40% | Required behavior exists without unapproved inventions. |
-| Contract automation | 15% | Tests verify original-derived contracts rather than Nex-only fixtures. |
-| Real browser/data evidence | 10% | Clean Chromium/Firefox and real original data pass where applicable. |
-| Owner acceptance | 10% | Repository owner accepts the exact behavior/build. |
-| **Total** | **100%** | A journey reaches 100% only after owner acceptance. |
+| Gate                       | Share inside journey | Meaning                                                                |
+| -------------------------- | -------------------: | ---------------------------------------------------------------------- |
+| Original capture           |                  15% | Original source, runtime, UI and data behavior are captured.           |
+| Nex capture and mapping    |                  10% | Current Nex behavior is independently captured and explicitly mapped.  |
+| Implementation             |                  40% | Required behavior exists without unapproved inventions.                |
+| Contract automation        |                  15% | Tests verify original-derived contracts rather than Nex-only fixtures. |
+| Real browser/data evidence |                  10% | Clean Chromium/Firefox and real original data pass where applicable.   |
+| Owner acceptance           |                  10% | Repository owner accepts the exact behavior/build.                     |
+| **Total**                  |             **100%** | A journey reaches 100% only after owner acceptance.                    |
 
 No journey receives owner-acceptance points from inference, silence, generated screenshots or automation.
 
 ## Current scored baseline
 
-| Order | Weight | Current journey completion | Earned project points | Current basis |
-| ---: | ---: | ---: | ---: | --- |
-| 1 | 12% | 35% | 4.2 | One Action writer, clean-install System, Direct/System/Fixed, represented Switch/Virtual/Rule List/PAC/temp/external/fallback families through 01O and dual-browser Action evidence exist. The consolidated ordinary-use journey, normal restart, exact acceptance build and owner `PASS` remain open. |
-| 2 | 20% | 35% | 7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open. |
-| 3 | 12% | 46% | 5.5 | Substantial Popup/runtime implementation and browser checks exist, but complete original hierarchy, density, site-rule interaction and owner review remain open. |
-| 4 | 16% | 51% | 8.1 | Options and Draft/Applied foundations are substantial; original layout, dialogs, extra descriptions and interaction parity remain untrusted. |
-| 5 | 22% | 60% | 13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical `DONE` rows require complete-journey re-audit and real migrated-data verification. |
-| 6 | 10% | 52% | 5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete. |
-| 7 | 8% | 44% | 3.5 | Typed localization and generated Nex visual checks exist; paired original runtime comparison, density cleanup and owner acceptance remain open. |
-| | **100%** | | **46.7 → 47%** | Rounded to the nearest whole percentage point. |
+| Order |   Weight | Current journey completion | Earned project points | Current basis                                                                                                                                                                                                                                                                                          |
+| ----: | -------: | -------------------------: | --------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|     1 |      12% |                        35% |                   4.2 | One Action writer, clean-install System, Direct/System/Fixed, represented Switch/Virtual/Rule List/PAC/temp/external/fallback families through 01O and dual-browser Action evidence exist. The consolidated ordinary-use journey, normal restart, exact acceptance build and owner `PASS` remain open. |
+|     2 |      20% |                        35% |                   7.0 | Legacy decoding and typed import foundations exist, but representative real original exports have not passed direct import, activation, browsing, restart and semantic re-export. `KG-IMPORT-COLOR-001` remains open.                                                                                  |
+|     3 |      12% |                        46% |                   5.5 | Substantial Popup/runtime implementation and browser checks exist, but complete original hierarchy, density, site-rule interaction and owner review remain open.                                                                                                                                       |
+|     4 |      16% |                        51% |                   8.1 | Options and Draft/Applied foundations are substantial; original layout, dialogs, extra descriptions and interaction parity remain untrusted.                                                                                                                                                           |
+|     5 |      22% |                        60% |                  13.2 | Fixed/Switch/PAC/Virtual/Rule List implementation is broad, but historical `DONE` rows require complete-journey re-audit and real migrated-data verification.                                                                                                                                          |
+|     6 |      10% |                        52% |                   5.2 | Authentication, ownership, snapshots and rollback foundations exist; complete original-facing lifecycle and real imported-configuration verification remain incomplete.                                                                                                                                |
+|     7 |       8% |                        44% |                   3.5 | Typed localization and generated Nex visual checks exist; paired original runtime comparison, density cleanup and owner acceptance remain open.                                                                                                                                                        |
+|       | **100%** |                            |        **46.7 → 47%** | Rounded to the nearest whole percentage point.                                                                                                                                                                                                                                                         |
 
 ## Why Order 1 remains 35%
 
