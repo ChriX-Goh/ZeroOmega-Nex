@@ -257,9 +257,10 @@ export function projectOriginalVirtualSwitchTrace(
     return undefined;
   }
 
+  const innerProfileId = input.parent.targetRoute.profileId;
   const inner = input.spec.profiles.find(
     (profile): profile is ColoredSwitchProfile =>
-      profile.id === input.parent.targetRoute.profileId &&
+      profile.id === innerProfileId &&
       profile.kind === 'switch' &&
       profile.color !== undefined &&
       profile.attachedRuleListProfileId === undefined,
