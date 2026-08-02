@@ -133,6 +133,12 @@ jobs:
           set -o pipefail
           pnpm test:e2e:firefox-profile-traces-toolbar 2>&1 | tee firefox-profile-traces-toolbar-e2e.log
 
+      - name: Run Firefox external-control Toolbar E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-external-control-toolbar 2>&1 | tee firefox-external-control-toolbar-e2e.log
+
       - name: Upload Firefox diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -143,6 +149,7 @@ jobs:
             firefox-toolbar-e2e.log
             firefox-attached-rule-list-toolbar-e2e.log
             firefox-profile-traces-toolbar-e2e.log
+            firefox-external-control-toolbar-e2e.log
           if-no-files-found: warn
 
   chromium-native-inspect:
