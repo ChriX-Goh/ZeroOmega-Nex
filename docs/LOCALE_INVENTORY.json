@@ -20,18 +20,17 @@
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
   "candidateCount": 40,
-  "untranslatedUserVisibleCount": 1,
+  "untranslatedUserVisibleCount": 0,
   "classificationSummary": {
     "example-placeholder": 1,
     "format-name": 4,
     "keyboard-key": 4,
     "original-legal-text": 12,
-    "original-product-name": 1,
+    "original-product-name": 2,
     "scanner-code-fragment": 2,
     "source-token": 13,
     "stable-technical-code": 1,
-    "standard-technical-term": 1,
-    "user-visible-untranslated": 1
+    "standard-technical-term": 1
   },
   "candidates": [
     {
@@ -158,7 +157,7 @@
       "path": "apps/extension/src/entrypoints/options/App.svelte",
       "kind": "text",
       "text": "Zero Omega",
-      "classification": "user-visible-untranslated"
+      "classification": "original-product-name"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",

@@ -50,7 +50,7 @@ function visibleCandidate(value) {
 const formatNames = new Set(['AutoProxy', 'Switchy']);
 const keyboardKeys = new Set(['Enter', 'Escape']);
 const stableTechnicalCodes = new Set(['ERR_TIMEOUT']);
-const originalProductNames = new Set(['ZeroOmega']);
+const originalProductNames = new Set(['Zero Omega', 'ZeroOmega']);
 const originalLegalTexts = new Set([
   'Copyright 2012-2017 The SwitchyOmega Authors. All rights reserved.',
   'Copyright 2024-2025 The ZeroOmega Authors.',
