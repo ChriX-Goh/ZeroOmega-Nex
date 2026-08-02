@@ -147,19 +147,21 @@ describe('original Virtual to Switch toolbar projection', () => {
   it('reproduces the inner Switch default into Direct', async () => {
     const { state, outer } = fixture();
 
-    await expect(resolve(state, outer, 'http://virtual-switch-default.test/path')).resolves.toEqual({
-      icon: {
-        mode: 'two-color',
-        outerCircleColor: '#aaaaaa',
-        innerCircleColor: '#81c784',
+    await expect(resolve(state, outer, 'http://virtual-switch-default.test/path')).resolves.toEqual(
+      {
+        icon: {
+          mode: 'two-color',
+          outerCircleColor: '#aaaaaa',
+          innerCircleColor: '#81c784',
+        },
+        titleArguments: {
+          currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
+          resultProfileName: '[Direct]',
+          details: '(default) => [Direct]\n',
+        },
+        badgeText: 'Dire',
       },
-      titleArguments: {
-        currentProfileName: 'Runtime Virtual Switch Outer Alias [Runtime Virtual Switch Inner]',
-        resultProfileName: '[Direct]',
-        details: '(default) => [Direct]\n',
-      },
-      badgeText: 'Dire',
-    });
+    );
   });
 
   it('keeps an inner Switch target to another Switch fail-closed', async () => {
@@ -180,6 +182,8 @@ describe('original Virtual to Switch toolbar projection', () => {
       route: { kind: 'profile', profileId: nested.id },
     };
 
-    await expect(resolve(state, outer, 'http://virtual-switch-fixed.test/path')).resolves.toBeUndefined();
+    await expect(
+      resolve(state, outer, 'http://virtual-switch-fixed.test/path'),
+    ).resolves.toBeUndefined();
   });
 });
