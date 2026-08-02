@@ -718,7 +718,8 @@ const requirements = [
       optionsApp.includes('data-new-profile-shell') &&
       optionsApp.includes('data-empty-profiles') &&
       !optionsApp.includes('ZeroOmega Nex') &&
-      !optionsApp.includes('<span>Zero Omega</span>') &&
+      optionsApp.includes('<span>Zero Omega</span>') &&
+      !optionsApp.includes('<span>ZeroOmega</span>') &&
       !optionsApp.includes("uiText('history.nav'") &&
       !optionsApp.includes('class="draft-status"') &&
       !fixedProfile.includes('data-fixed-protocol-capabilities') &&
