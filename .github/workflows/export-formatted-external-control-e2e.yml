@@ -1,0 +1,48 @@
+name: Export Formatted External Control E2E
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-formatted-external-control-e2e.yml
+      - scripts/e2e-chromium-external-control-toolbar.mjs
+      - scripts/e2e-firefox-external-control-toolbar.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format targets in workspace
+        run: >-
+          pnpm exec prettier --write
+          scripts/e2e-chromium-external-control-toolbar.mjs
+          scripts/e2e-firefox-external-control-toolbar.mjs
+
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-external-control-e2e
+          path: |
+            scripts/e2e-chromium-external-control-toolbar.mjs
+            scripts/e2e-firefox-external-control-toolbar.mjs
+          if-no-files-found: error
