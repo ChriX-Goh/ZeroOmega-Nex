@@ -189,12 +189,15 @@ try {
   fixed.name = 'Runtime External Control Fixed';
   fixed.color = '#4fc3f7';
   fixed.bypass = [];
-  const endpointId = fixed.proxyByScheme.fallback;
-  const endpoint = draft.proxyEndpoints.find((candidate) => candidate.id === endpointId);
-  assert.ok(endpoint, 'Firefox default Fixed endpoint is unavailable');
-  endpoint.protocol = 'http';
-  endpoint.host = '127.0.0.1';
-  endpoint.port = 18188;
+  const endpointId = 'endpoint-external-control';
+  draft.proxyEndpoints.push({
+    id: endpointId,
+    name: 'Runtime External Control Proxy',
+    protocol: 'http',
+    host: '127.0.0.1',
+    port: 18188,
+  });
+  fixed.proxyByScheme = { fallback: endpointId };
 
   const replaced = await sendWorkflowCommand({
     channel: 'zeroomega-nex/profile-workflow/v1',
