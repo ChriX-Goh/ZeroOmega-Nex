@@ -476,18 +476,51 @@ try {
   const system = popup.getByRole('button', { name: /系统代理/u });
   await system.click();
   await assertEventually(async () => system.isDisabled(), 'System route did not become active');
-  await worker.evaluate(async () =>
-    chrome.proxy.settings.set({
-      scope: 'regular',
-      value: {
-        mode: 'fixed_servers',
-        rules: {
-          fallbackProxy: { scheme: 'socks5', host: 'external.e2e.invalid', port: 1080 },
-          proxyForHttp: { scheme: 'http', host: 'external-http.e2e.invalid', port: 8080 },
-          bypassList: ['<local>', 'localhost', '*.external.internal'],
+  const externalProxySetting = await worker.evaluate(async () => {
+    await new Promise((resolveSet, rejectSet) => {
+      chrome.proxy.settings.set(
+        {
+          scope: 'regular',
+          value: {
+            mode: 'fixed_servers',
+            rules: {
+              fallbackProxy: {
+                scheme: 'socks5',
+                host: 'external.e2e.invalid',
+                port: 1080,
+              },
+              proxyForHttp: {
+                scheme: 'http',
+                host: 'external-http.e2e.invalid',
+                port: 8080,
+              },
+              bypassList: ['<local>', 'localhost', '*.external.internal'],
+            },
+          },
         },
-      },
-    }),
+        () => {
+          const error = chrome.runtime.lastError;
+          if (error) rejectSet(new Error(error.message));
+          else resolveSet();
+        },
+      );
+    });
+    return chrome.proxy.settings.get({ incognito: false });
+  });
+  assert.equal(
+    externalProxySetting.value?.mode,
+    'fixed_servers',
+    'Chromium did not confirm the external fixed proxy setting before ownership inspection',
+  );
+  assert.equal(
+    externalProxySetting.value?.rules?.fallbackProxy?.host,
+    'external.e2e.invalid',
+    'Chromium external fallback proxy did not converge before ownership inspection',
+  );
+  assert.equal(
+    externalProxySetting.value?.rules?.proxyForHttp?.host,
+    'external-http.e2e.invalid',
+    'Chromium external HTTP proxy did not converge before ownership inspection',
   );
   let externalOwnership;
   await assertEventually(
