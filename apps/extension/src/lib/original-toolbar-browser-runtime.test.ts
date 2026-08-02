@@ -8,7 +8,6 @@ import type {
 import {
   createOriginalToolbarBrowserRuntime,
   ORIGINAL_TOOLBAR_BADGE_BACKGROUND_COLOR,
-  ORIGINAL_TOOLBAR_FALLBACK_ICON_PATHS,
   ORIGINAL_TOOLBAR_RUNTIME_POPUP,
 } from './original-toolbar-browser-runtime';
 import type {
@@ -134,7 +133,7 @@ describe('original toolbar browser runtime', () => {
     expect(runtime.tabs).toBe(tabs);
     await runtime.executor.applyDefault(7);
 
-    expect(action.icons).toEqual([{ tabId: 7, path: ORIGINAL_TOOLBAR_FALLBACK_ICON_PATHS }]);
+    expect(action.icons).toEqual([]);
     expect(action.titles).toEqual([{ tabId: 7, title: '正在加载……' }]);
     expect(action.badges).toEqual([{ tabId: 7, text: '' }]);
     expect(action.badgeColors).toEqual([
