@@ -43,6 +43,8 @@ The guard is being corrected to require that the helper copy remains absent, and
 
 Firefox core entry E2E already passed the corrected About-first journey before this follow-up. This does not close the complete Firefox job or the product journey.
 
+The correction transaction is intentionally limited to these two demonstrated stale assumptions; it does not alter product behavior or restore any removed UI.
+
 ## Evidence boundary
 
 The permanent gates must now run on a normal repository Head:
