@@ -33,13 +33,13 @@ export interface OriginalToolbarIconRendererOptions {
  * Reproduce the exact ZeroOmega v3.5.0 dynamic toolbar icon pipeline.
  *
  * The original reuses one 300×300 OffscreenCanvas, scales the normalized Ω
- * drawing for 16/19/24/32/38 output sizes, resets the transform before reading
- * pixels, caches by the two profile colors and permanently falls back for a
- * color pair when privacy anti-fingerprinting replaces the image with opaque
- * white data.
+ * drawing for 16/19/24/32/38 output sizes and caches successful results by the
+ * two profile colors. Privacy-blocked or otherwise failed draws return no icon,
+ * report only the first error, and are retried on every later request for the
+ * same colors.
  */
 export class OriginalToolbarIconRenderer {
-  readonly #cache = new Map<string, OriginalToolbarActionImageDataSet | undefined>();
+  readonly #cache = new Map<string, OriginalToolbarActionImageDataSet>();
   readonly #factory: OriginalToolbarCanvasFactory;
   readonly #onFirstError: (error: unknown) => void;
   #context: OriginalToolbarCanvasContext | undefined;
@@ -58,7 +58,8 @@ export class OriginalToolbarIconRenderer {
     innerCircleColor?: string,
   ): OriginalToolbarActionImageDataSet | undefined {
     const cacheKey = `omega+${outerCircleColor}+${innerCircleColor ?? ''}`;
-    if (this.#cache.has(cacheKey)) return this.#cache.get(cacheKey);
+    const cached = this.#cache.get(cacheKey);
+    if (cached !== undefined) return cached;
 
     try {
       const context = this.context();
@@ -84,7 +85,6 @@ export class OriginalToolbarIconRenderer {
         this.#reportedError = true;
         this.#onFirstError(error);
       }
-      this.#cache.set(cacheKey, undefined);
       return undefined;
     }
   }
