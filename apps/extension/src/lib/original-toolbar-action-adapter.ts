@@ -45,8 +45,9 @@ export interface OriginalToolbarActionPresentation {
  * Single browser-API boundary for the original-facing toolbar presentation.
  *
  * State derivation, localization and icon rendering remain outside this
- * adapter. The adapter always writes every tab-visible field so stale title,
- * Badge or Popup state cannot leak from a previous result or Inspect state.
+ * adapter. The adapter always writes title, Badge and Popup state. Icon writes
+ * follow the original boundary: no dynamic image means no setIcon call, while
+ * a rejected full image set is retried with the legacy 19/38 subset.
  */
 export class OriginalToolbarActionAdapter {
   constructor(private readonly action: OriginalToolbarActionApi) {}
@@ -77,15 +78,7 @@ export class OriginalToolbarActionAdapter {
     presentation: OriginalToolbarActionPresentation,
     target: Readonly<{ tabId?: number }>,
   ): Promise<void> {
-    if (presentation.imageData === undefined) {
-      await Promise.resolve(
-        this.action.setIcon({
-          ...target,
-          path: presentation.fallbackIconPaths,
-        }),
-      );
-      return;
-    }
+    if (presentation.imageData === undefined) return;
 
     try {
       await Promise.resolve(
@@ -95,10 +88,18 @@ export class OriginalToolbarActionAdapter {
         }),
       );
     } catch {
+      const legacyImageData: OriginalToolbarActionImageDataSet = {
+        ...(presentation.imageData[19] === undefined
+          ? {}
+          : { 19: presentation.imageData[19] }),
+        ...(presentation.imageData[38] === undefined
+          ? {}
+          : { 38: presentation.imageData[38] }),
+      };
       await Promise.resolve(
         this.action.setIcon({
           ...target,
-          path: presentation.fallbackIconPaths,
+          imageData: legacyImageData,
         }),
       );
     }
