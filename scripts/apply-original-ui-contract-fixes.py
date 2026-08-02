@@ -33,9 +33,7 @@ replace_once(
 replace_once(
     'apps/extension/src/entrypoints/popup/App.svelte',
     'class:has-result={item.resultRoute !== undefined} class="profile-row"',
-    """class:has-result={item.resultRoute !== undefined &&
-            sameRoute(runtime?.activeRoute, item.route)}
-          class="profile-row"""",
+    'class:has-result={item.resultRoute !== undefined &&\n            sameRoute(runtime?.activeRoute, item.route)}\n          class="profile-row"',
 )
 replace_once(
     'apps/extension/src/entrypoints/popup/App.svelte',
