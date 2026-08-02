@@ -1039,8 +1039,8 @@ const requirements = [
       popupApp.includes("name: `[${uiText('route.direct', locale)}]`") &&
       popupApp.includes("name: `[${uiText('route.system', locale)}]`") &&
       optionsApp.includes('<span>Zero Omega</span>') &&
-      !optionsApp.includes('class="about-mark"'),
-    'Production Popup and Options must default to original English while the existing Browser E2E build marker preserves Simplified and Traditional Chinese localization coverage.',
+      optionsApp.includes('<img src="/icon/original-action-32.png" alt="" class="about-mark" />'),
+    'Production Popup and Options must default to original English, retain the original 32px About product icon, and preserve explicit Simplified and Traditional Chinese Browser E2E coverage.',
   ],
   [
     optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&

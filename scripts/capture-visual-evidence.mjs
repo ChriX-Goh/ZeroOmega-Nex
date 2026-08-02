@@ -26,10 +26,8 @@ const surfaces = [
   'temporary-rules',
   'network',
 ];
-const expectedHeadings = {
-  'zh-CN': { general: '通用' },
-  'zh-TW': { general: '一般' },
-};
+const renderedLocale = 'en';
+const expectedGeneralHeading = 'General';
 
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
@@ -115,35 +113,35 @@ for (const combination of combinations) {
       localStorage.setItem('zeroomega-nex/theme-mode', selectedTheme);
     }, theme);
     await options.reload();
-    await waitForStablePage(options, '[data-general-settings]', locale, theme);
+    await waitForStablePage(options, '[data-general-settings]', renderedLocale, theme);
     await options
-      .getByRole('heading', { name: expectedHeadings[locale].general, level: 1, exact: true })
+      .getByRole('heading', { name: expectedGeneralHeading, level: 1, exact: true })
       .waitFor();
     await capture(
       options,
       resolve(combinationDir, 'options-general.png'),
-      { locale, theme, surface: 'options-general', url: 'options.html#/general' },
+      { locale, renderedLocale, theme, surface: 'options-general', url: 'options.html#/general' },
       entries,
     );
 
     await options.goto(`${baseUrl}/options.html`);
     await options.waitForLoadState('domcontentloaded');
     await options.getByRole('button', { name: 'proxy', exact: true }).click();
-    await waitForStablePage(options, '[data-fixed-proxy-table]', locale, theme);
+    await waitForStablePage(options, '[data-fixed-proxy-table]', renderedLocale, theme);
     await capture(
       options,
       resolve(combinationDir, 'fixed-profile.png'),
-      { locale, theme, surface: 'fixed-profile', url: 'options.html' },
+      { locale, renderedLocale, theme, surface: 'fixed-profile', url: 'options.html' },
       entries,
     );
 
     await options.goto(`${baseUrl}/options.html#/import`);
     await options.waitForLoadState('domcontentloaded');
-    await waitForStablePage(options, '[data-legacy-import-panel]', locale, theme);
+    await waitForStablePage(options, '[data-legacy-import-panel]', renderedLocale, theme);
     await capture(
       options,
       resolve(combinationDir, 'import-export.png'),
-      { locale, theme, surface: 'import-export', url: 'options.html#/import' },
+      { locale, renderedLocale, theme, surface: 'import-export', url: 'options.html#/import' },
       entries,
     );
 
@@ -151,11 +149,11 @@ for (const combination of combinations) {
     await popup.setViewportSize({ width: 440, height: 760 });
     await popup.goto(`${baseUrl}/popup.html`);
     await popup.waitForLoadState('domcontentloaded');
-    await waitForStablePage(popup, '.popup-shell', locale, theme);
+    await waitForStablePage(popup, '.popup-shell', renderedLocale, theme);
     await capture(
       popup,
       resolve(combinationDir, 'popup.png'),
-      { locale, theme, surface: 'popup', url: 'popup.html' },
+      { locale, renderedLocale, theme, surface: 'popup', url: 'popup.html' },
       entries,
     );
     await popup.close();
@@ -164,14 +162,14 @@ for (const combination of combinations) {
     await temporaryRules.setViewportSize({ width: 1100, height: 760 });
     await temporaryRules.goto(`${baseUrl}/temp-rules.html`);
     await temporaryRules.waitForLoadState('domcontentloaded');
-    await waitForStablePage(temporaryRules, '[data-temp-rules-manager]', locale, theme);
+    await waitForStablePage(temporaryRules, '[data-temp-rules-manager]', renderedLocale, theme);
     await temporaryRules
       .locator('[data-temp-rules-manager][aria-busy="false"]')
       .waitFor({ timeout: 20_000 });
     await capture(
       temporaryRules,
       resolve(combinationDir, 'temporary-rules.png'),
-      { locale, theme, surface: 'temporary-rules', url: 'temp-rules.html' },
+      { locale, renderedLocale, theme, surface: 'temporary-rules', url: 'temp-rules.html' },
       entries,
     );
     await temporaryRules.close();
@@ -180,14 +178,14 @@ for (const combination of combinations) {
     await network.setViewportSize({ width: 1100, height: 760 });
     await network.goto(`${baseUrl}/network.html`);
     await network.waitForLoadState('domcontentloaded');
-    await waitForStablePage(network, '[data-network-diagnostics]', locale, theme);
+    await waitForStablePage(network, '[data-network-diagnostics]', renderedLocale, theme);
     await network
       .locator('[data-network-diagnostics][aria-busy="false"]')
       .waitFor({ timeout: 20_000 });
     await capture(
       network,
       resolve(combinationDir, 'network.png'),
-      { locale, theme, surface: 'network', url: 'network.html' },
+      { locale, renderedLocale, theme, surface: 'network', url: 'network.html' },
       entries,
     );
     await network.close();
@@ -238,6 +236,6 @@ const rows = entries
   .join('\n');
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Milestone 8 visual evidence\n\n- Exact Head: \`${sourceHead}\`\n- Chromium: \`${browserVersion}\`\n- Images: ${entries.length}\n- Matrix: light/dark × zh-CN/zh-TW × six representative surfaces\n\n| Locale | Theme | Surface | Dimensions | SHA-256 | File |\n| --- | --- | --- | --- | --- | --- |\n${rows}\n`,
+  `# Milestone 8 visual evidence\n\n- Exact Head: \`${sourceHead}\`\n- Chromium: \`${browserVersion}\`\n- Images: ${entries.length}\n- Matrix: light/dark × requested browser locale zh-CN/zh-TW × original-compatible rendered locale en × six representative surfaces\n\n| Requested locale | Theme | Surface | Dimensions | SHA-256 | File |\n| --- | --- | --- | --- | --- | --- |\n${rows}\n`,
 );
 console.log(`Visual evidence passed: ${entries.length} PNG files for exact Head ${sourceHead}.`);

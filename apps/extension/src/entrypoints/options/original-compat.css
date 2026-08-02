@@ -87,8 +87,16 @@
 }
 
 .about-product {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin: 22px 0;
+}
+
+.about-mark {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
 }
 
 .about-product h2,

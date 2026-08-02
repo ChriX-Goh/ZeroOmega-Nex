@@ -1488,8 +1488,11 @@
           <h1>{originalCopy.about}</h1>
         </header>
         <section class="about-product">
-          <h2>ZeroOmega</h2>
-          <p>{originalCopy.tagline}</p>
+          <img src="/icon/original-action-32.png" alt="" class="about-mark" />
+          <div>
+            <h2>ZeroOmega</h2>
+            <p>{originalCopy.tagline}</p>
+          </div>
         </section>
         <div class="about-actions">
           <a

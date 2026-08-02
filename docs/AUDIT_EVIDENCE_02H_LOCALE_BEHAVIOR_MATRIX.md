@@ -45,7 +45,7 @@ The same matrix also proved these original-facing text and structure differences
 - original Popup built-ins are `[Direct]` and `[System Proxy]`;
 - original Options sidebar brand is `Zero Omega`;
 - original English navigation uses `Import/Export` and `Builtin`;
-- original About has no added Omega emblem before the product text.
+- original About uses the packaged 32×32 blue Omega action icon before the product text.
 
 ## Verified product correction
 
@@ -62,10 +62,10 @@ The correction also:
 - renders Popup built-ins as `[Direct]` and `[System Proxy]`, with translated text inside the brackets only in explicit localization E2E builds;
 - restores the sidebar brand spelling `Zero Omega`;
 - restores English `Import/Export` and `Builtin` labels;
-- removes the Nex-only Omega emblem from the About product block;
+- restores the packaged 32×32 blue Omega action icon in the About product block;
 - retains all Simplified and Traditional Chinese catalogs and unit-level locale resolution coverage.
 
-The UI compatibility guard requires the English production default, explicit E2E localization boundary, bracketed built-ins, original sidebar spelling and absence of the About emblem. The Chromium exact Direct selectors were synchronized with the bracketed localized label; Firefox uses contained text and remains compatible.
+The UI compatibility guard requires the English production default, explicit E2E localization boundary, bracketed built-ins, original sidebar spelling and the packaged 32×32 About product icon. The Chromium exact Direct selectors were synchronized with the bracketed localized label; Firefox uses contained text and remains compatible.
 
 ## Verification boundary
 
