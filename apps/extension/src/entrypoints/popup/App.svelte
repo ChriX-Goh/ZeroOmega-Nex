@@ -201,7 +201,7 @@
         return {
           key: routeKey(route),
           route,
-          name: uiText('route.direct', locale),
+          name: `[${uiText('route.direct', locale)}]`,
           color: spec.settings.interface.builtInProfiles?.direct?.color ?? '#bdbdbd',
           kind: 'direct',
           available: true,
@@ -211,7 +211,7 @@
         return {
           key: routeKey(route),
           route,
-          name: uiText('route.system', locale),
+          name: `[${uiText('route.system', locale)}]`,
           color: spec.settings.interface.builtInProfiles?.system?.color ?? '#616161',
           kind: 'system',
           available: true,

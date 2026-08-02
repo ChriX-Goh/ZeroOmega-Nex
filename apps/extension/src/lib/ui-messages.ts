@@ -857,7 +857,7 @@ export const typedUiTextCatalog = {
   'options.nav.general': { en: 'General', 'zh-CN': '通用', 'zh-TW': '一般' },
   'options.nav.theme': { en: 'Theme', 'zh-CN': '主题', 'zh-TW': '佈景主題' },
   'options.nav.builtIn': {
-    en: 'Built-in Profiles',
+    en: 'Builtin',
     'zh-CN': '内置情景模式',
     'zh-TW': '內建情境模式',
   },
@@ -1536,7 +1536,7 @@ export const typedUiTextCatalog = {
     'zh-CN': '回滚到此快照',
     'zh-TW': '復原到此快照',
   },
-  'legacy.pageTitle': { en: 'Import / Export', 'zh-CN': '导入 / 导出', 'zh-TW': '匯入 / 匯出' },
+  'legacy.pageTitle': { en: 'Import/Export', 'zh-CN': '导入 / 导出', 'zh-TW': '匯入 / 匯出' },
   'legacy.pageHelp': {
     en: 'Move from original ZeroOmega or SwitchyOmega without rebuilding profiles.',
     'zh-CN': '无需重新创建情景模式，即可从原版 ZeroOmega 或 SwitchyOmega 迁移。',

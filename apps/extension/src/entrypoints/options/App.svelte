@@ -1073,7 +1073,7 @@
   <aside class="sidebar">
     <header class="side-brand">
       <button type="button" onclick={() => void navigate('about')}>
-        <span>ZeroOmega</span>
+        <span>Zero Omega</span>
       </button>
     </header>
 
@@ -1488,11 +1488,8 @@
           <h1>{originalCopy.about}</h1>
         </header>
         <section class="about-product">
-          <div class="about-mark" aria-hidden="true">Ω</div>
-          <div>
-            <h2>ZeroOmega</h2>
-            <p>{originalCopy.tagline}</p>
-          </div>
+          <h2>ZeroOmega</h2>
+          <p>{originalCopy.tagline}</p>
         </section>
         <div class="about-actions">
           <a

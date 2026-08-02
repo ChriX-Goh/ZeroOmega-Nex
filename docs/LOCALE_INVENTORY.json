@@ -19,8 +19,8 @@
     "apps/extension/src/entrypoints/temp-rules/App.svelte",
     "apps/extension/src/entrypoints/network/App.svelte"
   ],
-  "candidateCount": 39,
-  "untranslatedUserVisibleCount": 0,
+  "candidateCount": 40,
+  "untranslatedUserVisibleCount": 1,
   "classificationSummary": {
     "example-placeholder": 1,
     "format-name": 4,
@@ -30,7 +30,8 @@
     "scanner-code-fragment": 2,
     "source-token": 13,
     "stable-technical-code": 1,
-    "standard-technical-term": 1
+    "standard-technical-term": 1,
+    "user-visible-untranslated": 1
   },
   "candidates": [
     {
@@ -152,6 +153,12 @@
       "kind": "text",
       "text": "Version 3 or later.",
       "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Zero Omega",
+      "classification": "user-visible-untranslated"
     },
     {
       "path": "apps/extension/src/entrypoints/options/App.svelte",

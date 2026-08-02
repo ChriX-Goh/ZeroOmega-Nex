@@ -295,7 +295,7 @@ try {
     'zh-CN',
   );
   await initialPopup.getByRole('button', { name: '打开 ZeroOmega 选项', exact: true }).waitFor();
-  await initialPopup.getByRole('button', { name: '直接连接', exact: true }).waitFor();
+  await initialPopup.getByRole('button', { name: '[直接连接]', exact: true }).waitFor();
   assert.equal(
     await initialPopup.locator('[data-popup-result-profile]').count(),
     0,
@@ -469,7 +469,7 @@ try {
   );
 
   await popup.bringToFront();
-  const direct = popup.getByRole('button', { name: '直接连接', exact: true });
+  const direct = popup.getByRole('button', { name: '[直接连接]', exact: true });
   if (!(await direct.isDisabled())) await direct.click();
   await assertEventually(async () => direct.isDisabled(), 'Direct route did not become active');
 

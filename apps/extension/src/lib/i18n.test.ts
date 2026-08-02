@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveAppLocale, translate } from './i18n';
+import { currentAppLocale, resolveAppLocale, translate } from './i18n';
 
 describe('extension localization', () => {
   it.each([
@@ -47,6 +47,10 @@ describe('extension localization', () => {
     expect(translate('Your browser does not support SOCKS5 proxy authentication.', 'zh-TW')).toBe(
       '您的瀏覽器不支持 SOCKS5 代理認證。',
     );
+  });
+
+  it('uses the original English default outside an explicit browser E2E build', () => {
+    expect(currentAppLocale()).toBe('en');
   });
 
   it('falls back to English for untranslated or unsupported content', () => {

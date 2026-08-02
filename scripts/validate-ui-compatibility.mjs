@@ -79,6 +79,7 @@ const proxyAuthenticationPermissionClientPath =
 const independentRuleListEditorPath =
   'apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte';
 const onlineBackupDownloaderPath = 'apps/extension/src/lib/online-backup-downloader.ts';
+const i18nTestPath = 'apps/extension/src/lib/i18n.test.ts';
 
 const [
   popupApp,
@@ -226,6 +227,7 @@ const [
   readFile(proxyAuthenticationPermissionClientPath, 'utf8'),
 ]);
 const onlineBackupDownloader = await readFile(onlineBackupDownloaderPath, 'utf8');
+const i18nTest = await readFile(i18nTestPath, 'utf8');
 
 const requirements = [
   [
@@ -1022,6 +1024,22 @@ const requirements = [
   [
     !advancedProfileOperations.includes('! Add AutoProxy rules here.'),
     'New Rule List profiles must not persist instructional text as rule data.',
+  ],
+  [
+    i18n.includes("import.meta.env.WXT_ICON_RENDERER_E2E === '1'") &&
+      i18n.includes('/Firefox/u.test(navigator.userAgent)') &&
+      i18n.includes("return 'en';") &&
+      browserE2eWorkflow.includes(
+        'WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium',
+      ) &&
+      browserE2eWorkflow.includes("WXT_ICON_RENDERER_E2E: '1'") &&
+      i18nTest.includes("expect(currentAppLocale()).toBe('en')") &&
+      chromiumE2e.includes("name: '[直接连接]', exact: true") &&
+      popupApp.includes("name: `[${uiText('route.direct', locale)}]`") &&
+      popupApp.includes("name: `[${uiText('route.system', locale)}]`") &&
+      optionsApp.includes('<span>Zero Omega</span>') &&
+      !optionsApp.includes('class="about-mark"'),
+    'Production Popup and Options must default to original English while the existing Browser E2E build marker preserves Simplified and Traditional Chinese localization coverage.',
   ],
   [
     optionsApp.includes('<OriginalAboutIcon kind="comment" />') &&

@@ -436,13 +436,11 @@ export function resolveAppLocale(languages: readonly string[]): AppLocale {
 }
 
 export function currentAppLocale(): AppLocale {
-  if (typeof navigator === 'undefined') return 'en';
-  const languages = [
-    ...(navigator.languages ?? []),
-    navigator.language,
-    typeof Intl === 'undefined' ? '' : Intl.DateTimeFormat().resolvedOptions().locale,
-  ].filter(Boolean);
-  return resolveAppLocale(languages);
+  if (import.meta.env.WXT_ICON_RENDERER_E2E === '1') {
+    if (typeof navigator !== 'undefined' && /Firefox/u.test(navigator.userAgent)) return 'zh-TW';
+    return 'zh-CN';
+  }
+  return 'en';
 }
 
 export function translate(value: string, locale: AppLocale = currentAppLocale()): string {
