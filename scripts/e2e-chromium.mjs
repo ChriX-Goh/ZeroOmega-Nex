@@ -135,11 +135,16 @@ try {
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await options.waitForLoadState('domcontentloaded');
   const profileHeading = options.getByRole('heading', {
-    name: 'Proxy',
+    name: 'proxy',
     exact: true,
     level: 1,
   });
   try {
+    await options.getByRole('heading', { name: '关于', exact: true, level: 1 }).waitFor({
+      state: 'visible',
+      timeout: 15_000,
+    });
+    await options.getByRole('button', { name: 'proxy', exact: true }).click();
     await profileHeading.waitFor({ state: 'visible', timeout: 15_000 });
   } catch (error) {
     const diagnostics = await worker.evaluate(async () => ({
@@ -158,7 +163,6 @@ try {
   );
   await options.getByRole('button', { name: '应用选项', exact: true }).waitFor();
   await options.getByRole('button', { name: '撤销更改', exact: true }).waitFor();
-  await options.getByText('当前设置已全部应用。', { exact: true }).waitFor();
 
   await options.getByRole('button', { name: '通用', exact: true }).click();
   const generalSettings = options.locator('[data-general-settings]');
@@ -206,29 +210,22 @@ try {
   await options.locator('.side-brand button').click();
   const aboutSettings = options.locator('[data-about-settings][data-typed-locale="zh-CN"]');
   await aboutSettings.waitFor({ state: 'visible', timeout: 20_000 });
-  await aboutSettings.getByRole('heading', { name: '兼容性优先的延续版本', exact: true }).waitFor();
+  await aboutSettings.getByRole('heading', { name: '关于', exact: true, level: 1 }).waitFor();
   assert.doesNotMatch(
     await aboutSettings.innerText(),
-    /Compatibility-first continuation|This build preserves/u,
-    'Normal Options typed locale coverage regressed',
+    /Draft|Applied|revision|compile|snapshot|capability|兼容性优先/u,
+    'Engineering concepts leaked into the normal About page',
   );
 
-  await options.getByRole('button', { name: 'Proxy', exact: true }).click();
+  await options.getByRole('button', { name: 'proxy', exact: true }).click();
   await profileHeading.waitFor({ state: 'visible' });
 
   const fixedTable = options.locator('[data-fixed-proxy-table]');
   await fixedTable.waitFor({ state: 'visible' });
-  const chromiumProtocolCapabilities = options.locator(
-    '[data-fixed-protocol-capabilities][data-browser-target="chromium"]',
-  );
-  await chromiumProtocolCapabilities.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(
-    await chromiumProtocolCapabilities.locator('[data-proxy-protocol-capability]').count(),
-    4,
-  );
-  assert.match(
-    await chromiumProtocolCapabilities.locator('[data-fixed-ftp-capability]').innerText(),
-    /不再发起浏览器 FTP 请求/u,
+    await options.locator('[data-fixed-protocol-capabilities]').count(),
+    0,
+    'Fixed editor exposed engineering capability documentation',
   );
   await options.getByRole('heading', { name: '代理服务器', exact: true }).waitFor();
   assert.equal(await fixedTable.locator('[data-proxy-scheme]').count(), 1);
@@ -316,7 +313,7 @@ try {
     'auto',
   );
 
-  await options.getByRole('button', { name: 'Proxy', exact: true }).click();
+  await options.getByRole('button', { name: 'proxy', exact: true }).click();
   await profileHeading.waitFor({ state: 'visible' });
   assert.equal(await options.getByLabel('情景模式名称').count(), 0);
   const apply = options.getByRole('button', { name: '应用选项' });
@@ -351,7 +348,7 @@ try {
     async () => renameInput.evaluate((element) => element === document.activeElement),
     'Rename dialog did not focus the name field',
   );
-  assert.equal(await renameInput.inputValue(), 'Proxy');
+  assert.equal(await renameInput.inputValue(), 'proxy');
   await renameInput.fill('');
   assert.equal(await renameDialog.locator('[data-profile-rename-confirm]').isDisabled(), true);
   await renameInput.fill('direct');
@@ -376,13 +373,12 @@ try {
         const applied = workflow?.applied?.profiles?.find(
           (profile) => profile.id === 'profile-default-proxy',
         );
-        return draft?.name === 'Chromium E2E Proxy' && applied?.name === 'Proxy';
+        return draft?.name === 'Chromium E2E Proxy' && applied?.name === 'proxy';
       }),
     'Rename did not remain inside the Draft boundary before Apply',
   );
   await assertEventually(async () => !(await apply.isDisabled()), 'Rename did not enable Apply');
   await apply.click();
-  await options.getByText('当前设置已全部应用。').waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(
     await worker.evaluate(async () =>
       chrome.permissions.contains({
@@ -604,7 +600,7 @@ try {
   });
   await options.reload();
   await options.waitForLoadState('domcontentloaded');
-  await options.getByRole('button', { name: 'Proxy', exact: true }).waitFor({ timeout: 20_000 });
+  await options.getByRole('button', { name: 'proxy', exact: true }).waitFor({ timeout: 20_000 });
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   await options.getByLabel('原版备份文件').setInputFiles(firstExportPath);
   await options.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor();

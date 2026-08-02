@@ -278,32 +278,31 @@ requireAll('PAC protocol capability enforcement', pacProtocolCapabilities, [
   'endpoint.socks-authentication-unsupported',
   'dns-target-dependent',
 ]);
-requireAll('Fixed protocol capability UI', fixedProtocolEditor, [
+for (const forbiddenToken of [
   'data-fixed-protocol-capabilities',
   'data-browser-target',
   'data-proxy-protocol-capability',
   'data-fixed-ftp-capability',
   'fixedProxySlotCapability',
   'proxyProtocolCapability',
-]);
+]) {
+  if (fixedProtocolEditor.includes(forbiddenToken)) {
+    failures.push(`Fixed editor must not expose engineering capability UI: ${forbiddenToken}`);
+  }
+}
 requireAll('browser family capability', protocolBrowserTargetCapabilities, [
   "target: 'chromium' | 'firefox'",
   'browser_specific_settings',
 ]);
 requireAll('protocol capability component rendering', protocolComponentRendering, [
-  'data-fixed-protocol-capabilities',
-  'data-browser-target="firefox"',
-  'browser FTP requests',
+  "not.toContain('data-fixed-protocol-capabilities')",
 ]);
 requireAll('protocol capability Chromium acceptance', chromiumE2e, [
-  'data-fixed-protocol-capabilities',
   'matrix-socks4.invalid',
   'matrix-socks5.invalid',
   "protocols.ftp !== 'socks5'",
 ]);
 requireAll('protocol capability Firefox acceptance', firefoxE2e, [
-  'data-fixed-protocol-capabilities',
-  'data-browser-target="firefox"',
   "['http', 'https', 'socks4', 'socks5']",
 ]);
 requireAll('FTP and protocol decision', decisions, [

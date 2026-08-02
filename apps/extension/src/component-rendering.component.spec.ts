@@ -176,14 +176,7 @@ describe('Milestone 8 Svelte component rendering contracts', () => {
     expect(body).toContain('(default)');
     expect(body).toContain('DIRECT');
     expect(body).toContain('Show Advanced');
-    expect(body).toContain('data-fixed-protocol-capabilities');
-    expect(body).toContain('data-browser-target="firefox"');
-    expect(body).toContain('data-proxy-protocol-capability="http"');
-    expect(body).toContain('data-proxy-protocol-capability="https"');
-    expect(body).toContain('data-proxy-protocol-capability="socks4"');
-    expect(body).toContain('data-proxy-protocol-capability="socks5"');
-    expect(body).toContain('data-fixed-ftp-capability');
-    expect(body).toContain('Modern Chromium and Firefox no longer issue browser FTP requests');
+    expect(body).not.toContain('data-fixed-protocol-capabilities');
     expect(body).toContain('Bypass List');
     expect(body).toContain('127.0.0.1');
     expect(body).toContain('[::1]');

@@ -187,6 +187,10 @@ describe('inspect runtime', () => {
       revisionId: 'revision-inspect',
       createdAt: '2026-07-27T18:00:00.000Z',
     });
+    const fixed = spec.profiles.find((profile) => profile.id === 'profile-default-proxy');
+    if (!fixed || fixed.kind !== 'fixed') throw new Error('missing inspect Fixed profile');
+    fixed.name = 'Proxy';
+    fixed.color = '#64b5f6';
     expect(
       evaluateInspectResultPresentation(
         spec,

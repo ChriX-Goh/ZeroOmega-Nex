@@ -144,7 +144,17 @@ function baseSpec(revisionId: string, name: string): ProfileSpec {
     createdAt: '2026-07-25T17:00:00.000Z',
     deviceId: 'device-snapshot-rollback',
   });
-  spec.profiles[0]!.name = name;
+  const fixed = spec.profiles.find((profile) => profile.id === 'profile-default-proxy');
+  if (!fixed || fixed.kind !== 'fixed') throw new Error('missing rollback Fixed profile');
+  fixed.name = name;
+  fixed.color = '#64b5f6';
+  const endpoint = spec.proxyEndpoints.find(
+    (candidate) => candidate.id === fixed.proxyByScheme.fallback,
+  );
+  if (!endpoint) throw new Error('missing rollback endpoint');
+  endpoint.host = '127.0.0.1';
+  endpoint.port = 7890;
+  spec.settings.startup.route = { kind: 'profile', profileId: fixed.id };
   return spec;
 }
 

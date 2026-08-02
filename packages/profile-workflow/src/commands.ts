@@ -371,9 +371,6 @@ function validateQuickSwitchRoute(
   state: ProfileWorkflowState,
   route: ProfileRouteTarget,
 ): string | undefined {
-  if (!state.applied.settings.quickSwitch.enabled) {
-    return 'quick switching is disabled in the applied ProfileSpec';
-  }
   if (!state.applied.settings.quickSwitch.routes.some((candidate) => sameRoute(candidate, route))) {
     return 'route is not present in the applied quick-switch list';
   }

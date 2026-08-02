@@ -20,12 +20,24 @@ import {
 import type { ProxyAuthenticationPreparationResult } from './proxy-auth-runtime';
 
 function defaultSpec() {
-  return createDefaultProfileSpec({
+  const spec = createDefaultProfileSpec({
     documentId: 'document-activation-test',
     revisionId: 'revision-activation-test',
     createdAt: '2026-07-25T09:00:00.000Z',
     deviceId: 'device-activation-test',
   });
+  const fixed = spec.profiles.find((profile) => profile.id === 'profile-default-proxy');
+  if (!fixed || fixed.kind !== 'fixed') throw new Error('missing activation Fixed profile');
+  fixed.name = 'Proxy';
+  fixed.color = '#64b5f6';
+  const endpoint = spec.proxyEndpoints.find(
+    (candidate) => candidate.id === fixed.proxyByScheme.fallback,
+  );
+  if (!endpoint) throw new Error('missing activation endpoint');
+  endpoint.host = '127.0.0.1';
+  endpoint.port = 7890;
+  spec.settings.startup.route = { kind: 'profile', profileId: fixed.id };
+  return spec;
 }
 
 function rawPacSpec(source: 'inline' | 'url' | 'file' = 'inline') {

@@ -46,6 +46,16 @@ function state(showBadge = false): ProfileWorkflowState {
     revisionId: 'revision-1',
     createdAt: '2026-07-31T00:00:00.000Z',
   });
+  const fixed = spec.profiles.find((profile) => profile.id === 'profile-default-proxy');
+  if (!fixed || fixed.kind !== 'fixed') throw new Error('missing default Fixed profile');
+  fixed.name = 'Proxy';
+  fixed.color = '#64b5f6';
+  const endpoint = spec.proxyEndpoints.find(
+    (candidate) => candidate.id === fixed.proxyByScheme.fallback,
+  );
+  if (!endpoint) throw new Error('missing default Fixed endpoint');
+  endpoint.host = '127.0.0.1';
+  endpoint.port = 7890;
   spec.settings.interface.showResultProfileOnActionBadgeText = showBadge;
   return createProfileWorkflowState(spec);
 }

@@ -10,6 +10,7 @@
   } from '@zeroomega-nex/profile-spec';
   import {
     attachedRuleListProfileIds,
+    createDefaultProfileSpec,
     createFixedProfileDraft,
     createPacProfileDraft,
     createSwitchProfileDraft,
@@ -1012,8 +1013,33 @@
   }
 
   async function resetOptions(): Promise<void> {
-    if (!globalThis.confirm(originalCopy.resetConfirm)) return;
-    await browser.storage.local.clear();
+    if (!state || view?.busy || !globalThis.confirm(originalCopy.resetConfirm)) return;
+    const resetSpec = createDefaultProfileSpec({
+      documentId: `document-${crypto.randomUUID()}`,
+      revisionId: `revision-${crypto.randomUUID()}`,
+      createdAt: new Date().toISOString(),
+      ...(state.applied.revision.deviceId === undefined
+        ? {}
+        : { deviceId: state.applied.revision.deviceId }),
+    });
+    if (
+      !(await runCommand({
+        action: 'replace-draft',
+        expectedGeneration: state.generation,
+        draft: resetSpec,
+      })) ||
+      !state
+    ) {
+      return;
+    }
+    if (
+      !(await runCommand({
+        action: 'apply',
+        expectedGeneration: state.generation,
+      }))
+    ) {
+      return;
+    }
     globalThis.location.replace('options.html#/about');
   }
 

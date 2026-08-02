@@ -371,27 +371,25 @@ try {
   const optionsWindow = await driver.getWindowHandle();
   let profileHeading;
   try {
+    const aboutHeading = await driver.wait(
+      until.elementLocated(By.xpath("//h1[normalize-space(.)='關於']")),
+      15_000,
+    );
+    await driver.wait(until.elementIsVisible(aboutHeading), 15_000);
+    const proxyButton = await driver.wait(
+      until.elementLocated(By.xpath("//button[normalize-space(.)='proxy']")),
+      15_000,
+    );
+    await proxyButton.click();
     profileHeading = await driver.wait(
-      until.elementLocated(By.xpath("//h1[normalize-space(.)='Proxy']")),
+      until.elementLocated(By.xpath("//h1[normalize-space(.)='proxy']")),
       15_000,
     );
     await driver.wait(until.elementIsVisible(profileHeading), 15_000);
-    const firefoxProtocolCapabilities = await driver.wait(
-      until.elementLocated(
-        By.css('[data-fixed-protocol-capabilities][data-browser-target="firefox"]'),
-      ),
-      15_000,
-    );
     assert.equal(
-      (await firefoxProtocolCapabilities.findElements(By.css('[data-proxy-protocol-capability]')))
-        .length,
-      4,
-    );
-    assert.match(
-      await firefoxProtocolCapabilities
-        .findElement(By.css('[data-fixed-ftp-capability]'))
-        .getText(),
-      /不再發出瀏覽器 FTP 請求/u,
+      (await driver.findElements(By.css('[data-fixed-protocol-capabilities]'))).length,
+      0,
+      'Fixed editor exposed engineering capability documentation',
     );
     const protocolValues = await driver.executeScript(`
       return [...document.querySelector('[data-proxy-scheme="fallback"] [data-proxy-field="protocol"]').options]
@@ -989,16 +987,6 @@ try {
       45_000,
       'Firefox Apply did not reach a clean workflow state',
     );
-    await driver.wait(
-      async () => {
-        const statuses = await driver.findElements(By.css('.draft-status'));
-        return (
-          statuses.length === 1 && (await statuses[0].getText()).trim() === '目前設定已全部套用。'
-        );
-      },
-      20_000,
-      'Firefox Options did not render the clean Apply status',
-    );
   } catch (error) {
     await logDiagnostics('Apply');
     throw error;
@@ -1026,7 +1014,7 @@ try {
     10_000,
   );
   const renameInput = await renameDialog.findElement(By.css('[data-profile-rename-name-input]'));
-  assert.equal(await renameInput.getAttribute('value'), 'Proxy');
+  assert.equal(await renameInput.getAttribute('value'), 'proxy');
   await setControlValue(renameInput, 'Firefox E2E Proxy');
   const renameConfirm = await renameDialog.findElement(By.css('[data-profile-rename-confirm]'));
   await driver.wait(until.elementIsEnabled(renameConfirm), 10_000);
@@ -1556,16 +1544,6 @@ try {
     },
     45_000,
     'Firefox PAC Apply did not reach a clean workflow state',
-  );
-  await driver.wait(
-    async () => {
-      const statuses = await driver.findElements(By.css('.draft-status'));
-      return (
-        statuses.length === 1 && (await statuses[0].getText()).trim() === '目前設定已全部套用。'
-      );
-    },
-    20_000,
-    'Firefox Options did not render the clean PAC Apply status',
   );
   await navigateExtensionPage('popup.html');
   const pacRoute = await driver.wait(

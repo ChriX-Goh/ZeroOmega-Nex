@@ -128,7 +128,7 @@ for (const combination of combinations) {
 
     await options.goto(`${baseUrl}/options.html`);
     await options.waitForLoadState('domcontentloaded');
-    await options.getByRole('button', { name: 'Proxy', exact: true }).click();
+    await options.getByRole('button', { name: 'proxy', exact: true }).click();
     await waitForStablePage(options, '[data-fixed-proxy-table]', locale, theme);
     await capture(
       options,

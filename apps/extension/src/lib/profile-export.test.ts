@@ -126,12 +126,12 @@ describe('original-compatible profile exports', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.exported).toMatchObject({
-      filename: 'OmegaProfile_Proxy.pac',
+      filename: 'OmegaProfile_proxy.pac',
       mimeType: PROFILE_TEXT_EXPORT_MIME,
       format: 'pac',
     });
     expect(result.exported.content).toContain('function FindProxyForURL');
-    expect(result.exported.content).toContain('PROXY 127.0.0.1:7890');
+    expect(result.exported.content).toContain('PROXY proxy.example.com:8080');
     expect(result.exported.content).not.toMatch(/password|secretRef/u);
   });
 
