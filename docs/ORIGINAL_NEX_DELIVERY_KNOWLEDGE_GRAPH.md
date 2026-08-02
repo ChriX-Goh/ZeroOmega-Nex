@@ -63,13 +63,19 @@ Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
   - node `KG-TRACE-001`;
   - converts internal decisions into original current/result/detail/Badge/color/icon inputs;
   - hides rewrite internals and rejects unverified shapes;
-  - may project captured original static Action states from specific PAC and temporary-overlay runtime shapes without exposing internal graph objects.
+  - may project captured original static Action states from specific PAC, temporary-overlay and proxy-ownership runtime shapes without exposing internal graph objects.
 - `TemporaryOverlayBoundary`
   - session-persisted hidden Switch state;
   - empty active overlay retained after last-rule removal;
   - normal runtime inspection reports the visible base route;
   - Toolbar-only inspection exposes the active synthetic graph to the Original-observable projector;
   - all mutations refresh the existing single Action writer.
+- `ExternalControlBoundary`
+  - real browser proxy control level enters the Toolbar runtime view;
+  - `proxy.settings.onChange` refreshes the existing coordinator;
+  - exact competing-extension ownership projects the captured Direct warning state;
+  - restored control returns normal profile content while the warning-red Badge background remains latched for the captured runtime lifetime;
+  - Popup ownership blocking remains a separate surface.
 - `OriginalEvidenceBoundary`
   - node `KG-EVIDENCE-HARNESS-001`;
   - one permanent read-only original-package workflow;
@@ -78,7 +84,7 @@ Only `OWNER_ACCEPTED` closes a product journey. Every node closes through:
 - `ActionBoundary`
   - one background writer, global baseline, per-tab coordinator, stale suppression, lifecycle refresh, Inspect overlay and renderer fallback.
 - `NexEvidenceBoundary`
-  - deterministic tests, shared profile-trace fixtures, Chromium/Firefox E2E, native Inspect, visual evidence, future real exports and owner acceptance.
+  - deterministic tests, shared profile-trace fixtures, focused ownership E2E, Chromium/Firefox E2E, native Inspect, visual evidence, future real exports and owner acceptance.
 
 Stable dependency:
 
@@ -98,7 +104,8 @@ The internal `GraphTrace`, hidden temporary profile identity and arbitrary PAC e
 - nested Virtual 01J subset;
 - attached Rule List 01H subset;
 - URL-backed PAC Toolbar 01K subset;
-- temporary-rule Toolbar 01L subset.
+- temporary-rule Toolbar 01L subset;
+- external-control Toolbar 01M competing-extension subset.
 
 Other result/lifecycle shapes remain `UNKNOWN` or `MISSING_IN_NEX` and must fail closed.
 
@@ -117,7 +124,7 @@ Supporting nodes:
 
 - `KG-EVIDENCE-HARNESS-001`
   - `VERIFIED_AUTOMATION`;
-  - registry: `nested-switch`, `nested-virtual`, `pac`, `temporary-rule`;
+  - registry: `nested-switch`, `nested-virtual`, `pac`, `temporary-rule`, `external-control`;
   - pull requests run `all`.
 - `KG-TRACE-001`
   - `VERIFIED_AUTOMATION` for represented shapes.
@@ -138,7 +145,9 @@ Supporting nodes:
 - `KG-TEMP-RULE-001`
   - 01L one-host-rule/empty-base-Switch/Fixed-target subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
   - multiple rules, other profile families, restart/error lifecycle and complete Popup journey: `UNKNOWN`.
-- `KG-EXTERNAL-CONTROL-001` — open.
+- `KG-EXTERNAL-CONTROL-001`
+  - 01M one-Fixed-profile/one-competing-extension subset: `EXACT_EQUIVALENT`, `VERIFIED_AUTOMATION`;
+  - policy/not-controllable states, non-Fixed profiles, workflow races, restart/latch lifetime and complete Popup/Options recovery: `UNKNOWN`.
 - `KG-ACTION-FALLBACK-001` — open.
 - `KG-TOOLBAR-PIXEL-001` — open where Action API is insufficient.
 - `KG-OWNER-ORDER1-001` — not run.
@@ -264,6 +273,36 @@ Unrepresented:
 - invalid routes, activation failure and rollback;
 - complete Popup temporary-rule interaction and owner acceptance.
 
+### External control 01M
+
+`OriginalExternalControl01M (SOURCE_CAPTURED)`  
+`-> KG-EVIDENCE-HARNESS-001 scenario external-control (VERIFIED_AUTOMATION)`  
+`-> KG-EXTERNAL-CONTROL-001 (MAPPED subset)`  
+`-> real ownership inspection + existing Direct projector + warning latch (IMPLEMENTED)`  
+`-> deterministic Toolbar test (VERIFIED_AUTOMATION)`  
+`-> real dual-extension Chromium E2E (VERIFIED_AUTOMATION)`  
+`-> real dual-extension Firefox E2E (VERIFIED_AUTOMATION)`  
+`-> KG-ICON-001 (open)`
+
+Represented:
+
+- one applied Fixed HTTP fallback profile without bypass;
+- one second extension taking control;
+- effective control level `controlled_by_other_extensions`;
+- Toolbar Direct title/detail and `Dire` Badge during takeover;
+- warning-red Badge background `#da4f49`;
+- automatic return to Fixed content after release;
+- warning color retained after release and explicit re-application within the captured runtime lifetime;
+- transparent normal Badge background before ownership loss.
+
+Unrepresented:
+
+- policy/not-controllable/operating-system states;
+- multiple competitors, disable/uninstall/crash/permission changes;
+- non-Fixed profiles and ownership loss during other workflows;
+- background/service-worker/browser restart and latch lifetime;
+- recovery failure and complete Popup/Options ownership journeys.
+
 ## 7. Active defect graph
 
 - `KG-ICON-001`: complete Toolbar journey — `FAILED`.
@@ -277,10 +316,10 @@ Unrepresented:
 
 ## 8. Progress and next edge
 
-Formal progress remains 47% total and 35% for Order 1. `KG-TEMP-RULE-001` is verified for the strict 01L Toolbar subset; the complete temporary-rule/Popup lifecycle remains open.
+Formal progress remains 47% total and 35% for Order 1. `KG-EXTERNAL-CONTROL-001` is verified for the strict 01M Toolbar subset; broader ownership and recovery lifecycle remains open.
 
 The next fixed edge is:
 
-`external-control original source/runtime -> KG-EXTERNAL-CONTROL-001 mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
+`forced dynamic-render failure original behavior -> KG-ACTION-FALLBACK-001 mapping -> implementation -> deterministic tests -> Chromium -> Firefox`
 
 No candidate, merge or release is authorized.
