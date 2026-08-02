@@ -60,14 +60,22 @@ class TransparentCanvas implements OriginalToolbarCanvas {
 
 class MessageRuntime implements OriginalToolbarRendererE2eRuntimeApi {
   listener:
-    | ((message: unknown) => OriginalToolbarRendererE2eResponse | Promise<OriginalToolbarRendererE2eResponse> | undefined)
+    | ((
+        message: unknown,
+      ) =>
+        | OriginalToolbarRendererE2eResponse
+        | Promise<OriginalToolbarRendererE2eResponse>
+        | undefined)
     | undefined;
 
   readonly onMessage = {
     addListener: (
       listener: (
         message: unknown,
-      ) => OriginalToolbarRendererE2eResponse | Promise<OriginalToolbarRendererE2eResponse> | undefined,
+      ) =>
+        | OriginalToolbarRendererE2eResponse
+        | Promise<OriginalToolbarRendererE2eResponse>
+        | undefined,
     ) => {
       this.listener = listener;
     },
