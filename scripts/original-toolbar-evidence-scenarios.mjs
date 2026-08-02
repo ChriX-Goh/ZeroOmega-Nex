@@ -134,6 +134,18 @@ const temporaryRuleBase = {
   defaultProfileName: 'direct',
 };
 
+const externalControlFixed = {
+  name: 'Runtime External Control Fixed',
+  profileType: 'FixedProfile',
+  color: '#4fc3f7',
+  bypassList: [],
+  fallbackProxy: {
+    scheme: 'http',
+    host: '127.0.0.1',
+    port: 18188,
+  },
+};
+
 export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
   'nested-switch': Object.freeze({
     id: 'nested-switch',
@@ -237,6 +249,45 @@ export const ORIGINAL_TOOLBAR_EVIDENCE_SCENARIOS = Object.freeze({
         label: 'pac-direct',
         profileName: runtimePac.name,
         url: 'http://pac-direct.test/path',
+      }),
+    ]),
+  }),
+  'external-control': Object.freeze({
+    id: 'external-control',
+    description:
+      'A second extension takes proxy ownership from an applied Fixed profile, releases it, and the original profile is explicitly re-applied.',
+    externalControl: true,
+    profiles: Object.freeze([externalControlFixed]),
+    captures: Object.freeze([
+      Object.freeze({
+        label: 'external-control-baseline-fixed',
+        profileName: externalControlFixed.name,
+        url: 'http://external-control.test/path',
+        expectedOriginalControlLevel: 'controlled_by_this_extension',
+      }),
+      Object.freeze({
+        label: 'external-control-taken-over',
+        profileName: externalControlFixed.name,
+        url: 'http://external-control.test/path',
+        applyProfile: false,
+        waitForCurrentProfile: false,
+        externalCommand: 'claim',
+        expectedOriginalControlLevel: 'controlled_by_other_extensions',
+      }),
+      Object.freeze({
+        label: 'external-control-released',
+        profileName: externalControlFixed.name,
+        url: 'http://external-control.test/path',
+        applyProfile: false,
+        waitForCurrentProfile: false,
+        externalCommand: 'release',
+        expectedOriginalControlLevel: 'controlled_by_this_extension',
+      }),
+      Object.freeze({
+        label: 'external-control-explicit-reapply',
+        profileName: externalControlFixed.name,
+        url: 'http://external-control.test/path',
+        expectedOriginalControlLevel: 'controlled_by_this_extension',
       }),
     ]),
   }),
