@@ -119,26 +119,26 @@ Switch → System is not missing: the original runtime rejects it.
 
 ## Original ↔ Nex state matrix
 
-| ID | Observable state | Current verified boundary | State before owner acceptance |
-| --- | --- | --- | --- |
-| `TB-001` | Static fallback Ω and loading title | Original assets are byte-identical; 01N verifies no-write fallback, retry and recovery | `PARTIAL` |
-| `TB-002` | Toolbar click opens target Popup; shortcut exists | Target Popup binding is read through real Action APIs; physical click/shortcut remains owner-facing | `PARTIAL` |
-| `TB-003` | Direct/System/Fixed one-color state | Chromium and Firefox verify title, Badge clearing, Popup and icon inputs | `PARTIAL` |
-| `TB-004` | Inclusive default result and two-color state | Switch, attached Rule List, nested Switch, nested Virtual and Virtual → Switch captured subsets pass | `PARTIAL` |
-| `TB-005` | Static profile result equals current profile | Fixed proxy and bypass states pass on separate and same tabs | `PARTIAL` |
-| `TB-006` | Inclusive profile resolves to another result | Represented Switch/Virtual/Rule List families preserve multiline result traces | `PARTIAL` |
-| `TB-007` | Direct result uses Direct result color | Direct and represented inclusive-to-Direct paths pass both browsers | `PARTIAL` |
-| `TB-008` | Virtual shows original current/target relationship | Immediate, nested and 01O mixed subsets pass exact naming/detail/color rules | `PARTIAL` |
-| `TB-009` | Attached Rule List prefix/default/result detail | 01H passes deterministic and real Chromium/Firefox Action E2E | `PARTIAL` |
-| `TB-010` | Temporary rule prefix, colors and hidden overlay | 01L matched/unmatched/removed states pass; complete Popup lifecycle belongs to Order 3 | `PARTIAL` |
-| `TB-011` | Optional localized result Badge, four code units | Built-in and profile Badge rules are automated; imported preference remains Order 2 evidence | `PARTIAL` |
-| `TB-012` | Inspect `#`, title, color and isolation | Native Chromium set/clear/base restoration/isolation passes | `PARTIAL` |
-| `TB-013` | External proxy takeover and recovery | 01M baseline/takeover/release/reapply and warning-color latch pass | `PARTIAL` |
-| `TB-014` | Internal/unsupported URL restores default state | Chromium and Firefox internal-page fallback passes | `PARTIAL` |
-| `TB-015` | URL update recalculates per-tab state | Fixed and represented inclusive/temp transitions pass | `PARTIAL` |
-| `TB-016` | Tab activation restores each tab state | Simultaneous proxy/bypass and isolation states pass both browsers | `PARTIAL` |
-| `TB-017` | Profile/control mutation refreshes affected tabs | Activation, recovery, temporary mutation and ownership change feed the single coordinator | `PARTIAL` |
-| `TB-018` | Dynamic drawing failure preserves static fallback | 01N verifies repeated failure, no dynamic write, five-size recovery and `19`/`38` retry | `PARTIAL` |
+| ID       | Observable state                                   | Current verified boundary                                                                            | State before owner acceptance |
+| -------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `TB-001` | Static fallback Ω and loading title                | Original assets are byte-identical; 01N verifies no-write fallback, retry and recovery               | `PARTIAL`                     |
+| `TB-002` | Toolbar click opens target Popup; shortcut exists  | Target Popup binding is read through real Action APIs; physical click/shortcut remains owner-facing  | `PARTIAL`                     |
+| `TB-003` | Direct/System/Fixed one-color state                | Chromium and Firefox verify title, Badge clearing, Popup and icon inputs                             | `PARTIAL`                     |
+| `TB-004` | Inclusive default result and two-color state       | Switch, attached Rule List, nested Switch, nested Virtual and Virtual → Switch captured subsets pass | `PARTIAL`                     |
+| `TB-005` | Static profile result equals current profile       | Fixed proxy and bypass states pass on separate and same tabs                                         | `PARTIAL`                     |
+| `TB-006` | Inclusive profile resolves to another result       | Represented Switch/Virtual/Rule List families preserve multiline result traces                       | `PARTIAL`                     |
+| `TB-007` | Direct result uses Direct result color             | Direct and represented inclusive-to-Direct paths pass both browsers                                  | `PARTIAL`                     |
+| `TB-008` | Virtual shows original current/target relationship | Immediate, nested and 01O mixed subsets pass exact naming/detail/color rules                         | `PARTIAL`                     |
+| `TB-009` | Attached Rule List prefix/default/result detail    | 01H passes deterministic and real Chromium/Firefox Action E2E                                        | `PARTIAL`                     |
+| `TB-010` | Temporary rule prefix, colors and hidden overlay   | 01L matched/unmatched/removed states pass; complete Popup lifecycle belongs to Order 3               | `PARTIAL`                     |
+| `TB-011` | Optional localized result Badge, four code units   | Built-in and profile Badge rules are automated; imported preference remains Order 2 evidence         | `PARTIAL`                     |
+| `TB-012` | Inspect `#`, title, color and isolation            | Native Chromium set/clear/base restoration/isolation passes                                          | `PARTIAL`                     |
+| `TB-013` | External proxy takeover and recovery               | 01M baseline/takeover/release/reapply and warning-color latch pass                                   | `PARTIAL`                     |
+| `TB-014` | Internal/unsupported URL restores default state    | Chromium and Firefox internal-page fallback passes                                                   | `PARTIAL`                     |
+| `TB-015` | URL update recalculates per-tab state              | Fixed and represented inclusive/temp transitions pass                                                | `PARTIAL`                     |
+| `TB-016` | Tab activation restores each tab state             | Simultaneous proxy/bypass and isolation states pass both browsers                                    | `PARTIAL`                     |
+| `TB-017` | Profile/control mutation refreshes affected tabs   | Activation, recovery, temporary mutation and ownership change feed the single coordinator            | `PARTIAL`                     |
+| `TB-018` | Dynamic drawing failure preserves static fallback  | 01N verifies repeated failure, no dynamic write, five-size recovery and `19`/`38` retry              | `PARTIAL`                     |
 
 No row is `OWNER_ACCEPTED`. Automation closes engineering evidence, not the user journey.
 
