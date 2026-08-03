@@ -582,6 +582,27 @@ for (const implementation of ['original-v3.5.0', 'nex']) {
     );
   }
 }
+const originalSwitchEntry = entries.find(
+  (entry) => entry.implementation === 'original-v3.5.0' && entry.surface === 'popup-switch-active',
+);
+const nexSwitchEntry = entries.find(
+  (entry) => entry.implementation === 'nex' && entry.surface === 'popup-switch-active',
+);
+assert.equal(
+  originalSwitchEntry.layoutMetrics.resultControl.length,
+  0,
+  'Original active Switch result control',
+);
+assert.equal(
+  nexSwitchEntry.layoutMetrics.resultControl.length,
+  0,
+  'Nex active Switch result control',
+);
+assert.deepEqual(
+  nexSwitchEntry.textLines,
+  originalSwitchEntry.textLines,
+  'Active Switch Popup text must match Original exactly',
+);
 
 const bySurface = Object.fromEntries(
   pairedSurfaces.map((surface) => {

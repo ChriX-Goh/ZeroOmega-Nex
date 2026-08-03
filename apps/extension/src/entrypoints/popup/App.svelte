@@ -7,7 +7,6 @@
   } from '@zeroomega-nex/profile-spec';
   import {
     listPopupConditionResultRoutes,
-    listPopupProfileResultRoutes,
     listPopupTemporaryRuleResultRoutes,
     type PopupSiteCondition,
     type ProfileWorkflowCommandResponse,
@@ -57,9 +56,6 @@
     readonly kind: UserProfile['kind'] | 'direct' | 'system' | 'external';
     readonly available: boolean;
     readonly reason?: string;
-    readonly profileId?: string;
-    readonly resultRoute?: ProfileRouteTarget;
-    readonly resultItems?: readonly ResultRouteItem[];
   }
 
   interface ResultRouteItem {
@@ -86,7 +82,6 @@
   let loading = true;
   let switching = false;
   let addingCondition = false;
-  let settingResult = false;
   let settingTemporaryRule = false;
   let openingSettings = false;
   let openingTemporaryRules = false;
@@ -155,23 +150,6 @@
     return profile?.kind === 'switch' && profile.enabled !== false ? profile : undefined;
   }
 
-  function configuredResultRoute(profile: UserProfile): ProfileRouteTarget | undefined {
-    if (profile.kind === 'switch') return profile.defaultRoute;
-    if (profile.kind === 'virtual') return profile.targetRoute;
-    return undefined;
-  }
-
-  function popupProfileResultItems(
-    spec: ProfileSpec,
-    profileId: string,
-  ): readonly ResultRouteItem[] {
-    return listPopupProfileResultRoutes(spec, profileId).map((route) => ({
-      key: routeKey(route),
-      route,
-      name: routeName(spec, route),
-    }));
-  }
-
   function popupResultItems(
     spec: ProfileSpec,
     switchProfileId: string,
@@ -229,10 +207,6 @@
           reason: uiMessage('popup.profileMissing', { profileId: route.profileId }, locale),
         };
       }
-      const resultRoute = configuredResultRoute(profile);
-      const profileResultItems = resultRoute
-        ? popupProfileResultItems(spec, profile.id)
-        : undefined;
       return {
         key: routeKey(route),
         route,
@@ -240,9 +214,6 @@
         color: profile.color ?? '#90a4ae',
         kind: profile.kind,
         available: profile.enabled !== false,
-        profileId: profile.id,
-        ...(resultRoute === undefined ? {} : { resultRoute }),
-        ...(profileResultItems === undefined ? {} : { resultItems: profileResultItems }),
         ...(profile.enabled === false
           ? { reason: uiMessage('popup.profileDisabled', { name: profile.name }, locale) }
           : {}),
@@ -469,30 +440,6 @@
     }
   }
 
-  async function setProfileResult(item: QuickSwitchItem, event: Event): Promise<void> {
-    if (!state || !item.profileId || !item.resultItems || settingResult) return;
-    const key = (event.currentTarget as HTMLSelectElement).value;
-    const selected = item.resultItems.find((candidate) => candidate.key === key);
-    if (!selected || (item.resultRoute && sameRoute(item.resultRoute, selected.route))) return;
-    settingResult = true;
-    errorMessage = '';
-    try {
-      const accepted = acceptResponse(
-        await sendProfileWorkflowCommand({
-          action: 'set-popup-profile-result',
-          expectedAppliedRevisionId: state.applied.revision.id,
-          profileId: item.profileId,
-          route: selected.route,
-        }),
-      );
-      if (accepted) window.close();
-    } catch {
-      errorMessage = uiText('popup.error.safe', locale);
-    } finally {
-      settingResult = false;
-    }
-  }
-
   async function activateRoute(item: QuickSwitchItem): Promise<void> {
     if (!state || switching || !item.available || sameRoute(runtime?.activeRoute, item.route))
       return;
@@ -602,7 +549,6 @@
   aria-busy={loading ||
     switching ||
     addingCondition ||
-    settingResult ||
     settingTemporaryRule ||
     importingExternalProfile}
 >
@@ -638,17 +584,12 @@
     {:else}
       {#each items as item, index (item.key)}
         {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}
-        <div
-          class:has-result={item.resultRoute !== undefined &&
-            sameRoute(runtime?.activeRoute, item.route)}
-          class="profile-row"
-        >
+        <div class="profile-row">
           <button
             class:active={sameRoute(runtime?.activeRoute, item.route)}
             type="button"
             disabled={switching ||
               addingCondition ||
-              settingResult ||
               settingTemporaryRule ||
               !item.available ||
               sameRoute(runtime?.activeRoute, item.route)}
@@ -659,38 +600,11 @@
             onclick={() => activateRoute(item)}
           >
             <OriginalPopupIcon kind={item.kind} color={item.color} />
-            <span class="profile-name">
-              {item.name}
-              {#if item.resultRoute && state && sameRoute(runtime?.activeRoute, item.route)}
-                <span class="profile-result-label"
-                  >[{routeName(state.applied, item.resultRoute)}]</span
-                >
-              {/if}
-            </span>
+            <span class="profile-name">{item.name}</span>
             {#if item.kind === 'direct' || item.kind === 'system'}
               <OriginalPopupIcon kind="globe" color={item.color} position="trailing" />
             {/if}
           </button>
-          {#if item.resultRoute && item.resultItems && item.resultItems.length !== 0 && sameRoute(runtime?.activeRoute, item.route)}
-            <label class="profile-result-control">
-              <span>{uiText('popup.result', locale)}</span>
-              <select
-                data-popup-result-profile
-                aria-label={uiMessage('popup.resultFor', { name: item.name }, locale)}
-                value={routeKey(item.resultRoute)}
-                disabled={settingResult ||
-                  switching ||
-                  addingCondition ||
-                  settingTemporaryRule ||
-                  !item.available}
-                onchange={(event) => void setProfileResult(item, event)}
-              >
-                {#each item.resultItems as result}
-                  <option value={result.key}>{result.name}</option>
-                {/each}
-              </select>
-            </label>
-          {/if}
         </div>
       {/each}
       {#if proxyOwnership?.externalProfile}
@@ -795,7 +709,7 @@
         <select
           aria-label={uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
           value={currentTemporaryRoute ? routeKey(currentTemporaryRoute) : ''}
-          disabled={settingTemporaryRule || switching || settingResult || addingCondition}
+          disabled={settingTemporaryRule || switching || addingCondition}
           onchange={(event) => void setTemporaryRule(event)}
         >
           <option value="">{uiText('popup.noTemporaryRule', locale)}</option>

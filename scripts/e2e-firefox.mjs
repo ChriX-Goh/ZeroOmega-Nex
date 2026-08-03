@@ -1119,6 +1119,64 @@ try {
     0,
     'Inactive default Switch exposed a result label in the Direct Popup state',
   );
+  const defaultSwitchWorkflow = await sendFirefoxWorkflowCommand({
+    channel: 'zeroomega-nex/profile-workflow/v1',
+    action: 'get',
+  });
+  assert.equal(
+    defaultSwitchWorkflow?.ok,
+    true,
+    `Firefox default Switch workflow failed: ${JSON.stringify(defaultSwitchWorkflow)}`,
+  );
+  const defaultSwitchProfile = defaultSwitchWorkflow.state.applied.profiles.find(
+    (candidate) => candidate.name === 'auto switch',
+  );
+  assert.equal(defaultSwitchProfile?.kind, 'switch', 'Firefox default auto switch was not found');
+  const defaultSwitchActivated = await sendFirefoxWorkflowCommand({
+    channel: 'zeroomega-nex/profile-workflow/v1',
+    action: 'activate-route',
+    expectedAppliedRevisionId: defaultSwitchWorkflow.state.applied.revision.id,
+    route: { kind: 'profile', profileId: defaultSwitchProfile.id },
+  });
+  assert.equal(
+    defaultSwitchActivated?.ok,
+    true,
+    `Firefox default Switch activation failed: ${JSON.stringify(defaultSwitchActivated)}`,
+  );
+  await navigateExtensionPage('popup.html');
+  const activeDefaultSwitch = await driver.wait(
+    until.elementLocated(By.xpath("//button[normalize-space(.)='auto switch']")),
+    15_000,
+  );
+  await driver.wait(until.elementIsDisabled(activeDefaultSwitch), 15_000);
+  assert.equal((await activeDefaultSwitch.getText()).trim(), 'auto switch');
+  assert.equal(
+    (await driver.findElements(By.css('[data-popup-result-profile]'))).length,
+    0,
+    'Active default Switch exposed a result selector in the Firefox Popup',
+  );
+  assert.equal(
+    (await driver.findElements(By.css('.profile-result-label'))).length,
+    0,
+    'Active default Switch exposed a result label in the Firefox Popup',
+  );
+  const directRestored = await sendFirefoxWorkflowCommand({
+    channel: 'zeroomega-nex/profile-workflow/v1',
+    action: 'activate-route',
+    expectedAppliedRevisionId: defaultSwitchWorkflow.state.applied.revision.id,
+    route: { kind: 'direct' },
+  });
+  assert.equal(
+    directRestored?.ok,
+    true,
+    `Firefox Direct restore failed: ${JSON.stringify(directRestored)}`,
+  );
+  await navigateExtensionPage('popup.html');
+  const restoredDirect = await driver.wait(
+    until.elementLocated(By.xpath("//button[contains(., '直接連線')]")),
+    15_000,
+  );
+  await driver.wait(until.elementIsDisabled(restoredDirect), 15_000);
   assert.equal(
     await driver.executeAsyncScript(`
       const done = arguments[0];

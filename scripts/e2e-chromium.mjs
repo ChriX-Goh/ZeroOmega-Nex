@@ -316,6 +316,58 @@ try {
     (await initialPopup.locator('[data-original-popup-icon-position="leading"]').count()) >= 3,
     true,
   );
+  const defaultSwitchActivation = await initialPopup.evaluate(async () => {
+    const channel = 'zeroomega-nex/profile-workflow/v1';
+    const current = await chrome.runtime.sendMessage({ channel, action: 'get' });
+    const profile = current.state.applied.profiles.find(
+      (candidate) => candidate.name === 'auto switch',
+    );
+    if (!profile) return { ok: false, reason: 'missing default Switch' };
+    return chrome.runtime.sendMessage({
+      channel,
+      action: 'activate-route',
+      expectedAppliedRevisionId: current.state.applied.revision.id,
+      route: { kind: 'profile', profileId: profile.id },
+    });
+  });
+  assert.equal(
+    defaultSwitchActivation?.ok,
+    true,
+    `Default Switch activation failed: ${JSON.stringify(defaultSwitchActivation)}`,
+  );
+  await initialPopup.reload();
+  const activeDefaultSwitch = initialPopup.getByRole('button', {
+    name: 'auto switch',
+    exact: true,
+  });
+  await activeDefaultSwitch.waitFor();
+  assert.equal(await activeDefaultSwitch.isDisabled(), true);
+  assert.equal((await activeDefaultSwitch.innerText()).trim(), 'auto switch');
+  assert.equal(
+    await initialPopup.locator('[data-popup-result-profile]').count(),
+    0,
+    'Active default Switch exposed a result selector in the Chromium Popup',
+  );
+  assert.equal(
+    await initialPopup.locator('.profile-result-label').count(),
+    0,
+    'Active default Switch exposed a result label in the Chromium Popup',
+  );
+  const restoredSystem = await initialPopup.evaluate(async () => {
+    const channel = 'zeroomega-nex/profile-workflow/v1';
+    const current = await chrome.runtime.sendMessage({ channel, action: 'get' });
+    return chrome.runtime.sendMessage({
+      channel,
+      action: 'activate-route',
+      expectedAppliedRevisionId: current.state.applied.revision.id,
+      route: { kind: 'system' },
+    });
+  });
+  assert.equal(
+    restoredSystem?.ok,
+    true,
+    `System restore failed: ${JSON.stringify(restoredSystem)}`,
+  );
   await initialPopup.close();
   await automaticTheme.click();
   assert.equal(await options.locator('html').getAttribute('data-theme'), null);

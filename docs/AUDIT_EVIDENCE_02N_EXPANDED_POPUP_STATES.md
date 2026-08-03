@@ -35,3 +35,16 @@ The schema-3 evidence expansion passed architecture, parity, localization, type 
 This ordinary evidence Head must successfully drive both implementations through `proxy` and `auto switch`, produce exactly eight manifest entries and preserve all six permanent gates. No visual parity claim is made until the resulting paired artifact is inspected.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## First schema-3 result
+
+Ordinary Head `1feee647d9d2cd2a4b0acfa89b2bb9172a4fff04` successfully produced the first schema-3 artifact and passed all six permanent gates. Artifact `8845149522` (`sha256:7dea6fc40f77ab5c8cbb321e2f8dcaccb84206917ddf786b15c5f04189c9056e`) proves both implementations reached active `proxy` and active `auto switch` through their production background contracts.
+
+The active Fixed surfaces have the same visible structure and text. The active Switch surfaces expose a structural defect:
+
+- Original keeps a single `auto switch` row and no `<select>`;
+- Nex appends `[Direct]`, adds a visible `Result` label and renders a result-profile dropdown;
+- Nex Popup height increases by 29px;
+- manifest comparison reports `auto switch [Direct]`, `Result`, `Direct` and `System Proxy` only in Nex, with plain `auto switch` missing from Nex.
+
+This is direct original evidence that the ordinary Popup result editor is a Nex-only invention. Backend mutation, condition-result computation, temporary rules and Options editing are not implicated.
