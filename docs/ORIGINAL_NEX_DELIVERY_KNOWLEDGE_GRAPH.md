@@ -260,11 +260,17 @@ Evidence-backed corrections:
 - default Popup and Options text now match the original matrix except the truthful Nex version and original hidden-modal text;
 - known History, Draft, capability-research and Nex-brand leaks remain absent.
 
+Verified default-presentation subsets:
+
+- `KG-OPTIONS-DEFAULT-LAYOUT-001` — default About sidebar, navigation, product, action, notice and license geometry: `VERIFIED_AUTOMATION`;
+- `KG-POPUP-DEFAULT-GEOMETRY-001` — default Popup shell, rows, typography, selected state, separators and Options action: `VERIFIED_AUTOMATION`;
+- `KG-POPUP-DEFAULT-ICONS-001` — clean-room default leading/trailing icons, wrench and active outline: `VERIFIED_AUTOMATION`.
+
 Remaining presentation gaps:
 
-- Options sidebar background, boundary, typography and vertical rhythm;
-- Popup profile icons, row height, selected-state accent and Options entry icon;
-- complete editor/dialog density and interaction audit.
+- expanded Popup states, result selectors, site actions, temporary rules and ownership surfaces;
+- Options profile editors, dialogs, validation timing and non-default density;
+- complete cross-surface interaction and owner-acceptance audit.
 
 ### `KG-STARTUP-OWNERSHIP-001`
 
@@ -284,6 +290,34 @@ Verified correction:
 - Firefox main E2E and all Toolbar specialist steps remained green.
 
 This closes the demonstrated automation defect but does not alter owner acceptance or project progress.
+
+### `KG-OPTIONS-DEFAULT-LAYOUT-001`
+
+Status: `VERIFIED_AUTOMATION` on ordinary Head `816388cf5f019ebd44e758149f36d99fa2507193`.
+
+- paired computed metrics align default About navigation, actions, notices and license geometry;
+- sidebar background, boundary, typography and vertical rhythm match the official default surface;
+- default content/text remains aligned except the truthful Nex version;
+- this node does not cover profile editors, dialogs or validation behavior.
+
+### `KG-POPUP-DEFAULT-GEOMETRY-001`
+
+Status: `VERIFIED_AUTOMATION` on ordinary Head `d24da81362bb3f5c2382e156cb7bf39d54721231`.
+
+- 430px content shell, four default actions, 14px/21px typography, 31px rows and compact separators align with Original;
+- active outline, Options row and result-control absence match the default System state;
+- this node does not cover expanded site/temporary/ownership/result-selector states.
+
+### `KG-POPUP-DEFAULT-ICONS-001`
+
+Status: `VERIFIED_AUTOMATION` on ordinary Head `cb58afaf10714d1ea7219f8871f511b06375cac2`.
+
+- all leading icon boxes, trailing Direct/System globes and Options wrench retain original coordinates and 14px geometry;
+- the evidence-selected mixed clean-room glyph set keeps the visually improved power/retweet/wrench paths and the better-performing transfer/globe paths;
+- all six permanent gates passed on the first ordinary run;
+- Chromium waited for persisted System activation and completed every specialist step without reruns.
+
+These bounded nodes close the default-entry presentation defects in automation only. They do not close the complete journeys or owner acceptance.
 
 ## 6. Order graph
 
@@ -316,9 +350,12 @@ Valid supporting runtime nodes:
 Open entry nodes:
 
 - `KG-ORIGINAL-UI-EVIDENCE-001` — active.
-- `KG-POPUP-STRUCTURE-001` — `PARTIAL`; default text/order converged, visual geometry and icons remain open.
-- `KG-OPTIONS-STRUCTURE-001` — `PARTIAL`; hierarchy/default landing converged, presentation remains open.
-- `KG-OPTIONS-ABOUT-001` — `PARTIAL`; text, links and product icon converged, exact styling remains open.
+- `KG-POPUP-STRUCTURE-001` — `PARTIAL`; default text/order/geometry/icons verified, expanded states and complete interactions remain open.
+- `KG-OPTIONS-STRUCTURE-001` — `PARTIAL`; default About hierarchy/layout verified, editors/dialogs and non-default interactions remain open.
+- `KG-OPTIONS-ABOUT-001` — default content and layout subset `VERIFIED_AUTOMATION`; owner acceptance and adjacent Options surfaces remain open.
+- `KG-OPTIONS-DEFAULT-LAYOUT-001` — paired default layout `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-GEOMETRY-001` — paired default geometry `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-ICONS-001` — paired clean-room icon subset `VERIFIED_AUTOMATION`.
 - `KG-UI-DENSITY-001` — `FAILED`.
 - `KG-ENGINEERING-LEAK-001` — first known leaks removed; complete surface audit open.
 - `KG-FIREFOX-ENTRY-001` — corrected automated journey `VERIFIED_AUTOMATION`; latest owner result remains `FAIL`.
@@ -396,15 +433,19 @@ Subsequent captures additionally prove:
 - original sidebar spelling `Zero Omega` and About product spelling `ZeroOmega`;
 - bracketed built-ins and the official About information structure;
 - the 32×32 blue Omega About product icon;
-- remaining differences are predominantly presentation geometry, icons, typography and truthful version text.
+- default Options layout and default Popup geometry/icons are now paired and computed-metric verified;
+- remaining differences are predominantly expanded-state coverage, editor/dialog density, glyph micro-detail and truthful version text.
 
-The bounded entry correction and startup ownership repair are automated and exact-Head verified, but the complete comparison and owner acceptance remain open.
+The bounded default-entry correction and startup ownership repair are automated and exact-Head verified, but expanded surfaces, complete interactions and owner acceptance remain open.
 
 ## 8. Active defect graph
 
 - `KG-ICON-001` — complete visible entry journey: `FAILED`.
-- `KG-POPUP-STRUCTURE-001` — Popup hierarchy/text converged; geometry/icons: `PARTIAL`.
-- `KG-OPTIONS-STRUCTURE-001` — Options hierarchy/default entry converged; presentation: `PARTIAL`.
+- `KG-POPUP-STRUCTURE-001` — default hierarchy/text/geometry/icons verified; expanded states: `PARTIAL`.
+- `KG-OPTIONS-STRUCTURE-001` — default hierarchy/About layout verified; editors/dialogs: `PARTIAL`.
+- `KG-OPTIONS-DEFAULT-LAYOUT-001` — default About presentation: `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-GEOMETRY-001` — default Popup geometry: `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-ICONS-001` — default Popup clean-room icons: `VERIFIED_AUTOMATION`.
 - `KG-STARTUP-OWNERSHIP-001` — serialized startup/external ownership: `VERIFIED_AUTOMATION`.
 - `KG-UI-001` — layout/density/dialog/control hierarchy: `FAILED`.
 - `KG-EXTRA-001` — unnecessary descriptions/workflow: `FAILED`.
@@ -447,15 +488,16 @@ PRODUCT_CONSTITUTION
 The next edge is not owner acceptance and not another acceptance package.
 
 ```text
-normal exact Head
-  -> six permanent gates green on 92feff8c
-  -> capture computed Original/Nex layout and typography metrics
-  -> align Options sidebar background/boundary/type/vertical rhythm
-  -> inspect paired screenshots and DOM again
-  -> align Popup icons/rows/selected state/Options entry
+default entry Heads 816388cf / d24da813 / cb58afaf
+  -> six permanent gates green without reruns
+  -> default Options layout verified
+  -> default Popup geometry and icons verified
+  -> expand paired evidence to active Fixed/Switch and site-action Popup states
+  -> audit temporary-rule and ownership Popup surfaces
+  -> capture original profile-editor/dialog density
   -> Firefox first
   -> Chromium confirmation
-  -> expand paired surface inventory
+  -> owner acceptance only after the expanded journey closes
 ```
 
 No user retest, merge or release is authorized. Progress remains 48% total and 45% for Order 1 until paired evidence demonstrates additional complete original-facing closure.

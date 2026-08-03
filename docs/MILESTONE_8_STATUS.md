@@ -94,7 +94,13 @@ Subsequent exact evidence also verifies:
 
 Ordinary Head `92feff8c28fd01740d58bfb144aa5361aa85180f` passed all six permanent gates. Chromium main E2E passed on its first attempt and completed every Toolbar specialist step; Firefox and native Chromium Inspect also completed fully.
 
-These slices correct direction and close demonstrated automation defects but do not justify increasing progress. Paired evidence still shows remaining Popup and Options presentation differences, and the latest owner result remains FAIL.
+Subsequent paired computed evidence closes three bounded default-presentation nodes in automation:
+
+- ordinary Head `816388cf5f019ebd44e758149f36d99fa2507193` verifies the default About sidebar, navigation, product, actions, notices and license layout;
+- ordinary Head `d24da81362bb3f5c2382e156cb7bf39d54721231` verifies the default Popup shell, rows, typography, selected state, separators and Options action;
+- ordinary Head `cb58afaf10714d1ea7219f8871f511b06375cac2` verifies the default clean-room icon boxes, trailing globes, wrench and active outline, with all six gates passing on the first run.
+
+These slices correct direction and close demonstrated default-entry automation defects but do not justify increasing progress. Expanded Popup states, Options editors/dialogs, complete interactions and the latest owner FAIL remain open.
 
 ## Engineering evidence retained
 
@@ -128,18 +134,21 @@ The ordinary entry journey remains failed until:
 
 ## Immediate execution order
 
-1. Extend paired evidence with computed layout and typography metrics for Original and Nex.
-2. Align Options light-theme sidebar background, boundary, typography and vertical rhythm.
-3. Re-run paired screenshots/DOM and the six permanent gates.
-4. Align Popup icons, row geometry, selected state, divider and Options entry.
-5. Audit remaining editor/dialog density and visible helper text against original evidence.
-6. Expand paired evidence to the next original surface only after the current surface is aligned.
-7. Validate Firefox first, Chromium second.
+1. Expand paired evidence to the active Fixed and Switch Popup states.
+2. Capture original result-selector, current-site action and temporary-rule surfaces.
+3. Audit ownership-blocked and external-profile Popup states against original evidence.
+4. Add paired Options profile-editor and dialog density evidence.
+5. Remove any remaining unproven helper text or interaction-order differences.
+6. Validate every bounded surface in Firefox first and Chromium second.
+7. Keep the default-entry nodes stable while expanding coverage.
 8. Do not request owner retest during this correction phase.
 
 ## Project-wide release blockers
 
 - `KG-ORIGINAL-UI-EVIDENCE-001` — paired original-facing UI capture: active.
+- `KG-OPTIONS-DEFAULT-LAYOUT-001` — default About presentation: `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-GEOMETRY-001` — default Popup geometry: `VERIFIED_AUTOMATION`.
+- `KG-POPUP-DEFAULT-ICONS-001` — default Popup clean-room icons: `VERIFIED_AUTOMATION`.
 - `KG-STARTUP-OWNERSHIP-001` — serialized startup/external ownership: `VERIFIED_AUTOMATION`.
 - `KG-ICON-001` — complete Toolbar/Popup entry journey: `FAILED`.
 - `KG-UI-001` — layout, density, dialogs, controls and hierarchy: `FAILED`.

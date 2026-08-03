@@ -70,3 +70,9 @@ The same Head's Chromium main E2E failed before external ownership inspection be
 This ordinary evidence Head must pass all six permanent gates on its first run and confirm that the mixed glyph set preserves the exact boxes and geometry while retaining only the demonstrated visual improvements. No rerun of a failed ordinary Head counts as success.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Final mixed-glyph result
+
+Ordinary Head `cb58afaf10714d1ea7219f8871f511b06375cac2` closes the default icon subset in automation. All six permanent gates passed on the first run. Paired artifact `8844941625` (`sha256:af744d17438a7a5965796c7e04e14d1cf3bad05cd10da1e33ebd118b8f4fcbe2`) proves that the mixed clean-room glyph set preserves every previously verified icon box, row, label, divider and outline while retaining only the evidence-backed visual improvements.
+
+Chromium explicitly waited for persisted System activation before external proxy installation, then completed the main journey and every Toolbar specialist step. Firefox and native Chromium Inspect also completed fully. This closes only the default Popup icon subset; expanded Popup states and owner acceptance remain open.
