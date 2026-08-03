@@ -19,10 +19,7 @@ ownership_path = 'docs/AUDIT_EVIDENCE_02G_CHROMIUM_OWNERSHIP_SYNCHRONIZATION.md'
 replace_once(
     icon_path,
     """    {#if kind === 'direct'}
-      <path
-        class="solid"
-        d="M1 2.4h7V.8l4.4 3.4L8 7.6V6H1ZM13 8H6v-1.6L1.6 9.8 6 13.2v-1.6h7Z"
-      />""",
+      <path class="solid" d="M1 2.4h7V.8l4.4 3.4L8 7.6V6H1ZM13 8H6v-1.6L1.6 9.8 6 13.2v-1.6h7Z" />""",
     """    {#if kind === 'direct'}
       <path d="M1.2 4.2h8.1M7.1 1.9l2.4 2.3-2.4 2.3M12.8 9.8H4.7M6.9 7.5 4.5 9.8l2.4 2.3" />""",
 )
