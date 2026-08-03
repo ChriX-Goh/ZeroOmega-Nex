@@ -51,6 +51,10 @@ async function availableLocales(extensionPath) {
     .sort();
 }
 
+async function pause(delay = 100) {
+  await new Promise((resolvePause) => setTimeout(resolvePause, delay));
+}
+
 function extensionPages(manifest) {
   const optionsPath = manifest.options_ui?.page ?? manifest.options_page;
   const popupPath = manifest.action?.default_popup ?? manifest.browser_action?.default_popup;
@@ -112,6 +116,7 @@ function layoutMetricSelectors(implementation, surface) {
         active: '.om-nav-item.om-active > a',
         options: '#js-option',
         optionsIcon: '#js-option > .glyphicon:first-child',
+        resultControl: 'select',
       }
     : {
         shell: '.popup-shell',
@@ -127,6 +132,7 @@ function layoutMetricSelectors(implementation, surface) {
         options: '.settings-button',
         optionsIcon:
           '[data-original-popup-icon="wrench"][data-original-popup-icon-position="options"]',
+        resultControl: '.profile-result-select',
       };
 }
 
@@ -287,6 +293,109 @@ async function captureSurface(page, implementation, surface, url, outputDir, ent
   });
 }
 
+async function sendOriginalRuntimeMessage(page, method, args = []) {
+  let lastError;
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      return await page.evaluate(
+        async ({ requestMethod, requestArgs }) =>
+          new Promise((resolveMessage, rejectMessage) => {
+            chrome.runtime.sendMessage({ method: requestMethod, args: requestArgs }, (response) => {
+              if (chrome.runtime.lastError) {
+                rejectMessage(new Error(chrome.runtime.lastError.message));
+                return;
+              }
+              if (response?.error) {
+                rejectMessage(new Error(String(response.error.message ?? response.error)));
+                return;
+              }
+              resolveMessage(response?.result ?? null);
+            });
+          }),
+        { requestMethod: method, requestArgs: args },
+      );
+    } catch (error) {
+      lastError = error;
+      await pause();
+    }
+  }
+  throw lastError ?? new Error(`Original runtime message ${method} failed`);
+}
+
+async function activateOriginalEvidenceProfile(page, profileName) {
+  await sendOriginalRuntimeMessage(page, 'applyProfile', [profileName]);
+  let latest;
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    latest = await sendOriginalRuntimeMessage(page, 'getState', [
+      { currentProfileName: '', isSystemProfile: false, validResultProfiles: [] },
+    ]);
+    if (latest?.currentProfileName === profileName) return latest;
+    await pause();
+  }
+  throw new Error(`Original profile did not become ${profileName}: ${JSON.stringify(latest)}`);
+}
+
+async function sendNexRuntimeMessage(page, message) {
+  const response = await page.evaluate(
+    async (request) => chrome.runtime.sendMessage(request),
+    message,
+  );
+  assert.equal(response?.ok, true, `Nex runtime command failed: ${JSON.stringify(response)}`);
+  return response;
+}
+
+async function activateNexEvidenceProfile(page, profileName) {
+  const channel = 'zeroomega-nex/profile-workflow/v1';
+  const current = await sendNexRuntimeMessage(page, { channel, action: 'get' });
+  const profile = current.state.applied.profiles.find(
+    (candidate) => candidate.name === profileName,
+  );
+  assert.ok(profile, `Nex profile ${profileName} was not found`);
+  await sendNexRuntimeMessage(page, {
+    channel,
+    action: 'activate-route',
+    expectedAppliedRevisionId: current.state.applied.revision.id,
+    route: { kind: 'profile', profileId: profile.id },
+  });
+  let latest;
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    latest = await sendNexRuntimeMessage(page, { channel, action: 'get' });
+    if (
+      latest.runtime?.activeRoute?.kind === 'profile' &&
+      latest.runtime.activeRoute.profileId === profile.id
+    ) {
+      return latest;
+    }
+    await pause();
+  }
+  throw new Error(`Nex profile did not become ${profileName}: ${JSON.stringify(latest)}`);
+}
+
+async function activateEvidenceProfile(page, implementation, profileName) {
+  return implementation === 'original-v3.5.0'
+    ? activateOriginalEvidenceProfile(page, profileName)
+    : activateNexEvidenceProfile(page, profileName);
+}
+
+async function capturePopupState(
+  context,
+  baseUrl,
+  popupPath,
+  implementation,
+  surface,
+  outputDir,
+  entries,
+) {
+  const popup = await context.newPage();
+  try {
+    await popup.setViewportSize({ width: 440, height: 760 });
+    await popup.goto(`${baseUrl}/${popupPath.replace(/^\//u, '')}`);
+    await captureSurface(popup, implementation, surface, popupPath, outputDir, entries);
+  } finally {
+    await popup.close();
+  }
+}
+
 async function captureImplementation(implementation, extensionPath, entries) {
   const manifest = await readManifest(extensionPath);
   const locales = await availableLocales(extensionPath);
@@ -317,11 +426,15 @@ async function captureImplementation(implementation, extensionPath, entries) {
     const ordinaryTab = await context.newPage();
     await ordinaryTab.goto('https://example.com/', { waitUntil: 'domcontentloaded' });
 
-    const popup = await context.newPage();
-    await popup.setViewportSize({ width: 440, height: 760 });
-    await popup.goto(`${baseUrl}/${popupPath.replace(/^\//u, '')}`);
-    await captureSurface(popup, implementation, 'popup-default', popupPath, outputDir, entries);
-    await popup.close();
+    await capturePopupState(
+      context,
+      baseUrl,
+      popupPath,
+      implementation,
+      'popup-default',
+      outputDir,
+      entries,
+    );
 
     const options = await context.newPage();
     await options.setViewportSize({ width: 1440, height: 1000 });
@@ -334,6 +447,23 @@ async function captureImplementation(implementation, extensionPath, entries) {
       outputDir,
       entries,
     );
+
+    for (const state of [
+      { profileName: 'proxy', surface: 'popup-fixed-active' },
+      { profileName: 'auto switch', surface: 'popup-switch-active' },
+    ]) {
+      await activateEvidenceProfile(options, implementation, state.profileName);
+      await capturePopupState(
+        context,
+        baseUrl,
+        popupPath,
+        implementation,
+        state.surface,
+        outputDir,
+        entries,
+      );
+    }
+
     await options.close();
     await ordinaryTab.close();
 
@@ -434,9 +564,15 @@ for (const requestedLocale of ['en-US', 'zh-CN', 'zh-TW']) {
 }
 assert.equal(localeMatrix.length, 6, 'paired locale matrix count');
 
-assert.equal(entries.length, 4, 'paired UI evidence count');
+const pairedSurfaces = [
+  'popup-default',
+  'popup-fixed-active',
+  'popup-switch-active',
+  'options-default',
+];
+assert.equal(entries.length, 8, 'paired UI evidence count');
 for (const implementation of ['original-v3.5.0', 'nex']) {
-  for (const surface of ['popup-default', 'options-default']) {
+  for (const surface of pairedSurfaces) {
     assert.equal(
       entries.filter(
         (entry) => entry.implementation === implementation && entry.surface === surface,
@@ -448,7 +584,7 @@ for (const implementation of ['original-v3.5.0', 'nex']) {
 }
 
 const bySurface = Object.fromEntries(
-  ['popup-default', 'options-default'].map((surface) => {
+  pairedSurfaces.map((surface) => {
     const originalEntry = entries.find(
       (entry) => entry.implementation === 'original-v3.5.0' && entry.surface === surface,
     );
@@ -473,7 +609,7 @@ entries.sort((left, right) =>
   ),
 );
 const manifest = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   sourceHead,
   locale,
   original,
@@ -490,7 +626,7 @@ await writeFile(
 );
 await writeFile(
   resolve(outputRoot, 'README.md'),
-  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
+  `# Original ↔ Nex UI evidence\n\n- Exact Nex Head: \`${sourceHead}\`\n- Original: official ZeroOmega v3.5.0 Chromium package\n- Locale: \`${locale}\`\n- Surfaces: default Popup, active Fixed Popup, active Switch Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix\n\nThis artifact is the product-facing comparison authority for removing Nex-only UI, extra descriptions and altered information hierarchy. Green Nex-only screenshots do not establish parity.\n`,
 );
 
 console.log(`Original ↔ Nex UI evidence captured for exact Head ${sourceHead}.`);
