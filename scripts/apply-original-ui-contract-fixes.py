@@ -265,10 +265,8 @@ replace_once(
 replace_once(capture_path, '  schemaVersion: 2,', '  schemaVersion: 3,')
 replace_once(
     capture_path,
-    """- Surfaces: default Popup and default Options page
-- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix""",
-    """- Surfaces: default Popup, active Fixed Popup, active Switch Popup and default Options page
-- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix""",
+    r"""- Surfaces: default Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix""",
+    r"""- Surfaces: default Popup, active Fixed Popup, active Switch Popup and default Options page\n- Evidence: screenshots, rendered text, saved body DOM, normalized anchor targets, computed semantic layout/style metrics, page/extension language signals, packaged locale directories and an en-US/zh-CN/zh-TW default-text matrix""",
 )
 
 Path(evidence_path).write_text("""# Audit Evidence 02N — Expanded Popup States
