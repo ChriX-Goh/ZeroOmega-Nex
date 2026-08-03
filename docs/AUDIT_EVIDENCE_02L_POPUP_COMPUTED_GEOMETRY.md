@@ -46,6 +46,8 @@ This slice intentionally does not claim icon-shape parity. Direct/System/profile
 
 ## Verification boundary
 
-The correction must pass the atomic repository validation and then a fresh normal-Head paired artifact. The artifact, not the CSS declaration, determines whether the measured geometry converged.
+The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `8d55a95c4c58e6ab608f0914e33df3b15bc453f6`. Temporary patch scripts were removed in the same transaction.
+
+A fresh normal-Head paired artifact must now verify the computed positions, action styles and outline values. The artifact, not the CSS declaration, determines whether the measured geometry converged.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
