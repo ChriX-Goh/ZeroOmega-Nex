@@ -29,15 +29,14 @@
 >
   <svg viewBox="0 0 14 14" focusable="false">
     {#if kind === 'direct'}
-      <path class="solid" d="M1 2.4h7V.8l4.4 3.4L8 7.6V6H1ZM13 8H6v-1.6L1.6 9.8 6 13.2v-1.6h7Z" />
+      <path d="M1.2 4.2h8.1M7.1 1.9l2.4 2.3-2.4 2.3M12.8 9.8H4.7M6.9 7.5 4.5 9.8l2.4 2.3" />
     {:else if kind === 'system'}
       <path class="heavy" d="M7 1.1v5.4" />
       <path class="heavy" d="M3.1 3.5a5 5 0 1 0 7.8 0" />
     {:else if kind === 'fixed' || kind === 'globe'}
+      <circle cx="7" cy="7" r="5.2" />
       <path
-        class="solid globe"
-        fill-rule="evenodd"
-        d="M7 1.1a5.9 5.9 0 1 1 0 11.8A5.9 5.9 0 0 1 7 1.1ZM3.1 3.5c.7-.7 1.6-1.2 2.6-1.4l.2 1.4-.8.7.5 1.2-1.2.8-1.2-.5-.8.5a4.7 4.7 0 0 1 .7-2.7Zm4.4 3.1 1.3-.6 1 .5.2 1.1 1.2.8-.5 1.8-1.5.1-.8 1.5a4.7 4.7 0 0 1-2.1.2l.2-1.4-1-.8.4-1.5Z"
+        d="M1.8 7h10.4M7 1.8c1.6 1.4 2.5 3.2 2.5 5.2S8.6 10.8 7 12.2C5.4 10.8 4.5 9 4.5 7S5.4 3.2 7 1.8Z"
       />
     {:else if kind === 'switch'}
       <path

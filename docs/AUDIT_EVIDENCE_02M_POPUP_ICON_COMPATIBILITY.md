@@ -56,3 +56,15 @@ Ordinary Head `49201d946f30d0f4f22c5ad2110f57cbfe7fa7f3` passed all six permanen
 This ordinary evidence Head must determine whether the solid transfer, retweet, wrench, globe and heavier power paths visually converge better than the verified line-frame version while retaining the exact geometry and all six gates. The screenshot, not the implementation intent, decides whether the detail slice remains.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Solid-glyph ordinary result
+
+Ordinary Head `e60981eae0d3b3377175bf68ec2c923a7ff3bf74` produced a mixed visual result. Artifact `8844659739` (`sha256:fb1f4b3864b1e60b8c462d72ba457c930f9d9f5ba886ebdfbb9ad647de903536`) preserved all verified icon boxes and row geometry. Pixel-crop comparison against the paired Original showed:
+
+- heavier power and solid wrench materially improved;
+- solid retweet improved slightly;
+- the solid transfer and land-cutout globe increased the crop error relative to the verified line-frame versions.
+
+The bounded result therefore keeps only the demonstrated improvements and restores transfer/globe to the prior verified paths. This is evidence-driven selection, not a requirement that every icon share one rendering technique.
+
+The same Head's Chromium main E2E failed before external ownership inspection because the persisted mode was still `direct`. The test had waited only for the System button's disabled state before installing an external proxy. The corrected journey now waits explicitly for `activeBuiltInMode === system`; it does not retry or weaken the ownership assertion.

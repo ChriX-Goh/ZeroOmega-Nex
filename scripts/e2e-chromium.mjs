@@ -479,6 +479,15 @@ try {
   const system = popup.getByRole('button', { name: /系统代理/u });
   await system.click();
   await assertEventually(async () => system.isDisabled(), 'System route did not become active');
+  await assertEventually(
+    async () =>
+      popup.evaluate(async () => {
+        const proxyStateKey = 'zeroomega-nex/browser-proxy/v1/state';
+        const storage = await chrome.storage.local.get(proxyStateKey);
+        return storage[proxyStateKey]?.activeBuiltInMode === 'system';
+      }),
+    'System activation storage did not converge before external proxy installation',
+  );
   const externalProxySetting = await worker.evaluate(async () => {
     await new Promise((resolveSet, rejectSet) => {
       chrome.proxy.settings.set(

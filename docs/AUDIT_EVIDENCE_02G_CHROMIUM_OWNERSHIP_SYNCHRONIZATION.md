@@ -74,3 +74,9 @@ Atomic repository validation passed on Actions-generated commit `6cd6be2ee99ce7e
 This ordinary evidence Head must now pass Chromium main E2E on its first attempt and continue through every Toolbar specialist step. A manual rerun is not success evidence.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Explicit external-ownership precondition
+
+A later Chromium run exposed one remaining test-side precondition gap. Before installing the external Fixed configuration, the journey waited for the System button to become disabled but did not independently wait for persisted activation state. One run therefore reached the external step while `activeBuiltInMode` still read `direct`.
+
+The journey now requires both UI convergence and persisted `activeBuiltInMode === system` before calling `chrome.proxy.settings.set()`. The existing external ownership assertion remains strict, and a fresh ordinary Head must pass on its first attempt. This strengthens evidence synchronization; it does not change product ownership semantics.
