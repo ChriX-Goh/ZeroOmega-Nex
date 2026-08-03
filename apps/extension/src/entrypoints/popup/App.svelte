@@ -18,7 +18,7 @@
   import { onMount } from 'svelte';
   import { browser } from 'wxt/browser';
 
-  import ProfileIcon from '../../components/ProfileIcon.svelte';
+  import OriginalPopupIcon from './OriginalPopupIcon.svelte';
   import {
     currentSiteDomainForLevel,
     inspectActiveCurrentSite,
@@ -658,7 +658,7 @@
                 : uiMessage('popup.activateProfile', { name: item.name }, locale))}
             onclick={() => activateRoute(item)}
           >
-            <ProfileIcon kind={item.kind} color={item.color} size={14} />
+            <OriginalPopupIcon kind={item.kind} color={item.color} />
             <span class="profile-name">
               {item.name}
               {#if item.resultRoute && state && sameRoute(runtime?.activeRoute, item.route)}
@@ -667,14 +667,8 @@
                 >
               {/if}
             </span>
-            {#if sameRoute(runtime?.activeRoute, item.route)}
-              <svg
-                class="current-mark"
-                viewBox="0 0 16 16"
-                aria-label={uiText('popup.currentProfile', locale)}
-              >
-                <path d="m3.2 8.3 2.8 2.8 6.8-7" />
-              </svg>
+            {#if item.kind === 'direct' || item.kind === 'system'}
+              <OriginalPopupIcon kind="globe" color={item.color} position="trailing" />
             {/if}
           </button>
           {#if item.resultRoute && item.resultItems && item.resultItems.length !== 0 && sameRoute(runtime?.activeRoute, item.route)}
@@ -743,10 +737,9 @@
               disabled={switching || importingExternalProfile}
               onclick={openExternalProfileForm}
             >
-              <ProfileIcon
+              <OriginalPopupIcon
                 kind={proxyOwnership.externalProfile.kind}
                 color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
-                size={14}
               />
               <span>{uiText('popup.externalProfile', locale)}</span>
             </button>
@@ -912,12 +905,7 @@
       disabled={openingSettings}
       aria-label={uiText('popup.optionsAria', locale)}
     >
-      <svg viewBox="0 0 20 20" aria-hidden="true">
-        <path
-          d="M8.8 2.2h2.4l.5 1.8c.5.2 1 .5 1.4.8l1.8-.5 1.2 2.1-1.3 1.3c.1.5.1 1.1 0 1.6l1.3 1.3-1.2 2.1-1.8-.5c-.4.4-.9.6-1.4.8l-.5 1.8H8.8L8.3 13a5 5 0 0 1-1.4-.8l-1.8.5-1.2-2.1 1.3-1.3a6 6 0 0 1 0-1.6L3.9 6.4l1.2-2.1 1.8.5c.4-.3.9-.6 1.4-.8l.5-1.8Z"
-        />
-        <circle cx="10" cy="8.5" r="2.2" />
-      </svg>
+      <OriginalPopupIcon kind="wrench" color="#337ab7" position="options" />
       <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
     </button>
   </footer>

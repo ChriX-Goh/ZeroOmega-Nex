@@ -174,3 +174,12 @@
     display: inline;
   }
 }
+
+/* Original active outline and 14px glyph baseline. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .profile-list .profile-row > button.active {
+    box-shadow: none;
+    outline: 1px auto #101010;
+    outline-offset: 1px;
+  }
+}

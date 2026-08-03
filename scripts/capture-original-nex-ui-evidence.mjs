@@ -106,9 +106,12 @@ function layoutMetricSelectors(implementation, surface) {
           '#js-direct > .glyphicon:first-child, #js-system > .glyphicon:first-child, #js-profile-1 > .glyphicon:first-child, #js-profile-2 > .glyphicon:first-child',
         profileName:
           '#js-direct > .om-profile-name, #js-system > .om-profile-name, #js-profile-1 > .om-profile-name, #js-profile-2 > .om-profile-name',
+        profileTrailingIcon:
+          '#js-direct > .glyphicon:last-child, #js-system > .glyphicon:last-child',
         divider: '.om-divider',
         active: '.om-nav-item.om-active > a',
         options: '#js-option',
+        optionsIcon: '#js-option > .glyphicon:first-child',
       }
     : {
         shell: '.popup-shell',
@@ -117,9 +120,13 @@ function layoutMetricSelectors(implementation, surface) {
         profileAction: '.profile-row > button',
         profileIcon: '.profile-row .profile-type-icon',
         profileName: '.profile-name',
+        profileTrailingIcon:
+          '[data-original-popup-icon="globe"][data-original-popup-icon-position="trailing"]',
         divider: '.profile-divider',
         active: '.profile-row > button.active',
         options: '.settings-button',
+        optionsIcon:
+          '[data-original-popup-icon="wrench"][data-original-popup-icon-position="options"]',
       };
 }
 

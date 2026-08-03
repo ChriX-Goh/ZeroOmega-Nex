@@ -51,3 +51,16 @@ The correction passed architecture, parity, localization, type checking, unit te
 A fresh normal-Head paired artifact must now verify the computed positions, action styles and outline values. The artifact, not the CSS declaration, determines whether the measured geometry converged.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Computed geometry result
+
+Ordinary Head `d24da81362bb3f5c2382e156cb7bf39d54721231` proves the default Popup geometry correction converged. All six permanent gates passed. Artifact `8844187403` (`sha256:c8022698db95acb3e9fd4029d1a7b42a311e83f7cd40f19a456f85d671ec2bbc`) shows:
+
+- shell rectangle exactly `x=5, y=10, width=430, height=170` for Original and Nex;
+- all four action rectangles, typography, padding, radius, colors and backgrounds match exactly;
+- all four name rectangles match within `0.02px` horizontally and exactly vertically;
+- divider, Options action and overall vertical rhythm match exactly;
+- profile icon rectangles match in size and x position but Nex icons are `1px` low;
+- Original active styling uses `outline: auto 1px` with `1px` offset, while Nex used an inset shadow.
+
+The geometry node can therefore move to verified automation. Remaining Popup default differences are icon paths, the missing built-in trailing globe and the active-outline implementation.
