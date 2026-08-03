@@ -25,13 +25,9 @@ The active action now uses the measured `outline: auto 1px` with `1px` offset ra
 
 ## Atomic verification
 
-The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `78061e22a6211d2049abd089df77c4081b30629b`. Temporary patch scripts were removed in the same transaction.
+The initial component correction passed full atomic validation on Actions-generated commit `78061e22a6211d2049abd089df77c4081b30629b`. Its first ordinary Head exposed stale validator/E2E selectors and a wrench display override rather than a functional runtime defect.
 
-## Evidence boundary
-
-The permanent paired workflow now records leading icons, built-in trailing icons, the Options icon and computed outline values. This ordinary evidence Head must verify shape placement and preserve all six permanent gates before the default Popup icon slice can be considered automated.
-
-Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+The residual correction passed full atomic validation on Actions-generated commit `182776d7192e7baeefd6a9d4351293b62914cdf9`. It updates the static icon contract, Chromium icon locator, leading-icon evidence selector, inline wrench box and trailing-globe offset. Temporary patch scripts were removed in the same transaction.
 
 ## First ordinary-Head result
 
@@ -43,4 +39,8 @@ Ordinary Head `dceea3f0d007ce15d37672358bb535384fcd6ca1` exposed three contract 
 
 CI failed only because its static icon guard still required the retired `ProfileIcon` import. Chromium E2E failed only because its icon-count assertion still queried `[data-profile-kind]`. Firefox, native Chromium Inspect, paired evidence, Toolbar evidence, visual evidence and parity documentation passed.
 
-The residual correction updates both permanent contracts to the Popup-specific icon data attributes, restores the wrench to a 14px inline box and removes the trailing margin so the globe x positions match Original. A fresh ordinary Head is required; no rerun of the failed Head counts as evidence.
+## Evidence boundary
+
+This ordinary evidence Head must verify that CI and Chromium now pass without reruns, the Options wrench remains on the same line, all leading/trailing icon rectangles are recorded, and the four action rectangles remain unchanged. Only then can the default Popup icon slice be considered verified automation.
+
+Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
