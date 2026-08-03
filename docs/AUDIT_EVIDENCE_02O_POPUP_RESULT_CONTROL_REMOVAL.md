@@ -30,8 +30,12 @@ The correction deliberately retains:
 - temporary-rule result choices;
 - Toolbar result projection.
 
+## Atomic verification
+
+The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `31c82c88a96f502b73e24ae5641d584b4364bcc4`. Temporary patch scripts were removed in the same transaction.
+
 ## Permanent verification
 
 Chromium and Firefox E2E explicitly activate the default `auto switch`, require its exact one-line text and assert that both result selectors and labels remain absent. Schema-3 paired evidence requires zero result controls for Original and Nex and exact active-Switch text-line equality.
 
-The correction must pass the atomic repository validation and then a fresh ordinary Head with all six permanent gates. Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+This ordinary evidence Head must pass all six permanent gates on its first run and produce an active-Switch paired capture whose text and height match Original. Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
