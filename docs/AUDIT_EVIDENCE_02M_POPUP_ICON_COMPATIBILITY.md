@@ -23,8 +23,12 @@ A Popup-specific SVG component now supplies clean-room transfer, power, globe, r
 
 The active action now uses the measured `outline: auto 1px` with `1px` offset rather than an invented inset shadow. Icon baseline moves up by 1px to the original y coordinates.
 
+## Atomic verification
+
+The correction passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `78061e22a6211d2049abd089df77c4081b30629b`. Temporary patch scripts were removed in the same transaction.
+
 ## Evidence boundary
 
-The permanent paired workflow now records leading icons, built-in trailing icons, the Options icon and computed outline values. A fresh ordinary Head must verify shape placement and preserve all six permanent gates before the default Popup icon slice can be considered automated.
+The permanent paired workflow now records leading icons, built-in trailing icons, the Options icon and computed outline values. This ordinary evidence Head must verify shape placement and preserve all six permanent gates before the default Popup icon slice can be considered automated.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
