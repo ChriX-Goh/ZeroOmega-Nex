@@ -312,7 +312,10 @@ try {
   assert.equal(await initialButtons.nth(0).isDisabled(), false);
   assert.equal(await initialButtons.nth(1).isDisabled(), true);
   assert.equal(await initialPopup.locator('html').getAttribute('data-theme'), 'dark');
-  assert.equal((await initialPopup.locator('[data-profile-kind]').count()) >= 3, true);
+  assert.equal(
+    (await initialPopup.locator('[data-original-popup-icon-position="leading"]').count()) >= 3,
+    true,
+  );
   await initialPopup.close();
   await automaticTheme.click();
   assert.equal(await options.locator('html').getAttribute('data-theme'), null);

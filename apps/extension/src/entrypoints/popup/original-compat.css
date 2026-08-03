@@ -183,3 +183,19 @@
     outline-offset: 1px;
   }
 }
+
+/* Popup icon contract residual correction. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) [data-original-popup-icon-position='trailing'] {
+    margin-left: 0;
+  }
+
+  :root:not([data-theme='dark']) .settings-button > [data-original-popup-icon-position='options'] {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    line-height: 14px;
+    vertical-align: -1px;
+  }
+}

@@ -118,7 +118,7 @@ function layoutMetricSelectors(implementation, surface) {
         content: '.profile-list',
         profileRow: '.profile-row > button',
         profileAction: '.profile-row > button',
-        profileIcon: '.profile-row .profile-type-icon',
+        profileIcon: '.profile-row [data-original-popup-icon-position="leading"]',
         profileName: '.profile-name',
         profileTrailingIcon:
           '[data-original-popup-icon="globe"][data-original-popup-icon-position="trailing"]',

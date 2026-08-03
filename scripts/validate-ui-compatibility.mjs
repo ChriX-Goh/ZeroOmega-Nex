@@ -529,7 +529,8 @@ const requirements = [
     'The browser manifest must keep standard install icons and the original Action fallback sizes.',
   ],
   [
-    popupApp.includes('import ProfileIcon') &&
+    popupApp.includes("import OriginalPopupIcon from './OriginalPopupIcon.svelte'") &&
+      popupApp.includes('<OriginalPopupIcon kind={item.kind} color={item.color} />') &&
       popupApp.includes('normalizedRoutes') &&
       popupApp.includes('applyThemeMode(readThemeMode())'),
     'Popup must show type icons, retain built-in ordering, and share the selected theme.',
