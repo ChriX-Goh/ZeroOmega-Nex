@@ -44,3 +44,15 @@ CI failed only because its static icon guard still required the retired `Profile
 This ordinary evidence Head must verify that CI and Chromium now pass without reruns, the Options wrench remains on the same line, all leading/trailing icon rectangles are recorded, and the four action rectangles remain unchanged. Only then can the default Popup icon slice be considered verified automation.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Solid glyph detail slice
+
+Ordinary Head `49201d946f30d0f4f22c5ad2110f57cbfe7fa7f3` passed all six permanent gates. Artifact `8844485148` (`sha256:9541671988c4825891c82c6005f2674f3b026d5a926a15e4a3a4fa94edd44529`) proves:
+
+- all four leading icon boxes match Original at x `13`, y `17/50/86/119`, 14px square;
+- both trailing globe boxes match Original within `0.02px` horizontally and exactly vertically;
+- the Options wrench box matches Original at x `13`, y `156`, 14px square;
+- action rectangles, text baselines, divider, active outline and Options row remain exact;
+- CI, Firefox, Chromium, native Inspect and every Toolbar specialist step pass without reruns.
+
+The final default-glyph detail slice replaces the remaining line-frame approximation with clean-room solid transfer, retweet and wrench paths, a heavier power symbol, and a solid globe with transparent land cutouts. It does not change boxes, colors, labels or interaction behavior. A subsequent ordinary artifact remains required before this visual detail is closed.
