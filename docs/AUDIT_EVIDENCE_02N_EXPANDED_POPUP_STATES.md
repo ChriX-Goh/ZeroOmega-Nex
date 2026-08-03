@@ -26,8 +26,12 @@ The existing default Popup, default Options and three-locale matrix remain manda
 
 The first ordinary schema-3 artifact is diagnostic. It must reveal the actual original result-selector, active-row, current-site and auxiliary-control structure before any product correction is attempted.
 
-## Verification boundary
+## Atomic verification
 
-The evidence expansion must pass the full atomic repository validation, then a fresh ordinary-Head workflow must successfully drive both implementations through both active profiles. No visual parity claim is made until the resulting paired artifact is inspected.
+The schema-3 evidence expansion passed architecture, parity, localization, type checking, unit tests, component tests, lint and exact diff validation on Actions-generated commit `a6a45cbfc0d60fe9fb74472060dfe2435cad6061`. Temporary patch scripts were removed in the same transaction.
+
+## Ordinary verification boundary
+
+This ordinary evidence Head must successfully drive both implementations through `proxy` and `auto switch`, produce exactly eight manifest entries and preserve all six permanent gates. No visual parity claim is made until the resulting paired artifact is inspected.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
