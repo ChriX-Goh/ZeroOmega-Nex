@@ -658,7 +658,7 @@
                 : uiMessage('popup.activateProfile', { name: item.name }, locale))}
             onclick={() => activateRoute(item)}
           >
-            <ProfileIcon kind={item.kind} color={item.color} size={21} />
+            <ProfileIcon kind={item.kind} color={item.color} size={14} />
             <span class="profile-name">
               {item.name}
               {#if item.resultRoute && state && sameRoute(runtime?.activeRoute, item.route)}
@@ -746,7 +746,7 @@
               <ProfileIcon
                 kind={proxyOwnership.externalProfile.kind}
                 color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
-                size={21}
+                size={14}
               />
               <span>{uiText('popup.externalProfile', locale)}</span>
             </button>

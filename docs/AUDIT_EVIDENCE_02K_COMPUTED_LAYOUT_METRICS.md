@@ -74,3 +74,15 @@ The final vertical correction passed the full atomic repository validation on Ac
 This ordinary evidence Head must confirm the final Options vertical residual before work moves to Popup presentation.
 
 Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## Final default Options geometry result
+
+Ordinary Head `816388cf5f019ebd44e758149f36d99fa2507193` closes the final default Options geometry residual. Its six permanent gates all passed. Paired artifact `8835728738` (`sha256:3e5916418c06b1112eccb7ffbbe56604b2d4b02142b169388022b03906ea05a8`) proves:
+
+- all three notice rectangles match Original exactly;
+- the license rectangle matches Original exactly at y `419.796875`, width `1145`, height `100`;
+- product, product icon, action and navigation coordinates remain within `0.02px` of Original;
+- the sidebar is white with no right border or shadow;
+- visible brand text has the original family, size, weight, line height and blue color.
+
+The default About layout can therefore leave structural correction and move to icon/detail review. This is automated paired evidence, not owner acceptance.

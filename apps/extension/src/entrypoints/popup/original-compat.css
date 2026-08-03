@@ -59,3 +59,118 @@
 .settings-button:hover {
   background: #f5f5f5;
 }
+
+/* Computed Original v3.5.0 default Popup list geometry. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .popup-shell {
+    width: 430px;
+    min-width: 430px;
+    margin: 10px 5px 5px;
+    overflow: visible;
+    background: transparent;
+    color: #000;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  :root:not([data-theme='dark']) .profile-list {
+    padding: 0;
+  }
+
+  :root:not([data-theme='dark']) .profile-row {
+    margin: 0 0 2px;
+    border-left: 0;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .profile-row:has(> button.active) {
+    border-left: 0;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button {
+    display: block;
+    width: 100%;
+    height: 31px;
+    min-height: 0;
+    padding: 5px 25px 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #337ab7;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: left;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button:hover:not(:disabled) {
+    background: #f5f5f5;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button.active {
+    background: #337ab7;
+    color: #000;
+    box-shadow: inset 0 0 0 2px #111;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-type-icon {
+    --profile-icon-size: 14px !important;
+    display: inline-grid;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+
+  :root:not([data-theme='dark']) .profile-name {
+    display: inline;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  :root:not([data-theme='dark']) .current-mark {
+    display: none;
+  }
+
+  :root:not([data-theme='dark']) .profile-divider {
+    height: 1px;
+    margin: 0 0 2px;
+    border: 0;
+    background: #e5e5e5;
+  }
+
+  :root:not([data-theme='dark']) .popup-footer {
+    display: block;
+    min-height: 0;
+    padding: 2px 0 0;
+    border-top: 2px solid #e5e5e5;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .settings-button {
+    display: block;
+    width: 100%;
+    height: 31px;
+    min-height: 0;
+    padding: 5px 25px 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #337ab7;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: left;
+  }
+
+  :root:not([data-theme='dark']) .settings-button svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+
+  :root:not([data-theme='dark']) .settings-button span {
+    display: inline;
+  }
+}

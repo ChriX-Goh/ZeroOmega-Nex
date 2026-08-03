@@ -100,18 +100,20 @@ function layoutMetricSelectors(implementation, surface) {
     ? {
         shell: '.om-nav',
         content: '.om-nav',
-        profileRow: '.om-nav-item',
-        profileAction: '.om-nav-item > a',
-        profileIcon: '.om-nav-item > a > .glyphicon:first-child',
-        profileName: '.om-profile-name',
+        profileRow: '#js-direct, #js-system, #js-profile-1, #js-profile-2',
+        profileAction: '#js-direct, #js-system, #js-profile-1, #js-profile-2',
+        profileIcon:
+          '#js-direct > .glyphicon:first-child, #js-system > .glyphicon:first-child, #js-profile-1 > .glyphicon:first-child, #js-profile-2 > .glyphicon:first-child',
+        profileName:
+          '#js-direct > .om-profile-name, #js-system > .om-profile-name, #js-profile-1 > .om-profile-name, #js-profile-2 > .om-profile-name',
         divider: '.om-divider',
-        active: '.om-nav-item.om-active',
+        active: '.om-nav-item.om-active > a',
         options: '#js-option',
       }
     : {
         shell: '.popup-shell',
         content: '.profile-list',
-        profileRow: '.profile-row',
+        profileRow: '.profile-row > button',
         profileAction: '.profile-row > button',
         profileIcon: '.profile-row .profile-type-icon',
         profileName: '.profile-name',
@@ -170,6 +172,9 @@ async function captureLayoutMetrics(page, implementation, surface) {
             borderLeft: style.borderLeft,
             borderRadius: style.borderRadius,
             boxShadow: style.boxShadow,
+            outline: style.outline,
+            outlineOffset: style.outlineOffset,
+            verticalAlign: style.verticalAlign,
             gap: style.gap,
             rowGap: style.rowGap,
             columnGap: style.columnGap,
