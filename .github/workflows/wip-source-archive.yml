@@ -1,0 +1,39 @@
+name: WIP Source Archive
+
+on:
+  push:
+    branches:
+      - wip/session11-popup-site-actions
+    paths:
+      - .github/workflows/wip-source-archive.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact WIP head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Archive source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --exclude=.git -czf zeroomega-nex-wip-source.tar.gz .
+          sha256sum zeroomega-nex-wip-source.tar.gz > zeroomega-nex-wip-source.tar.gz.sha256
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeroomega-nex-wip-source-${{ github.sha }}
+          path: |
+            zeroomega-nex-wip-source.tar.gz
+            zeroomega-nex-wip-source.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 3
