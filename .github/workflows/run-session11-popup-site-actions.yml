@@ -8,13 +8,13 @@ on:
       - .github/workflows/run-session11-popup-site-actions.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apply:
     if: github.head_ref == 'wip/session11-popup-site-actions'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout exact WIP head
         uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
             docs/UI_AUDIT_MATRIX.md \
             docs/AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md
 
-      - name: Verify atomic work package
+      - name: Verify final WIP tree
         shell: bash
         run: |
           set -euo pipefail
@@ -114,26 +114,27 @@ jobs:
           git diff --check
           pnpm verify
 
-      - name: Create verified source archive
+      - name: Build clean commit from active baseline
         shell: bash
         run: |
           set -euo pipefail
+          baseline=5d2b3260f6106fbcf53b3aeeb8bbe230016f98ba
           git config user.name 'ChriX-Goh'
           git config user.email '17531787+ChriX-Goh@users.noreply.github.com'
           git add -A
           git commit -m 'fix: restore original Popup current-site actions'
-          archive="$RUNNER_TEMP/session11-popup-site-actions-final.tar.gz"
-          git archive --format=tar.gz --output="$archive" HEAD
-          sha256sum "$archive" > "$archive.sha256"
-          git rev-parse HEAD > "$RUNNER_TEMP/session11-local-commit.txt"
-
-      - name: Upload verified source archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: session11-popup-site-actions-final-${{ github.event.pull_request.head.sha }}
-          path: |
-            ${{ runner.temp }}/session11-popup-site-actions-final.tar.gz
-            ${{ runner.temp }}/session11-popup-site-actions-final.tar.gz.sha256
-            ${{ runner.temp }}/session11-local-commit.txt
-          if-no-files-found: error
-          retention-days: 3
+          final_wip="$(git rev-parse HEAD)"
+          git fetch --no-tags --depth=1 origin "$baseline"
+          git diff --binary "$baseline" "$final_wip" -- . \
+            ':(exclude).github/workflows/original-nex-ui-evidence.yml' \
+            > /tmp/session11-clean.patch
+          test -s /tmp/session11-clean.patch
+          git switch --detach "$baseline"
+          git apply --index /tmp/session11-clean.patch
+          test ! -e .github/workflows/wip-source-archive.yml
+          test ! -e .github/workflows/apply-session11-popup-site-actions.yml
+          test ! -e .github/workflows/run-session11-popup-site-actions.yml
+          git diff --check --cached
+          pnpm verify
+          git commit -m 'fix: restore original Popup current-site actions'
+          git push origin HEAD:feat/m8-profile-workflow
