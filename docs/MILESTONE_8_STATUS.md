@@ -2,7 +2,7 @@
 
 ## Authority
 
-`PRODUCT_CONSTITUTION.md` is the highest-authority product contract. This file is the single hand-maintained Milestone 8 progress and blocker summary. Exact moving Head and workflow conclusions are read from Draft PR #11 and GitHub Checks.
+`PRODUCT_CONSTITUTION.md` is the highest-authority product contract. This file is the single hand-maintained Milestone 8 progress and blocker summary. Exact moving Head and workflow conclusions are read from Draft PR #11 and GitHub Checks. Session 11 transaction details are recorded in `SESSION_11_KNOWLEDGE_GRAPH.md`.
 
 - Branch: `feat/m8-profile-workflow`.
 - Pull request: #11, Draft.
@@ -55,6 +55,8 @@ It:
 - builds Nex from the exact PR Head;
 - loads Original and Nex in the same Chromium version, requested locale, viewport and light theme;
 - captures paired default Popup and Options screenshots;
+- captures paired active Fixed and active Switch Popup states;
+- captures the paired closed current-site Add-condition and temporary-rule rows;
 - records rendered text, saved body DOM, normalized anchors, dimensions and hashes;
 - records browser/document/extension language signals and packaged locale directories;
 - captures a clean `en-US` / `zh-CN` / `zh-TW` default-text matrix;
@@ -102,9 +104,40 @@ Subsequent paired computed evidence closes three bounded default-presentation no
 
 These slices correct direction and close demonstrated default-entry automation defects but do not justify increasing progress. Expanded Popup states, Options editors/dialogs, complete interactions and the latest owner FAIL remain open.
 
-The Session 11 current-site action slice is now landed as ordinary implementation commit `d8c206132df4cd587944ab31e4956989c058aa00`. It replaces the temporary DOM compatibility experiment with native Svelte/CSS behavior, adds paired Original↔Nex evidence tooling, and keeps all temporary delivery workflows outside PR #11. Delivery workflow run `30898116359` completed two independent `pnpm verify` transactions, reconstructed the tree from ordinary Head `5d2b3260f6106fbcf53b3aeeb8bbe230016f98ba`, and pushed exactly one fast-forward commit.
+## Session 11 current-site correction
 
-This slice verifies only the closed current-site rows and their no-resident-`select` boundary. The expanded temporary-rule menu, Add-condition form, ownership/external-control presentation and owner visual acceptance remain open. `I-05`, `I-06` and `I-11` therefore remain `MUST_MATCH / PARTIAL`; project progress remains 48% and Order 1 remains 45%.
+The native current-site action implementation first landed as ordinary commit `d8c206132df4cd587944ab31e4956989c058aa00`. Delivery workflow run `30898116359` completed two independent `pnpm verify` transactions, reconstructed the tree from ordinary Head `5d2b3260f6106fbcf53b3aeeb8bbe230016f98ba`, and pushed exactly one fast-forward commit. No temporary writer workflow, WIP source archive, MutationObserver compatibility layer or DOM replacement entered PR #11.
+
+The subsequent evidence transaction corrected three governance and implementation defects:
+
+1. the 02P capture script existed but was not yet invoked by the permanent paired workflow;
+2. generic Popup button selectors overrode the original current-site action color, background, border and radius;
+3. Firefox could open the Popup before a newly created loading tab exposed its URL, permanently omitting the site-action rows.
+
+Final bounded implementation Head `8fce26518a2cb520bc2eb27d395e967fd2c621a2`:
+
+- wires 02P into the permanent read-only `Original Nex UI Evidence` workflow;
+- renders the closed Add-condition and domain rows natively in Svelte/CSS;
+- removes the persistent temporary-result `<select>` from ordinary UI;
+- preserves the temporary-rule backend transaction and native menu;
+- restores the official 430×31px geometry, padding, typography, `#337ab7` color, transparent background, borderless shape and 4px radius;
+- resolves loading tabs through `pendingUrl` and a bounded loading-only retry path;
+- returns immediately for completed, supported or unsupported non-loading tabs.
+
+All six permanent gates passed on the first run for that final bounded Head:
+
+- CI `30901231540`;
+- Browser E2E `30901231545`;
+- Parity Documentation `30901231490`;
+- Milestone 8 Visual Evidence `30901231497`;
+- Original Toolbar Evidence `30901231444`;
+- Original Nex UI Evidence `30901231447`.
+
+Firefox main E2E plus Toolbar Action, restart, attached Rule List, profile trace, external control and renderer fallback all passed. Chromium main E2E, native Inspect and the same six Toolbar specialist families also passed.
+
+Final paired artifact `8889164450`, digest `sha256:879a1ac72ecf2e576d519b974e97131e7ec6c43815cb21799ef5c1b5f1f48d10`, is bound to Head `8fce26518a2cb520bc2eb27d395e967fd2c621a2`. Original and Nex have identical seven text lines, no extra/missing text, matching plus/filter/caret structure, and zero persistent temporary-rule selects.
+
+This closes only the compact closed current-site surface and the bounded loading-tab discovery defect. The expanded temporary-rule menu, Add-condition form, ownership/external-control presentation and owner visual acceptance remain open. `I-05`, `I-06` and `I-11` remain `MUST_MATCH / PARTIAL`; project progress remains 48% and Order 1 remains 45%.
 
 ## Engineering evidence retained
 
@@ -138,13 +171,14 @@ The ordinary entry journey remains failed until:
 
 ## Immediate execution order
 
-1. Complete paired evidence for the expanded temporary-rule menu and Add-condition form.
-2. Audit ownership-blocked, external-profile and browser-owned Popup states against original evidence.
-3. Add paired Options profile-editor and dialog density evidence.
-4. Remove any remaining unproven helper text or interaction-order differences.
-5. Validate every bounded surface in Firefox first and Chromium second.
-6. Keep the default-entry and closed current-site nodes stable while expanding coverage.
-7. Do not request owner retest during this correction phase.
+1. Complete paired evidence for the expanded temporary-rule menu.
+2. Complete paired evidence for the Add-condition form, validation and submission journey.
+3. Audit ownership-blocked, external-profile and browser-owned Popup states against original evidence.
+4. Add paired Options profile-editor and dialog density evidence.
+5. Remove any remaining unproven helper text or interaction-order differences.
+6. Validate every bounded surface in Firefox first and Chromium second.
+7. Keep the default-entry and closed current-site nodes stable while expanding coverage.
+8. Do not request owner retest during this correction phase.
 
 ## Project-wide release blockers
 
@@ -152,6 +186,8 @@ The ordinary entry journey remains failed until:
 - `KG-OPTIONS-DEFAULT-LAYOUT-001` — default About presentation: `VERIFIED_AUTOMATION`.
 - `KG-POPUP-DEFAULT-GEOMETRY-001` — default Popup geometry: `VERIFIED_AUTOMATION`.
 - `KG-POPUP-DEFAULT-ICONS-001` — default Popup clean-room icons: `VERIFIED_AUTOMATION`.
+- `KG-POPUP-CURRENT-SITE-CLOSED-001` — closed Add-condition/domain rows: `VERIFIED_AUTOMATION`.
+- `KG-S11-LOADING-TAB-001` — bounded loading-tab current-site discovery: `VERIFIED_AUTOMATION`.
 - `KG-STARTUP-OWNERSHIP-001` — serialized startup/external ownership: `VERIFIED_AUTOMATION`.
 - `KG-ICON-001` — complete Toolbar/Popup entry journey: `FAILED`.
 - `KG-UI-001` — layout, density, dialogs, controls and hierarchy: `FAILED`.
