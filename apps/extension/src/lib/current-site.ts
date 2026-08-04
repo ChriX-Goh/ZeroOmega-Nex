@@ -32,7 +32,7 @@ interface CurrentSiteBrowserApi {
 }
 
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:', 'ftp:']);
-const LOADING_TAB_RETRY_COUNT = 20;
+const LOADING_TAB_RETRY_COUNT = 200;
 const LOADING_TAB_RETRY_DELAY_MS = 50;
 
 function unbracket(hostname: string): string {
