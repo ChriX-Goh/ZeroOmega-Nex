@@ -1,9 +1,9 @@
 name: WIP Source Archive
 
 on:
-  push:
+  pull_request:
     branches:
-      - wip/session11-popup-site-actions
+      - feat/m8-profile-workflow
     paths:
       - .github/workflows/wip-source-archive.yml
   workflow_dispatch:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout exact WIP head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Archive source tree
         shell: bash
@@ -31,7 +31,7 @@ jobs:
       - name: Upload source archive
         uses: actions/upload-artifact@v4
         with:
-          name: zeroomega-nex-wip-source-${{ github.sha }}
+          name: zeroomega-nex-wip-source-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             zeroomega-nex-wip-source.tar.gz
             zeroomega-nex-wip-source.tar.gz.sha256
