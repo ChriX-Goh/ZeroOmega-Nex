@@ -113,19 +113,17 @@ Status: `VERIFIED_AUTOMATION`.
 
 Original ↔ Nex mapping:
 
-| Observable | Original v3.5.0 | Nex at `8fce265` | Edge |
-| --- | --- | --- | --- |
-| Row order | Add condition, then domain | same | `EXACT_EQUIVALENT` |
-| Row size | 430×31px | same | `EXACT_EQUIVALENT` |
-| Padding | 5/25/5/8px | same | `EXACT_EQUIVALENT` |
-| Typography | 14px / 21px | same | `EXACT_EQUIVALENT` |
-| Action color | `#337ab7` | same | `EXACT_EQUIVALENT` |
-| Background | transparent | same | `EXACT_EQUIVALENT` |
-| Border | none | same | `EXACT_EQUIVALENT` |
-| Radius | 4px | same | `EXACT_EQUIVALENT` |
-| Plus/filter/caret | present | present | `EXACT_EQUIVALENT` |
-| Persistent result select | absent | absent | `EXACT_EQUIVALENT` |
-| Closed text lines | seven exact lines | same | `EXACT_EQUIVALENT` |
+- row order: Original Add condition then domain; Nex same; `EXACT_EQUIVALENT`;
+- row size: Original 430×31px; Nex same; `EXACT_EQUIVALENT`;
+- padding: Original 5/25/5/8px; Nex same; `EXACT_EQUIVALENT`;
+- typography: Original 14px/21px; Nex same; `EXACT_EQUIVALENT`;
+- action color: Original `#337ab7`; Nex same; `EXACT_EQUIVALENT`;
+- background: Original transparent; Nex same; `EXACT_EQUIVALENT`;
+- border: Original none; Nex same; `EXACT_EQUIVALENT`;
+- radius: Original 4px; Nex same; `EXACT_EQUIVALENT`;
+- plus/filter/caret: present on both sides; `EXACT_EQUIVALENT`;
+- persistent result select: absent on both sides; `EXACT_EQUIVALENT`;
+- closed text lines: seven exact lines on both sides; `EXACT_EQUIVALENT`.
 
 The node closes only the two-row closed surface. It does not close the complete Popup current-site journey.
 
@@ -135,14 +133,12 @@ Final implementation Head: `8fce26518a2cb520bc2eb27d395e967fd2c621a2`.
 
 Permanent checks:
 
-| Gate | Run | Result |
-| --- | ---: | --- |
-| CI | `30901231540` | success |
-| Browser E2E | `30901231545` | success |
-| Parity Documentation | `30901231490` | success |
-| Milestone 8 Visual Evidence | `30901231497` | success |
-| Original Toolbar Evidence | `30901231444` | success |
-| Original Nex UI Evidence | `30901231447` | success |
+- CI: run `30901231540`, success;
+- Browser E2E: run `30901231545`, success;
+- Parity Documentation: run `30901231490`, success;
+- Milestone 8 Visual Evidence: run `30901231497`, success;
+- Original Toolbar Evidence: run `30901231444`, success;
+- Original Nex UI Evidence: run `30901231447`, success.
 
 Browser boundary:
 
