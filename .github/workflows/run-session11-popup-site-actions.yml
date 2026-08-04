@@ -131,6 +131,14 @@ jobs:
           test -s /tmp/session11-clean.patch
           git switch --detach "$baseline"
           git apply --index /tmp/session11-clean.patch
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/UI_AUDIT_MATRIX.md')
+          lines = path.read_text(encoding='utf-8').splitlines()
+          path.write_text('\n'.join(line.rstrip() for line in lines) + '\n', encoding='utf-8')
+          PY
+          git add docs/UI_AUDIT_MATRIX.md
           test ! -e .github/workflows/wip-source-archive.yml
           test ! -e .github/workflows/apply-session11-popup-site-actions.yml
           test ! -e .github/workflows/run-session11-popup-site-actions.yml
