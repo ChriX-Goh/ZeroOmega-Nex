@@ -476,14 +476,18 @@ const requirements = [
   [
     popupApp.includes('data-popup-locale={locale}') &&
       popupApp.includes("uiMessage('popup.temporaryFor'") &&
-      popupApp.includes("uiMessage('popup.addFor'") &&
+      popupApp.includes("uiText('popup.addCondition', locale)") &&
+      popupApp.includes('data-popup-temporary-rule-toggle') &&
+      popupApp.includes('data-popup-temporary-rule-menu') &&
       popupApp.includes("uiText('popup.ownership.details', locale)") &&
       popupApp.includes("uiText('popup.optionsAria', locale)") &&
       !popupApp.includes('translate(') &&
       !popupApp.includes('errorMessage = response.message') &&
       !popupApp.includes('error instanceof Error ? error.message') &&
+      !popupApp.includes('data-popup-temporary-profile-select') &&
       chromiumE2e.includes('Popup typed locale coverage regressed') &&
-      chromiumE2e.includes("getByLabel('example.co.uk 的临时情景模式')") &&
+      chromiumE2e.includes("locator('[data-popup-temporary-rule-toggle]')") &&
+      chromiumE2e.includes("locator('[data-popup-temporary-rule-menu]')") &&
       chromiumE2e.includes("getByRole('button', { name: '添加条件', exact: true })"),
     'Popup must render routes, current-site, temporary-rule, ownership, diagnostics, external-profile, options, status, safe errors, and ARIA directly through the typed three-locale catalog without changing Applied-only or session-only boundaries.',
   ],

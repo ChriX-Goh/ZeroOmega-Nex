@@ -2,10 +2,10 @@
 
 > 本表是 Milestone 8 的用户界面与功能验收主表。原版基准固定为 `zero-peak/ZeroOmega v3.5.0`。状态必须基于源码、真实浏览器或真实备份，不得凭“看起来类似”判定。
 
-> Owner-QC candidate: `M8-OWNER-QC-1`  
-> Candidate Head: `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`  
-> Artifact: `browser-builds` ID `8725915254`  
-> QC state: `NOT RUN`; all `MUST_MATCH` rows are `DONE`, while A-14 and I-11 remain non-blocking `REFERENCE` rows.
+> 当前状态：PR #11 为 Draft；active acceptance/release candidate：无。
+> 最新 owner 结果：Firefox `FAIL`，2026-08-02；历史候选 `M8-OWNER-QC-1` 已退役。
+> 暂定产品进度：48%（47.9%，置信区间 43%–50%）；Order 1 entry experience：45%。
+> 表内工程能力行数不得直接换算产品进度；普通 UI 必须按 Original↔Nex 成对证据逐 surface 验收。
 
 ## 状态定义
 
@@ -160,19 +160,19 @@
 
 ## I. Popup 与辅助页面
 
-| ID   | 界面/功能          | 原版源码           | 原版布局与行为                 | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                      | 下一步                   |
-| ---- | ------------------ | ------------------ | ------------------------------ | ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| I-01 | Direct/System 顶部 | `popup*`           | 内置项优先                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                     |
-| I-02 | 用户情景模式顺序   | `popup*`           | 按配置顺序                     | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                     |
-| I-03 | 类型图标/颜色      | `popup*`           | 识别类型与颜色                 | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                         | 保持                     |
-| I-04 | 结果情景模式       | popup controller   | Switch/Virtual 结果显示/选择   | MUST_MATCH | DONE     | COMPLETE | Popup 行、动态 title/select ARIA 与结果标签直接 typed 三语；合法结果通过后台 verified Apply 写入并保持活动路由；Chromium E2E 覆盖                                              | 保持回归                 |
-| I-05 | 当前网站添加条件   | popup              | 对当前 tab 快速加规则          | MUST_MATCH | DONE     | COMPLETE | current-site 标题、域名、scope、条件类型、pattern、结果、动作与 ARIA typed 三语；activeTab + PSL + 后台 Apply 与 Chromium E2E 保持                                             | 多级子域巡查             |
-| I-06 | 临时规则           | `popup/temp_rules` | 非持久临时覆盖                 | MUST_MATCH | DONE     | COMPLETE | Popup 临时路由 label/select/无规则/管理入口 typed 三语；session-only 状态与 PAC snapshot、worker 重启/浏览器重启边界及 Chromium E2E 保持                                       | 保持双浏览器回归         |
-| I-07 | 外部扩展控制状态   | popup/target       | 阻断页 + external profile 导入 | MUST_MATCH | DONE     | COMPLETE | ownership 四类阻断、详情、管理入口、外部名称/校验/保存及 ARIA typed 三语；后台原子导入与控制权 fail-closed Chromium E2E 保持                                                   | 保持守卫                 |
-| I-08 | 请求错误列表       | popup/network      | 有界错误/请求查看              | MUST_MATCH | DONE     | COMPLETE | Popup 错误计数与检查入口 typed 三语；会话启动、权限、storage.session、限额、URL 清洗及独立明细页边界不变                                                                       | 保持双浏览器隐私回归     |
-| I-09 | Inspect 菜单       | popup/network      | 可配置显示                     | MUST_MATCH | DONE     | COMPLETE | Applied flag 驱动 frame/link/media 菜单；目标按 tab session 保存；按活动 startRoute 求值并显示结果颜色/两行 typed 标题；headed Chromium 真实右击链接并验证 session、徽章和标题 | Firefox 原生菜单人工巡查 |
-| I-10 | Popup 主题         | 原版+Nex 决策      | 允许 Nex 现代主题              | REFERENCE  | DONE     | COMPLETE | Theme 三种 appearance 直接 typed 三语；Options 与 Popup 共享 auto/light/dark 状态，Chromium 真实切换与 Popup 继承验证                                                          | 保持                     |
-| I-11 | Popup 尺寸/像素    | CSS                | 可参考，非像素复制             | REFERENCE  | PARTIAL  | N/A      | 当前主题与功能层级已阶段认可，不要求逐像素复制                                                                                                                                 | Owner 视觉复核           |
+| ID   | 界面/功能          | 原版源码              | 原版布局与行为                                       | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                      | 下一步                                      |
+| ---- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| I-01 | Direct/System 顶部 | `popup*`              | 内置项优先                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                                        |
+| I-02 | 用户情景模式顺序   | `popup*`              | 按配置顺序                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                                        |
+| I-03 | 类型图标/颜色      | `popup*`              | 识别类型与颜色                                       | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                         | 保持                                        |
+| I-04 | 结果情景模式       | popup controller      | Switch/Virtual 结果显示/选择                         | MUST_MATCH | DONE     | COMPLETE | Profile 行结果事务继续由后台 verified Apply 约束；当前网站临时结果只在域名行展开后显示合法结果，关闭态无常驻 select；既有 Chromium 结果 mutation E2E 保持                      | 保持 Profile 结果双浏览器回归               |
+| I-05 | 当前网站添加条件   | popup                 | 对当前 tab 快速加规则                                | MUST_MATCH | PARTIAL  | COMPLETE | 后台 activeTab + PSL + verified Apply 与 Chromium 事务 E2E 已有；关闭态入口已恢复原版加号、`Add condition` 文案、31px 几何及顺序，并由严格 Original↔Nex 证据检查               | 成对验收 Add-condition 表单、scope 与提交页 |
+| I-06 | 临时规则           | `popup/temp_rules`    | 非持久临时覆盖                                       | MUST_MATCH | PARTIAL  | COMPLETE | session-only 状态、PAC snapshot、worker/浏览器重启边界与管理页已有；关闭态已恢复漏斗、域名、caret、无常驻 select，Chromium 真实 toggle 与 Firefox 结构回归加入                 | 成对验收展开菜单、active 标记和管理入口     |
+| I-07 | 外部扩展控制状态   | popup/target          | 阻断页 + external profile 导入                       | MUST_MATCH | DONE     | COMPLETE | ownership 四类阻断、详情、管理入口、外部名称/校验/保存及 ARIA typed 三语；后台原子导入与控制权 fail-closed Chromium E2E 保持                                                   | 保持守卫                                    |
+| I-08 | 请求错误列表       | popup/network         | 有界错误/请求查看                                    | MUST_MATCH | DONE     | COMPLETE | Popup 错误计数与检查入口 typed 三语；会话启动、权限、storage.session、限额、URL 清洗及独立明细页边界不变                                                                       | 保持双浏览器隐私回归                        |
+| I-09 | Inspect 菜单       | popup/network         | 可配置显示                                           | MUST_MATCH | DONE     | COMPLETE | Applied flag 驱动 frame/link/media 菜单；目标按 tab session 保存；按活动 startRoute 求值并显示结果颜色/两行 typed 标题；headed Chromium 真实右击链接并验证 session、徽章和标题 | Firefox 原生菜单人工巡查                    |
+| I-10 | Popup 主题         | 原版+Nex 决策         | 允许 Nex 现代主题                                    | REFERENCE  | DONE     | COMPLETE | Theme 三种 appearance 直接 typed 三语；Options 与 Popup 共享 auto/light/dark 状态，Chromium 真实切换与 Popup 继承验证                                                          | 保持                                        |
+| I-11 | Popup 几何/像素    | CSS + paired evidence | 信息层级、尺寸与交互几何必须匹配；字体栅格像素可参考 | MUST_MATCH | PARTIAL  | N/A      | 当前网站两条关闭态行以严格文本、结构和 computed-style 门禁对齐原版 430×31；默认 Popup、其他状态与 owner 视觉仍未整体闭合                                                       | 逐 surface 成对证据 + Owner 视觉复核        |
 
 ## J. 测试与证据门槛
 
@@ -192,16 +192,18 @@
 
 ## 当前结论
 
-- **BROKEN / MISSING / UNVERIFIED：0。** 先前关于辅助页面翻译、在线恢复、视觉证据和真实 407 的结论已过期并完成纠正。
-- **仍开放的 MUST_MATCH：2 项。** D-04 条件类型矩阵、D-05 条件字段矩阵。
-- **UNCERTAIN 开放项：0。** C-05 已通过 ADR-019 解析为“保留兼容数据，但现代浏览器请求能力已移除”。
-- **REFERENCE：2 项保持 PARTIAL。** A-14 原版像素皮肤与 I-11 Popup 精确尺寸不阻断功能闭环，但进入 owner 视觉评审。
-- PR #11 必须继续保持 Draft，直到开放 MUST_MATCH 完成或形成明确范围决定，并由仓库所有者接受一个全新 consolidated candidate。
+- 最新 owner 结果是 2026-08-02 Firefox `FAIL`；不是 `NOT RUN`，也不是待确认 PASS。
+- 历史 `M8-OWNER-QC-1`、旧 `98%`、广义 `DONE` 计数及旧 readiness 结论全部失效，不得反向定义当前产品状态。
+- 当前无 active candidate；PR #11 必须保持 Draft；merge、release 和 owner retest 均禁止。
+- Popup 当前网站关闭态已进入原生 Svelte 纠正与严格成对门禁；I-05、I-06、I-11 保持 `PARTIAL`，分别等待 Add-condition 表单、展开菜单及其余 Popup surface 的成对验收。
+- A-14 的栅格皮肤仍为 `REFERENCE`；I-11 的信息层级、尺寸和交互几何改为 `MUST_MATCH`，只有字体抗锯齿等栅格细节可作为参考。
+- 当前暂定产品进度 48%（47.9%，置信区间 43%–50%）；Order 1 entry experience 45%。矩阵行状态只能说明对应证据边界，不能直接相加为总进度。
 
 ## 更新记录
 
 | 日期       | 变更                                                                                                                                                                          |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-04 | 依据 owner FAIL 退役旧候选与旧完成度口径；Popup I-05/I-06/I-11 重新按成对证据拆分，关闭态几何改为 MUST_MATCH                                                                  |
 | 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                                                                                 |
 | 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                                                                                          |
 | 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                                                                                    |

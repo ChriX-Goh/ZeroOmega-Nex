@@ -1160,6 +1160,70 @@ try {
     0,
     'Active default Switch exposed a result label in the Firefox Popup',
   );
+  const firefoxCurrentSiteTabId = await driver.executeAsyncScript(`
+    const done = arguments[0];
+    browser.tabs.create({
+      url: 'https://www.dev.example.co.uk/current-site',
+      active: false,
+    }).then((tab) => done(tab.id), (error) => done({ error: String(error) }));
+  `);
+  assert.equal(
+    typeof firefoxCurrentSiteTabId,
+    'number',
+    `Firefox current-site tab was not created: ${JSON.stringify(firefoxCurrentSiteTabId)}`,
+  );
+  await navigateExtensionPage(`popup.html?activeTabId=${firefoxCurrentSiteTabId}`);
+  const firefoxAddCondition = await driver.wait(
+    until.elementLocated(By.css('[data-popup-add-current-site]')),
+    15_000,
+  );
+  const firefoxTemporaryToggle = await driver.wait(
+    until.elementLocated(By.css('[data-popup-temporary-rule-toggle]')),
+    15_000,
+  );
+  assert.equal((await firefoxAddCondition.getText()).trim(), '加入條件');
+  assert.equal((await firefoxTemporaryToggle.getText()).trim(), 'example.co.uk');
+  assert.equal(
+    (await driver.findElements(By.css('[data-popup-temporary-rule] select'))).length,
+    0,
+    'Firefox Popup exposed the removed persistent temporary-rule select',
+  );
+  const firefoxSiteActionGeometry = await driver.executeScript(`
+    const add = document.querySelector('[data-popup-add-current-site]');
+    const temporary = document.querySelector('[data-popup-temporary-rule-toggle]');
+    const metric = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return {
+        width: rect.width,
+        height: rect.height,
+        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+        fontSize: style.fontSize,
+        lineHeight: style.lineHeight,
+        borderRadius: style.borderRadius,
+      };
+    };
+    return { add: metric(add), temporary: metric(temporary) };
+  `);
+  assert.deepEqual(firefoxSiteActionGeometry.add, {
+    width: 430,
+    height: 31,
+    padding: ['5px', '25px', '5px', '8px'],
+    fontSize: '14px',
+    lineHeight: '21px',
+    borderRadius: '4px',
+  });
+  assert.deepEqual(firefoxSiteActionGeometry.temporary, firefoxSiteActionGeometry.add);
+  await firefoxTemporaryToggle.click();
+  await driver.wait(until.elementLocated(By.css('[data-popup-temporary-rule-menu]')), 10_000);
+  await driver.executeAsyncScript(
+    `
+    const tabId = arguments[0];
+    const done = arguments[1];
+    browser.tabs.remove(tabId).then(() => done(true), (error) => done(String(error)));
+  `,
+    firefoxCurrentSiteTabId,
+  );
   const directRestored = await sendFirefoxWorkflowCommand({
     channel: 'zeroomega-nex/profile-workflow/v1',
     action: 'activate-route',

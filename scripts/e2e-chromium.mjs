@@ -1180,10 +1180,14 @@ try {
     });
   }, 'Verified rollback target was not available before temporary-rule evidence');
 
-  const temporarySelect = temporaryPopup.getByLabel('example.co.uk 的临时情景模式');
-  await temporarySelect.waitFor({ state: 'visible', timeout: 20_000 });
-  assert.equal(await temporarySelect.inputValue(), '');
-  await temporarySelect.selectOption({ label: 'fixed' });
+  const temporaryToggle = temporaryPopup.locator('[data-popup-temporary-rule-toggle]');
+  await temporaryToggle.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal((await temporaryToggle.innerText()).trim(), 'example.co.uk');
+  assert.equal(await temporaryToggle.getAttribute('aria-expanded'), 'false');
+  await temporaryToggle.click();
+  const temporaryMenu = temporaryPopup.locator('[data-popup-temporary-rule-menu]');
+  await temporaryMenu.waitFor({ state: 'visible', timeout: 20_000 });
+  await temporaryMenu.getByRole('menuitem', { name: 'fixed', exact: true }).click();
   await assertEventually(async () => {
     const [local, session] = await worker.evaluate(async () =>
       Promise.all([chrome.storage.local.get(null), chrome.storage.session.get(null)]),
@@ -1211,7 +1215,11 @@ try {
   );
   const addCurrentSite = conditionPopup.locator('[data-popup-add-current-site]');
   await addCurrentSite.waitFor({ state: 'visible', timeout: 20_000 });
-  assert.match(await addCurrentSite.innerText(), /example\.co\.uk/u);
+  assert.equal((await addCurrentSite.innerText()).trim(), '添加条件');
+  assert.equal(
+    (await conditionPopup.locator('[data-popup-temporary-domain]').innerText()).trim(),
+    'example.co.uk',
+  );
   await addCurrentSite.click();
   const conditionForm = conditionPopup.locator('[data-popup-condition-form]');
   await conditionForm.waitFor();

@@ -56,7 +56,7 @@ graph TD
 - `webNavigation` 已成为 Chromium/Firefox 精确必需权限并纳入 manifest 守卫；仍无 required host access 或 `<all_urls>`。
 - 全局基线、命令串行化与缺失 runtime 恢复只保证原版可观察的启动／标签状态一致性，不新增原版概念。
 - Chromium／Firefox 内部页与同标签 URL 转换、严格 Switch → Direct/Fixed matched/default、Immediate Virtual → Direct/Fixed proxy/bypass、Chromium Inspect Action set/clear/base restoration/isolation 已完成自动验收；原版 Virtual 合同见 `AUDIT_EVIDENCE_01G_ORIGINAL_VIRTUAL_RESULTS.md`（run `30677618681`、Artifact `8811046002`）；Switch → System 已由原版运行时证实为非法结果，嵌套Virtual／附属 Rule List、PAC/临时规则/外部控制完整 trace、真实渲染失败／像素证据和 owner PASS 仍未完成。
-- 总进度仍为 47%，Order 1 仍为 35%，不得据此生成候选。
+- 该工具栏检查点当时记录为总进度 47%、Order 1 35%；该数值已被 2026-08-02 owner FAIL 后的重新评估取代。当前暂定产品进度为 48%、Order 1 entry experience 为 45%，仍不得据此生成候选。
 
 ## 3. 情景模式分类图
 
@@ -354,6 +354,21 @@ graph TD
 
 上述功能必须分别分类，不能因为“Popup 能切换模式”就整体标为已兼容。
 
+### 14.1 Popup 当前网站关闭态结构
+
+固定依据：`zero-peak/ZeroOmega@05cbb30` 的 `omega-web/src/popup/index.html`、`popup/js/loader.js`、`popup/js/profiles.js`、`popup/js/i18n.js`，以及 SHA-256 已验证的官方 v3.5.0 Chromium 包。
+
+普通网页且当前实际路由为 Switch 时，关闭态必须按以下顺序出现：
+
+1. 加号图标 + `Add condition`／对应 locale 文案；
+2. 漏斗图标 + 当前 base domain + caret。
+
+两行在原版证据中均为 `430 × 31px`，使用 `5px 25px 5px 8px` padding、14px 字体、21px 行高、4px 圆角、透明背景和无边框。该几何、顺序、可见文字与信息密度属于 `MUST_MATCH`；浏览器字体栅格化和抗锯齿差异仅作视觉参考。
+
+关闭态不得常驻原生 result `<select>`，不得显示 `No temporary rule` 或全部结果选项，也不得把域名拼入 `Add condition` 文案。点击域名行后才展开合法结果菜单；选择当前临时结果按原版 toggle 语义删除，选择其他结果替换。永久条件仍走 verified Apply，临时规则仍走 session-only overlay，两者不得因 UI 对齐而合并。
+
+Nex 正式实现必须由 Svelte 组件直接输出该结构。禁止用 `MutationObserver`、post-render DOM replacement 或隐藏常驻 select 伪装原版表面；兼容性逻辑只能存在于状态模型、命令边界和测试中。关闭态由严格 Original↔Nex 文本、结构、computed style 证据门禁；展开菜单与 Add-condition 表单仍需分别成对验收，不能由关闭态证据代替。
+
 ## 15. 原版默认值、示例与 placeholder 规则
 
 | 数据                                    | 原版身份                       | Nex 处理原则                                                           |
@@ -412,15 +427,16 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 ## 18. 修订记录
 
-| 日期       | 变更                                                                                                                         | 依据                                                                                         |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                              | 原版源码 Artifact `8625759489`                                                               |
-| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口 | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`                           |
-| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                         | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义                |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                         | 原版 `profile_switch.jade`、`switch_profile.coffee`                                          |
-| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                         | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                      |
-| 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口         | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee` |
-| 2026-07-27 | 恢复 Switch 附属 Rule List 隐藏关系、启停/路由、格式/URL/headers/文本、缓存迁移及复制/删除事务                               | 原版 `profile_switch.jade`、`switch_profile.coffee`、`profiles.coffee`                       |
+| 日期       | 变更                                                                                                                             | 依据                                                                                                         |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                                  | 原版源码 Artifact `8625759489`                                                                               |
+| 2026-08-04 | 固定 Popup 当前网站关闭态两行结构；禁止常驻 result select 与 post-render DOM 改写；拆分关闭态、展开菜单和 Add-condition 表单验收 | 原版 `popup/index.html`、`profiles.js`、官方 v3.5.0 Chromium 包及 `AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md` |
+| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口     | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`                                           |
+| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                             | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义                                |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                             | 原版 `profile_switch.jade`、`switch_profile.coffee`                                                          |
+| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                             | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                                      |
+| 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口             | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee`                 |
+| 2026-07-27 | 恢复 Switch 附属 Rule List 隐藏关系、启停/路由、格式/URL/headers/文本、缓存迁移及复制/删除事务                                   | 原版 `profile_switch.jade`、`switch_profile.coffee`、`profiles.coffee`                                       |
 
 - 请求错误诊断不属于常驻数据平面。用户必须在独立网络检查页明确启动当前浏览器会话；持久 `monitorWebRequests` 仅控制功能是否可用，不能在浏览器启动时自动注册监听器。
 - 启动时才请求可选 `webRequest` 与 HTTP(S) 主机权限。记录只保存在 `storage.session`；停止、关闭设置、撤销权限或浏览器重启都会停止监听并清除记录。
@@ -611,20 +627,16 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 - False annotation, combined IP/CIDR, HostWildcard warning, host-level range, weekday checkboxes, and time range match the original field shapes.
 - Draft accepts temporary invalid editor state; strict Apply rejects invalid regex without changing Applied/browser state; correction, source round trip, reload, and Apply are browser-verified.
 - Durable authority: `docs/SWITCH_CONDITION_MATRIX.md`.
-- D-04 and D-05 are complete; only A-14 and I-11 non-blocking visual references remain open before consolidated candidate QC.
+- D-04 and D-05 的局部自动证据仍有效，但不得据此推导产品接近完成；Popup I-05/I-06/I-11、工具栏后续节点及 owner FAIL 重新打开了 Order 1。
 
-## Milestone 8 owner-QC candidate `M8-OWNER-QC-1`
+## 已退役的 Milestone 8 owner-QC candidate `M8-OWNER-QC-1`
 
-- Candidate identity is immutable: Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`, Artifact `browser-builds` ID `8725915254`.
-- Outer GitHub Artifact ZIP SHA-256: `190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c`.
-- Inner `browser-builds.tar.gz` SHA-256: `1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`.
-- Package layout is `browser-builds/chrome-mv3` plus `browser-builds/firefox-mv3`; both are Manifest V3 version `0.0.1`.
-- Exact-head CI, Chromium, Firefox, headed native Inspect, parity, and 24-image visual evidence passed before freeze.
-- Canonical matrix is `DONE=124`, `PARTIAL=2`; no release-blocking `MUST_MATCH` row remains.
-- A-14 exact skin and I-11 exact Popup pixels remain non-blocking visual references evaluated during owner QC.
-- QC state is `NOT RUN`; candidate declaration is not release acceptance.
-- Owner QC must use a real complex backup and record visual parity, authenticated routing, permission denial, restart recovery, rollback, and whether failed/cancelled operations changed traffic.
-- Any defect stays attached to this exact candidate; replacement requires a new Head, full automation, fresh artifact identity, and a new candidate ID.
+- 历史候选身份：Head `46b10285b25ab0a0d7faae4d4822d5f4c3492a2a`，Artifact `browser-builds` ID `8725915254`。
+- Outer Artifact ZIP SHA-256：`190dda95001cc381be4e2f9f95b7146314632ab8d3d87893347df9f994935b4c`；inner tar SHA-256：`1a3dffc3748c1c9479edbfa3be9769e49fded037717052fd151898ba3c86def3`。
+- 该候选及其 `DONE=124 / PARTIAL=2` 结论已退役：2026-08-02 Firefox owner run 明确 `FAIL`，证明大量可见重设计、解释性文字和工程概念仍暴露在普通 UI。
+- 旧矩阵统计主要衡量工程能力存在性，不能代表原版用户路径、信息层级、默认值和视觉结构完成度；不得继续作为 release readiness 或总进度依据。
+- 当前没有 active acceptance/release candidate；PR #11 保持 Draft；merge、release 与 owner retest 均禁止。
+- 当前暂定产品进度 48%（47.9%，置信区间 43%–50%）；Order 1 entry experience 为 45%。后续只按 Original↔Nex 成对证据逐 surface 关闭节点。
 
 ## 21. Session 8 工具栏目标常量纠偏
 
@@ -682,7 +694,7 @@ graph LR
 - 禁止在 trace 未完整时启用 coordinator 覆盖全部 Profile 状态。
 - 禁止让 coordinator 与 Inspect 同时直接写 Action。
 - 禁止把 Fixed bypass、Switch、Rule List、Virtual、PAC 的最终 route 当作完整原版详情。
-- 禁止因隔离单测和永久门禁绿色而上调产品完成度；总进度仍为 47%，Order 1 仍为 35%。
+- 禁止因隔离单测和永久门禁绿色而上调产品完成度；该检查点当时记录为总进度 47%、Order 1 35%，当前统一采用 owner FAIL 后的 48% / 45% 暂定口径。
 
 ### 精确检查点
 
@@ -699,4 +711,4 @@ Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E
 - Inspect 不再直接竞争写 Action；它只维护 overlay，由同一 executor 写入。
 - 跨 document revision 历史先按当前 `documentId` 隔离，防止旧导入文档历史破坏新安装／当前文档历史读取。
 - 仍未闭合：Switch、PAC、Virtual、附属 Rule List、临时规则、外部控制完整 trace；Firefox 直接 Action API 验收；headed 图标像素；Owner PASS。
-- 总进度仍为 47%，Order 1 仍为 35%；新增自动化证据不等于 Owner 完成度。
+- 该 Session 8 检查点当时记录为总进度 47%、Order 1 35%；当前统一采用 owner FAIL 后的 48% / 45% 暂定口径。新增自动化证据仍不等于 Owner 完成度。

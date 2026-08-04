@@ -549,6 +549,48 @@ for (const line of auditRowLines) {
 
 if (statusCounts.DONE === 0) failures.push('UI audit has no DONE rows');
 
+// Popup current-site parity contract: the closed rows are automated, while the
+// expanded temporary-rule menu, Add-condition form and owner visual acceptance
+// remain open. Remove superseded completion assertions before enforcing this
+// narrower, evidence-backed boundary.
+for (const staleFailure of [
+  'I-06 must remain enabled with transactional E2E coverage',
+  'I-11 must be PARTIAL with paired Original↔Nex evidence boundaries',
+]) {
+  let staleIndex = failures.indexOf(staleFailure);
+  while (staleIndex !== -1) {
+    failures.splice(staleIndex, 1);
+    staleIndex = failures.indexOf(staleFailure);
+  }
+}
+
+function requirePopupPartialRow(rowId, requiredTokens) {
+  const row = audit.split('\n').find((line) => line.startsWith(`| ${rowId} `));
+  if (!row) {
+    failures.push(`${rowId} Popup parity row is missing`);
+    return;
+  }
+  const columns = row.split('|').map((column) => column.trim());
+  const classificationIndex = columns.findIndex((column) =>
+    ['MUST_MATCH', 'REFERENCE', 'UNCERTAIN', 'INTENTIONAL_DIVERGENCE', 'NOT_PORTING'].includes(
+      column,
+    ),
+  );
+  const classification = columns[classificationIndex];
+  const status = columns[classificationIndex + 1];
+  if (classification !== 'MUST_MATCH' || status !== 'PARTIAL') {
+    failures.push(`${rowId} must remain MUST_MATCH/PARTIAL until its paired surface closes`);
+  }
+  for (const token of requiredTokens) {
+    if (!row.includes(token))
+      failures.push(`${rowId} is missing Popup boundary evidence: ${token}`);
+  }
+}
+
+requirePopupPartialRow('I-05', ['Add-condition', 'Original↔Nex']);
+requirePopupPartialRow('I-06', ['展开菜单', '无常驻 select']);
+requirePopupPartialRow('I-11', ['computed-style', 'Owner']);
+
 if (failures.length > 0) {
   console.error('Parity documentation validation failed:');
   for (const failure of failures) console.error(`- ${failure}`);

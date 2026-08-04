@@ -10,6 +10,8 @@
     | 'auto-detect'
     | 'external'
     | 'globe'
+    | 'plus'
+    | 'filter'
     | 'wrench';
 
   export let kind: OriginalPopupIconKind;
@@ -43,6 +45,10 @@
         class="solid"
         d="M1 2.1h7.4V.7l4.1 3.1-4.1 3.1V5.5H3.1v2H1ZM13 11.9H5.6v1.4L1.5 10.2l4.1-3.1v1.4h5.3v-2H13Z"
       />
+    {:else if kind === 'plus'}
+      <path d="M7 2v10M2 7h10" />
+    {:else if kind === 'filter'}
+      <path d="M1.2 2h11.6L8.4 7v4.2l-2.8 1.4V7Z" />
     {:else if kind === 'wrench'}
       <path
         class="solid wrench"

@@ -92,6 +92,7 @@
   let externalProfileName = '';
   let externalProfileNameError = '';
   let conditionFormOpen = false;
+  let temporaryMenuOpen = false;
   let conditionKind: PopupConditionKind = 'host-wildcard';
   let conditionPattern = '';
   let conditionRouteKey = '';
@@ -398,27 +399,21 @@
     }
   }
 
-  async function setTemporaryRule(event: Event): Promise<void> {
+  async function setTemporaryRule(key: string): Promise<void> {
     if (!state || !currentSite || settingTemporaryRule) return;
-    const key = (event.currentTarget as HTMLSelectElement).value;
     const selected = temporaryResultItems.find((item) => item.key === key);
-    if (!selected && currentTemporaryRoute === undefined) return;
+    if (!selected) return;
     settingTemporaryRule = true;
+    temporaryMenuOpen = false;
     errorMessage = '';
     try {
       const accepted = acceptTemporaryRuleResponse(
-        selected
-          ? await sendPopupTemporaryRuleCommand({
-              action: 'toggle',
-              expectedAppliedRevisionId: state.applied.revision.id,
-              domain: currentSite.domain,
-              route: selected.route,
-            })
-          : await sendPopupTemporaryRuleCommand({
-              action: 'remove',
-              expectedAppliedRevisionId: state.applied.revision.id,
-              domain: currentSite.domain,
-            }),
+        await sendPopupTemporaryRuleCommand({
+          action: 'toggle',
+          expectedAppliedRevisionId: state.applied.revision.id,
+          domain: currentSite.domain,
+          route: selected.route,
+        }),
       );
       if (accepted) window.close();
     } catch {
@@ -698,43 +693,6 @@
     </section>
   {/if}
 
-  {#if !loading && !proxyOwnership?.blocked && currentSite && temporaryResultItems.length > 0}
-    <section
-      class="temporary-rule-action"
-      data-popup-temporary-rule
-      aria-label={uiText('popup.temporaryRulesAria', locale)}
-    >
-      <label>
-        {uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
-        <select
-          aria-label={uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
-          value={currentTemporaryRoute ? routeKey(currentTemporaryRoute) : ''}
-          disabled={settingTemporaryRule || switching || addingCondition}
-          onchange={(event) => void setTemporaryRule(event)}
-        >
-          <option value="">{uiText('popup.noTemporaryRule', locale)}</option>
-          {#each temporaryResultItems as item}
-            <option value={item.key}>{item.name}</option>
-          {/each}
-        </select>
-      </label>
-      {#if (temporaryRuleView?.rules.length ?? 0) > 0}
-        <button
-          type="button"
-          data-popup-manage-temporary-rules
-          disabled={openingTemporaryRules || settingTemporaryRule}
-          onclick={() => void openTemporaryRules()}
-        >
-          {uiMessage(
-            'popup.manageTemporary',
-            { count: temporaryRuleView?.rules.length ?? 0 },
-            locale,
-          )}
-        </button>
-      {/if}
-    </section>
-  {/if}
-
   {#if !loading && !proxyOwnership?.blocked && currentSite && activeSwitch && resultItems.length > 0}
     {#if conditionFormOpen}
       <form
@@ -804,11 +762,77 @@
         class="current-site-action"
         aria-label={uiText('popup.currentSiteActionsAria', locale)}
       >
-        <button type="button" data-popup-add-current-site onclick={openConditionForm}>
-          {uiMessage('popup.addFor', { domain: currentSite.domain }, locale)}
+        <button
+          class="original-site-action-row"
+          type="button"
+          data-popup-add-current-site
+          onclick={openConditionForm}
+        >
+          <OriginalPopupIcon kind="plus" color="#337ab7" />
+          <span data-popup-add-current-site-label>{uiText('popup.addCondition', locale)}</span>
         </button>
       </section>
     {/if}
+  {/if}
+
+  {#if !conditionFormOpen && !loading && !proxyOwnership?.blocked && currentSite && temporaryResultItems.length > 0}
+    <section
+      class="temporary-rule-action"
+      data-popup-temporary-rule
+      aria-label={uiText('popup.temporaryRulesAria', locale)}
+    >
+      <button
+        class="original-temporary-rule-toggle"
+        type="button"
+        data-popup-temporary-rule-toggle
+        aria-expanded={temporaryMenuOpen}
+        aria-label={uiMessage('popup.temporaryFor', { domain: currentSite.domain }, locale)}
+        disabled={settingTemporaryRule || switching || addingCondition}
+        onclick={() => (temporaryMenuOpen = !temporaryMenuOpen)}
+      >
+        <OriginalPopupIcon kind="filter" color="#337ab7" />
+        <span class="original-temporary-rule-domain" data-popup-temporary-domain>
+          {currentSite.domain}
+        </span>
+        <span class="om-caret" aria-hidden="true"></span>
+      </button>
+      {#if temporaryMenuOpen}
+        <ul class="original-temporary-rule-menu" data-popup-temporary-rule-menu role="menu">
+          {#each temporaryResultItems as item}
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                class:active={sameRoute(currentTemporaryRoute, item.route)}
+                data-popup-temporary-rule-option={item.key}
+                disabled={settingTemporaryRule || switching || addingCondition}
+                onclick={() => void setTemporaryRule(item.key)}
+              >
+                {item.name}
+              </button>
+            </li>
+          {/each}
+          {#if (temporaryRuleView?.rules.length ?? 0) > 0}
+            <li class="original-temporary-rule-menu-divider" role="separator"></li>
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                data-popup-manage-temporary-rules
+                disabled={openingTemporaryRules || settingTemporaryRule}
+                onclick={() => void openTemporaryRules()}
+              >
+                {uiMessage(
+                  'popup.manageTemporary',
+                  { count: temporaryRuleView?.rules.length ?? 0 },
+                  locale,
+                )}
+              </button>
+            </li>
+          {/if}
+        </ul>
+      {/if}
+    </section>
   {/if}
 
   <footer class="popup-footer">
