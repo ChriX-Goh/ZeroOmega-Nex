@@ -39,3 +39,13 @@ The correction passed architecture, parity, localization, type checking, unit te
 Chromium and Firefox E2E explicitly activate the default `auto switch`, require its exact one-line text and assert that both result selectors and labels remain absent. Schema-3 paired evidence requires zero result controls for Original and Nex and exact active-Switch text-line equality.
 
 This ordinary evidence Head must pass all six permanent gates on its first run and produce an active-Switch paired capture whose text and height match Original. Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.
+
+## First ordinary-Head result
+
+Ordinary Head `43060a3b753dad758ae270625e7af46f70059775` proved the product correction in schema-3 paired evidence. Artifact `8845318793` (`sha256:2e0801eab0ab1d02244a050f2e660661359b5289637d6213a8fbae5969e6bc15`) shows active Fixed and active Switch text lines exactly match Original, both result-control metric arrays are empty, and the prior 29px height expansion is gone.
+
+Firefox main E2E also passed the new active-Switch absence assertions. Chromium failed later because an older capability test still attempted to operate the removed Popup select. The corrected test now verifies the active imported Switch remains a single line with no result UI, then exercises `set-popup-profile-result` directly through the verified background command and retains the same atomic storage/snapshot assertions.
+
+The typed-locale aggregate guard is also corrected to stop requiring the removed `popup.resultFor` surface. Its separate original-facing guard still requires the result selector and label to be absent while retaining the background mutation path.
+
+This is a test-contract correction, not a product rollback. A fresh ordinary Head must pass without rerunning the failed Head.

@@ -1085,10 +1085,46 @@ try {
     /Loading applied profiles|Quick switching is disabled|No quick-switch routes|Result profile/u,
     'Popup typed locale coverage regressed',
   );
-  const switchResult = resultPopup.getByLabel('switch 的结果情景模式');
-  await switchResult.waitFor({ state: 'visible', timeout: 20_000 });
-  assert.equal(await switchResult.inputValue(), 'direct');
-  await switchResult.selectOption({ label: 'fixed' });
+  const activeImportedSwitch = resultPopup.getByRole('button', {
+    name: 'switch',
+    exact: true,
+  });
+  await activeImportedSwitch.waitFor({ state: 'visible', timeout: 20_000 });
+  assert.equal(await activeImportedSwitch.isDisabled(), true);
+  assert.equal((await activeImportedSwitch.innerText()).trim(), 'switch');
+  assert.equal(
+    await resultPopup.locator('[data-popup-result-profile]').count(),
+    0,
+    'Imported active Switch exposed a result selector in the Chromium Popup',
+  );
+  assert.equal(
+    await resultPopup.locator('.profile-result-label').count(),
+    0,
+    'Imported active Switch exposed a result label in the Chromium Popup',
+  );
+  const resultCapability = await resultPopup.evaluate(async () => {
+    const channel = 'zeroomega-nex/profile-workflow/v1';
+    const current = await chrome.runtime.sendMessage({ channel, action: 'get' });
+    const switchProfile = current.state.applied.profiles.find(
+      (profile) => profile.name === 'switch',
+    );
+    const fixedProfile = current.state.applied.profiles.find((profile) => profile.name === 'fixed');
+    if (!switchProfile || !fixedProfile) {
+      return { ok: false, reason: 'imported result profiles missing' };
+    }
+    return chrome.runtime.sendMessage({
+      channel,
+      action: 'set-popup-profile-result',
+      expectedAppliedRevisionId: current.state.applied.revision.id,
+      profileId: switchProfile.id,
+      route: { kind: 'profile', profileId: fixedProfile.id },
+    });
+  });
+  assert.equal(
+    resultCapability?.ok,
+    true,
+    `Background result mutation failed: ${JSON.stringify(resultCapability)}`,
+  );
   await assertEventually(async () => {
     const resultStorage = await worker.evaluate(async () => chrome.storage.local.get(null));
     const workflow = resultStorage['zeroomega-nex/profile-workflow/v1/state'];
@@ -1103,7 +1139,7 @@ try {
       activeSnapshot?.startRoute?.kind === 'profile' &&
       activeSnapshot.startRoute.profileId === switchProfile.id
     );
-  }, 'Popup result profile was not applied while preserving the active Switch route');
+  }, 'Background result profile mutation did not preserve the active Switch route');
   await resultPopup.close().catch(() => undefined);
 
   const currentSiteUrl = 'https://www.dev.example.co.uk/current-site';
