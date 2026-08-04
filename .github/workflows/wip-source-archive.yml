@@ -26,15 +26,17 @@ jobs:
         run: |
           set -euo pipefail
           # Read-only packaging; this workflow never commits or mutates repository state.
-          tar --exclude=.git -czf zeroomega-nex-wip-source.tar.gz .
-          sha256sum zeroomega-nex-wip-source.tar.gz > zeroomega-nex-wip-source.tar.gz.sha256
+          archive="$RUNNER_TEMP/zeroomega-nex-wip-source.tar.gz"
+          checksum="$RUNNER_TEMP/zeroomega-nex-wip-source.tar.gz.sha256"
+          tar --exclude=.git -czf "$archive" .
+          sha256sum "$archive" > "$checksum"
 
       - name: Upload source archive
         uses: actions/upload-artifact@v4
         with:
           name: zeroomega-nex-wip-source-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
-            zeroomega-nex-wip-source.tar.gz
-            zeroomega-nex-wip-source.tar.gz.sha256
+            ${{ runner.temp }}/zeroomega-nex-wip-source.tar.gz
+            ${{ runner.temp }}/zeroomega-nex-wip-source.tar.gz.sha256
           if-no-files-found: error
           retention-days: 3
