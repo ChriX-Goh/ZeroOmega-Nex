@@ -12,6 +12,7 @@ def replace_once(path: str, old: str, new: str) -> None:
 
 
 chromium_path = 'scripts/e2e-chromium.mjs'
+validator_path = 'scripts/validate-ui-compatibility.mjs'
 evidence_path = 'docs/AUDIT_EVIDENCE_02O_POPUP_RESULT_CONTROL_REMOVAL.md'
 
 replace_once(
@@ -70,6 +71,19 @@ replace_once(
     """  }, 'Popup result profile was not applied while preserving the active Switch route');""",
     """  }, 'Background result profile mutation did not preserve the active Switch route');""",
 )
+replace_once(
+    validator_path,
+    """    popupApp.includes('data-popup-locale={locale}') &&
+      popupApp.includes("uiMessage('popup.resultFor'") &&
+      popupApp.includes("uiMessage('popup.temporaryFor'") &&""",
+    """    popupApp.includes('data-popup-locale={locale}') &&
+      popupApp.includes("uiMessage('popup.temporaryFor'") &&""",
+)
+replace_once(
+    validator_path,
+    """    'Popup must render route/result, current-site, temporary-rule, ownership, diagnostics, external-profile, options, status, safe errors, and ARIA directly through the typed three-locale catalog without changing Applied-only or session-only boundaries.',""",
+    """    'Popup must render routes, current-site, temporary-rule, ownership, diagnostics, external-profile, options, status, safe errors, and ARIA directly through the typed three-locale catalog without changing Applied-only or session-only boundaries.',""",
+)
 
 evidence = Path(evidence_path).read_text()
 marker = 'Ordinary Head `43060a3b753dad758ae270625e7af46f70059775` exposed one stale Chromium test contract.'
@@ -82,11 +96,21 @@ Ordinary Head `43060a3b753dad758ae270625e7af46f70059775` proved the product corr
 
 Firefox main E2E also passed the new active-Switch absence assertions. Chromium failed later because an older capability test still attempted to operate the removed Popup select. The corrected test now verifies the active imported Switch remains a single line with no result UI, then exercises `set-popup-profile-result` directly through the verified background command and retains the same atomic storage/snapshot assertions.
 
+The typed-locale aggregate guard is also corrected to stop requiring the removed `popup.resultFor` surface. Its separate original-facing guard still requires the result selector and label to be absent while retaining the background mutation path.
+
 This is a test-contract correction, not a product rollback. A fresh ordinary Head must pass without rerunning the failed Head.
 """
 Path(evidence_path).write_text(evidence)
 
 subprocess.run(
-    ['pnpm', 'exec', 'prettier', '--write', chromium_path, evidence_path],
+    [
+        'pnpm',
+        'exec',
+        'prettier',
+        '--write',
+        chromium_path,
+        validator_path,
+        evidence_path,
+    ],
     check=True,
 )
