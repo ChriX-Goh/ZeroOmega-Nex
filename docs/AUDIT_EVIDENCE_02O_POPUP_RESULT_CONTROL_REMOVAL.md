@@ -49,3 +49,19 @@ Firefox main E2E also passed the new active-Switch absence assertions. Chromium 
 The typed-locale aggregate guard is also corrected to stop requiring the removed `popup.resultFor` surface. Its separate original-facing guard still requires the result selector and label to be absent while retaining the background mutation path.
 
 This is a test-contract correction, not a product rollback. A fresh ordinary Head must pass without rerunning the failed Head.
+
+## Verified ordinary-Head result
+
+Ordinary Head `04b2b8af27214324a94bad2371a0de9d8db0923e` passed all six permanent gates on the first run: CI, Browser E2E, Parity Documentation, Original Toolbar Evidence, Milestone 8 Visual Evidence and Original Nex UI Evidence.
+
+Schema-3 artifact `8876162894` (`sha256:fee786254da6f6565c0a7054a0f0c5c6e40bdc699eca88b08221f0bcdd7e03b2`) proves:
+
+- active Fixed text lines are identical in Original and Nex;
+- active Switch text lines are identical in Original and Nex;
+- both implementations record zero result controls in default, active Fixed and active Switch states;
+- active Fixed and active Switch rows remain 31px high;
+- the removed 29px Nex-only result editor does not return.
+
+Chromium verifies the preserved background `set-popup-profile-result` command directly and retains the same atomic workflow/storage/snapshot assertions. Firefox, Chromium, native Inspect and every Toolbar specialist step pass. The ordinary Popup result-editor defect is therefore `VERIFIED_AUTOMATION`; complete Popup interactions and owner acceptance remain open.
+
+Project progress remains 48%; Order 1 remains 45%; the latest owner result remains FAIL; no candidate, merge, release or owner retest is authorized.

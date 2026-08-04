@@ -69,7 +69,8 @@ Only `OWNER_ACCEPTED` closes a product journey. The closure path is:
 - `PopupContract`
   - original profile ordering and labels;
   - Direct/System/proxy/auto switch visibility;
-  - result selectors, site actions, temporary rules, ownership blocking and Options entry;
+  - compact active-route presentation, site actions, temporary rules, ownership blocking and Options entry;
+  - result mutation remains in background/Options paths and is not exposed as a Nex-only ordinary Popup editor;
   - no Nex branding or engineering state.
 - `OptionsContract`
   - original default About landing page;
@@ -238,7 +239,7 @@ Explicit non-claims:
 - Popup is not yet exact;
 - Options shell is not yet exact;
 - About content is not yet exact;
-- result-selector provenance remains open;
+- non-default site, temporary-rule and ownership Popup surfaces remain open;
 - sidebar width/grouping/labels and editor density remain open;
 - this slice does not increase progress above 48% / Order 1 45%.
 
@@ -268,9 +269,22 @@ Verified default-presentation subsets:
 
 Remaining presentation gaps:
 
-- expanded Popup states, result selectors, site actions, temporary rules and ownership surfaces;
+- expanded site-action, temporary-rule and ownership Popup surfaces;
 - Options profile editors, dialogs, validation timing and non-default density;
 - complete cross-surface interaction and owner-acceptance audit.
+
+### `KG-POPUP-RESULT-SURFACE-001`
+
+Status: `VERIFIED_AUTOMATION` on ordinary Head `04b2b8af27214324a94bad2371a0de9d8db0923e`.
+
+- official active Fixed and active Switch Popups keep the same compact five-line list as Nex;
+- schema-3 paired metrics record zero result controls for default, active Fixed and active Switch states;
+- active rows remain 31px high and the Nex-only 29px result editor is absent;
+- Chromium exercises `set-popup-profile-result` directly through the background command boundary and preserves atomic workflow/storage/snapshot behavior;
+- Firefox, Chromium, native Inspect and every Toolbar specialist step pass on the same ordinary Head;
+- artifact `8876162894`, digest `fee786254da6f6565c0a7054a0f0c5c6e40bdc699eca88b08221f0bcdd7e03b2`.
+
+This node closes the demonstrated ordinary result-editor invention in automation only. Site actions, temporary rules, ownership surfaces, complete Popup interaction parity and owner acceptance remain open.
 
 ### `KG-STARTUP-OWNERSHIP-001`
 
@@ -350,7 +364,8 @@ Valid supporting runtime nodes:
 Open entry nodes:
 
 - `KG-ORIGINAL-UI-EVIDENCE-001` — active.
-- `KG-POPUP-STRUCTURE-001` — `PARTIAL`; default text/order/geometry/icons verified, expanded states and complete interactions remain open.
+- `KG-POPUP-STRUCTURE-001` — `PARTIAL`; default text/order/geometry/icons and active result-surface absence verified, site/temporary/ownership states and complete interactions remain open.
+- `KG-POPUP-RESULT-SURFACE-001` — active Fixed/Switch result-editor absence plus background mutation capability `VERIFIED_AUTOMATION`.
 - `KG-OPTIONS-STRUCTURE-001` — `PARTIAL`; default About hierarchy/layout verified, editors/dialogs and non-default interactions remain open.
 - `KG-OPTIONS-ABOUT-001` — default content and layout subset `VERIFIED_AUTOMATION`; owner acceptance and adjacent Options surfaces remain open.
 - `KG-OPTIONS-DEFAULT-LAYOUT-001` — paired default layout `VERIFIED_AUTOMATION`.
