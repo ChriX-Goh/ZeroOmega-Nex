@@ -92,9 +92,10 @@ export async function inspectActiveCurrentSite(
   let site = inspectCurrentSiteTab(tab);
   if (site || tab?.status !== 'loading' || tab.id === undefined) return site;
 
+  const tabId = tab.id;
   for (let attempt = 0; attempt < LOADING_TAB_RETRY_COUNT; attempt += 1) {
     await delay(LOADING_TAB_RETRY_DELAY_MS);
-    tab = await api.tabs.get(tab.id);
+    tab = await api.tabs.get(tabId);
     site = inspectCurrentSiteTab(tab);
     if (site || tab.status !== 'loading') return site;
   }
