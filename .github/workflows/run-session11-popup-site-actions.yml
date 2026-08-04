@@ -8,7 +8,7 @@ on:
       - .github/workflows/run-session11-popup-site-actions.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   apply:
@@ -114,13 +114,26 @@ jobs:
           git diff --check
           pnpm verify
 
-      - name: Commit validated WIP package
+      - name: Create verified source archive
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'ChriX-Goh'
           git config user.email '17531787+ChriX-Goh@users.noreply.github.com'
           git add -A
-          git status --short
           git commit -m 'fix: restore original Popup current-site actions'
-          git push origin HEAD:wip/session11-popup-site-actions
+          archive="$RUNNER_TEMP/session11-popup-site-actions-final.tar.gz"
+          git archive --format=tar.gz --output="$archive" HEAD
+          sha256sum "$archive" > "$archive.sha256"
+          git rev-parse HEAD > "$RUNNER_TEMP/session11-local-commit.txt"
+
+      - name: Upload verified source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: session11-popup-site-actions-final-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/session11-popup-site-actions-final.tar.gz
+            ${{ runner.temp }}/session11-popup-site-actions-final.tar.gz.sha256
+            ${{ runner.temp }}/session11-local-commit.txt
+          if-no-files-found: error
+          retention-days: 3
