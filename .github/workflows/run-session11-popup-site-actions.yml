@@ -156,6 +156,7 @@ jobs:
           test ! -e .github/workflows/apply-session11-popup-site-actions.yml
           test ! -e .github/workflows/run-session11-popup-site-actions.yml
           git diff --check --cached
+          rm -rf dist browser-builds
           pnpm verify
           git commit -m 'fix: restore original Popup current-site actions'
           git push origin HEAD:feat/m8-profile-workflow
