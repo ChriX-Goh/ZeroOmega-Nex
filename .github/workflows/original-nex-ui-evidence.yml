@@ -49,6 +49,12 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Format touched files for review artifact
+        run: |
+          pnpm exec prettier --write \
+            apps/extension/src/entrypoints/popup/original-site-action-compat.ts \
+            scripts/capture-original-nex-popup-site-action-evidence.mjs
+
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
@@ -89,8 +95,13 @@ jobs:
             original-nex-popup-site-action-evidence.log
             apps/extension/src/entrypoints/popup/App.svelte
             apps/extension/src/entrypoints/popup/OriginalPopupIcon.svelte
+            apps/extension/src/entrypoints/popup/main.ts
             apps/extension/src/entrypoints/popup/style.css
             apps/extension/src/entrypoints/popup/original-compat.css
+            apps/extension/src/entrypoints/popup/original-site-action-compat.ts
+            apps/extension/src/entrypoints/popup/original-site-action-compat.css
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md
+            docs/UI_AUDIT_MATRIX.md
             scripts/e2e-chromium.mjs
             scripts/e2e-firefox.mjs
             scripts/capture-original-nex-popup-site-action-evidence.mjs
