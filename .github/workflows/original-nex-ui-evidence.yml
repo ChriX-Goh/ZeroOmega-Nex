@@ -87,5 +87,12 @@ jobs:
             artifacts/original-nex-popup-site-action-evidence
             original-nex-ui-evidence.log
             original-nex-popup-site-action-evidence.log
+            apps/extension/src/entrypoints/popup/App.svelte
+            apps/extension/src/entrypoints/popup/OriginalPopupIcon.svelte
+            apps/extension/src/entrypoints/popup/style.css
+            apps/extension/src/entrypoints/popup/original-compat.css
+            scripts/e2e-chromium.mjs
+            scripts/e2e-firefox.mjs
+            scripts/capture-original-nex-popup-site-action-evidence.mjs
           if-no-files-found: error
           retention-days: 30
