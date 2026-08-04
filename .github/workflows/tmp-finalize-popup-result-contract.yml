@@ -75,3 +75,5 @@ jobs:
           git commit -m "chore: record popup result finalizer failure"
           git push origin HEAD:feat/m8-profile-workflow
           exit "$status"
+
+# retriggered after interrupted session recovery
