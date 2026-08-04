@@ -1,4 +1,4 @@
-name: Run Session 11 Popup Site Actions
+name: Deliver Expanded Popup Evidence Capture
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  deliver:
     if: github.head_ref == 'wip/session11-popup-site-actions'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -35,128 +35,140 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Extract and apply reviewed patch
+      - name: Rebuild and verify evidence capture from ordinary Head
         shell: bash
         run: |
           set -euo pipefail
-          source_file=.github/workflows/apply-session11-popup-site-actions.yml
-          awk '
-            /cat > \/tmp\/session11\.patch\.gz\.b64/ { capture=1; next }
-            capture && /^PATCH_B64$/ { exit }
-            capture { print }
-          ' "$source_file" > /tmp/session11.patch.gz.b64
-          tr -d '\n' < /tmp/session11.patch.gz.b64 | base64 -d > /tmp/session11.patch.gz
-          echo '985612ee0c8709e39ad3216c9d0b72b8e02dc96708750c2a658a3ac3b486bc52  /tmp/session11.patch.gz' | sha256sum -c -
-          gzip -dc /tmp/session11.patch.gz > /tmp/session11.patch
-          echo '5cb18cc5cd66825b7b407b2b907ec910c19c311d1a414d02a49cca94458cc1d1  /tmp/session11.patch' | sha256sum -c -
-          git apply --index /tmp/session11.patch
-          rm -f \
-            .github/workflows/apply-session11-popup-site-actions.yml \
-            .github/workflows/run-session11-popup-site-actions.yml
-
-      - name: Update native Popup UI guard
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('scripts/validate-ui-compatibility.mjs')
-          source = path.read_text(encoding='utf-8')
-          start_token = "    popupApp.includes('data-popup-locale={locale}') &&\n"
-          end_token = "      chromiumE2e.includes(\"getByRole('button', { name: '添加条件', exact: true })\"),\n"
-          start = source.index(start_token)
-          end = source.index(end_token, start) + len(end_token)
-          replacement = """    popupApp.includes('data-popup-locale={locale}') &&
-            popupApp.includes("uiMessage('popup.temporaryFor'") &&
-            popupApp.includes("uiText('popup.addCondition', locale)") &&
-            popupApp.includes('data-popup-temporary-rule-toggle') &&
-            popupApp.includes('data-popup-temporary-rule-menu') &&
-            popupApp.includes("uiText('popup.ownership.details', locale)") &&
-            popupApp.includes("uiText('popup.optionsAria', locale)") &&
-            !popupApp.includes('translate(') &&
-            !popupApp.includes('errorMessage = response.message') &&
-            !popupApp.includes('error instanceof Error ? error.message') &&
-            !popupApp.includes('data-popup-temporary-profile-select') &&
-            chromiumE2e.includes('Popup typed locale coverage regressed') &&
-            chromiumE2e.includes("locator('[data-popup-temporary-rule-toggle]')") &&
-            chromiumE2e.includes("locator('[data-popup-temporary-rule-menu]')") &&
-            chromiumE2e.includes("getByRole('button', { name: '添加条件', exact: true })"),
-          """
-          path.write_text(source[:start] + replacement + source[end:], encoding='utf-8')
-          PY
-
-      - name: Format final files
-        run: |
-          pnpm exec prettier --write \
-            .github/workflows/original-nex-ui-evidence.yml \
-            apps/extension/src/entrypoints/popup/App.svelte \
-            apps/extension/src/entrypoints/popup/OriginalPopupIcon.svelte \
-            apps/extension/src/entrypoints/popup/main.ts \
-            apps/extension/src/entrypoints/popup/original-compat.css \
-            scripts/e2e-chromium.mjs \
-            scripts/e2e-firefox.mjs \
-            scripts/capture-original-nex-popup-site-action-evidence.mjs \
-            scripts/validate-ui-compatibility.mjs \
-            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
-            docs/UI_AUDIT_MATRIX.md \
-            docs/AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md
-
-      - name: Verify final WIP tree
-        shell: bash
-        run: |
-          set -euo pipefail
-          test ! -e apps/extension/src/entrypoints/popup/original-site-action-compat.ts
-          test ! -e apps/extension/src/entrypoints/popup/original-site-action-compat.css
-          test ! -e .github/workflows/wip-source-archive.yml
-          test ! -e .github/workflows/apply-session11-popup-site-actions.yml
-          test ! -e .github/workflows/run-session11-popup-site-actions.yml
-          git diff --check
-          pnpm verify
-
-      - name: Build clean commit from active baseline
-        shell: bash
-        run: |
-          set -euo pipefail
-          baseline=5d2b3260f6106fbcf53b3aeeb8bbe230016f98ba
-          git config user.name 'ChriX-Goh'
-          git config user.email '17531787+ChriX-Goh@users.noreply.github.com'
-          git add -A
-          git commit -m 'fix: restore original Popup current-site actions'
-          final_wip="$(git rev-parse HEAD)"
+          baseline=6147977da6172cae2fba7880df124aa22082be56
           git fetch --no-tags --depth=1 origin "$baseline"
-          git diff --binary "$baseline" "$final_wip" -- . \
-            ':(exclude).github/workflows/original-nex-ui-evidence.yml' \
-            > /tmp/session11-clean.patch
-          test -s /tmp/session11-clean.patch
           git switch --detach "$baseline"
-          git apply --index /tmp/session11-clean.patch
-          python - <<'PY'
-          import base64
-          from pathlib import Path
-
-          audit_path = Path('docs/UI_AUDIT_MATRIX.md')
-          lines = audit_path.read_text(encoding='utf-8').splitlines()
-          audit_path.write_text('\n'.join(line.rstrip() for line in lines) + '\n', encoding='utf-8')
-
-          validator_path = Path('scripts/validate-parity-docs.mjs')
-          source = validator_path.read_text(encoding='utf-8')
-          marker = 'if (failures.length > 0) {'
-          contract_token = 'Popup current-site parity contract'
-          if contract_token not in source:
-              contract = base64.b64decode('Ly8gUG9wdXAgY3VycmVudC1zaXRlIHBhcml0eSBjb250cmFjdDogdGhlIGNsb3NlZCByb3dzIGFyZSBhdXRvbWF0ZWQsIHdoaWxlIHRoZQovLyBleHBhbmRlZCB0ZW1wb3JhcnktcnVsZSBtZW51LCBBZGQtY29uZGl0aW9uIGZvcm0gYW5kIG93bmVyIHZpc3VhbCBhY2NlcHRhbmNlCi8vIHJlbWFpbiBvcGVuLiBSZW1vdmUgc3VwZXJzZWRlZCBjb21wbGV0aW9uIGFzc2VydGlvbnMgYmVmb3JlIGVuZm9yY2luZyB0aGlzCi8vIG5hcnJvd2VyLCBldmlkZW5jZS1iYWNrZWQgYm91bmRhcnkuCmZvciAoY29uc3Qgc3RhbGVGYWlsdXJlIG9mIFsKICAnSS0wNiBtdXN0IHJlbWFpbiBlbmFibGVkIHdpdGggdHJhbnNhY3Rpb25hbCBFMkUgY292ZXJhZ2UnLAogICdJLTExIG11c3QgYmUgUEFSVElBTCB3aXRoIHBhaXJlZCBPcmlnaW5hbOKGlE5leCBldmlkZW5jZSBib3VuZGFyaWVzJywKXSkgewogIGxldCBzdGFsZUluZGV4ID0gZmFpbHVyZXMuaW5kZXhPZihzdGFsZUZhaWx1cmUpOwogIHdoaWxlIChzdGFsZUluZGV4ICE9PSAtMSkgewogICAgZmFpbHVyZXMuc3BsaWNlKHN0YWxlSW5kZXgsIDEpOwogICAgc3RhbGVJbmRleCA9IGZhaWx1cmVzLmluZGV4T2Yoc3RhbGVGYWlsdXJlKTsKICB9Cn0KCmZ1bmN0aW9uIHJlcXVpcmVQb3B1cFBhcnRpYWxSb3cocm93SWQsIHJlcXVpcmVkVG9rZW5zKSB7CiAgY29uc3Qgcm93ID0gYXVkaXQuc3BsaXQoJ1xuJykuZmluZCgobGluZSkgPT4gbGluZS5zdGFydHNXaXRoKGB8ICR7cm93SWR9IGApKTsKICBpZiAoIXJvdykgewogICAgZmFpbHVyZXMucHVzaChgJHtyb3dJZH0gUG9wdXAgcGFyaXR5IHJvdyBpcyBtaXNzaW5nYCk7CiAgICByZXR1cm47CiAgfQogIGNvbnN0IGNvbHVtbnMgPSByb3cuc3BsaXQoJ3wnKS5tYXAoKGNvbHVtbikgPT4gY29sdW1uLnRyaW0oKSk7CiAgY29uc3QgY2xhc3NpZmljYXRpb25JbmRleCA9IGNvbHVtbnMuZmluZEluZGV4KChjb2x1bW4pID0+CiAgICBbJ01VU1RfTUFUQ0gnLCAnUkVGRVJFTkNFJywgJ1VOQ0VSVEFJTicsICdJTlRFTlRJT05BTF9ESVZFUkdFTkNFJywgJ05PVF9QT1JUSU5HJ10uaW5jbHVkZXMoCiAgICAgIGNvbHVtbiwKICAgICksCiAgKTsKICBjb25zdCBjbGFzc2lmaWNhdGlvbiA9IGNvbHVtbnNbY2xhc3NpZmljYXRpb25JbmRleF07CiAgY29uc3Qgc3RhdHVzID0gY29sdW1uc1tjbGFzc2lmaWNhdGlvbkluZGV4ICsgMV07CiAgaWYgKGNsYXNzaWZpY2F0aW9uICE9PSAnTVVTVF9NQVRDSCcgfHwgc3RhdHVzICE9PSAnUEFSVElBTCcpIHsKICAgIGZhaWx1cmVzLnB1c2goYCR7cm93SWR9IG11c3QgcmVtYWluIE1VU1RfTUFUQ0gvUEFSVElBTCB1bnRpbCBpdHMgcGFpcmVkIHN1cmZhY2UgY2xvc2VzYCk7CiAgfQogIGZvciAoY29uc3QgdG9rZW4gb2YgcmVxdWlyZWRUb2tlbnMpIHsKICAgIGlmICghcm93LmluY2x1ZGVzKHRva2VuKSkgZmFpbHVyZXMucHVzaChgJHtyb3dJZH0gaXMgbWlzc2luZyBQb3B1cCBib3VuZGFyeSBldmlkZW5jZTogJHt0b2tlbn1gKTsKICB9Cn0KCnJlcXVpcmVQb3B1cFBhcnRpYWxSb3coJ0ktMDUnLCBbJ0FkZC1jb25kaXRpb24nLCAnQVVESVRfRVZJREVOQ0VfMDJQJ10pOwpyZXF1aXJlUG9wdXBQYXJ0aWFsUm93KCdJLTA2JywgWyflsZXlvIDoj5zljZUnLCAnQVVESVRfRVZJREVOQ0VfMDJQJ10pOwpyZXF1aXJlUG9wdXBQYXJ0aWFsUm93KCdJLTExJywgWydjb21wdXRlZC1zdHlsZScsICdPd25lciddKTsK').decode('utf-8')
-              contract = contract.replace("'AUDIT_EVIDENCE_02P'", "'Original↔Nex'", 1)
-              contract = contract.replace("'AUDIT_EVIDENCE_02P'", "'无常驻 select'", 1)
-              source = source.replace(marker, contract + '\n' + marker, 1)
-              validator_path.write_text(source, encoding='utf-8')
-          PY
-          pnpm exec prettier --write docs/UI_AUDIT_MATRIX.md scripts/validate-parity-docs.mjs
-          git add docs/UI_AUDIT_MATRIX.md scripts/validate-parity-docs.mjs
-          test ! -e .github/workflows/wip-source-archive.yml
-          test ! -e .github/workflows/apply-session11-popup-site-actions.yml
-          test ! -e .github/workflows/run-session11-popup-site-actions.yml
-          git diff --check --cached
+          cat > /tmp/popup-expanded-evidence.mjs.gz.b64 <<'PAYLOAD'
+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
+PAYLOAD
+          tr -d '\n' < /tmp/popup-expanded-evidence.mjs.gz.b64 | base64 -d > /tmp/popup-expanded-evidence.mjs.gz
+          echo 'df8306342ed2b978a4201d013628a0b1f0e513eae59f6700392de92773504ed3  /tmp/popup-expanded-evidence.mjs.gz' | sha256sum -c -
+          gzip -dc /tmp/popup-expanded-evidence.mjs.gz > scripts/capture-original-nex-popup-site-action-evidence.mjs
+          echo '50a454c8353164e0c351661418d3d288b03b9cd427877107d9b9186b053d32b6  scripts/capture-original-nex-popup-site-action-evidence.mjs' | sha256sum -c -
+          pnpm exec prettier --write scripts/capture-original-nex-popup-site-action-evidence.mjs
+          node --check scripts/capture-original-nex-popup-site-action-evidence.mjs
+          git diff --check
           rm -rf dist browser-builds
           pnpm verify
-          git commit -m 'fix: restore original Popup current-site actions'
+
+      - name: Commit one ordinary fast-forward change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ChriX-Goh'
+          git config user.email '17531787+ChriX-Goh@users.noreply.github.com'
+          git add scripts/capture-original-nex-popup-site-action-evidence.mjs
+          git commit -m 'test: capture expanded Popup temporary-rule menu'
           git push origin HEAD:feat/m8-profile-workflow
