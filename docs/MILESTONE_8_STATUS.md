@@ -102,6 +102,10 @@ Subsequent paired computed evidence closes three bounded default-presentation no
 
 These slices correct direction and close demonstrated default-entry automation defects but do not justify increasing progress. Expanded Popup states, Options editors/dialogs, complete interactions and the latest owner FAIL remain open.
 
+The Session 11 current-site action slice is now landed as ordinary implementation commit `d8c206132df4cd587944ab31e4956989c058aa00`. It replaces the temporary DOM compatibility experiment with native Svelte/CSS behavior, adds paired Original↔Nex evidence tooling, and keeps all temporary delivery workflows outside PR #11. Delivery workflow run `30898116359` completed two independent `pnpm verify` transactions, reconstructed the tree from ordinary Head `5d2b3260f6106fbcf53b3aeeb8bbe230016f98ba`, and pushed exactly one fast-forward commit.
+
+This slice verifies only the closed current-site rows and their no-resident-`select` boundary. The expanded temporary-rule menu, Add-condition form, ownership/external-control presentation and owner visual acceptance remain open. `I-05`, `I-06` and `I-11` therefore remain `MUST_MATCH / PARTIAL`; project progress remains 48% and Order 1 remains 45%.
+
 ## Engineering evidence retained
 
 The following remains valid infrastructure:
@@ -134,14 +138,13 @@ The ordinary entry journey remains failed until:
 
 ## Immediate execution order
 
-1. Expand paired evidence to the active Fixed and Switch Popup states.
-2. Capture original result-selector, current-site action and temporary-rule surfaces.
-3. Audit ownership-blocked and external-profile Popup states against original evidence.
-4. Add paired Options profile-editor and dialog density evidence.
-5. Remove any remaining unproven helper text or interaction-order differences.
-6. Validate every bounded surface in Firefox first and Chromium second.
-7. Keep the default-entry nodes stable while expanding coverage.
-8. Do not request owner retest during this correction phase.
+1. Complete paired evidence for the expanded temporary-rule menu and Add-condition form.
+2. Audit ownership-blocked, external-profile and browser-owned Popup states against original evidence.
+3. Add paired Options profile-editor and dialog density evidence.
+4. Remove any remaining unproven helper text or interaction-order differences.
+5. Validate every bounded surface in Firefox first and Chromium second.
+6. Keep the default-entry and closed current-site nodes stable while expanding coverage.
+7. Do not request owner retest during this correction phase.
 
 ## Project-wide release blockers
 
