@@ -1,0 +1,93 @@
+name: Run Session 11 Popup Site Actions
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/run-session11-popup-site-actions.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'wip/session11-popup-site-actions'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact WIP head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Extract and apply reviewed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file=.github/workflows/apply-session11-popup-site-actions.yml
+          awk '
+            /cat > \/tmp\/session11\.patch\.gz\.b64/ { capture=1; next }
+            capture && /^PATCH_B64$/ { exit }
+            capture { print }
+          ' "$source_file" > /tmp/session11.patch.gz.b64
+          tr -d '\n' < /tmp/session11.patch.gz.b64 | base64 -d > /tmp/session11.patch.gz
+          echo '985612ee0c8709e39ad3216c9d0b72b8e02dc96708750c2a658a3ac3b486bc52  /tmp/session11.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/session11.patch.gz > /tmp/session11.patch
+          echo '5cb18cc5cd66825b7b407b2b907ec910c19c311d1a414d02a49cca94458cc1d1  /tmp/session11.patch' | sha256sum -c -
+          git apply --index /tmp/session11.patch
+          rm -f \
+            .github/workflows/apply-session11-popup-site-actions.yml \
+            .github/workflows/run-session11-popup-site-actions.yml
+
+      - name: Format final files
+        run: |
+          pnpm exec prettier --write \
+            .github/workflows/original-nex-ui-evidence.yml \
+            apps/extension/src/entrypoints/popup/App.svelte \
+            apps/extension/src/entrypoints/popup/OriginalPopupIcon.svelte \
+            apps/extension/src/entrypoints/popup/main.ts \
+            apps/extension/src/entrypoints/popup/original-compat.css \
+            scripts/e2e-chromium.mjs \
+            scripts/e2e-firefox.mjs \
+            scripts/capture-original-nex-popup-site-action-evidence.mjs \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            docs/AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md
+
+      - name: Verify atomic work package
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e apps/extension/src/entrypoints/popup/original-site-action-compat.ts
+          test ! -e apps/extension/src/entrypoints/popup/original-site-action-compat.css
+          test ! -e .github/workflows/wip-source-archive.yml
+          test ! -e .github/workflows/apply-session11-popup-site-actions.yml
+          test ! -e .github/workflows/run-session11-popup-site-actions.yml
+          git diff --check
+          pnpm verify
+
+      - name: Commit validated WIP package
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ChriX-Goh'
+          git config user.email '17531787+ChriX-Goh@users.noreply.github.com'
+          git add -A
+          git status --short
+          git commit -m 'fix: restore original Popup current-site actions'
+          git push origin HEAD:wip/session11-popup-site-actions
