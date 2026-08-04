@@ -25,6 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Read-only packaging; this workflow never commits or mutates repository state.
           tar --exclude=.git -czf zeroomega-nex-wip-source.tar.gz .
           sha256sum zeroomega-nex-wip-source.tar.gz > zeroomega-nex-wip-source.tar.gz.sha256
 
