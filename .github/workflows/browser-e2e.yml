@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Synchronize graph and self-clean
+      - name: Synchronize graph
         shell: bash
         run: |
           set -euo pipefail
@@ -40,7 +40,6 @@ jobs:
 
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git checkout HEAD^ -- .github/workflows/browser-e2e.yml
           rm -f scripts/apply-popup-result-kg-sync.py
           git add -A
           git commit -m "docs: verify original popup result surface"
