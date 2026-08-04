@@ -17,6 +17,8 @@ export interface CurrentSiteInfo {
 interface CurrentSiteTab {
   readonly id?: number;
   readonly url?: string;
+  readonly pendingUrl?: string;
+  readonly status?: 'loading' | 'complete';
 }
 
 interface CurrentSiteBrowserApi {
@@ -30,6 +32,8 @@ interface CurrentSiteBrowserApi {
 }
 
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:', 'ftp:']);
+const LOADING_TAB_RETRY_COUNT = 20;
+const LOADING_TAB_RETRY_DELAY_MS = 50;
 
 function unbracket(hostname: string): string {
   return hostname.startsWith('[') && hostname.endsWith(']')
@@ -63,15 +67,38 @@ export function inspectCurrentSiteUrl(url: string, tabId?: number): CurrentSiteI
   };
 }
 
+function inspectCurrentSiteTab(tab: CurrentSiteTab | undefined): CurrentSiteInfo | undefined {
+  if (!tab) return undefined;
+  for (const url of [tab.pendingUrl, tab.url]) {
+    if (!url) continue;
+    const site = inspectCurrentSiteUrl(url, tab.id);
+    if (site) return site;
+  }
+  return undefined;
+}
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolveDelay) => setTimeout(resolveDelay, milliseconds));
+}
+
 export async function inspectActiveCurrentSite(
   explicitTabId?: number,
   api: CurrentSiteBrowserApi = browser as unknown as CurrentSiteBrowserApi,
 ): Promise<CurrentSiteInfo | undefined> {
-  const tab =
+  let tab =
     explicitTabId === undefined
       ? (await api.tabs.query({ active: true, currentWindow: true }))[0]
       : await api.tabs.get(explicitTabId);
-  return tab?.url ? inspectCurrentSiteUrl(tab.url, tab.id) : undefined;
+  let site = inspectCurrentSiteTab(tab);
+  if (site || tab?.status !== 'loading' || tab.id === undefined) return site;
+
+  for (let attempt = 0; attempt < LOADING_TAB_RETRY_COUNT; attempt += 1) {
+    await delay(LOADING_TAB_RETRY_DELAY_MS);
+    tab = await api.tabs.get(tab.id);
+    site = inspectCurrentSiteTab(tab);
+    if (site || tab.status !== 'loading') return site;
+  }
+  return undefined;
 }
 
 export function currentSiteDomainForLevel(site: CurrentSiteInfo, level: number): string {

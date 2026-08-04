@@ -45,16 +45,52 @@ describe('Popup current-site inspection', () => {
     });
   });
 
-  it('rejects extension/internal URLs and supports an explicit active tab ID', async () => {
+  it('rejects internal URLs and resolves an explicit loading tab from pendingUrl', async () => {
     expect(inspectCurrentSiteUrl('chrome://settings/')).toBeUndefined();
     expect(inspectCurrentSiteUrl('about:blank')).toBeUndefined();
+    let getCount = 0;
     await expect(
       inspectActiveCurrentSite(42, {
         tabs: {
           query: async () => [],
-          get: async (tabId) => ({ id: tabId, url: 'https://sub.example.com/' }),
+          get: async (tabId) => {
+            getCount += 1;
+            return {
+              id: tabId,
+              url: 'about:blank',
+              pendingUrl: 'https://sub.example.com/',
+              status: 'loading',
+            };
+          },
         },
       }),
     ).resolves.toMatchObject({ tabId: 42, domain: 'example.com', subdomain: 'sub' });
+    expect(getCount).toBe(1);
+  });
+
+  it('rechecks a loading tab until a supported URL becomes available', async () => {
+    let getCount = 0;
+    await expect(
+      inspectActiveCurrentSite(7, {
+        tabs: {
+          query: async () => [],
+          get: async (tabId) => {
+            getCount += 1;
+            return getCount === 1
+              ? { id: tabId, url: 'about:blank', status: 'loading' }
+              : {
+                  id: tabId,
+                  url: 'https://www.dev.example.co.uk/current-site',
+                  status: 'complete',
+                };
+          },
+        },
+      }),
+    ).resolves.toMatchObject({
+      tabId: 7,
+      domain: 'example.co.uk',
+      subdomain: 'www.dev',
+    });
+    expect(getCount).toBe(2);
   });
 });
