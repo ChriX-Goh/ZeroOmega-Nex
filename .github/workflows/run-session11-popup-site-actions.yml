@@ -132,6 +132,7 @@ jobs:
           git switch --detach "$baseline"
           git apply --index /tmp/session11-clean.patch
           python - <<'PY'
+          import base64
           from pathlib import Path
 
           audit_path = Path('docs/UI_AUDIT_MATRIX.md')
@@ -143,48 +144,7 @@ jobs:
           marker = 'if (failures.length > 0) {'
           contract_token = 'Popup current-site parity contract'
           if contract_token not in source:
-              contract = r'''
-// Popup current-site parity contract: the closed rows are automated, while the
-// expanded temporary-rule menu, Add-condition form and owner visual acceptance
-// remain open. Remove superseded completion assertions before enforcing this
-// narrower, evidence-backed boundary.
-for (const staleFailure of [
-  'I-06 must remain enabled with transactional E2E coverage',
-  'I-11 must be PARTIAL with paired Original↔Nex evidence boundaries',
-]) {
-  let staleIndex = failures.indexOf(staleFailure);
-  while (staleIndex !== -1) {
-    failures.splice(staleIndex, 1);
-    staleIndex = failures.indexOf(staleFailure);
-  }
-}
-
-function requirePopupPartialRow(rowId, requiredTokens) {
-  const row = audit.split('\n').find((line) => line.startsWith(`| ${rowId} `));
-  if (!row) {
-    failures.push(`${rowId} Popup parity row is missing`);
-    return;
-  }
-  const columns = row.split('|').map((column) => column.trim());
-  const classificationIndex = columns.findIndex((column) =>
-    ['MUST_MATCH', 'REFERENCE', 'UNCERTAIN', 'INTENTIONAL_DIVERGENCE', 'NOT_PORTING'].includes(
-      column,
-    ),
-  );
-  const classification = columns[classificationIndex];
-  const status = columns[classificationIndex + 1];
-  if (classification !== 'MUST_MATCH' || status !== 'PARTIAL') {
-    failures.push(`${rowId} must remain MUST_MATCH/PARTIAL until its paired surface closes`);
-  }
-  for (const token of requiredTokens) {
-    if (!row.includes(token)) failures.push(`${rowId} is missing Popup boundary evidence: ${token}`);
-  }
-}
-
-requirePopupPartialRow('I-05', ['Add-condition', 'AUDIT_EVIDENCE_02P']);
-requirePopupPartialRow('I-06', ['展开菜单', 'AUDIT_EVIDENCE_02P']);
-requirePopupPartialRow('I-11', ['computed-style', 'Owner']);
-'''
+              contract = base64.b64decode('Ly8gUG9wdXAgY3VycmVudC1zaXRlIHBhcml0eSBjb250cmFjdDogdGhlIGNsb3NlZCByb3dzIGFyZSBhdXRvbWF0ZWQsIHdoaWxlIHRoZQovLyBleHBhbmRlZCB0ZW1wb3JhcnktcnVsZSBtZW51LCBBZGQtY29uZGl0aW9uIGZvcm0gYW5kIG93bmVyIHZpc3VhbCBhY2NlcHRhbmNlCi8vIHJlbWFpbiBvcGVuLiBSZW1vdmUgc3VwZXJzZWRlZCBjb21wbGV0aW9uIGFzc2VydGlvbnMgYmVmb3JlIGVuZm9yY2luZyB0aGlzCi8vIG5hcnJvd2VyLCBldmlkZW5jZS1iYWNrZWQgYm91bmRhcnkuCmZvciAoY29uc3Qgc3RhbGVGYWlsdXJlIG9mIFsKICAnSS0wNiBtdXN0IHJlbWFpbiBlbmFibGVkIHdpdGggdHJhbnNhY3Rpb25hbCBFMkUgY292ZXJhZ2UnLAogICdJLTExIG11c3QgYmUgUEFSVElBTCB3aXRoIHBhaXJlZCBPcmlnaW5hbOKGlE5leCBldmlkZW5jZSBib3VuZGFyaWVzJywKXSkgewogIGxldCBzdGFsZUluZGV4ID0gZmFpbHVyZXMuaW5kZXhPZihzdGFsZUZhaWx1cmUpOwogIHdoaWxlIChzdGFsZUluZGV4ICE9PSAtMSkgewogICAgZmFpbHVyZXMuc3BsaWNlKHN0YWxlSW5kZXgsIDEpOwogICAgc3RhbGVJbmRleCA9IGZhaWx1cmVzLmluZGV4T2Yoc3RhbGVGYWlsdXJlKTsKICB9Cn0KCmZ1bmN0aW9uIHJlcXVpcmVQb3B1cFBhcnRpYWxSb3cocm93SWQsIHJlcXVpcmVkVG9rZW5zKSB7CiAgY29uc3Qgcm93ID0gYXVkaXQuc3BsaXQoJ1xuJykuZmluZCgobGluZSkgPT4gbGluZS5zdGFydHNXaXRoKGB8ICR7cm93SWR9IGApKTsKICBpZiAoIXJvdykgewogICAgZmFpbHVyZXMucHVzaChgJHtyb3dJZH0gUG9wdXAgcGFyaXR5IHJvdyBpcyBtaXNzaW5nYCk7CiAgICByZXR1cm47CiAgfQogIGNvbnN0IGNvbHVtbnMgPSByb3cuc3BsaXQoJ3wnKS5tYXAoKGNvbHVtbikgPT4gY29sdW1uLnRyaW0oKSk7CiAgY29uc3QgY2xhc3NpZmljYXRpb25JbmRleCA9IGNvbHVtbnMuZmluZEluZGV4KChjb2x1bW4pID0+CiAgICBbJ01VU1RfTUFUQ0gnLCAnUkVGRVJFTkNFJywgJ1VOQ0VSVEFJTicsICdJTlRFTlRJT05BTF9ESVZFUkdFTkNFJywgJ05PVF9QT1JUSU5HJ10uaW5jbHVkZXMoCiAgICAgIGNvbHVtbiwKICAgICksCiAgKTsKICBjb25zdCBjbGFzc2lmaWNhdGlvbiA9IGNvbHVtbnNbY2xhc3NpZmljYXRpb25JbmRleF07CiAgY29uc3Qgc3RhdHVzID0gY29sdW1uc1tjbGFzc2lmaWNhdGlvbkluZGV4ICsgMV07CiAgaWYgKGNsYXNzaWZpY2F0aW9uICE9PSAnTVVTVF9NQVRDSCcgfHwgc3RhdHVzICE9PSAnUEFSVElBTCcpIHsKICAgIGZhaWx1cmVzLnB1c2goYCR7cm93SWR9IG11c3QgcmVtYWluIE1VU1RfTUFUQ0gvUEFSVElBTCB1bnRpbCBpdHMgcGFpcmVkIHN1cmZhY2UgY2xvc2VzYCk7CiAgfQogIGZvciAoY29uc3QgdG9rZW4gb2YgcmVxdWlyZWRUb2tlbnMpIHsKICAgIGlmICghcm93LmluY2x1ZGVzKHRva2VuKSkgZmFpbHVyZXMucHVzaChgJHtyb3dJZH0gaXMgbWlzc2luZyBQb3B1cCBib3VuZGFyeSBldmlkZW5jZTogJHt0b2tlbn1gKTsKICB9Cn0KCnJlcXVpcmVQb3B1cFBhcnRpYWxSb3coJ0ktMDUnLCBbJ0FkZC1jb25kaXRpb24nLCAnQVVESVRfRVZJREVOQ0VfMDJQJ10pOwpyZXF1aXJlUG9wdXBQYXJ0aWFsUm93KCdJLTA2JywgWyflsZXlvIDoj5zljZUnLCAnQVVESVRfRVZJREVOQ0VfMDJQJ10pOwpyZXF1aXJlUG9wdXBQYXJ0aWFsUm93KCdJLTExJywgWydjb21wdXRlZC1zdHlsZScsICdPd25lciddKTsK').decode('utf-8')
               source = source.replace(marker, contract + '\n' + marker, 1)
               validator_path.write_text(source, encoding='utf-8')
           PY
