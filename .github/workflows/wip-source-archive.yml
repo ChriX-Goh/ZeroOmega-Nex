@@ -3,7 +3,7 @@ name: WIP Source Archive
 on:
   pull_request:
     branches:
-      - feat/m8-profile-workflow
+      - main
     paths:
       - .github/workflows/wip-source-archive.yml
   workflow_dispatch:
