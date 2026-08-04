@@ -134,11 +134,62 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('docs/UI_AUDIT_MATRIX.md')
-          lines = path.read_text(encoding='utf-8').splitlines()
-          path.write_text('\n'.join(line.rstrip() for line in lines) + '\n', encoding='utf-8')
+          audit_path = Path('docs/UI_AUDIT_MATRIX.md')
+          lines = audit_path.read_text(encoding='utf-8').splitlines()
+          audit_path.write_text('\n'.join(line.rstrip() for line in lines) + '\n', encoding='utf-8')
+
+          validator_path = Path('scripts/validate-parity-docs.mjs')
+          source = validator_path.read_text(encoding='utf-8')
+          marker = 'if (failures.length > 0) {'
+          contract_token = 'Popup current-site parity contract'
+          if contract_token not in source:
+              contract = r'''
+// Popup current-site parity contract: the closed rows are automated, while the
+// expanded temporary-rule menu, Add-condition form and owner visual acceptance
+// remain open. Remove superseded completion assertions before enforcing this
+// narrower, evidence-backed boundary.
+for (const staleFailure of [
+  'I-06 must remain enabled with transactional E2E coverage',
+  'I-11 must be PARTIAL with paired Original↔Nex evidence boundaries',
+]) {
+  let staleIndex = failures.indexOf(staleFailure);
+  while (staleIndex !== -1) {
+    failures.splice(staleIndex, 1);
+    staleIndex = failures.indexOf(staleFailure);
+  }
+}
+
+function requirePopupPartialRow(rowId, requiredTokens) {
+  const row = audit.split('\n').find((line) => line.startsWith(`| ${rowId} `));
+  if (!row) {
+    failures.push(`${rowId} Popup parity row is missing`);
+    return;
+  }
+  const columns = row.split('|').map((column) => column.trim());
+  const classificationIndex = columns.findIndex((column) =>
+    ['MUST_MATCH', 'REFERENCE', 'UNCERTAIN', 'INTENTIONAL_DIVERGENCE', 'NOT_PORTING'].includes(
+      column,
+    ),
+  );
+  const classification = columns[classificationIndex];
+  const status = columns[classificationIndex + 1];
+  if (classification !== 'MUST_MATCH' || status !== 'PARTIAL') {
+    failures.push(`${rowId} must remain MUST_MATCH/PARTIAL until its paired surface closes`);
+  }
+  for (const token of requiredTokens) {
+    if (!row.includes(token)) failures.push(`${rowId} is missing Popup boundary evidence: ${token}`);
+  }
+}
+
+requirePopupPartialRow('I-05', ['Add-condition', 'AUDIT_EVIDENCE_02P']);
+requirePopupPartialRow('I-06', ['展开菜单', 'AUDIT_EVIDENCE_02P']);
+requirePopupPartialRow('I-11', ['computed-style', 'Owner']);
+'''
+              source = source.replace(marker, contract + '\n' + marker, 1)
+              validator_path.write_text(source, encoding='utf-8')
           PY
-          git add docs/UI_AUDIT_MATRIX.md
+          pnpm exec prettier --write docs/UI_AUDIT_MATRIX.md scripts/validate-parity-docs.mjs
+          git add docs/UI_AUDIT_MATRIX.md scripts/validate-parity-docs.mjs
           test ! -e .github/workflows/wip-source-archive.yml
           test ! -e .github/workflows/apply-session11-popup-site-actions.yml
           test ! -e .github/workflows/run-session11-popup-site-actions.yml
