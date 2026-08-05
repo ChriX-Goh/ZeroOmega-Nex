@@ -32,6 +32,23 @@ try {
   const options = await context.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await options.waitForLoadState('domcontentloaded');
+  await waitForValue(
+    async () =>
+      options.evaluate(async () => {
+        const response = await chrome.runtime.sendMessage({
+          channel: 'zeroomega-nex/profile-workflow/v1',
+          action: 'get',
+        });
+        return {
+          ok: response?.ok === true,
+          busy: response?.view?.busy === true,
+          revisionId: response?.state?.applied?.revision?.id,
+        };
+      }),
+    (value) => value?.ok === true && value.busy === false && typeof value.revisionId === 'string',
+    'profile workflow did not initialize before external proxy setup',
+    30_000,
+  );
   await options.evaluate(async () => {
     await chrome.proxy.settings.set({
       scope: 'regular',
@@ -44,6 +61,36 @@ try {
       },
     });
   });
+  await waitForValue(
+    async () =>
+      options.evaluate(async () => {
+        const [settings, ownership] = await Promise.all([
+          chrome.proxy.settings.get({ incognito: false }),
+          chrome.runtime.sendMessage({
+            channel: 'zeroomega-nex/proxy-ownership/v1',
+            action: 'get',
+          }),
+        ]);
+        const singleProxy = settings?.value?.rules?.singleProxy;
+        return {
+          controlLevel: settings?.levelOfControl,
+          mode: settings?.value?.mode,
+          host: singleProxy?.host,
+          port: singleProxy?.port,
+          ownership,
+        };
+      }),
+    (value) =>
+      value?.controlLevel === 'controlled_by_this_extension' &&
+      value.mode === 'fixed_servers' &&
+      value.host === '127.0.0.1' &&
+      value.port === 18188 &&
+      value.ownership?.ok === true &&
+      value.ownership.view?.blocked === false &&
+      value.ownership.view?.externalProfile?.kind === 'fixed',
+    'browser proxy and ownership state did not converge on the external fixed profile',
+    30_000,
+  );
 
   const popup = await context.newPage();
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);

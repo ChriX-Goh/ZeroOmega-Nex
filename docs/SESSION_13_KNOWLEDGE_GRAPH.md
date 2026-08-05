@@ -34,7 +34,7 @@ This graph extends `SESSION_12_KNOWLEDGE_GRAPH.md`. The authority order remains:
 - Verified evidence Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`.
 - All six permanent workflows passed on the verified evidence Head.
 - All bounded one-shot workflows and patch scripts were deleted; no maintenance machinery remains.
-- Current state: `02R_VERIFIED`.
+- Current state: `02R_E2E_STABILITY_REVERIFICATION`.
 - This slice does not change project or Order 1 progress.
 
 ## Current-site journey graph
@@ -121,3 +121,10 @@ Head `8c9c75d` exposed two stale contracts rather than a new product redesign: t
 1. obtain truthful, repeatable browser evidence for policy/browser-owned `not-controllable`, or document the browser limitation without promoting source mapping to runtime evidence;
 2. reassess the complete Popup journey after that boundary is resolved;
 3. keep owner retest, merge and release prohibited until the parent Order 1 gate materially advances.
+
+## 02R E2E readiness hardening
+
+- Documentation-only Head `eb6fe48` exposed nondeterministic readiness in two browser gates despite identical product code passing on `dfdd10d`.
+- Chromium now waits for the profile workflow to become idle, then waits for browser proxy settings and the ownership runtime to converge on the external fixed profile before opening Popup.
+- Firefox now resolves `www.dev.example.co.uk` to the local fixture server, waits for the exact tab URL and `status=complete`, then opens Popup with that explicit `activeTabId`.
+- This is test-fixture hardening, not a product-scope expansion. Historical product evidence at `dfdd10d` remains relevant, but the current acceptance state stays pending until one new exact Head passes all six permanent workflows.

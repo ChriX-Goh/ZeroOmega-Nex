@@ -86,7 +86,7 @@ const options = new firefox.Options()
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
   .setPreference('network.dns.disableIPv6', true)
-  .setPreference('network.dns.localDomains', 'toolbar-a.test')
+  .setPreference('network.dns.localDomains', 'toolbar-a.test,www.dev.example.co.uk')
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
 const toolbarOnly = process.env.ZEROOMEGA_FIREFOX_TOOLBAR_ONLY === '1';
@@ -1160,17 +1160,40 @@ try {
     0,
     'Active default Switch exposed a result label in the Firefox Popup',
   );
-  const firefoxCurrentSiteTabId = await driver.executeAsyncScript(`
-    const done = arguments[0];
-    browser.tabs.create({
-      url: 'https://www.dev.example.co.uk/current-site',
-      active: false,
-    }).then((tab) => done(tab.id), (error) => done({ error: String(error) }));
-  `);
+  const firefoxCurrentSiteUrl = `http://www.dev.example.co.uk:${sourceAddress.port}/current-site`;
+  const firefoxCurrentSiteTabId = await driver.executeAsyncScript(
+    `
+      const targetUrl = arguments[0];
+      const done = arguments[1];
+      browser.tabs.create({
+        url: targetUrl,
+        active: false,
+      }).then((tab) => done(tab.id), (error) => done({ error: String(error) }));
+    `,
+    firefoxCurrentSiteUrl,
+  );
   assert.equal(
     typeof firefoxCurrentSiteTabId,
     'number',
     `Firefox current-site tab was not created: ${JSON.stringify(firefoxCurrentSiteTabId)}`,
+  );
+  await driver.wait(
+    async () =>
+      driver.executeAsyncScript(
+        `
+          const tabId = arguments[0];
+          const targetUrl = arguments[1];
+          const done = arguments[2];
+          browser.tabs.get(tabId).then(
+            (tab) => done(tab.url === targetUrl && tab.status === 'complete'),
+            (error) => done({ error: String(error) }),
+          );
+        `,
+        firefoxCurrentSiteTabId,
+        firefoxCurrentSiteUrl,
+      ),
+    20_000,
+    'Firefox current-site tab did not reach the requested complete URL',
   );
   await navigateExtensionPage(`popup.html?activeTabId=${firefoxCurrentSiteTabId}`);
   const firefoxAddCondition = await driver.wait(

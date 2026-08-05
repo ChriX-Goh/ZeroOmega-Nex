@@ -21,8 +21,8 @@ Pinned ZeroOmega v3.5.0 source and the official Chromium build establish that a 
 
 ## State
 
-- Verified exact Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`.
-- All six permanent workflows passed on that Head.
+- Historical verified product Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`; all six permanent workflows passed on that Head.
+- Current stability acceptance: PENDING a new exact Head after readiness hardening.
 - `app` ownership surface: VERIFIED.
 - external-profile surface: VERIFIED.
 - policy/browser-owned surface: OPEN.
@@ -41,3 +41,7 @@ The corrected exact Head proves:
 - the original inline external-profile input rejects an invalid reserved name;
 - blur imports a valid external profile and closes the Popup;
 - Chromium, Firefox, native Inspect, paired UI evidence, documentation and CI gates remain green.
+
+## Browser-gate readiness hardening
+
+A later documentation-only Head exposed two latent test races: the Chromium fixture could write proxy settings before background workflow initialization settled, and the Firefox fixture could open Popup before its synthetic current-site tab reached the requested URL. The permanent gates now wait on runtime state rather than elapsed time. No product behavior or parity claim changes; the new exact Head must still pass all six workflows before stability acceptance is restored.
