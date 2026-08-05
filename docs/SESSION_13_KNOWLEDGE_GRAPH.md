@@ -31,10 +31,11 @@ This graph extends `SESSION_12_KNOWLEDGE_GRAPH.md`. The authority order remains:
 - 02R ownership/external-profile product commit: `2bf5d4f61396f0d72bf50760f247e6ad57e41871`.
 - Permanent Chromium Popup external-profile gate commit: `762a1fa81c12741d61704f269442a2b58fdda919`.
 - Loading-footer and blur-save correction commit: `a439245ac9472457e692898500e2362087e405df`.
-- Verified evidence Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`.
-- All six permanent workflows passed on the verified evidence Head.
+- Browser-state readiness hardening commit: `6e43687aa300fe2a4653e1a6509361ba1f6e82a1`.
+- Stable verified evidence Head: `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75`.
+- All six permanent workflows passed on the stable verified evidence Head.
 - All bounded one-shot workflows and patch scripts were deleted; no maintenance machinery remains.
-- Current state: `02R_E2E_STABILITY_REVERIFICATION`.
+- Current state: `02R_VERIFIED`.
 - This slice does not change project or Order 1 progress.
 
 ## Current-site journey graph
@@ -90,7 +91,7 @@ Not allowed:
 
 ## Verified slice acceptance
 
-Head `dfdd10d499e8f9b6bc9652867266469214ccdc85` proves:
+Head `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75` proves:
 
 - all six permanent workflows are green;
 - paired expanded Popup evidence is green;
@@ -101,7 +102,9 @@ Head `dfdd10d499e8f9b6bc9652867266469214ccdc85` proves:
 - loading retains Options;
 - real competing-extension takeover renders the blocked Popup surface;
 - external profile appears in original order and imports through blur-save;
-- Chromium, Firefox and native Inspect browser jobs remain green.
+- Chromium, Firefox and native Inspect browser jobs remain green;
+- Chromium waits for workflow and ownership convergence before external-profile assertions;
+- Firefox waits for the exact local current-site URL and completed tab state before Popup assertions.
 
 This acceptance closes only 02Q and the reproducible 02R `app`/external-profile surfaces. It does not establish policy/browser-owned parity and does not increase project progress by itself.
 
@@ -114,17 +117,19 @@ This acceptance closes only 02Q and the reproducible 02R `app`/external-profile 
 
 ## Verification correction
 
-Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls. The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior. The corrected path passed on `dfdd10d`.
+Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls. The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior.
+
+## 02R E2E readiness hardening
+
+Documentation-only Head `eb6fe48` exposed nondeterministic readiness in two browser gates despite identical product code passing on `dfdd10d`:
+
+- Chromium could open Popup before the profile workflow and ownership runtime converged on the external fixed proxy.
+- Firefox could open Popup before its synthetic current-site tab reached the requested URL.
+
+The permanent gates now wait on runtime state rather than elapsed time. The targeted Chromium and full Firefox journeys passed before commit, and all six permanent workflows subsequently passed on clean Head `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75`.
 
 ## Remaining Session 13 order
 
 1. obtain truthful, repeatable browser evidence for policy/browser-owned `not-controllable`, or document the browser limitation without promoting source mapping to runtime evidence;
 2. reassess the complete Popup journey after that boundary is resolved;
 3. keep owner retest, merge and release prohibited until the parent Order 1 gate materially advances.
-
-## 02R E2E readiness hardening
-
-- Documentation-only Head `eb6fe48` exposed nondeterministic readiness in two browser gates despite identical product code passing on `dfdd10d`.
-- Chromium now waits for the profile workflow to become idle, then waits for browser proxy settings and the ownership runtime to converge on the external fixed profile before opening Popup.
-- Firefox now resolves `www.dev.example.co.uk` to the local fixture server, waits for the exact tab URL and `status=complete`, then opens Popup with that explicit `activeTabId`.
-- This is test-fixture hardening, not a product-scope expansion. Historical product evidence at `dfdd10d` remains relevant, but the current acceptance state stays pending until one new exact Head passes all six permanent workflows.
