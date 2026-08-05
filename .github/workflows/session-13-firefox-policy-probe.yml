@@ -1,0 +1,54 @@
+name: Session 13 Firefox Policy Probe
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/session-13-firefox-policy-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout active product branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Show Firefox and install locked proxy policy
+        run: |
+          firefox --version
+          FIREFOX_BIN="$(readlink -f "$(command -v firefox)")"
+          FIREFOX_DIR="$(dirname "$FIREFOX_BIN")"
+          POLICY='{"policies":{"Proxy":{"Mode":"manual","HTTPProxy":"127.0.0.1:18199","UseHTTPProxyForAllProtocols":true,"Passthrough":"<local>","Locked":true}}}'
+          sudo install -d -m 755 "$FIREFOX_DIR/distribution"
+          printf '%s\n' "$POLICY" | sudo tee "$FIREFOX_DIR/distribution/policies.json" >/dev/null
+          sudo chmod 444 "$FIREFOX_DIR/distribution/policies.json"
+          echo "FIREFOX_BIN=$FIREFOX_BIN"
+          cat "$FIREFOX_DIR/distribution/policies.json"
+
+      - name: Build Firefox extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
+
+      - name: Run policy-owned Popup probe
+        run: node scripts/e2e-firefox-policy-owned-popup.mjs
