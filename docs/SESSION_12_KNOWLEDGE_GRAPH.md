@@ -79,36 +79,32 @@ The left engineering chain is mature. The blocking path is the right product cha
 
 ## Progress model
 
-| Order | Complete user journey | Weight | Completion | Earned points |
-| ---: | --- | ---: | ---: | ---: |
-| 1 | Installation, startup, Toolbar and entry experience | 12% | 45% | 5.4 |
-| 2 | Original export → direct import → immediate equivalent use | 20% | 35% | 7.0 |
-| 3 | Popup, result state, current-site and temporary rules | 12% | 46% | 5.5 |
-| 4 | Options, dialogs and Apply/Discard lifecycle | 16% | 51% | 8.1 |
-| 5 | Fixed, Switch, PAC, Virtual, Rule List and lifecycle | 22% | 60% | 13.2 |
-| 6 | Export, restart, rollback, ownership and authentication | 10% | 52% | 5.2 |
-| 7 | Localization, density and visual alignment | 8% | 44% | 3.5 |
-|  | **Total** | **100%** |  | **47.9 → 48%** |
+- Order 1 — installation, startup, Toolbar and entry experience: weight 12%; completion 45%; earned 5.4 points.
+- Order 2 — original export → direct import → immediate equivalent use: weight 20%; completion 35%; earned 7.0 points.
+- Order 3 — Popup, result state, current-site and temporary rules: weight 12%; completion 46%; earned 5.5 points.
+- Order 4 — Options, dialogs and Apply/Discard lifecycle: weight 16%; completion 51%; earned 8.1 points.
+- Order 5 — Fixed, Switch, PAC, Virtual, Rule List and lifecycle: weight 22%; completion 60%; earned 13.2 points.
+- Order 6 — export, restart, rollback, ownership and authentication: weight 10%; completion 52%; earned 5.2 points.
+- Order 7 — localization, density and visual alignment: weight 8%; completion 44%; earned 3.5 points.
+- Total: 47.9 points, rounded to **48%**.
 
 Progress remains provisional because full paired capture may reveal additional original surfaces and correct the denominator. Session 11's bounded success does not increase the percentage because it did not close a complete journey or receive owner acceptance.
 
 ## Milestone status
 
-| Milestone | State | Session 12 judgment |
-| --- | --- | --- |
-| M0 Foundation and governance | completed | valid asset; original wording later required stricter product constitution |
-| M1 Tooling and dual-browser shell | completed | valid asset |
-| M2 Legacy inventory and fixtures | completed | valid asset; real owner export still absent |
-| M3 ProfileSpec and validation | completed | valid asset |
-| M4 Importer | engineering complete, journey incomplete | direct real-export migration remains blocked |
-| M5 Reference interpreter | completed | valid asset |
-| M6 PAC compiler | completed | valid asset |
-| M7 Browser adapters and atomic activation | completed and merged | valid asset |
-| M8 Original-compatible UI/workflow | active, failed owner acceptance | current critical path |
-| M9 Rule updates and diagnostics | not formally authorized | partial foundations landed early; no completion credit |
-| M10 Packaging and beta | not authorized | no candidate, no owner PASS |
-| M11 Rust/WASM | correctly deferred | no measured bottleneck authorizes it |
-| M12 Native engine | optional and deferred | not part of current plan |
+- M0 Foundation and governance: completed. Valid asset; original wording later required the stricter product constitution.
+- M1 Tooling and dual-browser shell: completed. Valid asset.
+- M2 Legacy inventory and fixtures: completed. Valid asset; a real owner export is still absent.
+- M3 ProfileSpec and validation: completed. Valid asset.
+- M4 Importer: engineering complete, journey incomplete. Direct real-export migration remains blocked.
+- M5 Reference interpreter: completed. Valid asset.
+- M6 PAC compiler: completed. Valid asset.
+- M7 Browser adapters and atomic activation: completed and merged. Valid asset.
+- M8 Original-compatible UI/workflow: active, failed owner acceptance. Current critical path.
+- M9 Rule updates and diagnostics: not formally authorized. Partial foundations landed early; no completion credit.
+- M10 Packaging and beta: not authorized. No candidate and no owner `PASS`.
+- M11 Rust/WASM: correctly deferred. No measured bottleneck authorizes it.
+- M12 Native engine: optional and deferred. Not part of the current plan.
 
 ## Drift assessment
 
@@ -136,7 +132,7 @@ Milestone 8 previously interpreted “familiar” as permission to redesign. The
 - protocol-capability research and browser-internal explanation;
 - helper prose and subtitles without original provenance;
 - a wrong default Options page;
-- missing original default `auto switch` profile;
+- a missing original default `auto switch` profile;
 - altered Popup rows, geometry, labels, order and selected state.
 
 The Firefox owner `FAIL` and permanent paired Original ↔ Nex evidence prove that these were structural product deviations, not final cosmetic differences.
