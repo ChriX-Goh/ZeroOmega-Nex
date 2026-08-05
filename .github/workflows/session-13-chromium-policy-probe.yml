@@ -13,7 +13,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
       - name: Checkout active product branch
         uses: actions/checkout@v4
@@ -33,8 +33,8 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Show system Chrome
+        run: google-chrome --version
 
       - name: Build Chromium extension
         run: WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
@@ -48,7 +48,9 @@ jobs:
           printf '%s\n' "$POLICY" | sudo tee /etc/opt/chrome/policies/managed/zeroomega-policy.json >/dev/null
           sudo chmod 444 /etc/chromium/policies/managed/zeroomega-policy.json
           sudo chmod 444 /etc/opt/chrome/policies/managed/zeroomega-policy.json
-          cat /etc/chromium/policies/managed/zeroomega-policy.json
+          cat /etc/opt/chrome/policies/managed/zeroomega-policy.json
 
       - name: Run policy-owned Popup probe
+        env:
+          ZEROOMEGA_POLICY_BROWSER_CHANNEL: chrome
         run: node scripts/e2e-chromium-policy-owned-popup.mjs
