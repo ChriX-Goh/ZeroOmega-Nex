@@ -45,7 +45,8 @@
     "stage:builds": "node scripts/stage-builds.mjs",
     "verify": "pnpm guard:architecture && pnpm validate:ui && pnpm validate:parity-docs && pnpm validate:locale && pnpm lint && pnpm format:check && pnpm check && pnpm test && pnpm test:components && pnpm build && pnpm inspect:manifests && pnpm stage:builds",
     "test:e2e:inspect-native": "node scripts/e2e-inspect-native-menu.mjs",
-    "test:e2e:chromium-popup-external-profile": "node scripts/e2e-chromium-popup-external-profile.mjs"
+    "test:e2e:chromium-popup-external-profile": "node scripts/e2e-chromium-popup-external-profile.mjs",
+    "test:e2e:firefox-policy-owned-popup": "node scripts/e2e-firefox-policy-owned-popup.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

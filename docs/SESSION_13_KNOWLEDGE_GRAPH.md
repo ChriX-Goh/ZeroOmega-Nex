@@ -35,7 +35,7 @@ This graph extends `SESSION_12_KNOWLEDGE_GRAPH.md`. The authority order remains:
 - Stable verified evidence Head: `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75`.
 - All six permanent workflows passed on the stable verified evidence Head.
 - All bounded one-shot workflows and patch scripts were deleted; no maintenance machinery remains.
-- Current state: `02R_VERIFIED`.
+- Current state: `02S_POLICY_PROBE_VERIFIED_PENDING_PERMANENT_GATE`.
 - This slice does not change project or Order 1 progress.
 
 ## Current-site journey graph
@@ -51,7 +51,7 @@ Order 1 entry experience
       ├─ Add-condition runtime transaction    retained engineering evidence
       ├─ ownership-blocked/app state          verified by 02R
       ├─ external-profile state               verified by 02R
-      └─ browser-owned/policy state           OPEN
+      └─ browser-owned/policy state           probe verified; permanent gate pending
 ```
 
 ## Evidence findings
@@ -130,6 +130,16 @@ The permanent gates now wait on runtime state rather than elapsed time. The targ
 
 ## Remaining Session 13 order
 
-1. obtain truthful, repeatable browser evidence for policy/browser-owned `not-controllable`, or document the browser limitation without promoting source mapping to runtime evidence;
-2. reassess the complete Popup journey after that boundary is resolved;
-3. keep owner retest, merge and release prohibited until the parent Order 1 gate materially advances.
+1. integrate the isolated Firefox locked-policy job into permanent Browser E2E;
+2. remove Chromium/Firefox one-shot probe workflows and the unsuccessful Chromium probe script;
+3. verify all six permanent workflows on one clean exact Head;
+4. reassess the complete Popup current-site journey without scheduling owner retest.
+
+## 02S policy-owned runtime evidence
+
+- Firefox `152.0.6` was launched with an enterprise `Proxy` policy using `Locked: true`.
+- Native `browser.proxy.settings.get({})` returned `levelOfControl=not_controllable`.
+- The ownership runtime returned `blocked=true`, `reason=policy`, `controlLevel=not-controllable`.
+- The actual Popup rendered `data-reason=policy`, zero profile rows, zero Options footers, two control actions and one Manage entry.
+- Probe run: `31013840605`; job: `92332623777`.
+- This closes the evidentiary feasibility question. Acceptance remains pending until the isolated policy job is part of permanent Browser E2E and one clean exact Head passes all six workflows.
