@@ -41,11 +41,20 @@ jobs:
           from pathlib import Path
           path = Path('scripts/session-13-popup-entry-states-patch.py')
           source = path.read_text(encoding='utf-8')
-          old = 'footer_pattern = re.compile(r"\\n  <footer class=\\"popup-footer\\">.*?\\n  </footer>(?=\\n</main>)", re.DOTALL)'
-          new = 'footer_pattern = re.compile(r"\\n  <footer class=\\"popup-footer\\">.*?\\n  </footer>", re.DOTALL)'
-          if old not in source:
+
+          old_footer = 'footer_pattern = re.compile(r"\\n  <footer class=\\"popup-footer\\">.*?\\n  </footer>(?=\\n</main>)", re.DOTALL)'
+          new_footer = 'footer_pattern = re.compile(r"\\n  <footer class=\\"popup-footer\\">.*?\\n  </footer>", re.DOTALL)'
+          if old_footer not in source:
               raise SystemExit('footer regex patch marker mismatch')
-          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          source = source.replace(old_footer, new_footer, 1)
+
+          old_step = '''step_marker = "      - name: Run Chromium external-control Toolbar E2E\\n        run: pnpm test:e2e:chromium-external-control-toolbar\\n"'''
+          new_step = '''step_marker = "      - name: Run Chromium external-control Toolbar E2E\\n        shell: bash\\n        run: |\\n          set -o pipefail\\n          pnpm test:e2e:chromium-external-control-toolbar 2>&1 | tee chromium-external-control-toolbar-e2e.log\\n"'''
+          if old_step not in source:
+              raise SystemExit('Browser E2E script marker patch mismatch')
+          source = source.replace(old_step, new_step, 1)
+
+          path.write_text(source, encoding='utf-8')
           PY
           python scripts/session-13-popup-entry-states-patch.py
           pnpm exec prettier --write \
