@@ -2,117 +2,122 @@
 
 ## Purpose
 
-This is the single repository-owner acceptance contract for Order 1. It covers installation, startup, Toolbar, per-tab state, ordinary recovery and visible Action behavior on one exact Chromium/Firefox build.
+This document is the repository-owner acceptance contract and outcome record for Order 1: installation, startup, Toolbar, Popup and Options entry behavior on one exact Chromium/Firefox build.
 
-It is not a release candidate and does not close original-export migration, complete Popup/Options parity, every profile lifecycle or final visual alignment.
+It does not close original-export migration, complete Popup/Options parity, every profile lifecycle or final visual alignment. Automation evidence supports engineering confidence but cannot replace original-facing parity or repository-owner acceptance.
 
-## Readiness state
+## Current state
 
-- Engineering state: `VERIFIED_AUTOMATION`.
-- Chromium ordinary-use suite: passed.
-- Firefox ordinary-use suite: passed.
-- Normal browser restart with one user-edited Fixed profile: passed on both browsers.
-- Native Chromium Inspect: passed.
-- Original v3.5.0 evidence registry through 01O: passed.
-- Owner result: `NOT RUN`.
-- `KG-ICON-001`: remains `FAILED` until explicit owner `PASS`.
+- Order 1 state: `REOPENED_AFTER_OWNER_FAIL`.
+- Latest owner result: `FAIL` on Firefox, 2026-08-02.
+- Retired tested Head: `d57449bb74d9fedb53602af9b1e908ae18d700b9`.
+- Active owner-acceptance package: none.
+- Active release candidate: none.
+- Project progress: 48% (47.9%; confidence 43%–50%).
+- Order 1 progress: 45%.
+- Owner retest, merge and release: prohibited during the correction phase.
+- `KG-ICON-001`, `KG-UI-001`, `KG-EXTRA-001`, `KG-INVENTION-001` and `KG-FLOW-001`: remain failed/open.
 
-The exact Head, workflow conclusions and downloadable `browser-builds` artifact are resolved from Draft PR #11 and its GitHub Checks. Moving identifiers are not copied into this stable contract.
+The former `52% / Order 1 80%` readiness claim and the acceptance package bound to the retired Head are invalid. They treated broad runtime automation as sufficient proof of original-facing product parity.
 
-## Automated evidence included in the exact build
+## Failed owner outcome
+
+The Firefox owner run demonstrated that changing the icon and passing runtime automation did not make the product original-compatible.
+
+The first blocking mismatch was structural rather than cosmetic:
+
+- the broader product remained visibly unlike ZeroOmega v3.5.0;
+- Options and Popup retained redesign differences;
+- excessive explanatory and engineering text remained in ordinary UI;
+- internal checkpoints, Draft/application state and capability analysis were exposed where they belonged only in code, tests, the knowledge graph and Markdown;
+- the ordinary entry journey therefore required material relearning.
+
+This is an explicit owner `FAIL`, not an unrun or inconclusive acceptance step.
+
+## Retained automated evidence
+
+The failed owner result does not invalidate the verified engineering infrastructure. The retired exact build had automated evidence for:
 
 ### Chromium
 
-The permanent Browser E2E workflow verifies:
-
-1. full extension journey;
-2. clean-install System state;
-3. Direct, user-edited Fixed proxy and bypass Action state;
-4. same-tab transitions and two-tab isolation;
-5. normal browser close/relaunch with Applied ProfileSpec, active Fixed route, endpoint and Action restoration;
-6. attached Rule List 01H;
-7. represented Switch, nested Switch, Virtual, nested Virtual, PAC, temporary-rule and Virtual → Switch traces;
-8. competing-extension takeover and recovery;
-9. renderer failure, static fallback, retry and recovery;
-10. native Inspect set, clear, base restoration and tab isolation.
+1. clean-install System state;
+2. Direct, user-edited Fixed proxy and bypass Action state;
+3. same-tab transitions and two-tab isolation;
+4. normal close/relaunch restoration;
+5. attached Rule List and represented profile-result traces;
+6. competing-extension takeover and recovery;
+7. renderer fallback and recovery;
+8. native Inspect set, clear and tab isolation.
 
 ### Firefox
 
-The permanent Browser E2E workflow verifies:
+1. clean-install System state;
+2. Direct, user-edited Fixed proxy and bypass Action state;
+3. same-tab transitions and two-tab isolation;
+4. normal close/relaunch restoration;
+5. attached Rule List and represented profile-result traces;
+6. external-control state and recovery;
+7. renderer fallback and recovery.
 
-1. full extension journey;
-2. clean-install System state;
-3. Direct, user-edited Fixed proxy and bypass Action state;
-4. same-tab transitions and two-tab isolation;
-5. normal browser close/relaunch with Applied ProfileSpec, active Fixed route, endpoint and Action restoration;
-6. attached Rule List 01H;
-7. represented Switch, nested Switch, Virtual, nested Virtual, PAC, temporary-rule and Virtual → Switch traces;
-8. external-control state and recovery;
-9. renderer failure, fallback, retry and recovery.
+These checks prove bounded runtime behavior. They do not prove Popup/Options structure, terminology, defaults, hierarchy, density or interaction-order parity.
 
-### Permanent supporting gates
+## Correction gate before another owner package
 
-The same exact Head must pass:
+A new owner-acceptance package must not be produced until all conditions below are met:
 
-- CI;
-- Browser E2E;
-- Original Toolbar Evidence;
-- Milestone 8 Visual Evidence;
-- Parity Documentation.
+1. paired Original ↔ Nex evidence covers the relevant expanded Popup states, not only the default and closed current-site rows;
+2. the temporary-rule menu and Add-condition form, validation and submission journey are mapped and verified;
+3. ownership-blocked, external-profile and browser-owned Popup states are mapped against original evidence;
+4. Options profile editors, dialogs, Apply/Discard behavior and information density have paired evidence;
+5. unproven helper prose, Nex-only workflow and interaction-order differences are removed or supported by a documented browser limitation;
+6. Firefox passes first on the exact Head; Chromium then confirms the same contracts;
+7. the default-entry and closed current-site regression gates remain green;
+8. a Go/No-Go review confirms that the exact build is ready for one bounded owner run.
 
-## Owner acceptance package
+Passing local or CI checks alone cannot authorize owner retest.
 
-Use only the `browser-builds` artifact from the exact PR Head whose five permanent gates are green. Do not use an older local build, a branch working tree or the failed `M8-OWNER-QC-1` package.
+## Future one-pass owner journey
 
-The package contains the staged Chromium and Firefox builds produced by frozen-lockfile CI. The artifact digest shown by GitHub Actions binds the downloaded archive to that exact workflow run.
+When a later exact package is authorized, run one ordinary-use review on the primary browser and use the second browser only for focused confirmation:
 
-## One-pass owner journey
+1. load the exact build into a clean browser profile;
+2. confirm the initial Toolbar state before opening Options;
+3. open Popup and verify its ordinary profile and current-site structure;
+4. switch through Direct, one Fixed profile and one bypass result;
+5. exercise one ordinary Switch, Virtual, attached Rule List and URL-backed PAC path;
+6. add and remove one temporary current-site rule;
+7. open an internal browser page and confirm fallback;
+8. use Inspect once and clear it;
+9. close and reopen the browser, confirming active-state restoration;
+10. inspect Options default landing, profile editors, dialogs and Apply/Discard behavior;
+11. record `PASS` or the first blocking mismatch.
 
-Run this once on the browser you use most. Use the second browser only for a focused visual and startup comparison; cross-browser functional states are already automated.
-
-1. Temporarily load the exact build into a clean browser profile.
-2. Before opening Options, confirm the Toolbar starts in System state.
-3. Click the Toolbar icon and confirm the expected Popup opens.
-4. Switch to Direct and confirm title, Badge, Ω state and Popup binding agree.
-5. Select or create one ordinary Fixed profile and confirm its proxy state.
-6. Exercise one bypass URL and confirm the same tab changes to the Direct result while another tab remains unchanged.
-7. Exercise one ordinary Switch matched/default path.
-8. Exercise one immediate Virtual path.
-9. Exercise one attached Rule List path.
-10. Select one URL-backed PAC profile and inspect its static Toolbar state.
-11. Add one temporary current-site rule, visit an unmatched site, then remove the rule.
-12. Open an internal browser page and confirm default fallback.
-13. Use Inspect once, clear it and confirm the original tab state returns.
-14. Close the browser normally, reopen it and confirm the active profile and Toolbar state return.
-15. Review visible Ω geometry, current/result colors, title lines, Badge text and Popup target.
-16. Record one result: `PASS` or `FAIL` with the first blocking mismatch.
-
-The owner journey is an ordinary-use review, not a laboratory replay of every evidence subcase.
+The owner journey is an ordinary-use review, not a laboratory replay of every automation case.
 
 ## Acceptance criteria
 
 Record `PASS` only when:
 
-- installation and initial System state are understandable without opening Options first;
-- Toolbar, Popup and per-tab state do not contradict one another;
-- ordinary Direct, Fixed, bypass, Switch, Virtual, Rule List, PAC and temporary-rule states remain recognizable to an experienced ZeroOmega user;
+- an experienced ZeroOmega user can recognize the ordinary workflow without material relearning;
+- Toolbar, Popup, Options and per-tab state do not contradict one another;
+- original defaults, terminology, hierarchy, interaction order and information density are preserved unless a documented browser limitation prevents exact behavior;
+- no engineering-only Draft, compile, snapshot, graph, capability-study or delivery terminology leaks into ordinary UI;
 - normal restart restores the expected active state;
-- no Nex-internal Draft, compile, snapshot or graph terminology leaks into Toolbar output;
-- no visible mismatch blocks normal daily use.
+- no visible mismatch blocks daily use.
 
-Record `FAIL` when the first ordinary-use blocker appears. The failure must identify the exact browser, visible state, expected original behavior and observed Nex behavior. Fix that blocker before expanding Order 1 scope.
+Record `FAIL` at the first ordinary-use blocker. The record must identify browser, visible state, expected original behavior and observed Nex behavior.
 
 ## Outcome record
 
-- Exact tested Head: pending owner run.
-- Browser and version: pending owner run.
-- Artifact digest: pending owner run.
-- Result: `NOT RUN`.
-- First blocking mismatch: none recorded.
-- Owner notes: none recorded.
+- Exact tested Head: `d57449bb74d9fedb53602af9b1e908ae18d700b9` (retired).
+- Browser: Firefox; exact version was not recorded in the stable repository evidence.
+- Associated retired package: `browser-builds`, artifact ID `8830062559`, digest `sha256:3eb108df6ebc7f3bfb5e4d0db8f4ad94e3e888887961e154a94e08ffc0c8e076`.
+- Result: `FAIL` on 2026-08-02.
+- First blocking mismatch: the entry product remained structurally unlike ZeroOmega v3.5.0 and exposed excessive redesign/engineering prose despite the icon correction.
+- Consequence: the acceptance build was retired; Order 1 returned to 45%; no active candidate exists.
 
-## After the result
+## After the current result
 
-A `PASS` changes `KG-ICON-001` and Order 1 to `OWNER_ACCEPTED`, then authorizes Order 2 real original-export migration work.
+Only correction work directly supporting original-facing entry parity is authorized. Order 2 real original-export migration, merge, beta, release, Rust/WASM, Native Engine and unrelated feature expansion remain blocked.
 
-A `FAIL` keeps Order 1 open. Only the demonstrated blocker and directly dependent states may be changed before the next exact acceptance build.
+A later explicit owner `PASS` on a newly authorized exact build changes Order 1 to `OWNER_ACCEPTED` and authorizes the next delivery order. Until then, this document must remain synchronized with `MILESTONE_8_STATUS.md`, `PROJECT_PROGRESS_MODEL.md`, Draft PR #11 and the active session knowledge graph.
