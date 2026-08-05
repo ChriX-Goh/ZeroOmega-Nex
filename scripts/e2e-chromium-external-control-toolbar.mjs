@@ -222,6 +222,17 @@ try {
     'Chromium takeover Action did not switch to original Direct warning state',
   );
 
+  const blockedPopup = await context.newPage();
+  await blockedPopup.goto(`chrome-extension://${extensionId}/popup.html?activeTabId=${tabId}`);
+  const blockedPanel = blockedPopup.locator('[data-popup-proxy-not-controllable]');
+  await blockedPanel.waitFor({ state: 'visible' });
+  assert.equal(await blockedPanel.getAttribute('data-reason'), 'app');
+  assert.equal(await blockedPopup.locator('.profile-row').count(), 0);
+  assert.equal(await blockedPopup.locator('.popup-footer').count(), 0);
+  assert.equal(await blockedPanel.locator('.proxy-control-actions button').count(), 2);
+  assert.equal(await blockedPanel.locator('[data-popup-manage-extensions]').count(), 1);
+  await blockedPopup.close();
+
   await conflictWorker.evaluate(async () => {
     if (globalThis.__zeroomegaClaimTimer !== undefined) {
       clearInterval(globalThis.__zeroomegaClaimTimer);

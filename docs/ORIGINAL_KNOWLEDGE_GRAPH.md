@@ -379,6 +379,12 @@ Nex 正式实现必须由 Svelte 组件直接输出该结构。禁止用 `Mutati
 
 Nex 继续复用既有 typed 临时规则和永久条件事务；本节点只纠正可见结构，不合并 session-only overlay 与 verified Apply。永久 `Original Nex UI Evidence` 对同一 exact Head 采集 Original↔Nex 截图、HTML、文本、几何、computed style 和验证状态。02Q 通过只关闭展开态 presentation 边，不代表 ownership/external/browser-owned 状态或完整 Popup 旅程完成。
 
+### 14.3 Popup 所有权阻塞与外部配置
+
+固定依据：原版 `popup.jade`、`popup/js/proxy_not_controllable.js`、profile controller 和官方 v3.5.0 Chromium 运行时。其他扩展接管时，Popup 隐藏 profile menu 与 Options，只显示原因、详情、Cancel 和 Manage。外部配置作为 built-in 后、用户 profile 前的一行；点击后同一行出现命名 input，submit 或 blur 保存，不出现独立 Cancel/Save 行。
+
+Nex 以真实 competing-extension takeover E2E 验证 `app` 状态，以本扩展写入但未被 represented route 接纳的 Chromium proxy value 验证 external-profile。`not-controllable` policy/browser-owned 状态保持 OPEN，直到可重复浏览器策略证据存在。
+
 ## 15. 原版默认值、示例与 placeholder 规则
 
 | 数据                                    | 原版身份                       | Nex 处理原则                                                           |

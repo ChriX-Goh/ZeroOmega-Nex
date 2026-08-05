@@ -286,15 +286,9 @@
   }
 
   function openExternalProfileForm(): void {
-    externalProfileName = '';
+    externalProfileName = proxyOwnership?.externalProfile?.suggestedName ?? '';
     externalProfileNameError = '';
     externalProfileFormOpen = true;
-  }
-
-  function closeExternalProfileForm(): void {
-    externalProfileFormOpen = false;
-    externalProfileName = '';
-    externalProfileNameError = '';
   }
 
   async function importExternalProfile(): Promise<void> {
@@ -578,6 +572,49 @@
       <p class="settings-error" role="status">{uiText('popup.noRoutes', locale)}</p>
     {:else}
       {#each items as item, index (item.key)}
+        {#if index === 2 && proxyOwnership?.externalProfile}
+          <div class="external-profile-row" data-popup-external-profile>
+            {#if externalProfileFormOpen}
+              <form
+                class="external-profile-form"
+                data-popup-external-profile-form
+                onsubmit={(event) => {
+                  event.preventDefault();
+                  void importExternalProfile();
+                }}
+              >
+                <OriginalPopupIcon
+                  kind={proxyOwnership.externalProfile.kind}
+                  color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                />
+                <input
+                  aria-label={uiText('popup.externalNameAria', locale)}
+                  bind:value={externalProfileName}
+                  placeholder={uiText('popup.profileName', locale)}
+                  disabled={importingExternalProfile}
+                  oninput={() => (externalProfileNameError = '')}
+                  onblur={() => void importExternalProfile()}
+                />
+                {#if externalProfileNameError}
+                  <p class="external-profile-error" role="alert">{externalProfileNameError}</p>
+                {/if}
+              </form>
+            {:else}
+              <button
+                type="button"
+                class="external-profile-button"
+                disabled={switching || importingExternalProfile}
+                onclick={openExternalProfileForm}
+              >
+                <OriginalPopupIcon
+                  kind={proxyOwnership.externalProfile.kind}
+                  color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                />
+                <span>{uiText('popup.externalProfile', locale)}</span>
+              </button>
+            {/if}
+          </div>
+        {/if}
         {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}
         <div class="profile-row">
           <button
@@ -602,59 +639,6 @@
           </button>
         </div>
       {/each}
-      {#if proxyOwnership?.externalProfile}
-        <div class="profile-divider" role="separator"></div>
-        <div class="external-profile-row" data-popup-external-profile>
-          {#if externalProfileFormOpen}
-            <form
-              class="external-profile-form"
-              data-popup-external-profile-form
-              onsubmit={(event) => {
-                event.preventDefault();
-                void importExternalProfile();
-              }}
-            >
-              <label>
-                {uiText('popup.profileName', locale)}
-                <input
-                  aria-label={uiText('popup.externalNameAria', locale)}
-                  bind:value={externalProfileName}
-                  placeholder={uiText('popup.externalProfile', locale)}
-                  oninput={() => (externalProfileNameError = '')}
-                />
-              </label>
-              {#if externalProfileNameError}
-                <p class="external-profile-error" role="alert">{externalProfileNameError}</p>
-              {/if}
-              <div class="external-profile-actions">
-                <button
-                  type="button"
-                  disabled={importingExternalProfile}
-                  onclick={closeExternalProfileForm}
-                >
-                  {uiText('popup.cancel', locale)}
-                </button>
-                <button type="submit" class="primary" disabled={importingExternalProfile}>
-                  {uiText(importingExternalProfile ? 'popup.saving' : 'popup.saveName', locale)}
-                </button>
-              </div>
-            </form>
-          {:else}
-            <button
-              type="button"
-              class="external-profile-button"
-              disabled={switching || importingExternalProfile}
-              onclick={openExternalProfileForm}
-            >
-              <OriginalPopupIcon
-                kind={proxyOwnership.externalProfile.kind}
-                color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
-              />
-              <span>{uiText('popup.externalProfile', locale)}</span>
-            </button>
-          {/if}
-        </div>
-      {/if}
     {/if}
   </section>
 
@@ -835,18 +819,20 @@
     </section>
   {/if}
 
-  <footer class="popup-footer">
-    <button
-      class="settings-button"
-      type="button"
-      onclick={openOptions}
-      disabled={openingSettings}
-      aria-label={uiText('popup.optionsAria', locale)}
-    >
-      <OriginalPopupIcon kind="wrench" color="#337ab7" position="options" />
-      <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
-    </button>
-  </footer>
+  {#if !loading && !proxyOwnership?.blocked}
+    <footer class="popup-footer">
+      <button
+        class="settings-button"
+        type="button"
+        onclick={openOptions}
+        disabled={openingSettings}
+        aria-label={uiText('popup.optionsAria', locale)}
+      >
+        <OriginalPopupIcon kind="wrench" color="#337ab7" position="options" />
+        <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
+      </button>
+    </footer>
+  {/if}
 
   {#if errorMessage}<p class="settings-error" role="alert">{errorMessage}</p>{/if}
 </main>

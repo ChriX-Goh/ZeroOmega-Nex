@@ -45,9 +45,9 @@ Order 1 entry experience
       ├─ Add-condition dedicated form         Session 13 active slice
       ├─ temporary-rule runtime transaction   retained engineering evidence
       ├─ Add-condition runtime transaction    retained engineering evidence
-      ├─ ownership-blocked state              still open
-      ├─ external-profile state               still open
-      └─ browser-owned state                  still open
+      ├─ ownership-blocked/app state          active 02R slice
+      ├─ external-profile state               active 02R slice
+      └─ browser-owned/policy state           still open
 ```
 
 ## Evidence findings
@@ -104,3 +104,10 @@ This slice does not increase the project percentage by itself. Progress changes 
 3. capture and align external-profile state;
 4. capture and align browser-owned state;
 5. reassess the complete Popup journey without scheduling owner retest.
+
+## 02R execution boundary
+
+- Real competing-extension takeover is the acceptance fixture for `reason=app`.
+- A proxy value written through Nex while no represented route matches is the acceptance fixture for external profile.
+- `reason=policy` / browser-owned remains OPEN; unit source mapping is not promoted to product evidence.
+- Passing 02R will not increase project or Order 1 progress by itself.
