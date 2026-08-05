@@ -1,0 +1,546 @@
+name: Session 13 Popup Entry States Patch
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/session-13-popup-entry-states-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout active product branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Patch Popup entry states and permanent evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          app_path = Path('apps/extension/src/entrypoints/popup/App.svelte')
+          app = app_path.read_text(encoding='utf-8')
+
+          old_open = '''  function openExternalProfileForm(): void {
+              externalProfileName = '';
+              externalProfileNameError = '';
+              externalProfileFormOpen = true;
+            }'''.replace('          ', '')
+          new_open = '''  function openExternalProfileForm(): void {
+              externalProfileName = proxyOwnership?.externalProfile?.suggestedName ?? '';
+              externalProfileNameError = '';
+              externalProfileFormOpen = true;
+            }'''.replace('          ', '')
+          if old_open not in app:
+              raise SystemExit('openExternalProfileForm marker mismatch')
+          app = app.replace(old_open, new_open, 1)
+
+          old_external = '''      {#if proxyOwnership?.externalProfile}
+                <div class="profile-divider" role="separator"></div>
+                <div class="external-profile-row" data-popup-external-profile>
+                  {#if externalProfileFormOpen}
+                    <form
+                      class="external-profile-form"
+                      data-popup-external-profile-form
+                      onsubmit={(event) => {
+                        event.preventDefault();
+                        void importExternalProfile();
+                      }}
+                    >
+                      <label>
+                        {uiText('popup.profileName', locale)}
+                        <input
+                          aria-label={uiText('popup.externalNameAria', locale)}
+                          bind:value={externalProfileName}
+                          placeholder={uiText('popup.externalProfile', locale)}
+                          oninput={() => (externalProfileNameError = '')}
+                        />
+                      </label>
+                      {#if externalProfileNameError}
+                        <p class="external-profile-error" role="alert">{externalProfileNameError}</p>
+                      {/if}
+                      <div class="external-profile-actions">
+                        <button
+                          type="button"
+                          disabled={importingExternalProfile}
+                          onclick={closeExternalProfileForm}
+                        >
+                          {uiText('popup.cancel', locale)}
+                        </button>
+                        <button type="submit" class="primary" disabled={importingExternalProfile}>
+                          {uiText(importingExternalProfile ? 'popup.saving' : 'popup.saveName', locale)}
+                        </button>
+                      </div>
+                    </form>
+                  {:else}
+                    <button
+                      type="button"
+                      class="external-profile-button"
+                      disabled={switching || importingExternalProfile}
+                      onclick={openExternalProfileForm}
+                    >
+                      <OriginalPopupIcon
+                        kind={proxyOwnership.externalProfile.kind}
+                        color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                      />
+                      <span>{uiText('popup.externalProfile', locale)}</span>
+                    </button>
+                  {/if}
+                </div>
+              {/if}
+          '''.replace('          ', '')
+          if old_external not in app:
+              raise SystemExit('external profile block marker mismatch')
+
+          new_external = '''      {#if proxyOwnership?.externalProfile}
+                <div class="external-profile-row" data-popup-external-profile>
+                  {#if externalProfileFormOpen}
+                    <form
+                      class="external-profile-form"
+                      data-popup-external-profile-form
+                      onsubmit={(event) => {
+                        event.preventDefault();
+                        void importExternalProfile();
+                      }}
+                    >
+                      <OriginalPopupIcon
+                        kind={proxyOwnership.externalProfile.kind}
+                        color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                      />
+                      <input
+                        aria-label={uiText('popup.externalNameAria', locale)}
+                        bind:value={externalProfileName}
+                        placeholder={uiText('popup.profileName', locale)}
+                        disabled={importingExternalProfile}
+                        oninput={() => (externalProfileNameError = '')}
+                        onblur={() => void importExternalProfile()}
+                      />
+                      {#if externalProfileNameError}
+                        <p class="external-profile-error" role="alert">{externalProfileNameError}</p>
+                      {/if}
+                    </form>
+                  {:else}
+                    <button
+                      type="button"
+                      class="external-profile-button"
+                      disabled={switching || importingExternalProfile}
+                      onclick={openExternalProfileForm}
+                    >
+                      <OriginalPopupIcon
+                        kind={proxyOwnership.externalProfile.kind}
+                        color={proxyOwnership.externalProfile.kind === 'fixed' ? '#64b5f6' : '#ffb74d'}
+                      />
+                      <span>{uiText('popup.externalProfile', locale)}</span>
+                    </button>
+                  {/if}
+                </div>
+                <div class="profile-divider" role="separator"></div>
+              {/if}
+          '''.replace('          ', '')
+
+          app = app.replace(old_external, '', 1)
+          loop_marker = '''      {#each items as item, index (item.key)}
+                {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}'''.replace('          ', '')
+          loop_replacement = '''      {#each items as item, index (item.key)}
+                {#if index === 2 && proxyOwnership?.externalProfile}
+          '''.replace('          ', '') + new_external + '''        {/if}
+                {#if index === 2}<div class="profile-divider" role="separator"></div>{/if}'''.replace('          ', '')
+          if loop_marker not in app:
+              raise SystemExit('profile loop marker mismatch')
+          app = app.replace(loop_marker, loop_replacement, 1)
+
+          footer = '''  <footer class="popup-footer">
+              <button
+                class="settings-button"
+                type="button"
+                onclick={openOptions}
+                disabled={openingSettings}
+                aria-label={uiText('popup.optionsAria', locale)}
+              >
+                <OriginalPopupIcon kind="wrench" color="#337ab7" position="options" />
+                <span>{uiText(openingSettings ? 'popup.opening' : 'popup.options', locale)}</span>
+              </button>
+            </footer>'''.replace('          ', '')
+          if footer not in app:
+              raise SystemExit('Popup footer marker mismatch')
+          app = app.replace(footer, '''  {#if !loading && !proxyOwnership?.blocked}
+              '''.replace('          ', '') + footer + '''
+            {/if}'''.replace('          ', ''), 1)
+          app_path.write_text(app, encoding='utf-8')
+
+          css_path = Path('apps/extension/src/entrypoints/popup/session-13-compat.css')
+          css = css_path.read_text(encoding='utf-8')
+          css_add = r'''
+
+/* Original external profile is a normal row between built-ins and user profiles. */
+.external-profile-row {
+  min-height: 40px;
+  border: 0;
+}
+
+.external-profile-button,
+.external-profile-form {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.external-profile-form input {
+  min-width: 0;
+  flex: 1;
+  height: 26px;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.external-profile-error {
+  position: absolute;
+  z-index: 2;
+  margin: 34px 8px 0 32px;
+  padding: 2px 6px;
+  border: 1px solid #d9534f;
+  border-radius: 3px;
+  background: #fff;
+  color: #a94442;
+  font-size: 12px;
+}
+
+.proxy-not-controllable {
+  min-width: 360px;
+  margin: 10px;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.proxy-control-message {
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.proxy-control-details {
+  margin: 0 0 15px;
+}
+
+.proxy-control-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.proxy-control-actions button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+}
+
+.proxy-control-actions button.primary {
+  border-color: #2e6da4;
+  background: #337ab7;
+  color: #fff;
+}
+'''
+          if 'Original external profile is a normal row' not in css:
+              css += css_add
+          css_path.write_text(css, encoding='utf-8')
+
+          validator = r'''import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const app = await readFile('apps/extension/src/entrypoints/popup/App.svelte', 'utf8');
+const css = await readFile(
+  'apps/extension/src/entrypoints/popup/session-13-compat.css',
+  'utf8',
+);
+
+const externalIndex = app.indexOf('data-popup-external-profile');
+const userDividerIndex = app.indexOf('{#if index === 2}<div class="profile-divider"');
+assert.ok(externalIndex >= 0, 'external profile row is missing');
+assert.ok(
+  externalIndex < userDividerIndex,
+  'external profile row must precede the original built-in/user-profile divider',
+);
+assert.ok(
+  app.includes("externalProfileName = proxyOwnership?.externalProfile?.suggestedName ?? ''"),
+  'external profile suggested name is not initialized',
+);
+assert.ok(
+  app.includes('onblur={() => void importExternalProfile()}'),
+  'external profile must preserve original blur-to-save behavior',
+);
+assert.ok(
+  !app.includes('class="external-profile-actions"'),
+  'Nex-only external profile Cancel/Save controls must not be visible',
+);
+assert.ok(
+  app.includes('{#if !loading && !proxyOwnership?.blocked}\n  <footer class="popup-footer">'),
+  'Options footer must be hidden while proxy control is blocked',
+);
+assert.ok(
+  css.includes('.proxy-not-controllable') && css.includes('.external-profile-form input'),
+  'Popup ownership and external-profile compatibility styles are missing',
+);
+console.log('Popup entry-state source contract passed.');
+'''
+          Path('scripts/validate-popup-entry-contract.mjs').write_text(validator, encoding='utf-8')
+
+          package_path = Path('package.json')
+          package = json.loads(package_path.read_text(encoding='utf-8'))
+          validate_ui = package['scripts']['validate:ui']
+          extra = 'node scripts/validate-popup-entry-contract.mjs'
+          if extra not in validate_ui:
+              package['scripts']['validate:ui'] = f'{validate_ui} && {extra}'
+          package_path.write_text(json.dumps(package, indent=2) + '\n', encoding='utf-8')
+
+          external_e2e = r'''import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+
+import { chromium } from '@playwright/test';
+
+const extensionPath = resolve('dist/chrome-mv3');
+const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-popup-external-profile-'));
+let context;
+
+async function waitForValue(read, accept, message, timeout = 20_000) {
+  const deadline = Date.now() + timeout;
+  let actual;
+  while (Date.now() < deadline) {
+    actual = await read();
+    if (accept(actual)) return actual;
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+  }
+  assert.fail(`${message}: ${JSON.stringify(actual)}`);
+}
+
+try {
+  context = await chromium.launchPersistentContext(userDataDir, {
+    channel: 'chromium',
+    headless: true,
+    locale: 'en-US',
+    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+  });
+  let worker = context.serviceWorkers()[0];
+  if (!worker) worker = await context.waitForEvent('serviceworker');
+  const extensionId = new URL(worker.url()).host;
+  const options = await context.newPage();
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  await options.waitForLoadState('domcontentloaded');
+  await options.evaluate(async () => {
+    await chrome.proxy.settings.set({
+      scope: 'regular',
+      value: {
+        mode: 'fixed_servers',
+        rules: {
+          singleProxy: { scheme: 'http', host: '127.0.0.1', port: 18188 },
+          bypassList: ['<local>'],
+        },
+      },
+    });
+  });
+
+  const popup = await context.newPage();
+  await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+  const row = popup.locator('[data-popup-external-profile]');
+  await row.waitFor({ state: 'visible' });
+  const order = await popup.locator('.profile-list').evaluate((list) => {
+    const children = [...list.children];
+    const external = children.findIndex((child) => child.hasAttribute('data-popup-external-profile'));
+    const divider = children.findIndex((child) => child.classList.contains('profile-divider'));
+    return { external, divider };
+  });
+  assert.ok(order.external >= 0 && order.external < order.divider, 'external row ordering differs');
+  await row.locator('.external-profile-button').click();
+  const form = popup.locator('[data-popup-external-profile-form]');
+  await form.waitFor({ state: 'visible' });
+  assert.equal(await form.locator('button').count(), 0, 'external form exposes Nex-only actions');
+  const input = form.locator('input');
+  await input.fill('Imported Browser Proxy');
+  await input.blur();
+  await popup.waitForEvent('close');
+
+  await waitForValue(
+    async () =>
+      options.evaluate(async () => {
+        const response = await chrome.runtime.sendMessage({
+          channel: 'zeroomega-nex/profile-workflow/v1',
+          action: 'get',
+        });
+        return response?.state?.applied?.profiles?.some(
+          (profile) => profile.name === 'Imported Browser Proxy' && profile.kind === 'fixed',
+        );
+      }),
+    (value) => value === true,
+    'external profile was not imported on blur',
+  );
+  console.log(`Chromium Popup external-profile E2E passed for ${extensionId}.`);
+} finally {
+  await context?.close();
+  await rm(userDataDir, { recursive: true, force: true });
+}
+'''
+          Path('scripts/e2e-chromium-popup-external-profile.mjs').write_text(external_e2e, encoding='utf-8')
+
+          package = json.loads(package_path.read_text(encoding='utf-8'))
+          package['scripts']['test:e2e:chromium-popup-external-profile'] = (
+            'node scripts/e2e-chromium-popup-external-profile.mjs'
+          )
+          package_path.write_text(json.dumps(package, indent=2) + '\n', encoding='utf-8')
+
+          chromium_path = Path('scripts/e2e-chromium-external-control-toolbar.mjs')
+          chromium = chromium_path.read_text(encoding='utf-8')
+          takeover_marker = '''  await waitForValue(
+              readAction,
+              (value) =>
+                value.title === localized.directTitle &&
+                value.badgeText === 'Dire' &&
+                JSON.stringify(value.badgeBackgroundColor) === JSON.stringify([218, 79, 73, 255]),
+              'Chromium takeover Action did not switch to original Direct warning state',
+            );'''.replace('          ', '')
+          popup_assertion = r'''
+
+  const blockedPopup = await context.newPage();
+  await blockedPopup.goto(`chrome-extension://${extensionId}/popup.html?activeTabId=${tabId}`);
+  const blockedPanel = blockedPopup.locator('[data-popup-proxy-not-controllable]');
+  await blockedPanel.waitFor({ state: 'visible' });
+  assert.equal(await blockedPanel.getAttribute('data-reason'), 'app');
+  assert.equal(await blockedPopup.locator('.profile-row').count(), 0);
+  assert.equal(await blockedPopup.locator('.popup-footer').count(), 0);
+  assert.equal(await blockedPanel.locator('.proxy-control-actions button').count(), 2);
+  assert.equal(await blockedPanel.locator('[data-popup-manage-extensions]').count(), 1);
+  await blockedPopup.close();
+'''
+          if 'const blockedPopup = await context.newPage();' not in chromium:
+              if takeover_marker not in chromium:
+                  raise SystemExit('Chromium takeover assertion marker mismatch')
+              chromium = chromium.replace(takeover_marker, takeover_marker + popup_assertion, 1)
+          chromium_path.write_text(chromium, encoding='utf-8')
+
+          workflow_path = Path('.github/workflows/browser-e2e.yml')
+          workflow = workflow_path.read_text(encoding='utf-8')
+          step_marker = '''      - name: Run Chromium external-control Toolbar E2E
+                run: pnpm test:e2e:chromium-external-control-toolbar
+          '''.replace('          ', '')
+          step_add = '''      - name: Run Chromium Popup external-profile E2E
+                run: pnpm test:e2e:chromium-popup-external-profile
+          '''.replace('          ', '')
+          if step_add.strip() not in workflow:
+              if step_marker not in workflow:
+                  raise SystemExit('Browser E2E external-control step marker mismatch')
+              workflow = workflow.replace(step_marker, step_marker + '\n' + step_add, 1)
+          workflow_path.write_text(workflow, encoding='utf-8')
+
+          evidence = '''# Audit Evidence 02R — Popup Ownership and External Profile\n\n## Scope\n\nThis slice covers two reproducible original-facing Popup entry states:\n\n1. proxy control taken by another extension (`app`);\n2. a Chromium proxy configuration owned by this extension but not represented by the active Nex profile (`external profile`).\n\nThe policy/browser-owned `not-controllable` state remains open because CI cannot truthfully create browser policy ownership. Source mapping exists, but it is not counted as browser evidence.\n\n## Original contract\n\nPinned ZeroOmega v3.5.0 source and the official Chromium build establish that a blocked Popup hides the profile menu and Options row, shows reason/details, and exposes only Cancel and Manage. An external profile is a normal row after built-ins and before user profiles; clicking it replaces the row label with one naming input. Enter or blur saves it. No separate Cancel/Save action row appears.\n\n## Nex correction\n\n- hide the Options footer while ownership is blocked;\n- preserve the existing reason-specific message and Cancel/Manage actions;\n- place external profile before the built-in/user divider;\n- initialize the suggested name and use submit/blur-to-import;\n- remove Nex-only external-profile Cancel/Save buttons.\n\n## Permanent gates\n\n- Chromium external-control Toolbar E2E now opens the Popup during a real competing-extension takeover and asserts the blocked surface.\n- Chromium Popup external-profile E2E writes an external fixed proxy through Nex's own browser API, verifies row order and form structure, then verifies blur-to-import.\n- `validate-popup-entry-contract.mjs` permanently guards source structure.\n\n## State\n\n- `app` ownership surface: pending exact-Head verification.\n- external-profile surface: pending exact-Head verification.\n- policy/browser-owned surface: OPEN.\n- project progress remains 48%; Order 1 remains 45%.\n- owner retest, merge, and release remain prohibited.\n'''
+          Path('docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md').write_text(evidence, encoding='utf-8')
+
+          session_path = Path('docs/SESSION_13_KNOWLEDGE_GRAPH.md')
+          session = session_path.read_text(encoding='utf-8')
+          session = session.replace(
+            '      ├─ ownership-blocked state              still open\n      ├─ external-profile state               still open\n      └─ browser-owned state                  still open',
+            '      ├─ ownership-blocked/app state          active 02R slice\n      ├─ external-profile state               active 02R slice\n      └─ browser-owned/policy state           still open',
+            1,
+          )
+          record = '''\n## 02R execution boundary\n\n- Real competing-extension takeover is the acceptance fixture for `reason=app`.\n- A proxy value written through Nex while no represented route matches is the acceptance fixture for external profile.\n- `reason=policy` / browser-owned remains OPEN; unit source mapping is not promoted to product evidence.\n- Passing 02R will not increase project or Order 1 progress by itself.\n'''
+          if '## 02R execution boundary' not in session:
+              session += record
+          session_path.write_text(session, encoding='utf-8')
+
+          original_path = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          original = original_path.read_text(encoding='utf-8')
+          original_section = '''### 14.3 Popup 所有权阻塞与外部配置\n\n固定依据：原版 `popup.jade`、`popup/js/proxy_not_controllable.js`、profile controller 和官方 v3.5.0 Chromium 运行时。其他扩展接管时，Popup 隐藏 profile menu 与 Options，只显示原因、详情、Cancel 和 Manage。外部配置作为 built-in 后、用户 profile 前的一行；点击后同一行出现命名 input，submit 或 blur 保存，不出现独立 Cancel/Save 行。\n\nNex 以真实 competing-extension takeover E2E 验证 `app` 状态，以本扩展写入但未被 represented route 接纳的 Chromium proxy value 验证 external-profile。`not-controllable` policy/browser-owned 状态保持 OPEN，直到可重复浏览器策略证据存在。\n\n'''
+          marker = '## 15. 原版默认值、示例与 placeholder 规则\n'
+          if '### 14.3 Popup 所有权阻塞与外部配置' not in original:
+              if original.count(marker) != 1:
+                  raise SystemExit('ORIGINAL_KNOWLEDGE_GRAPH marker mismatch')
+              original = original.replace(marker, original_section + marker, 1)
+          original_path.write_text(original, encoding='utf-8')
+
+          matrix_path = Path('docs/UI_AUDIT_MATRIX.md')
+          matrix = matrix_path.read_text(encoding='utf-8')
+          pattern = r'^\| I-11 \|.*$'
+          match = re.search(pattern, matrix, flags=re.MULTILINE)
+          if not match:
+              raise SystemExit('UI_AUDIT_MATRIX I-11 row missing')
+          line = match.group(0)
+          phrase = '02R 真实接管与外部配置 E2E 已接入；policy/browser-owned 保持 OPEN'
+          if phrase not in line:
+              fields = line.rsplit('|', 2)
+              if len(fields) != 3:
+                  raise SystemExit('UI_AUDIT_MATRIX I-11 row shape mismatch')
+              line = fields[0].rstrip() + f'；{phrase} |' + fields[1] + '|'
+              matrix = matrix[:match.start()] + line + matrix[match.end():]
+          matrix_path.write_text(matrix, encoding='utf-8')
+
+          Path('.github/workflows/session-13-popup-entry-states-patch.yml').unlink()
+          PY
+
+          pnpm exec prettier --write \
+            apps/extension/src/entrypoints/popup/App.svelte \
+            apps/extension/src/entrypoints/popup/session-13-compat.css \
+            scripts/validate-popup-entry-contract.mjs \
+            scripts/e2e-chromium-popup-external-profile.mjs \
+            scripts/e2e-chromium-external-control-toolbar.mjs \
+            .github/workflows/browser-e2e.yml \
+            docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md \
+            docs/SESSION_13_KNOWLEDGE_GRAPH.md \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md \
+            package.json
+          git diff --check
+          pnpm validate:ui
+          pnpm validate:parity-docs
+          pnpm check
+
+      - name: Commit Popup entry-state slice
+        run: |
+          git config user.name 'zeroomega-session-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: align Popup ownership and external profile states'
+          git push origin HEAD:feat/m8-profile-workflow
