@@ -74,10 +74,10 @@ jobs:
           pnpm validate:parity-docs
           pnpm check
 
-      - name: Commit Popup entry-state slice
+      - name: Commit product slice without workflow mutation
         run: |
-          rm .github/workflows/session-13-popup-entry-states-patch.yml
-          rm scripts/session-13-popup-entry-states-patch.py
+          git restore .github/workflows/browser-e2e.yml
+          git restore scripts/session-13-popup-entry-states-patch.py
           git config user.name 'zeroomega-session-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
