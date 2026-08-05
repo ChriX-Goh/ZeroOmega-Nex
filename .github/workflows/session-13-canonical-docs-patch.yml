@@ -1,0 +1,112 @@
+name: Session 13 Canonical Docs Patch
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/session-13-canonical-docs-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout active product branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Patch both canonical parity documents
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          original_path = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          matrix_path = Path('docs/UI_AUDIT_MATRIX.md')
+
+          original = original_path.read_text(encoding='utf-8')
+          section = '''### 14.2 Popup 当前网站展开态结构
+
+          固定依据：`zero-peak/ZeroOmega@05cbb30` 的 `omega-web/src/popup.jade`、`popup/js/profiles.js`、`less/popup.less`，以及 SHA-256 已验证的官方 v3.5.0 Chromium 包。
+
+          临时规则域名行点击后，结果菜单在原列表流内静态展开，只包含合法结果情景模式；当前结果按原版 active 样式标记。菜单不得增加“管理临时规则”等 Nex-only 操作，也不得改成覆盖式浮层。
+
+          `Add condition` 打开后进入独立 Popup 表单状态：原 profile menu、Inspect/request diagnostics 和底部 Options 行全部隐藏；表单最小宽度 360px，包含目标 Switch legend、条件类型、条件细节、结果情景模式、Cancel 和 Add condition。空 required pattern 必须禁用提交。
+
+          Nex 继续复用既有 typed 临时规则和永久条件事务；本节点只纠正可见结构，不合并 session-only overlay 与 verified Apply。永久 `Original Nex UI Evidence` 对同一 exact Head 采集 Original↔Nex 截图、HTML、文本、几何、computed style 和验证状态。02Q 通过只关闭展开态 presentation 边，不代表 ownership/external/browser-owned 状态或完整 Popup 旅程完成。
+
+          '''
+          section = '\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          marker = '## 15. 原版默认值、示例与 placeholder 规则\n'
+          if '### 14.2 Popup 当前网站展开态结构' not in original:
+              if original.count(marker) != 1:
+                  raise SystemExit('ORIGINAL_KNOWLEDGE_GRAPH insertion marker mismatch')
+              original = original.replace(marker, section + marker, 1)
+
+          revision_marker = '| 2026-08-04 | 固定 Popup 当前网站关闭态两行结构；禁止常驻 result select 与 post-render DOM 改写；拆分关闭态、展开菜单和 Add-condition 表单验收 |'
+          revision_row = '| 2026-08-05 | 固定 Popup 当前网站展开态：临时规则菜单仅含结果情景模式；Add-condition 使用独立表单状态并隐藏原菜单与 Options 行；接入 02Q 成对证据 | 原版 `popup.jade`、`profiles.js`、`popup.less`、官方 v3.5.0 Chromium 包及 `AUDIT_EVIDENCE_02Q_POPUP_EXPANDED_SITE_ACTIONS.md` |\n'
+          if revision_row.strip() not in original:
+              if original.count(revision_marker) != 1:
+                  raise SystemExit('ORIGINAL_KNOWLEDGE_GRAPH revision marker mismatch')
+              original = original.replace(revision_marker, revision_row + revision_marker, 1)
+          original_path.write_text(original, encoding='utf-8')
+
+          matrix = matrix_path.read_text(encoding='utf-8')
+          replacements = {
+              'I-05': "| I-05 | 当前网站添加条件   | popup                 | 对当前 tab 快速加规则                                | MUST_MATCH | PARTIAL  | COMPLETE | 后台 activeTab + PSL + verified Apply 与 Chromium 事务 E2E 已有；关闭态入口已恢复；Session 13 按原版独立 Popup 路由隐藏 profile menu、诊断与 Options footer，恢复 360px 表单及 required-pattern validation；02Q exact-head paired gate 已接入 | 验证 02Q 后继续 ownership/browser-owned surface |",
+              'I-06': "| I-06 | 临时规则           | `popup/temp_rules`    | 非持久临时覆盖                                        | MUST_MATCH | PARTIAL  | COMPLETE | session-only 状态、PAC snapshot、worker/浏览器重启边界与管理页已有；关闭态已恢复；Session 13 移除下拉内 Nex-only 管理行，恢复列表内静态展开、result-only 选项与 active result；02Q exact-head paired gate 已接入                  | 验证 02Q 后继续 ownership/external surface      |",
+              'I-11': "| I-11 | Popup 几何/像素    | CSS + paired evidence | 信息层级、尺寸与交互几何必须匹配；字体栅格像素可参考 | MUST_MATCH | PARTIAL  | N/A      | 当前网站关闭态已有严格文本、结构与 computed-style 门禁；Session 13 新增展开菜单与独立 Add-condition 表单的 paired screenshot/HTML/text/geometry/style/validation gate；其余 Popup 状态与 owner 视觉仍未整体闭合             | 完成 ownership/external/browser-owned 成对证据  |",
+          }
+          for row_id, replacement in replacements.items():
+              pattern = rf'^\| {row_id} \|.*$'
+              matrix, count = re.subn(pattern, replacement, matrix, count=1, flags=re.MULTILINE)
+              if count != 1:
+                  raise SystemExit(f'UI_AUDIT_MATRIX {row_id} row mismatch')
+
+          old_conclusion = '- Popup 当前网站关闭态已进入原生 Svelte 纠正与严格成对门禁；I-05、I-06、I-11 保持 `PARTIAL`，分别等待 Add-condition 表单、展开菜单及其余 Popup surface 的成对验收。'
+          new_conclusion = '- Popup 当前网站关闭态已验证；展开菜单与 Add-condition 表单已进入 Session 13 原版结构修正和 02Q exact-head paired gate。I-05、I-06、I-11 仍保持 `PARTIAL`，直到 02Q 全绿且 ownership/external/browser-owned surface 完成。'
+          if old_conclusion not in matrix:
+              raise SystemExit('UI_AUDIT_MATRIX conclusion marker mismatch')
+          matrix = matrix.replace(old_conclusion, new_conclusion, 1)
+
+          record_marker = '| 2026-08-04 | 依据 owner FAIL 退役旧候选与旧完成度口径；Popup I-05/I-06/I-11 重新按成对证据拆分，关闭态几何改为 MUST_MATCH'
+          record_row = '| 2026-08-05 | Session 13 按原版独立 Add-condition 路由与 result-only 临时规则菜单纠正展开态；接入 02Q exact-head Original↔Nex paired gate；状态保持 PARTIAL，等待全绿及剩余 ownership surface |\n'
+          if record_row.strip() not in matrix:
+              if matrix.count(record_marker) != 1:
+                  raise SystemExit('UI_AUDIT_MATRIX update-record marker mismatch')
+              matrix = matrix.replace(record_marker, record_row + record_marker, 1)
+          matrix_path.write_text(matrix, encoding='utf-8')
+          PY
+
+          pnpm exec prettier --write docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md
+          rm .github/workflows/session-13-canonical-docs-patch.yml
+          git diff --check
+
+      - name: Commit canonical parity sync
+        run: |
+          git config user.name 'zeroomega-session-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md .github/workflows/session-13-canonical-docs-patch.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'docs: register Session 13 popup parity slice'
+          git push origin HEAD:feat/m8-profile-workflow
