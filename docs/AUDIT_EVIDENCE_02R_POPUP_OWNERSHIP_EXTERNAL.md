@@ -27,7 +27,7 @@ Pinned ZeroOmega v3.5.0 source and the official Chromium build establish that a 
 - All six permanent workflows passed on the stable verified Head.
 - `app` ownership surface: VERIFIED.
 - external-profile surface: VERIFIED.
-- policy/browser-owned surface: native Firefox probe verified; permanent 02S gate pending.
+- policy/browser-owned surface: VERIFIED by permanent 02S isolated Firefox gate on exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2`.
 - project progress remains 48%; Order 1 remains 45%.
 - owner retest, merge, and release remain prohibited.
 
@@ -57,4 +57,4 @@ The permanent gates now wait on runtime state rather than elapsed time. The targ
 
 ## Policy ownership continuation
 
-The remaining `policy/browser-owned` boundary is covered separately by [`AUDIT_EVIDENCE_02S_POPUP_POLICY_OWNERSHIP.md`](./AUDIT_EVIDENCE_02S_POPUP_POLICY_OWNERSHIP.md). Firefox enterprise policy produced the native `not_controllable` state and the expected blocked Popup; permanent workflow integration remains the final acceptance step.
+The remaining `policy/browser-owned` boundary is covered separately by [`AUDIT_EVIDENCE_02S_POPUP_POLICY_OWNERSHIP.md`](./AUDIT_EVIDENCE_02S_POPUP_POLICY_OWNERSHIP.md). Firefox enterprise policy produced the native `not_controllable` state and the expected blocked Popup; the permanent isolated gate passed in Browser E2E run `31015030843` on exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2`.

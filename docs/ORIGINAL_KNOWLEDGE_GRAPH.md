@@ -383,11 +383,15 @@ Nex 继续复用既有 typed 临时规则和永久条件事务；本节点只纠
 
 固定依据：原版 `popup.jade`、`popup/js/proxy_not_controllable.js`、profile controller 和官方 v3.5.0 Chromium 运行时。其他扩展接管时，Popup 隐藏 profile menu 与 Options，只显示原因、详情、Cancel 和 Manage。外部配置作为 built-in 后、用户 profile 前的一行；点击后同一行出现命名 input，submit 或 blur 保存，不出现独立 Cancel/Save 行。
 
-Nex 以真实 competing-extension takeover E2E 验证 `app` 状态，以本扩展写入但未被 represented route 接纳的 Chromium proxy value 验证 external-profile。Firefox `152.0.6` 企业 `Proxy` policy（`Locked: true`）已令原生 WebExtension API 返回 `levelOfControl=not_controllable`；ownership runtime 映射为 `reason=policy`，实际 Popup 隐藏 profile menu 与 Options，并保留 Cancel/Manage。02S 永久隔离门接入后，才可把该边界计为稳定完成。
+Nex 以真实 competing-extension takeover E2E 验证 `app` 状态，以本扩展写入但未被 represented route 接纳的 Chromium proxy value 验证 external-profile。Firefox `152.0.6` 企业 `Proxy` policy（`Locked: true`）令原生 WebExtension API 返回 `levelOfControl=not_controllable`；ownership runtime 映射为 `reason=policy`，实际 Popup 隐藏 profile menu 与 Options，并保留 Cancel/Manage。02S 永久隔离门已在 exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2` 通过，policy/browser-owned 边界稳定完成。
 
 ### 14.4 Popup 加载 Footer 与外部配置保存合同
 
 Popup 加载态仍显示原版 Options footer；只有 proxy ownership blocked 状态隐藏该 footer。外部配置命名沿用同一行 input 的 submit/blur 保存，不恢复 Nex-only Cancel/Save 按钮。旧自动化若仍点击“保存名称”，属于过期验收合同，必须改为失焦或提交表单。
+
+### 14.5 Session 13 当前网站 Popup 旅程验收
+
+exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2` 的六个永久 workflow 全绿；Browser E2E 四个隔离作业均通过，包括 Chromium、普通 Firefox、native Inspect 与 Firefox Locked Proxy policy-owned Popup。02Q、02R、02S 因而共同关闭当前网站 Popup 旅程。该结论不扩张到完整 Popup/Options、Order 1 或项目完成度；项目仍为 48%，Order 1 仍为 45%，owner retest、merge、release 继续禁止。
 
 ## 15. 原版默认值、示例与 placeholder 规则
 

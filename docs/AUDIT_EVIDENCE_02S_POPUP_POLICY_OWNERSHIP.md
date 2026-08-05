@@ -38,13 +38,14 @@ The result simultaneously proves the browser-native control level, Nex ownership
 
 - `scripts/e2e-firefox-policy-owned-popup.mjs` remains as the browser test.
 - `test:e2e:firefox-policy-owned-popup` is the stable package command.
-- Browser E2E will run the test in an isolated Firefox job after installing a locked enterprise Proxy policy.
+- Browser E2E runs the test in an isolated Firefox job after installing a locked enterprise Proxy policy.
 - The policy-owned job remains separate from ordinary Firefox E2E so the managed browser state cannot contaminate other journeys.
 
 ## State
 
-- policy/browser-owned runtime surface: PROBE VERIFIED.
-- permanent workflow integration: PENDING exact-Head verification.
-- Session 13 current-site Popup journey is not declared complete until one clean Head passes all six permanent workflows with this new job.
+- policy/browser-owned runtime surface: VERIFIED.
+- permanent workflow integration: VERIFIED on exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2`.
+- Browser E2E run `31015030843`, isolated policy job `92336754415`, passed; the other three Browser E2E jobs and the remaining five permanent workflows also passed on the same Head.
+- Session 13 current-site Popup journey: VERIFIED as a bounded slice.
 - project progress remains 48%; Order 1 remains 45%.
 - owner retest, merge and release remain prohibited.

@@ -32,10 +32,12 @@ This graph extends `SESSION_12_KNOWLEDGE_GRAPH.md`. The authority order remains:
 - Permanent Chromium Popup external-profile gate commit: `762a1fa81c12741d61704f269442a2b58fdda919`.
 - Loading-footer and blur-save correction commit: `a439245ac9472457e692898500e2362087e405df`.
 - Browser-state readiness hardening commit: `6e43687aa300fe2a4653e1a6509361ba1f6e82a1`.
-- Stable verified evidence Head: `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75`.
-- All six permanent workflows passed on the stable verified evidence Head.
+- 02R stable evidence Head: `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75`.
+- Permanent Firefox policy-owned Popup gate commit: `38861967438435a60b2ddbfc43b868716725e295`.
+- Complete current-site journey verified Head: `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2`.
+- All six permanent workflows passed on the complete current-site journey Head; Browser E2E contained four successful isolated jobs.
 - All bounded one-shot workflows and patch scripts were deleted; no maintenance machinery remains.
-- Current state: `02S_POLICY_PROBE_VERIFIED_PENDING_PERMANENT_GATE`.
+- Current state: `SESSION_13_CURRENT_SITE_JOURNEY_VERIFIED`.
 - This slice does not change project or Order 1 progress.
 
 ## Current-site journey graph
@@ -51,7 +53,7 @@ Order 1 entry experience
       ├─ Add-condition runtime transaction    retained engineering evidence
       ├─ ownership-blocked/app state          verified by 02R
       ├─ external-profile state               verified by 02R
-      └─ browser-owned/policy state           probe verified; permanent gate pending
+      └─ browser-owned/policy state           verified by 02S permanent gate
 ```
 
 ## Evidence findings
@@ -91,7 +93,7 @@ Not allowed:
 
 ## Verified slice acceptance
 
-Head `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75` proves:
+Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2` proves:
 
 - all six permanent workflows are green;
 - paired expanded Popup evidence is green;
@@ -105,14 +107,16 @@ Head `49bad8aa7551e4bb6c5eabde2c8bdf375c2fea75` proves:
 - Chromium, Firefox and native Inspect browser jobs remain green;
 - Chromium waits for workflow and ownership convergence before external-profile assertions;
 - Firefox waits for the exact local current-site URL and completed tab state before Popup assertions.
+- Firefox enterprise Locked Proxy returns native `not_controllable`, maps to `reason=policy`, and renders the blocked Popup in an isolated permanent Browser E2E job.
+- all experimental policy workflows and the unsuccessful Chromium probe were removed before exact-Head acceptance.
 
-This acceptance closes only 02Q and the reproducible 02R `app`/external-profile surfaces. It does not establish policy/browser-owned parity and does not increase project progress by itself.
+This acceptance closes the Session 13 current-site Popup journey: 02Q expanded actions, 02R app/external-profile, and 02S policy/browser-owned. It does not close the wider Popup/Options journey and does not increase project progress by itself.
 
 ## 02R execution boundary
 
 - Real competing-extension takeover is the acceptance fixture for `reason=app`.
 - A proxy value written through Nex while no represented route matches is the acceptance fixture for external profile.
-- `reason=policy` / browser-owned remains OPEN; unit source mapping is not promoted to product evidence.
+- `reason=policy` / browser-owned is verified separately by 02S using a real Firefox enterprise Locked Proxy policy; the proof is browser-native, not a mocked adapter.
 - Passing 02R does not increase project or Order 1 progress by itself.
 
 ## Verification correction
@@ -130,10 +134,9 @@ The permanent gates now wait on runtime state rather than elapsed time. The targ
 
 ## Remaining Session 13 order
 
-1. integrate the isolated Firefox locked-policy job into permanent Browser E2E;
-2. remove Chromium/Firefox one-shot probe workflows and the unsuccessful Chromium probe script;
-3. verify all six permanent workflows on one clean exact Head;
-4. reassess the complete Popup current-site journey without scheduling owner retest.
+1. treat the current-site Popup journey as a verified bounded slice;
+2. reassess the wider Popup journey and select the next original-facing surface from the project outline;
+3. keep owner retest, merge and release prohibited until the parent Order 1 gate materially advances.
 
 ## 02S policy-owned runtime evidence
 
@@ -142,4 +145,4 @@ The permanent gates now wait on runtime state rather than elapsed time. The targ
 - The ownership runtime returned `blocked=true`, `reason=policy`, `controlLevel=not-controllable`.
 - The actual Popup rendered `data-reason=policy`, zero profile rows, zero Options footers, two control actions and one Manage entry.
 - Probe run: `31013840605`; job: `92332623777`.
-- This closes the evidentiary feasibility question. Acceptance remains pending until the isolated policy job is part of permanent Browser E2E and one clean exact Head passes all six workflows.
+- Permanent Browser E2E run `31015030843`, isolated job `92336754415`, passed on exact Head `d63cd181ce68e5176c29a3fb8d8a3c59cc2018a2`; all six permanent workflows were green on the same Head.
