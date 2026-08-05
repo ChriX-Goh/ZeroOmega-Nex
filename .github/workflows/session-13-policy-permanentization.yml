@@ -1,0 +1,65 @@
+name: Session 13 Policy Permanentization
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/session-13-policy-permanentization.yml
+
+permissions:
+  contents: write
+
+jobs:
+  permanentize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout active product branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply evidence and documentation patch
+        run: |
+          python scripts/session-13-policy-permanentization.py
+          pnpm exec prettier --write package.json docs/AUDIT_EVIDENCE_02S_POPUP_POLICY_OWNERSHIP.md docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md docs/SESSION_13_KNOWLEDGE_GRAPH.md docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md
+          git diff --check
+          pnpm validate:parity-docs
+          pnpm check
+
+      - name: Install locked Firefox policy and run 02S gate
+        run: |
+          FIREFOX_BIN="$(readlink -f "$(command -v firefox)")"
+          FIREFOX_DIR="$(dirname "$FIREFOX_BIN")"
+          POLICY='{"policies":{"Proxy":{"Mode":"manual","HTTPProxy":"127.0.0.1:18199","UseHTTPProxyForAllProtocols":true,"Passthrough":"<local>","Locked":true}}}'
+          sudo install -d -m 755 "$FIREFOX_DIR/distribution"
+          printf '%s\n' "$POLICY" | sudo tee "$FIREFOX_DIR/distribution/policies.json" >/dev/null
+          sudo chmod 444 "$FIREFOX_DIR/distribution/policies.json"
+          WXT_ICON_RENDERER_E2E=1 pnpm build:firefox
+          pnpm test:e2e:firefox-policy-owned-popup
+
+      - name: Commit policy evidence without patch machinery
+        run: |
+          git restore .github/workflows/session-13-policy-permanentization.yml
+          git restore scripts/session-13-policy-permanentization.py
+          git config user.name 'zeroomega-session-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'test: preserve Firefox policy-owned Popup evidence'
+          git push origin HEAD:feat/m8-profile-workflow
