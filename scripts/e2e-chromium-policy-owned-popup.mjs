@@ -7,6 +7,7 @@ import { chromium } from '@playwright/test';
 
 const extensionPath = resolve('dist/chrome-mv3');
 const userDataDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-policy-owned-popup-'));
+const browserChannel = process.env.ZEROOMEGA_POLICY_BROWSER_CHANNEL ?? 'chromium';
 let context;
 
 async function waitForValue(read, accept, message, timeout = 30_000) {
@@ -22,7 +23,7 @@ async function waitForValue(read, accept, message, timeout = 30_000) {
 
 try {
   context = await chromium.launchPersistentContext(userDataDir, {
-    channel: 'chromium',
+    channel: browserChannel,
     headless: true,
     locale: 'en-US',
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
@@ -70,6 +71,7 @@ try {
 
   console.log(
     JSON.stringify({
+      browserChannel,
       extensionId,
       levelOfControl: policyState.settings.levelOfControl,
       mode: policyState.settings.value?.mode,
