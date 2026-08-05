@@ -21,12 +21,23 @@ Pinned ZeroOmega v3.5.0 source and the official Chromium build establish that a 
 
 ## State
 
-- `app` ownership surface: pending exact-Head verification.
-- external-profile surface: pending exact-Head verification.
+- Verified exact Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`.
+- All six permanent workflows passed on that Head.
+- `app` ownership surface: VERIFIED.
+- external-profile surface: VERIFIED.
 - policy/browser-owned surface: OPEN.
 - project progress remains 48%; Order 1 remains 45%.
 - owner retest, merge, and release remain prohibited.
 
 ## Verification correction
 
-The first exact-Head run found two stale gates. Loading must retain the original Options footer; ownership-blocked states alone hide it. The pre-existing Chromium journey must use the original inline input's blur/submit save contract rather than Nex-only action buttons. Both gates are corrected before 02R can be marked verified.
+The first exact-Head run found two stale gates. Loading must retain the original Options footer; ownership-blocked states alone hide it. The pre-existing Chromium journey must use the original inline input's blur/submit save contract rather than Nex-only action buttons.
+
+The corrected exact Head proves:
+
+- loading retains the Options footer;
+- ownership-blocked Popup hides profiles and Options;
+- the real competing-extension takeover surface passes Chromium browser automation;
+- the original inline external-profile input rejects an invalid reserved name;
+- blur imports a valid external profile and closes the Popup;
+- Chromium, Firefox, native Inspect, paired UI evidence, documentation and CI gates remain green.
