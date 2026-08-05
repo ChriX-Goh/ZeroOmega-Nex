@@ -34,135 +34,20 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Apply verified correction
-        shell: bash
+      - name: Apply and verify correction
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          def replace_once(path, old, new, label):
-              text = path.read_text(encoding='utf-8')
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label} marker mismatch: {count}')
-              path.write_text(text.replace(old, new, 1), encoding='utf-8')
-
-          app = Path('apps/extension/src/entrypoints/popup/App.svelte')
-          replace_once(
-              app,
-              '{#if !loading && !proxyOwnership?.blocked}',
-              '{#if !proxyOwnership?.blocked}',
-              'Popup footer condition',
-          )
-
-          validator = Path('scripts/validate-popup-entry-contract.mjs')
-          validator_text = validator.read_text(encoding='utf-8')
-          old_validator = """assert.match(
-            app,
-            /\\{#if !loading && !proxyOwnership\\?\\.blocked\\}[\\s\\S]*?<footer class=\"popup-footer\">/u,
-          );"""
-          new_validator = """assert.match(
-            app,
-            /\\{#if !proxyOwnership\\?\\.blocked\\}[\\s\\S]*?<footer class=\"popup-footer\">/u,
-          );
-          assert.ok(
-            !app.includes('{#if !loading && !proxyOwnership?.blocked}'),
-            'loading state must retain the original Options footer',
-          );"""
-          if validator_text.count(old_validator) != 1:
-              raise SystemExit('Popup validator footer marker mismatch')
-          validator.write_text(validator_text.replace(old_validator, new_validator, 1), encoding='utf-8')
-
-          e2e = Path('scripts/e2e-chromium.mjs')
-          e2e_text = e2e.read_text(encoding='utf-8')
-          old_e2e = """  await externalForm.getByLabel('外部情景模式名称').fill('_reserved');
-            await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
-            await externalForm.getByText('情景模式名称不能以下划线开头。').waitFor();
-            await externalForm.getByLabel('外部情景模式名称').fill('Imported External Proxy');
-            await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();"""
-          new_e2e = """  const externalNameInput = externalForm.getByLabel('外部情景模式名称');
-            await externalNameInput.fill('_reserved');
-            await externalNameInput.blur();
-            await externalForm.getByText('情景模式名称不能以下划线开头。').waitFor();
-            await externalNameInput.fill('Imported External Proxy');
-            const externalPopupClosed = externalPopup.waitForEvent('close');
-            await externalNameInput.blur();
-            await externalPopupClosed;"""
-          if e2e_text.count(old_e2e) != 1:
-              raise SystemExit('Chromium external-profile legacy action marker mismatch')
-          e2e.write_text(e2e_text.replace(old_e2e, new_e2e, 1), encoding='utf-8')
-
-          session = Path('docs/SESSION_13_KNOWLEDGE_GRAPH.md')
-          session_text = session.read_text(encoding='utf-8')
-          session_note = """
-
-## 02R verification correction
-
-- Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls.
-- The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior.
-- Exact-Head verification must restart after this correction; no prior green result is inherited.
-"""
-          if '## 02R verification correction' not in session_text:
-              session.write_text(session_text.rstrip() + session_note + '\n', encoding='utf-8')
-
-          evidence = Path('docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md')
-          evidence_text = evidence.read_text(encoding='utf-8')
-          evidence_note = """
-
-## Verification correction
-
-The first exact-Head run found two stale gates. Loading must retain the original Options footer; ownership-blocked states alone hide it. The pre-existing Chromium journey must use the original inline input's blur/submit save contract rather than Nex-only action buttons. Both gates are corrected before 02R can be marked verified.
-"""
-          if '## Verification correction' not in evidence_text:
-              evidence.write_text(evidence_text.rstrip() + evidence_note + '\n', encoding='utf-8')
-
-          original = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
-          original_text = original.read_text(encoding='utf-8')
-          marker = '## 15. 原版默认值、示例与 placeholder 规则\n'
-          addendum = """### 14.4 Popup 加载 Footer 与外部配置保存合同
-
-Popup 加载态仍显示原版 Options footer；只有 proxy ownership blocked 状态隐藏该 footer。外部配置命名沿用同一行 input 的 submit/blur 保存，不恢复 Nex-only Cancel/Save 按钮。旧自动化若仍点击“保存名称”，属于过期验收合同，必须改为失焦或提交表单。
-
-"""
-          if '### 14.4 Popup 加载 Footer 与外部配置保存合同' not in original_text:
-              if original_text.count(marker) != 1:
-                  raise SystemExit('ORIGINAL_KNOWLEDGE_GRAPH insertion marker mismatch')
-              original.write_text(original_text.replace(marker, addendum + marker, 1), encoding='utf-8')
-
-          matrix = Path('docs/UI_AUDIT_MATRIX.md')
-          matrix_text = matrix.read_text(encoding='utf-8')
-          match = re.search(r'^\| I-11 \|.*$', matrix_text, flags=re.MULTILINE)
-          if not match:
-              raise SystemExit('UI_AUDIT_MATRIX I-11 row missing')
-          row = match.group(0)
-          phrase = '加载态保留 Options；仅 ownership blocked 隐藏；外部配置按 blur/submit 保存'
-          if phrase not in row:
-              parts = row.split('|')
-              if len(parts) < 5:
-                  raise SystemExit('UI_AUDIT_MATRIX I-11 row shape mismatch')
-              parts[-3] = parts[-3].rstrip() + f'；{phrase} '
-              new_row = '|'.join(parts)
-              matrix.write_text(matrix_text[:match.start()] + new_row + matrix_text[match.end():], encoding='utf-8')
-          PY
-
-          pnpm exec prettier --write \
-            apps/extension/src/entrypoints/popup/App.svelte \
-            scripts/validate-popup-entry-contract.mjs \
-            scripts/e2e-chromium.mjs \
-            docs/SESSION_13_KNOWLEDGE_GRAPH.md \
-            docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md \
-            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
-            docs/UI_AUDIT_MATRIX.md
+          python scripts/session-13-footer-e2e-correction.py
+          pnpm exec prettier --write apps/extension/src/entrypoints/popup/App.svelte scripts/validate-popup-entry-contract.mjs scripts/e2e-chromium.mjs docs/SESSION_13_KNOWLEDGE_GRAPH.md docs/AUDIT_EVIDENCE_02R_POPUP_OWNERSHIP_EXTERNAL.md docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md
           git diff --check
           pnpm validate:ui
           pnpm validate:parity-docs
           pnpm check
           pnpm exec vitest run --config apps/extension/vitest.component.config.ts
 
-      - name: Commit correction without workflow mutation
+      - name: Commit correction without patch machinery
         run: |
           git restore .github/workflows/session-13-footer-e2e-correction.yml
+          git restore scripts/session-13-footer-e2e-correction.py
           git config user.name 'zeroomega-session-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
