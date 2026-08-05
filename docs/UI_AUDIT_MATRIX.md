@@ -160,19 +160,19 @@
 
 ## I. Popup 与辅助页面
 
-| ID   | 界面/功能          | 原版源码              | 原版布局与行为                                       | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                      | 下一步                                      |
-| ---- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| I-01 | Direct/System 顶部 | `popup*`              | 内置项优先                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                                        |
-| I-02 | 用户情景模式顺序   | `popup*`              | 按配置顺序                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                       | 保持                                        |
-| I-03 | 类型图标/颜色      | `popup*`              | 识别类型与颜色                                       | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                         | 保持                                        |
-| I-04 | 结果情景模式       | popup controller      | Switch/Virtual 结果显示/选择                         | MUST_MATCH | DONE     | COMPLETE | Profile 行结果事务继续由后台 verified Apply 约束；当前网站临时结果只在域名行展开后显示合法结果，关闭态无常驻 select；既有 Chromium 结果 mutation E2E 保持                      | 保持 Profile 结果双浏览器回归               |
-| I-05 | 当前网站添加条件   | popup                 | 对当前 tab 快速加规则                                | MUST_MATCH | PARTIAL  | COMPLETE | 后台 activeTab + PSL + verified Apply 与 Chromium 事务 E2E 已有；关闭态入口已恢复原版加号、`Add condition` 文案、31px 几何及顺序，并由严格 Original↔Nex 证据检查               | 成对验收 Add-condition 表单、scope 与提交页 |
-| I-06 | 临时规则           | `popup/temp_rules`    | 非持久临时覆盖                                       | MUST_MATCH | PARTIAL  | COMPLETE | session-only 状态、PAC snapshot、worker/浏览器重启边界与管理页已有；关闭态已恢复漏斗、域名、caret、无常驻 select，Chromium 真实 toggle 与 Firefox 结构回归加入                 | 成对验收展开菜单、active 标记和管理入口     |
-| I-07 | 外部扩展控制状态   | popup/target          | 阻断页 + external profile 导入                       | MUST_MATCH | DONE     | COMPLETE | ownership 四类阻断、详情、管理入口、外部名称/校验/保存及 ARIA typed 三语；后台原子导入与控制权 fail-closed Chromium E2E 保持                                                   | 保持守卫                                    |
-| I-08 | 请求错误列表       | popup/network         | 有界错误/请求查看                                    | MUST_MATCH | DONE     | COMPLETE | Popup 错误计数与检查入口 typed 三语；会话启动、权限、storage.session、限额、URL 清洗及独立明细页边界不变                                                                       | 保持双浏览器隐私回归                        |
-| I-09 | Inspect 菜单       | popup/network         | 可配置显示                                           | MUST_MATCH | DONE     | COMPLETE | Applied flag 驱动 frame/link/media 菜单；目标按 tab session 保存；按活动 startRoute 求值并显示结果颜色/两行 typed 标题；headed Chromium 真实右击链接并验证 session、徽章和标题 | Firefox 原生菜单人工巡查                    |
-| I-10 | Popup 主题         | 原版+Nex 决策         | 允许 Nex 现代主题                                    | REFERENCE  | DONE     | COMPLETE | Theme 三种 appearance 直接 typed 三语；Options 与 Popup 共享 auto/light/dark 状态，Chromium 真实切换与 Popup 继承验证                                                          | 保持                                        |
-| I-11 | Popup 几何/像素    | CSS + paired evidence | 信息层级、尺寸与交互几何必须匹配；字体栅格像素可参考 | MUST_MATCH | PARTIAL  | N/A      | 当前网站两条关闭态行以严格文本、结构和 computed-style 门禁对齐原版 430×31；默认 Popup、其他状态与 owner 视觉仍未整体闭合                                                       | 逐 surface 成对证据 + Owner 视觉复核        |
+| ID   | 界面/功能          | 原版源码              | 原版布局与行为                                       | 分类       | Nex 状态 | 翻译     | 证据/问题                                                                                                                                                                                                                                     | 下一步                                          |
+| ---- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| I-01 | Direct/System 顶部 | `popup*`              | 内置项优先                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                                                                                      | 保持                                            |
+| I-02 | 用户情景模式顺序   | `popup*`              | 按配置顺序                                           | MUST_MATCH | DONE     | COMPLETE | E2E 已有                                                                                                                                                                                                                                      | 保持                                            |
+| I-03 | 类型图标/颜色      | `popup*`              | 识别类型与颜色                                       | MUST_MATCH | DONE     | N/A      | 已实现                                                                                                                                                                                                                                        | 保持                                            |
+| I-04 | 结果情景模式       | popup controller      | Switch/Virtual 结果显示/选择                         | MUST_MATCH | DONE     | COMPLETE | Profile 行结果事务继续由后台 verified Apply 约束；当前网站临时结果只在域名行展开后显示合法结果，关闭态无常驻 select；既有 Chromium 结果 mutation E2E 保持                                                                                     | 保持 Profile 结果双浏览器回归                   |
+| I-05 | 当前网站添加条件   | popup                 | 对当前 tab 快速加规则                                | MUST_MATCH | PARTIAL  | COMPLETE | 后台 activeTab + PSL + verified Apply 与 Chromium 事务 E2E 已有；关闭态入口已恢复；Session 13 按原版独立 Popup 路由隐藏 profile menu、诊断与 Options footer，恢复 360px 表单及 required-pattern validation；02Q exact-head paired gate 已接入 | 验证 02Q 后继续 ownership/browser-owned surface |
+| I-06 | 临时规则           | `popup/temp_rules`    | 非持久临时覆盖                                       | MUST_MATCH | PARTIAL  | COMPLETE | session-only 状态、PAC snapshot、worker/浏览器重启边界与管理页已有；关闭态已恢复；Session 13 移除下拉内 Nex-only 管理行，恢复列表内静态展开、result-only 选项与 active result；02Q exact-head paired gate 已接入                              | 验证 02Q 后继续 ownership/external surface      |
+| I-07 | 外部扩展控制状态   | popup/target          | 阻断页 + external profile 导入                       | MUST_MATCH | DONE     | COMPLETE | ownership 四类阻断、详情、管理入口、外部名称/校验/保存及 ARIA typed 三语；后台原子导入与控制权 fail-closed Chromium E2E 保持                                                                                                                  | 保持守卫                                        |
+| I-08 | 请求错误列表       | popup/network         | 有界错误/请求查看                                    | MUST_MATCH | DONE     | COMPLETE | Popup 错误计数与检查入口 typed 三语；会话启动、权限、storage.session、限额、URL 清洗及独立明细页边界不变                                                                                                                                      | 保持双浏览器隐私回归                            |
+| I-09 | Inspect 菜单       | popup/network         | 可配置显示                                           | MUST_MATCH | DONE     | COMPLETE | Applied flag 驱动 frame/link/media 菜单；目标按 tab session 保存；按活动 startRoute 求值并显示结果颜色/两行 typed 标题；headed Chromium 真实右击链接并验证 session、徽章和标题                                                                | Firefox 原生菜单人工巡查                        |
+| I-10 | Popup 主题         | 原版+Nex 决策         | 允许 Nex 现代主题                                    | REFERENCE  | DONE     | COMPLETE | Theme 三种 appearance 直接 typed 三语；Options 与 Popup 共享 auto/light/dark 状态，Chromium 真实切换与 Popup 继承验证                                                                                                                         | 保持                                            |
+| I-11 | Popup 几何/像素    | CSS + paired evidence | 信息层级、尺寸与交互几何必须匹配；字体栅格像素可参考 | MUST_MATCH | PARTIAL  | N/A      | 当前网站关闭态已有严格文本、结构与 computed-style 门禁；Session 13 新增展开菜单与独立 Add-condition 表单的 paired screenshot/HTML/text/geometry/style/validation gate；其余 Popup 状态与 owner 视觉仍未整体闭合                               | 完成 ownership/external/browser-owned 成对证据  |
 
 ## J. 测试与证据门槛
 
@@ -195,32 +195,33 @@
 - 最新 owner 结果是 2026-08-02 Firefox `FAIL`；不是 `NOT RUN`，也不是待确认 PASS。
 - 历史 `M8-OWNER-QC-1`、旧 `98%`、广义 `DONE` 计数及旧 readiness 结论全部失效，不得反向定义当前产品状态。
 - 当前无 active candidate；PR #11 必须保持 Draft；merge、release 和 owner retest 均禁止。
-- Popup 当前网站关闭态已进入原生 Svelte 纠正与严格成对门禁；I-05、I-06、I-11 保持 `PARTIAL`，分别等待 Add-condition 表单、展开菜单及其余 Popup surface 的成对验收。
+- Popup 当前网站关闭态已验证；展开菜单与 Add-condition 表单已进入 Session 13 原版结构修正和 02Q exact-head paired gate。I-05、I-06、I-11 仍保持 `PARTIAL`，直到 02Q 全绿且 ownership/external/browser-owned surface 完成。
 - A-14 的栅格皮肤仍为 `REFERENCE`；I-11 的信息层级、尺寸和交互几何改为 `MUST_MATCH`，只有字体抗锯齿等栅格细节可作为参考。
 - 当前暂定产品进度 48%（47.9%，置信区间 43%–50%）；Order 1 entry experience 45%。矩阵行状态只能说明对应证据边界，不能直接相加为总进度。
 
 ## 更新记录
 
-| 日期       | 变更                                                                                                                                                                          |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-04 | 依据 owner FAIL 退役旧候选与旧完成度口径；Popup I-05/I-06/I-11 重新按成对证据拆分，关闭态几何改为 MUST_MATCH                                                                  |
-| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                                                                                 |
-| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                                                                                          |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                                                                                    |
-| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                                                                                      |
-| 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern                                                                |
-| 2026-07-27 | 恢复 Switch 附属 Rule List 核心生命周期、隐藏关系、URL 缓存、请求头 Draft 语义、复制/删除事务与原版备份重建                                                                   |
-| 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁                                                 |
-| 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环                                                               |
-| 2026-07-29 | 完成 Temporary Rules/Network、正常 Options/Virtual、导入、History、Popup 与动态状态的 typed 三语闭环                                                                          |
-| 2026-07-29 | 完成 Rule Source/PAC 稳定失败码、Firefox optional-host 下载、schema-v1/WPAD、在线恢复及 Gist/WebDAV/browser-sync 范围决定                                                     |
-| 2026-07-29 | 生成并完整哈希 24 张 light/dark × zh-CN/zh-TW 视觉证据                                                                                                                        |
-| 2026-07-29 | 完成 Chromium/Firefox 真实 Basic 407、用户手势权限、后台凭据、重试成功、秘密脱敏与临时补丁清理                                                                                |
-| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                                                                     |
-| 2026-07-29 | 完成独立全新 Chromium 工作区内 Fixed/Switch/PAC/Virtual 四类统一 New Profile 创建、专属编辑器、Draft 与 Apply 闭环；开放 MUST_MATCH 降至 5 项                                 |
-| 2026-07-29 | 完成 PAC 目标能力信号：原版 proxy-script-registration 不支持分支、缺失 proxy.settings 的 fail-closed、当前目标支持分支及 Chromium 真实 UI 禁用验证；开放 MUST_MATCH 降至 4 项 |
-| 2026-07-29 | 恢复原版 Profile 页头 Rename 动作与独立对话框；完成 Apply-before-dialog、名称校验、Draft/Apply、附属 Rule List/源事务及 Chromium/Firefox 回归；开放 MUST_MATCH 降至 3 项      |
-| 2026-07-29 | 完成代理协议×浏览器目标×URL 槽位能力矩阵、SOCKS DNS/认证边界及现代 FTP 请求移除决定；C-05/C-09 关闭，开放 MUST_MATCH 降至 2 项                                                |
+| 日期       | 变更                                                                                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-05 | Session 13 按原版独立 Add-condition 路由与 result-only 临时规则菜单纠正展开态；接入 02Q exact-head Original↔Nex paired gate；状态保持 PARTIAL，等待全绿及剩余 ownership surface |
+| 2026-08-04 | 依据 owner FAIL 退役旧候选与旧完成度口径；Popup I-05/I-06/I-11 重新按成对证据拆分，关闭态几何改为 MUST_MATCH                                                                    |
+| 2026-07-26 | 首次从 ZeroOmega v3.5.0 源码建立逐项巡查；诚实标记现有编辑器、翻译和 I/O 缺口                                                                                                   |
+| 2026-07-26 | 清除 URL、规则正文和请求头的 Nex 假默认值；H-09/H-10/H-11 以代码、单测和永久守卫验证                                                                                            |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、条件分组帮助、拖序/键盘排序、备注列、默认路由行与新增位置语义                                                                                      |
+| 2026-07-26 | 源码复核纠正新增规则语义：编辑器固定追加并复制上一条；顶部/底部设置仅属于 Popup 条件注入                                                                                        |
+| 2026-07-26 | 拆分 Draft/Applied 校验：文本条件可空或暂时无效，严格 Apply 在浏览器激活前拒绝；新增与复制不再注入示例 pattern                                                                  |
+| 2026-07-27 | 恢复 Switch 附属 Rule List 核心生命周期、隐藏关系、URL 缓存、请求头 Draft 语义、复制/删除事务与原版备份重建                                                                     |
+| 2026-07-28 | Profile PAC/Rule List 导出、Virtual/Fixed E2E 与 parity workflow 状态纠偏；清除全部 7 个 Svelte 警告并固定 warning-fatal 门禁                                                   |
+| 2026-07-28 | 完成 PAC typed 三语与 Firefox 顶层激活；核实导入审阅已存在；补齐 History typed 三语及 Chromium 真实原子回滚闭环                                                                 |
+| 2026-07-29 | 完成 Temporary Rules/Network、正常 Options/Virtual、导入、History、Popup 与动态状态的 typed 三语闭环                                                                            |
+| 2026-07-29 | 完成 Rule Source/PAC 稳定失败码、Firefox optional-host 下载、schema-v1/WPAD、在线恢复及 Gist/WebDAV/browser-sync 范围决定                                                       |
+| 2026-07-29 | 生成并完整哈希 24 张 light/dark × zh-CN/zh-TW 视觉证据                                                                                                                          |
+| 2026-07-29 | 完成 Chromium/Firefox 真实 Basic 407、用户手势权限、后台凭据、重试成功、秘密脱敏与临时补丁清理                                                                                  |
+| 2026-07-29 | 修正 parity 状态列统计和陈旧台账；矩阵收敛为 6 个 MUST_MATCH、1 个 UNCERTAIN、2 个非阻断 REFERENCE 开放项                                                                       |
+| 2026-07-29 | 完成独立全新 Chromium 工作区内 Fixed/Switch/PAC/Virtual 四类统一 New Profile 创建、专属编辑器、Draft 与 Apply 闭环；开放 MUST_MATCH 降至 5 项                                   |
+| 2026-07-29 | 完成 PAC 目标能力信号：原版 proxy-script-registration 不支持分支、缺失 proxy.settings 的 fail-closed、当前目标支持分支及 Chromium 真实 UI 禁用验证；开放 MUST_MATCH 降至 4 项   |
+| 2026-07-29 | 恢复原版 Profile 页头 Rename 动作与独立对话框；完成 Apply-before-dialog、名称校验、Draft/Apply、附属 Rule List/源事务及 Chromium/Firefox 回归；开放 MUST_MATCH 降至 3 项        |
+| 2026-07-29 | 完成代理协议×浏览器目标×URL 槽位能力矩阵、SOCKS DNS/认证边界及现代 FTP 请求移除决定；C-05/C-09 关闭，开放 MUST_MATCH 降至 2 项                                                  |
 
 ## Session 8 Toolbar Contract Correction
 

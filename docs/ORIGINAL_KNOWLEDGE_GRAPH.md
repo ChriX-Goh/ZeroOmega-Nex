@@ -369,6 +369,16 @@ graph TD
 
 Nex 正式实现必须由 Svelte 组件直接输出该结构。禁止用 `MutationObserver`、post-render DOM replacement 或隐藏常驻 select 伪装原版表面；兼容性逻辑只能存在于状态模型、命令边界和测试中。关闭态由严格 Original↔Nex 文本、结构、computed style 证据门禁；展开菜单与 Add-condition 表单仍需分别成对验收，不能由关闭态证据代替。
 
+### 14.2 Popup 当前网站展开态结构
+
+固定依据：`zero-peak/ZeroOmega@05cbb30` 的 `omega-web/src/popup.jade`、`popup/js/profiles.js`、`less/popup.less`，以及 SHA-256 已验证的官方 v3.5.0 Chromium 包。
+
+临时规则域名行点击后，结果菜单在原列表流内静态展开，只包含合法结果情景模式；当前结果按原版 active 样式标记。菜单不得增加“管理临时规则”等 Nex-only 操作，也不得改成覆盖式浮层。
+
+`Add condition` 打开后进入独立 Popup 表单状态：原 profile menu、Inspect/request diagnostics 和底部 Options 行全部隐藏；表单最小宽度 360px，包含目标 Switch legend、条件类型、条件细节、结果情景模式、Cancel 和 Add condition。空 required pattern 必须禁用提交。
+
+Nex 继续复用既有 typed 临时规则和永久条件事务；本节点只纠正可见结构，不合并 session-only overlay 与 verified Apply。永久 `Original Nex UI Evidence` 对同一 exact Head 采集 Original↔Nex 截图、HTML、文本、几何、computed style 和验证状态。02Q 通过只关闭展开态 presentation 边，不代表 ownership/external/browser-owned 状态或完整 Popup 旅程完成。
+
 ## 15. 原版默认值、示例与 placeholder 规则
 
 | 数据                                    | 原版身份                       | Nex 处理原则                                                           |
@@ -427,16 +437,17 @@ CI 的 `Parity Documentation` 工作流会检查：只要最新提交修改 Opti
 
 ## 18. 修订记录
 
-| 日期       | 变更                                                                                                                             | 依据                                                                                                         |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                                  | 原版源码 Artifact `8625759489`                                                                               |
-| 2026-08-04 | 固定 Popup 当前网站关闭态两行结构；禁止常驻 result select 与 post-render DOM 改写；拆分关闭态、展开菜单和 Add-condition 表单验收 | 原版 `popup/index.html`、`profiles.js`、官方 v3.5.0 Chromium 包及 `AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md` |
-| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口     | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`                                           |
-| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                             | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义                                |
-| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                             | 原版 `profile_switch.jade`、`switch_profile.coffee`                                                          |
-| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                             | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                                      |
-| 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口             | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee`                 |
-| 2026-07-27 | 恢复 Switch 附属 Rule List 隐藏关系、启停/路由、格式/URL/headers/文本、缓存迁移及复制/删除事务                                   | 原版 `profile_switch.jade`、`switch_profile.coffee`、`profiles.coffee`                                       |
+| 日期       | 变更                                                                                                                                | 依据                                                                                                                          |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 2026-07-26 | 建立 v3.5.0 固定事实基线；纠正新建类型分类；补齐编辑器、I/O、locale、Popup 图谱                                                     | 原版源码 Artifact `8625759489`                                                                                                |
+| 2026-08-05 | 固定 Popup 当前网站展开态：临时规则菜单仅含结果情景模式；Add-condition 使用独立表单状态并隐藏原菜单与 Options 行；接入 02Q 成对证据 | 原版 `popup.jade`、`profiles.js`、`popup.less`、官方 v3.5.0 Chromium 包及 `AUDIT_EVIDENCE_02Q_POPUP_EXPANDED_SITE_ACTIONS.md` |
+| 2026-08-04 | 固定 Popup 当前网站关闭态两行结构；禁止常驻 result select 与 post-render DOM 改写；拆分关闭态、展开菜单和 Add-condition 表单验收    | 原版 `popup/index.html`、`profiles.js`、官方 v3.5.0 Chromium 包及 `AUDIT_EVIDENCE_02P_POPUP_SITE_ACTIONS.md`                  |
+| 2026-07-26 | 新建流程按原版四类模态框实现；新增 Virtual 数据模型、引用图、PAC、认证、迁移与编辑器；Rule List/Auto Detect 退出普通新建入口        | 原版 `new_profile.jade`、`profile_virtual.jade`、`profiles.coffee`                                                            |
+| 2026-07-26 | 清除 PAC/Rule List 模式切换和新增请求头时写入配置的 Nex 假默认值；新增永久防回归守卫                                                | 原版 `profile_pac.jade`、`profile_rule_list.jade` 的空输入与 placeholder 语义                                                 |
+| 2026-07-26 | Switch 首切片恢复紧凑规则表、基础/高级分组帮助、排序、备注、默认路由行及新增位置语义                                                | 原版 `profile_switch.jade`、`switch_profile.coffee`                                                                           |
+| 2026-07-26 | 拆分 Draft 与严格校验边界；文本条件新增/复制使用空 pattern，Apply 前严格拒绝无效条件                                                | 原版 `switch_profile.coffee` 的空 pattern 编辑语义与现有原子 Apply 边界                                                       |
+| 2026-07-27 | 恢复 Switch 图形/源码双向编辑、原版结果模式格式、行级解析错误及 Apply/导航守卫；移除 Nex-only enabled/flags 正常入口                | 原版 `profile_switch.jade`、`switch_profile.coffee`、`rule_list.coffee`、`conditions.coffee`                                  |
+| 2026-07-27 | 恢复 Switch 附属 Rule List 隐藏关系、启停/路由、格式/URL/headers/文本、缓存迁移及复制/删除事务                                      | 原版 `profile_switch.jade`、`switch_profile.coffee`、`profiles.coffee`                                                        |
 
 - 请求错误诊断不属于常驻数据平面。用户必须在独立网络检查页明确启动当前浏览器会话；持久 `monitorWebRequests` 仅控制功能是否可用，不能在浏览器启动时自动注册监听器。
 - 启动时才请求可选 `webRequest` 与 HTTP(S) 主机权限。记录只保存在 `storage.session`；停止、关闭设置、撤销权限或浏览器重启都会停止监听并清除记录。
