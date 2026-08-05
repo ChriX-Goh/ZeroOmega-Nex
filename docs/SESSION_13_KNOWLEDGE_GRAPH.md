@@ -28,11 +28,14 @@ This graph extends `SESSION_12_KNOWLEDGE_GRAPH.md`. The authority order remains:
 - Expanded-state implementation commit: `972f02f9ee491f3c83a027581bc570e70cd9cc25`.
 - Canonical parity-document synchronization commit: `f50a608ec45104f481e47d423330e3ab04c6c31d`.
 - Canonical validator keyword-preservation commit: `2df75294055d531b191c3774717280d8cf33c131`.
-- `ORIGINAL_KNOWLEDGE_GRAPH.md` and `UI_AUDIT_MATRIX.md` were updated together and formatted in the canonical synchronization commit.
-- The bounded one-shot patch workflows deleted themselves in their own output commits; no maintenance workflow remains.
-- The keyword-preservation workflow ran `validate-parity-docs` successfully before committing.
-- Current state: `PENDING_EXACT_HEAD_VERIFICATION`.
-- This documentation trigger does not change project or Order 1 progress.
+- 02R ownership/external-profile product commit: `2bf5d4f61396f0d72bf50760f247e6ad57e41871`.
+- Permanent Chromium Popup external-profile gate commit: `762a1fa81c12741d61704f269442a2b58fdda919`.
+- Loading-footer and blur-save correction commit: `a439245ac9472457e692898500e2362087e405df`.
+- Verified evidence Head: `dfdd10d499e8f9b6bc9652867266469214ccdc85`.
+- All six permanent workflows passed on the verified evidence Head.
+- All bounded one-shot workflows and patch scripts were deleted; no maintenance machinery remains.
+- Current state: `02R_VERIFIED`.
+- This slice does not change project or Order 1 progress.
 
 ## Current-site journey graph
 
@@ -41,13 +44,13 @@ Order 1 entry experience
   └─ Popup
       ├─ default profile list                 verified by paired evidence
       ├─ closed current-site rows             verified by 02P
-      ├─ temporary-rule dropdown              Session 13 active slice
-      ├─ Add-condition dedicated form         Session 13 active slice
+      ├─ temporary-rule dropdown              verified by 02Q
+      ├─ Add-condition dedicated form         verified by 02Q
       ├─ temporary-rule runtime transaction   retained engineering evidence
       ├─ Add-condition runtime transaction    retained engineering evidence
-      ├─ ownership-blocked/app state          active 02R slice
-      ├─ external-profile state               active 02R slice
-      └─ browser-owned/policy state           still open
+      ├─ ownership-blocked/app state          verified by 02R
+      ├─ external-profile state               verified by 02R
+      └─ browser-owned/policy state           OPEN
 ```
 
 ## Evidence findings
@@ -60,19 +63,20 @@ Original source and runtime establish:
 - Add condition changes to a dedicated form state;
 - the profile menu and Options row disappear while the form is open;
 - the form minimum width is 360 px;
-- condition pattern is required.
+- condition pattern is required;
+- loading retains the Options footer;
+- ownership-blocked Popup hides profiles and Options;
+- external-profile naming uses one inline input and submit/blur save behavior.
 
-The pre-Session-13 Nex implementation violated two visible structural contracts:
-
-1. the Add-condition form appeared below the still-visible profile list and Options footer;
-2. the temporary-rule dropdown added a Nex-only management row.
+The pre-Session-13 Nex implementation violated visible structural contracts by keeping the profile list and Options visible beside Add condition, adding a temporary-rule management row, placing external profile after user profiles, and exposing separate Cancel/Save controls. These verified slices remove those redesign differences without changing the underlying profile engine.
 
 ## Session 13 correction boundary
 
 Allowed:
 
 - Popup compatibility CSS;
-- paired evidence capture for expanded states;
+- paired evidence capture for Popup states;
+- browser automation using reproducible ownership and external-profile fixtures;
 - documentation and assertions tied to original evidence.
 
 Not allowed:
@@ -84,36 +88,36 @@ Not allowed:
 - release packaging;
 - owner retest.
 
-## Acceptance for this slice
+## Verified slice acceptance
 
-The slice is verified only when one exact Head proves:
+Head `dfdd10d499e8f9b6bc9652867266469214ccdc85` proves:
 
 - all six permanent workflows are green;
 - paired expanded Popup evidence is green;
 - no visible temporary manager row remains;
 - Add-condition form replaces the menu;
 - required-pattern validation remains intact;
-- closed-state 02P evidence does not regress.
+- closed-state 02P evidence does not regress;
+- loading retains Options;
+- real competing-extension takeover renders the blocked Popup surface;
+- external profile appears in original order and imports through blur-save;
+- Chromium, Firefox and native Inspect browser jobs remain green.
 
-This slice does not increase the project percentage by itself. Progress changes only after the parent journey gate materially advances.
-
-## Remaining Session 13 order
-
-1. verify the expanded current-site evidence;
-2. capture and align ownership-blocked state;
-3. capture and align external-profile state;
-4. capture and align browser-owned state;
-5. reassess the complete Popup journey without scheduling owner retest.
+This acceptance closes only 02Q and the reproducible 02R `app`/external-profile surfaces. It does not establish policy/browser-owned parity and does not increase project progress by itself.
 
 ## 02R execution boundary
 
 - Real competing-extension takeover is the acceptance fixture for `reason=app`.
 - A proxy value written through Nex while no represented route matches is the acceptance fixture for external profile.
 - `reason=policy` / browser-owned remains OPEN; unit source mapping is not promoted to product evidence.
-- Passing 02R will not increase project or Order 1 progress by itself.
+- Passing 02R does not increase project or Order 1 progress by itself.
 
-## 02R verification correction
+## Verification correction
 
-- Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls.
-- The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior.
-- Exact-Head verification must restart after this correction; no prior green result is inherited.
+Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls. The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior. The corrected path passed on `dfdd10d`.
+
+## Remaining Session 13 order
+
+1. obtain truthful, repeatable browser evidence for policy/browser-owned `not-controllable`, or document the browser limitation without promoting source mapping to runtime evidence;
+2. reassess the complete Popup journey after that boundary is resolved;
+3. keep owner retest, merge and release prohibited until the parent Order 1 gate materially advances.
