@@ -134,7 +134,8 @@ replace_once(
     "Original policy ownership boundary",
 )
 
-matrix_path = Path("docs/UI_AUDIT_MATRIX.md")nmatrix = matrix_path.read_text(encoding="utf-8")
+matrix_path = Path("docs/UI_AUDIT_MATRIX.md")
+matrix = matrix_path.read_text(encoding="utf-8")
 match = re.search(r"^\| I-11 \|.*$", matrix, flags=re.MULTILINE)
 if not match:
     raise SystemExit("UI_AUDIT_MATRIX I-11 row missing")
