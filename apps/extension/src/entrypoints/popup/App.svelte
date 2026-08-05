@@ -819,7 +819,7 @@
     </section>
   {/if}
 
-  {#if !loading && !proxyOwnership?.blocked}
+  {#if !proxyOwnership?.blocked}
     <footer class="popup-footer">
       <button
         class="settings-button"

@@ -657,11 +657,14 @@ try {
   assert.match(await externalRow.innerText(), /外部情景模式/u);
   await externalRow.locator('.external-profile-button').click();
   const externalForm = externalPopup.locator('[data-popup-external-profile-form]');
-  await externalForm.getByLabel('外部情景模式名称').fill('_reserved');
-  await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
+  const externalNameInput = externalForm.getByLabel('外部情景模式名称');
+  await externalNameInput.fill('_reserved');
+  await externalNameInput.blur();
   await externalForm.getByText('情景模式名称不能以下划线开头。').waitFor();
-  await externalForm.getByLabel('外部情景模式名称').fill('Imported External Proxy');
-  await externalForm.getByRole('button', { name: '保存名称', exact: true }).click();
+  await externalNameInput.fill('Imported External Proxy');
+  const externalPopupClosed = externalPopup.waitForEvent('close');
+  await externalNameInput.blur();
+  await externalPopupClosed;
   await assertEventually(async () => {
     const storage = await worker.evaluate(async () => chrome.storage.local.get(null));
     const workflow = storage['zeroomega-nex/profile-workflow/v1/state'];

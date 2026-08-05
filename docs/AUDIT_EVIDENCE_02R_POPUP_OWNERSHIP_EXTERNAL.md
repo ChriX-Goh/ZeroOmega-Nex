@@ -26,3 +26,7 @@ Pinned ZeroOmega v3.5.0 source and the official Chromium build establish that a 
 - policy/browser-owned surface: OPEN.
 - project progress remains 48%; Order 1 remains 45%.
 - owner retest, merge, and release remain prohibited.
+
+## Verification correction
+
+The first exact-Head run found two stale gates. Loading must retain the original Options footer; ownership-blocked states alone hide it. The pre-existing Chromium journey must use the original inline input's blur/submit save contract rather than Nex-only action buttons. Both gates are corrected before 02R can be marked verified.

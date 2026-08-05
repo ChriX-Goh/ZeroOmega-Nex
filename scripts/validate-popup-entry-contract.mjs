@@ -14,9 +14,10 @@ assert.ok(
 );
 assert.ok(app.includes('onblur={() => void importExternalProfile()}'));
 assert.ok(!app.includes('class="external-profile-actions"'));
-assert.match(
-  app,
-  /\{#if !loading && !proxyOwnership\?\.blocked\}[\s\S]*?<footer class="popup-footer">/u,
+assert.match(app, /\{#if !proxyOwnership\?\.blocked\}[\s\S]*?<footer class="popup-footer">/u);
+assert.ok(
+  !app.includes('{#if !loading && !proxyOwnership?.blocked}'),
+  'loading state must retain the original Options footer',
 );
 assert.ok(css.includes('.proxy-not-controllable'));
 assert.ok(css.includes('.external-profile-form input'));

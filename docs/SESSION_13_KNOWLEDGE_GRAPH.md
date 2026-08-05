@@ -111,3 +111,9 @@ This slice does not increase the project percentage by itself. Progress changes 
 - A proxy value written through Nex while no represented route matches is the acceptance fixture for external profile.
 - `reason=policy` / browser-owned remains OPEN; unit source mapping is not promoted to product evidence.
 - Passing 02R will not increase project or Order 1 progress by itself.
+
+## 02R verification correction
+
+- Head `8c9c75d` exposed two stale contracts rather than a new product redesign: the loading shell incorrectly hid Options, and the older Chromium journey still clicked removed Cancel/Save controls.
+- The corrected contract keeps Options during loading, hides it only when proxy ownership is blocked, and validates external-profile names through submit/blur behavior.
+- Exact-Head verification must restart after this correction; no prior green result is inherited.

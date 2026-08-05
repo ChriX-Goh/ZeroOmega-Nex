@@ -385,6 +385,10 @@ Nex 继续复用既有 typed 临时规则和永久条件事务；本节点只纠
 
 Nex 以真实 competing-extension takeover E2E 验证 `app` 状态，以本扩展写入但未被 represented route 接纳的 Chromium proxy value 验证 external-profile。`not-controllable` policy/browser-owned 状态保持 OPEN，直到可重复浏览器策略证据存在。
 
+### 14.4 Popup 加载 Footer 与外部配置保存合同
+
+Popup 加载态仍显示原版 Options footer；只有 proxy ownership blocked 状态隐藏该 footer。外部配置命名沿用同一行 input 的 submit/blur 保存，不恢复 Nex-only Cancel/Save 按钮。旧自动化若仍点击“保存名称”，属于过期验收合同，必须改为失焦或提交表单。
+
 ## 15. 原版默认值、示例与 placeholder 规则
 
 | 数据                                    | 原版身份                       | Nex 处理原则                                                           |
