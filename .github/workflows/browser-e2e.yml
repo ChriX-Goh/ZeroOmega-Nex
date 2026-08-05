@@ -189,6 +189,57 @@ jobs:
             firefox-renderer-fallback-toolbar-e2e.log
           if-no-files-found: warn
 
+  firefox-policy-owned-popup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install locked Firefox proxy policy
+        run: |
+          firefox --version
+          FIREFOX_BIN="$(readlink -f "$(command -v firefox)")"
+          FIREFOX_DIR="$(dirname "$FIREFOX_BIN")"
+          POLICY='{"policies":{"Proxy":{"Mode":"manual","HTTPProxy":"127.0.0.1:18199","UseHTTPProxyForAllProtocols":true,"Passthrough":"<local>","Locked":true}}}'
+          sudo install -d -m 755 "$FIREFOX_DIR/distribution"
+          printf '%s\n' "$POLICY" | sudo tee "$FIREFOX_DIR/distribution/policies.json" >/dev/null
+          sudo chmod 444 "$FIREFOX_DIR/distribution/policies.json"
+          cat "$FIREFOX_DIR/distribution/policies.json"
+
+      - name: Build Firefox extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
+
+      - name: Run Firefox policy-owned Popup E2E
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-policy-owned-popup 2>&1 | tee firefox-policy-owned-popup-e2e.log
+
+      - name: Upload Firefox policy-owned Popup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-policy-owned-popup-e2e
+          path: firefox-policy-owned-popup-e2e.log
+          if-no-files-found: warn
+
   chromium-native-inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 25
