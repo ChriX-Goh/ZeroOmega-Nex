@@ -8,6 +8,7 @@ on:
       - .github/workflows/original-nex-ui-evidence.yml
       - scripts/capture-original-nex-ui-evidence.mjs
       - scripts/capture-original-nex-popup-site-action-evidence.mjs
+      - scripts/capture-original-nex-popup-expanded-site-action-evidence.mjs
       - apps/extension/src/entrypoints/options/**
       - apps/extension/src/entrypoints/popup/**
       - apps/extension/src/lib/ui-messages.ts
@@ -27,6 +28,7 @@ jobs:
       ZEROOMEGA_NEX_CHROMIUM_PATH: dist/chrome-mv3
       ZEROOMEGA_UI_COMPARISON_OUTPUT: artifacts/original-nex-ui-evidence
       ZEROOMEGA_POPUP_SITE_ACTION_OUTPUT: artifacts/original-nex-popup-site-action-evidence
+      ZEROOMEGA_POPUP_EXPANDED_SITE_ACTION_OUTPUT: artifacts/original-nex-popup-expanded-site-action-evidence
       ZEROOMEGA_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
       ZEROOMEGA_UI_EVIDENCE_LOCALE: zh-CN
 
@@ -77,6 +79,12 @@ jobs:
           set -o pipefail
           node scripts/capture-original-nex-popup-site-action-evidence.mjs 2>&1 | tee original-nex-popup-site-action-evidence.log
 
+      - name: Capture paired expanded Popup site-action evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/capture-original-nex-popup-expanded-site-action-evidence.mjs 2>&1 | tee original-nex-popup-expanded-site-action-evidence.log
+
       - name: Upload paired UI evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,7 +93,9 @@ jobs:
           path: |
             artifacts/original-nex-ui-evidence
             artifacts/original-nex-popup-site-action-evidence
+            artifacts/original-nex-popup-expanded-site-action-evidence
             original-nex-ui-evidence.log
             original-nex-popup-site-action-evidence.log
+            original-nex-popup-expanded-site-action-evidence.log
           if-no-files-found: error
           retention-days: 30
