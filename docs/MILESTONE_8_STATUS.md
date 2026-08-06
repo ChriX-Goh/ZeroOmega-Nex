@@ -72,15 +72,13 @@ Existing Popup slices 02Q/02R/02S remain bounded regression `PASS` results. They
 
 ## Current open product journeys
 
-| Journey | State | Main blocker |
-|---|---|---|
-| Real original migration and semantic round trip | PARTIAL | no representative real export has completed import, activation, route decisions, restart, and semantic re-export on both browsers |
-| Profile-family and routing semantics | PARTIAL | broad implementation exists, but real migrated-data semantic closure is incomplete |
-| Toolbar, Popup, and daily switching | PARTIAL | bounded states pass; complete ordinary parent journey and owner acceptance remain open |
-| Options, dialogs, CRUD, Apply/Discard | PARTIAL | familiar complete task flow and material UX compatibility remain open |
-| Export, restart, rollback, ownership, authentication, reliability, security | PARTIAL | foundations exist; consolidated real-data failure-injection matrix remains open |
-| Localization, accessibility, bounded visual alignment | PARTIAL | incomplete surface coverage and no final candidate |
-| Final packaging and owner acceptance | OPEN | release state is `NO-GO` |
+- **Real original migration and semantic round trip — PARTIAL.** No representative real export has completed import, activation, route decisions, restart, and semantic re-export on both browsers.
+- **Profile-family and routing semantics — PARTIAL.** Broad implementation exists, but real migrated-data semantic closure is incomplete.
+- **Toolbar, Popup, and daily switching — PARTIAL.** Bounded states pass; the complete ordinary parent journey and owner acceptance remain open.
+- **Options, dialogs, CRUD, Apply/Discard — PARTIAL.** Familiar complete task flow and material UX compatibility remain open.
+- **Export, restart, rollback, ownership, authentication, reliability, security — PARTIAL.** Foundations exist; the consolidated real-data failure-injection matrix remains open.
+- **Localization, accessibility, bounded visual alignment — PARTIAL.** Surface coverage is incomplete and there is no final candidate.
+- **Final packaging and owner acceptance — OPEN.** Release state is `NO-GO`.
 
 ## Immediate execution order
 
