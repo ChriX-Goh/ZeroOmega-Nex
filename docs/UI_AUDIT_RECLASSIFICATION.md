@@ -1,21 +1,21 @@
 # UI Audit Reclassification Overlay
 
-`UI_AUDIT_MATRIX.md` preserves a large body of original-source and browser evidence, but its historical classification vocabulary is no longer a product contract. This overlay controls how those rows are interpreted until the matrix is migrated row by row.
+`UI_AUDIT_MATRIX.md` preserves a large body of original-source and browser evidence, but its historical classification vocabulary is no longer a product contract. This overlay controls how those rows are interpreted and migrated.
 
 ## 1. Authority
 
-- Product classes come only from `PRODUCT_CONSTITUTION.md`.
+- Product classes come only from `PRODUCT_CONSTITUTION.md` and ADR-020.
 - Historical `MUST_MATCH`, `REFERENCE`, `UNCERTAIN`, `INTENTIONAL_DIVERGENCE`, and `NOT_PORTING` labels are evidence-era metadata.
-- A historical `DONE` means the recorded implementation/evidence existed; it does not automatically mean the row is still required, correctly classified, or sufficient to close its parent journey.
-- No historical row may be used to authorize pixel/DOM/event-level cloning or an ordinary UI engineering concept.
+- A historical `DONE` means the recorded implementation or evidence existed; it does not automatically mean the row is still required, correctly classified, or sufficient to close its parent journey.
+- No historical row may authorize pixel, DOM, event-level cloning or an ordinary UI engineering concept.
 
-## 2. Migration mapping
+## 2. Historical-label mapping
 
-- **Historical `MUST_MATCH`.** Treat as an unclassified requirement, often `UX-COMPATIBLE` and sometimes `CONTRACT-EXACT`. Determine whether the row protects data/semantics/recovery, a complete user task, or only incidental presentation.
-- **Historical `REFERENCE`.** Treat as non-binding visual or implementation evidence. Classify as `UX-COMPATIBLE` evidence or `MODERNIZED`; do not score independently without task impact.
-- **Historical `UNCERTAIN`.** Treat as `UNKNOWN`. Obtain original, target, or real-data evidence before implementation or closure.
-- **Historical `INTENTIONAL_DIVERGENCE`.** Treat as a candidate `DR-xxxx`, `MODERNIZED`, or `LEGACY-DEFECT-REJECTED` item. Confirm material impact, evidence, and current decision authority.
-- **Historical `NOT_PORTING`.** Treat as a scope or implementation decision. Confirm that it is internal technology, a rejected defect, or an explicitly deferred feature.
+- **`MUST_MATCH`.** Treat as unclassified. Determine whether it protects `CONTRACT-EXACT` data/semantics/recovery, a complete `UX-COMPATIBLE` task, or only incidental presentation.
+- **`REFERENCE`.** Treat as non-binding visual or implementation evidence. Classify as task evidence or `MODERNIZED`; do not score independently without task impact.
+- **`UNCERTAIN`.** Treat as `UNKNOWN`. Obtain original, target, or real-data evidence before implementation or closure.
+- **`INTENTIONAL_DIVERGENCE`.** Treat as a candidate `DR-xxxx`, `MODERNIZED`, or `LEGACY-DEFECT-REJECTED` item. Confirm material impact and current decision authority.
+- **`NOT_PORTING`.** Treat as a scope or implementation decision. Confirm that it is internal technology, a rejected defect, or an explicitly deferred feature.
 
 ## 3. Row-level decision rules
 
@@ -23,7 +23,7 @@ Classify as `CONTRACT-EXACT` when the row changes:
 
 - imported or exported user data;
 - profile identity, name, color, order, references, startup, or Quick Switch;
-- rule/PAC/Rule List meaning or effective route result;
+- rule, PAC, Rule List meaning, or effective route result;
 - persistence, restart, activation, rollback, failure recovery, ownership, authentication, or security.
 
 Classify as `UX-COMPATIBLE` when the row protects a complete ordinary task:
@@ -31,70 +31,69 @@ Classify as `UX-COMPATIBLE` when the row protects a complete ordinary task:
 - finding a familiar entry point;
 - selecting or switching a profile;
 - creating, editing, renaming, deleting, applying, or discarding configuration;
-- understanding current/result/blocked/error state;
+- understanding current, result, blocked, or error state;
 - using site or temporary rules;
 - completing the task without instructions or material relearning.
 
 Classify as `MODERNIZED` when the row concerns:
 
 - implementation technology;
-- responsive layout, keyboard/focus, accessibility, high DPI, dark mode;
-- clearer errors/loading without a new mandatory workflow;
+- responsive layout, keyboard/focus, accessibility, high DPI, or dark mode;
+- clearer errors or loading without a new mandatory workflow;
 - performance, testability, maintainability, or internal architecture.
 
 Classify as `LEGACY-DEFECT-REJECTED` when evidence shows:
 
-- bug, race, silent corruption, security weakness, severe performance defect;
+- bug, race, silent corruption, security weakness, or severe performance defect;
 - obsolete browser restriction;
-- inaccessible or accidental framework/DOM/event behavior.
+- inaccessible or accidental framework, DOM, or event behavior.
 
 ## 4. Evidence and status reinterpretation
 
 - `DONE` with only Nex fixtures remains engineering evidence, not original compatibility proof.
 - `DONE` with precise geometry remains useful only where geometry affects hierarchy, recognition, overflow, accessibility, or hit targets.
-- `DONE` that exposes Draft, compiler, snapshot, capability, graph, migration-transaction, or delivery concepts in ordinary UI is not acceptable evidence; the visible behavior must be removed or moved behind an explicit advanced diagnostic boundary.
+- `DONE` that exposes Draft, compiler, snapshot, capability, graph, migration-transaction, or delivery concepts in ordinary UI is not acceptable product evidence.
 - `PARTIAL` parent journeys remain partial even when multiple child rows are `DONE`.
 - Owner `FAIL` remains authoritative for the failed consolidated build.
 
 ## 5. Initial conflict findings
 
-The first matrix section already demonstrates why migration is required:
+- A-01 records top-level History and dynamic Draft state as positive `MUST_MATCH` evidence; those internal additions are not authorized ordinary UI.
+- A-14 correctly states that pixel-perfect skin cloning is not required and maps to bounded `UX-COMPATIBLE` or `MODERNIZED` evidence.
+- B-09 records immutable revision as an internal implementation detail; it belongs to `MODERNIZED`, not a visible contract.
+- C-05 must split retained import/export meaning from inactive modern-browser FTP traffic.
+- C-09 combines semantic capability truth with permanent explanatory UI. ADR-020 keeps the capability matrix but moves detailed diagnostics out of ordinary Fixed UI; only concise task-relevant warnings remain.
 
-- A-01 records top-level History and dynamic Draft state as evidence under `MUST_MATCH`; those internal/workflow additions are not authorized ordinary UI under the current Constitution.
-- A-14 correctly states that pixel-perfect skin cloning is not required and should map to bounded `UX-COMPATIBLE`/`MODERNIZED` evidence.
-- B-09 records immutable revision as an internal implementation detail; it belongs to `MODERNIZED`, not a visible `MUST_MATCH` contract.
-- C-05 is a target-capability/data-preservation decision and must be split: retained import/export meaning is `CONTRACT-EXACT`, inactive modern browser FTP traffic is target-dependent under its ADR.
-- C-09 combines semantic capability truth with user-facing explanation. Compiler/target behavior is `CONTRACT-EXACT`; ordinary explanatory UI is only required when the user must act on a real limitation and must remain concise.
+These findings do not automatically invalidate the implementation. They invalidate the historical classification as current acceptance authority.
 
-These examples do not invalidate the implementation automatically. They invalidate the historical classification as the current acceptance authority.
+## 6. Just-in-time migration by parent batch
 
-## 6. Migration batches
+The full historical matrix is not rewritten as an upfront governance project. Each parent batch must migrate its relevant rows before those rows support acceptance or scoring:
 
-Matrix migration is performed by parent journey, not by arbitrary row count:
-
-1. `MIG-01`: import/export/data/startup/Quick Switch/PAC/Rule List and failure rows.
-2. `UX-POPUP-01`: Toolbar, Popup, current/result, site/temporary, ownership rows.
-3. `UX-OPTIONS-01`: navigation, dialogs, CRUD, validation, Apply/Discard rows.
+1. `MIG-01`: import, export, data, startup, Quick Switch, PAC, Rule List, persistence, and failure rows.
+2. `UX-POPUP-01`: Toolbar, Popup, current/result, site/temporary, and ownership rows.
+3. `UX-OPTIONS-01`: navigation, dialogs, CRUD, validation, and Apply/Discard rows.
 4. `SEM-01`: Profile-family, condition, and route-result rows.
-5. `REL-01`: restart, rollback, export, ownership, authentication, security rows.
+5. `REL-01`: restart, rollback, export, ownership, authentication, and security rows.
 6. `FINAL-01`: localization, accessibility, hierarchy, density, overflow, hit-target, and bounded visual rows.
 
-A row is considered migrated only when it has:
+A row is migrated when it has:
 
 - current compatibility class;
-- parent journey/batch;
+- parent journey and batch;
 - user or system outcome;
 - evidence level;
 - current status;
 - debt or difference record where applicable.
 
-## 7. Current limitation
+## 7. Current use
 
-The historical matrix has not yet been fully migrated. Until that is complete:
+Until a row is migrated:
 
-- it remains an evidence inventory;
-- it cannot override the Constitution, Execution Governance, Delivery Plan, Project State, or current Owner result;
-- it cannot authorize a new micro-slice batch;
-- it cannot be used to calculate product completion by counting `DONE` rows.
+- it remains evidence inventory only;
+- it cannot override the Constitution, ADR-020, Execution Governance, Delivery Plan, Project State, or current owner result;
+- it cannot authorize a micro-slice batch;
+- it cannot create product points through `DONE` counting;
+- it may be cited as an original or implementation anchor after its relevance is independently checked.
 
-This overlay resolves the immediate authority conflict while `KG-GOV14-MATRIX-CLASSIFY` remains open.
+This overlay closes the immediate authority conflict without turning governance into another unbounded row-processing project.

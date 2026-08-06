@@ -17,12 +17,14 @@
   ],
   "progress": {
     "legacy_model_anchor": 47.9,
-    "reported_rounded": 48,
-    "confidence_band": {
+    "product_completion": 45.15,
+    "reported_rounded": 45,
+    "delta_from_legacy_anchor": -2.75,
+    "evidence_confidence_band": {
       "lower": 43,
       "upper": 50
     },
-    "tri_track_recalculation": "PENDING_AFTER_GOV-01",
+    "reconciliation": "docs/GOV_01_PROGRESS_RECONCILIATION.md",
     "release_state": "NO-GO"
   },
   "owner": {
@@ -31,18 +33,27 @@
     "date": "2026-08-02",
     "retest_authorized": false
   },
+  "completed_batches": [
+    {
+      "id": "GOV-01",
+      "name": "Governance and compatibility-class convergence",
+      "product_progress_delta": 0,
+      "closure": "docs/GOV_01_PROGRESS_RECONCILIATION.md"
+    }
+  ],
   "active_batch": {
-    "id": "GOV-01",
-    "name": "Governance and compatibility-class convergence",
-    "type": "governance",
-    "product_progress_delta": 0,
-    "product_code_frozen": true
-  },
-  "next_product_batch": {
     "id": "MIG-01",
     "name": "Real original-export golden path",
-    "journey": "real original export -> direct import -> activation -> route decisions -> restart -> semantic re-export",
-    "product_wip_limit": 1
+    "type": "product",
+    "phase": "INVENTORY_AND_CORPUS",
+    "parent_journey": "real original migration and semantic round trip",
+    "contract": "docs/MIG_01_BATCH_CONTRACT.md",
+    "product_wip_limit": 1,
+    "scope_frozen": true
+  },
+  "next_batch": {
+    "id": "UX-POPUP-01",
+    "name": "Consolidated Toolbar and Popup daily-use journey"
   },
   "authorized_sequence": [
     "GOV-01",
@@ -59,8 +70,12 @@
     "release candidate claim",
     "owner micro-slice retest",
     "unrelated redesign",
+    "popup or options beautification outside MIG-01 blockers",
+    "broad diagnostics expansion",
+    "scheduling or history expansion",
+    "backup or remote sync expansion",
+    "new profile families",
     "speculative Rust/WASM expansion",
-    "native engine expansion",
-    "remote sync expansion"
+    "native engine expansion"
   ]
 }

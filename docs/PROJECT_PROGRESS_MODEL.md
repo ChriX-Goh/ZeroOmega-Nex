@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Progress reporting separates three questions that were previously conflated:
+Progress reporting separates three questions:
 
 1. **Product completion** — how much of the required user outcome actually works.
 2. **Evidence confidence** — how strongly that completion is proven by original evidence, real data, deterministic tests, browsers, and failure injection.
@@ -10,64 +10,75 @@ Progress reporting separates three questions that were previously conflated:
 
 Commit count, changed lines, test count, workflow count, green CI, screenshots, and documentation volume are not product completion.
 
-## 2. Current audit anchor
+## 2. Current tri-track state
 
-Until `GOV-01` completes and one explicit tri-track recalculation is committed, the previous audited baseline remains unchanged:
+The one-time transition is recorded in `GOV_01_PROGRESS_RECONCILIATION.md`.
 
-- product completion anchor: **47.9%**, reported as **48%**;
-- confidence band: **43%–50%**;
-- release state: **NO-GO**;
-- PR #11: Draft;
-- latest owner result: Firefox `FAIL`, 2026-08-02;
-- active governance batch: `GOV-01`;
-- product progress change from governance work: **0 points**.
+- Historical audit anchor: 47.9%, reported as 48%.
+- Current product completion: **45.15%**, reported as **45%**.
+- Delta: **−2.75 points**, reported as **−3 points**.
+- Evidence confidence: provisional **43%–50% band**.
+- Release state: **`NO-GO`**.
+- PR #11: Draft.
+- Latest owner result: Firefox `FAIL`, 2026-08-02.
+- Active batch: `MIG-01`.
 
-The old `52%`, `98%`, and Order 1 `80%` claims remain superseded.
+The decrease is a methodology correction, not a code regression. Governance work added zero product points. The old `52%`, `98%`, and Order 1 `80%` claims remain superseded.
 
-## 3. Product journey weights after recalculation
+## 3. Product journey weights
 
-The tri-track recalculation must use these weights unless a later owner-approved change records the reason:
+- Real original migration and semantic round trip: 25%.
+- Profile-family and routing semantics: 20%.
+- Toolbar, Popup, and daily switching: 15%.
+- Options, dialogs, CRUD, and Apply/Discard: 15%.
+- Export, restart, rollback, ownership, authentication, reliability, and security: 15%.
+- Localization, accessibility, and bounded visual alignment: 5%.
+- Final packaging and owner acceptance: 5%.
 
-- **Real original migration and semantic round trip: 25%.**
-- **Profile-family and routing semantics: 20%.**
-- **Toolbar, Popup, and daily switching: 15%.**
-- **Options, dialogs, CRUD, and Apply/Discard: 15%.**
-- **Export, restart, rollback, ownership, authentication, reliability, and security: 15%.**
-- **Localization, accessibility, and bounded visual alignment: 5%.**
-- **Final packaging and owner acceptance: 5%.**
+Total: 100%.
 
-Total: **100%**.
+This weighting intentionally gives real migration, effective behavior, and recovery more value than incidental presentation detail.
 
-This weighting intentionally gives real migration, effective behavior, and recovery more value than incidental presentation details.
+## 4. Current journey mapping
 
-## 4. Product completion scoring
+- **Migration: 35% complete.** Typed importer and transaction foundations exist; no representative real export has completed the full chain on both browsers.
+- **Profile and routing semantics: 60% complete.** Broad implementation and semantic assets exist; real migrated-data closure is incomplete.
+- **Toolbar and Popup: 45% complete.** Strong runtime automation and bounded child slices exist; the full ordinary parent journey remains unaccepted.
+- **Options and editing: 51% complete.** Broad editor and Apply/Discard foundations exist; complete familiar task flow remains open.
+- **Reliability and security: 52% complete.** Activation, rollback, ownership, and authentication foundations exist; the consolidated real-data failure matrix remains open.
+- **Localization and bounded visual quality: 44% complete.** Framework and partial evidence exist; full coverage and final accessibility remain open.
+- **Final packaging and owner acceptance: 0% complete.** There is no accepted candidate.
+
+These values are conservative mappings of the last audited repository state. Bounded child slices are not counted twice.
+
+## 5. Product completion scoring
 
 Product completion is measured by usable parent-journey outcomes.
 
-A journey may gain gradual completion for verified implementation and real browser/data behavior. Owner acceptance is not allowed to erase all intermediate product completion, but release remains blocked until the applicable owner gate.
+A journey may gain gradual completion for verified implementation and real browser/data behavior. Owner acceptance does not erase measurable intermediate completion, but release remains blocked until the applicable owner gate.
 
-Recommended internal shares for each journey:
+Recommended internal shares:
 
 - contract and acceptance criteria defined: 10%;
 - implementation exists: 35%;
-- deterministic task/semantic tests pass: 20%;
+- deterministic task or semantic tests pass: 20%;
 - required real data or real browser journey passes: 25%;
 - consolidated parent-journey decision: 10%.
 
-For the final packaging journey, the last 5% remains unavailable until the exact candidate receives owner `PASS`.
+For final packaging, all five project points remain unavailable until the exact candidate receives owner `PASS`.
 
-A bounded slice may be complete while its parent remains partial. Slice completion must not be converted into parent completion without satisfying the parent criteria.
+A bounded slice may be complete while its parent remains partial. Slice completion cannot be converted into parent completion without satisfying the parent criteria.
 
-## 5. Evidence confidence
+## 6. Evidence confidence
 
-Evidence confidence is reported independently from product completion. It answers whether the completion estimate is trustworthy.
+Evidence confidence is independent from product completion.
 
 Confidence inputs include:
 
-- original source/package/runtime anchors;
+- original source, package, and runtime anchors;
 - representative official and sanitized real exports;
 - explicit Original-to-Nex mappings;
-- deterministic semantic or task vectors;
+- deterministic semantic and task vectors;
 - Chromium evidence;
 - Firefox evidence;
 - restart and failure-injection evidence;
@@ -76,9 +87,9 @@ Confidence inputs include:
 
 Synthetic fixtures alone cap confidence for a real migration claim. Nex-only screenshots cap confidence for an original-facing UX claim. Green unit tests cannot substitute for browser ownership, persistence, or recovery evidence.
 
-Confidence may rise without product completion rising, and product completion may rise while confidence remains provisional. Both must be reported.
+Confidence may rise without product completion rising, and product completion may rise while confidence remains provisional.
 
-## 6. Release state
+## 7. Release state
 
 Only three release states are valid:
 
@@ -88,7 +99,7 @@ Only three release states are valid:
 
 Automation cannot override an owner `FAIL` or advance release state by itself.
 
-## 7. Compatibility-aware scoring
+## 8. Compatibility-aware scoring
 
 - `CONTRACT-EXACT` work receives product credit only when user data, semantic result, persistence, or failure behavior is actually available.
 - `UX-COMPATIBLE` work is scored by complete task success and familiar mental model, not DOM or pixel identity.
@@ -97,7 +108,7 @@ Automation cannot override an owner `FAIL` or advance release state by itself.
 
 Independent micro-geometry, blur timing, and incidental DOM parity do not create product points unless they resolve a task, accessibility, recognition, overflow, or hit-target blocker.
 
-## 8. Reporting requirements
+## 9. Reporting requirements
 
 Every substantive project report states:
 
@@ -114,17 +125,16 @@ Every substantive project report states:
 
 Reports must not present percentage as release readiness.
 
-## 9. Recalculation procedure
+## 10. Update procedure
 
-After `GOV-01`:
+At batch completion:
 
-1. classify every active journey and audit row;
-2. map completed bounded slices to parent journeys without double counting;
-3. remove credit that represented only evidence volume or incidental exactness;
-4. retain credit for working architecture that produces real required outcomes;
-5. score the same repository state under the new weights;
-6. publish old 47.9% and the new number side by side with a reconciliation table;
-7. update `PROJECT_STATE.json` once;
-8. do not repeatedly recalculate during the same product batch.
+1. migrate and classify the audit rows relevant to the batch;
+2. map completed child slices to parent journeys without double counting;
+3. award product credit only for actual user or required system outcomes;
+4. update evidence confidence from new original, real-data, browser, restart, failure, or security evidence;
+5. record debt change and release state;
+6. update `PROJECT_STATE.json` once;
+7. do not recalculate repeatedly during the same batch.
 
-No increase is permitted merely because the model changed.
+A model or documentation change cannot create product progress.
