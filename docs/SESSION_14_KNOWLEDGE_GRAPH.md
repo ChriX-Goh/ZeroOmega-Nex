@@ -1,226 +1,226 @@
-# Session 14 Knowledge Graph — Governance Reset and Migration Lock
+# Session 14 Knowledge Graph - Governance Reset and Migration Lock
 
-This file records the incremental knowledge and decisions from Session 14. Stable product rules live in `PRODUCT_CONSTITUTION.md`; current authorization lives in `PROJECT_STATE.json`; moving exact Head and Checks live in GitHub.
+This file records the current Session 14 project graph. Stable product rules live in
+`PRODUCT_CONSTITUTION.md`. Current authorization lives in `PROJECT_STATE.json`.
+GitHub PR metadata and checks remain authoritative for the moving exact Head.
 
-## 1. Session trigger
+## 1. Product identity
 
-The repository owner reported two related failures:
+ZeroOmega Nex is a modern successor rewrite of ZeroOmega v3.5.0.
 
-1. the project originally exposed a redesigned, explanation-heavy UI and failed to directly use original exports;
-2. the later correction risked becoming a one-to-one clone of incidental original behavior, with excessive evidence cost for micro-states.
+Compatibility classes:
 
-Session 14 therefore established a governance boundary before further product work and then locked the next product batch to real migration.
+- `CONTRACT-EXACT`: data, semantics, routes, persistence, recovery and security.
+- `UX-COMPATIBLE`: familiar tasks, terminology, defaults and resulting state.
+- `MODERNIZED`: safer architecture, reliability, accessibility and performance.
+- `LEGACY-DEFECT-REJECTED`: confirmed bugs, races, corruption and unsafe behavior.
 
-## 2. Preserved owner intent
-
-The following requirements are not weakened:
-
-- supported original exports import directly and become immediately usable;
-- original users do not rebuild profiles or materially relearn ordinary tasks;
-- names, colors, ordering, references, startup, Quick Switch, PAC, Rule Lists, bypass, temporary rules, route decisions, persistence, restart, semantic export, failure recovery, rollback, ownership, authentication, and security remain protected;
-- internal architecture is replaced with a faster, safer, more reliable, and maintainable design;
-- internal Draft, compiler, snapshot, graph, capability, and delivery concepts remain outside ordinary UI;
-- Firefox and Chromium are verified separately;
-- owner retest, merge, candidate, and release remain prohibited.
-
-## 3. Compatibility graph
-
-```text
-PRODUCT-IDENTITY
-  -> CONTRACT-EXACT
-     -> migration data
-     -> semantic route results
-     -> persistence / restart
-     -> export / rollback / ownership / authentication / security
-  -> UX-COMPATIBLE
-     -> familiar terminology
-     -> familiar entry points and defaults
-     -> ordinary task success
-     -> no material relearning
-  -> MODERNIZED
-     -> compile-first PAC architecture
-     -> reliability / accessibility / responsive behavior
-     -> performance and bounded clarity improvements
-  -> LEGACY-DEFECT-REJECTED
-     -> confirmed bugs / races / corruption
-     -> unsafe or obsolete behavior
-     -> incidental framework / DOM / event behavior
-```
-
-This graph rejects both unauthorized redesign and default pixel, DOM, event-timing, or defect cloning.
-
-## 4. Execution governance graph
+Execution hierarchy:
 
 ```text
 Objective
   -> Capability
-     -> Journey
-        -> Batch
-           -> Task
-              -> Acceptance
-                 -> Evidence
+    -> Journey
+      -> Batch
+        -> Task
+          -> Acceptance
+            -> Evidence
 ```
 
-Hard edges:
+Binding governance rules:
 
-- every task has a parent batch and journey;
-- product WIP is one;
-- every batch declares compatibility classes, frozen scope, acceptance, evidence, risks, stop rules, debt, and knowledge-graph delta;
-- iteration uses targeted checks;
-- one clean exact Head receives the permanent gate set when required;
-- owner sees complete journeys or irreducible decisions, not micro-slices.
+- Product work in progress is limited to one parent batch.
+- Historical UI rows are evidence inventory, not the product contract.
+- Permanent gates run on coherent exact Heads, not every micro-state.
+- Owner review is reserved for complete journeys or irreducible decisions.
 
-## 5. Governance assets
+## 2. Audited project state
 
-Session 14 added or aligned:
+- Product completion: `45.15%`, reported as `45%`.
+- Evidence confidence: `43%-50%`.
+- Release state: `NO-GO`.
+- PR #11 remains open and Draft.
+- Latest owner result: Firefox `FAIL`, dated 2026-08-02.
+- Merge, release, candidate claims and owner retest remain prohibited.
 
-- `PRODUCT_CONSTITUTION.md`;
-- `EXECUTION_GOVERNANCE.md`;
-- `PROJECT_STATE.json`;
-- `COMPATIBILITY.md`;
-- `DELIVERY_PLAN.md`;
-- `PROJECT_PROGRESS_MODEL.md`;
-- `PROJECT_CHARTER.md`;
-- `MILESTONE_8_STATUS.md`;
-- `AGENTS.md`;
-- `README.md`;
-- `UI_AUDIT_RECLASSIFICATION.md`;
-- `ADR-020_COMPATIBILITY_BOUNDARY_AND_PROPORTIONAL_EVIDENCE.md`;
-- `GOV_01_PROGRESS_RECONCILIATION.md`;
-- `MIG_01_BATCH_CONTRACT.md`;
-- this incremental graph.
+The reduction from the historical `47.9%` anchor is methodological, not a regression.
+Governance work earned no product-completion points.
 
-No product implementation file was intentionally changed by `GOV-01`.
+## 3. Completed governance batch
 
-## 6. Resolved governance nodes
+`GOV-01` is complete.
 
-- `KG-GOV14-BOUNDARY` — four compatibility classes are binding.
-- `KG-GOV14-WIP` — product WIP=1 and batch hierarchy are binding.
-- `KG-GOV14-MATRIX-AUTHORITY` — the historical UI matrix is an evidence inventory, not a product contract.
-- `KG-GOV14-CONFLICT-SCAN` — ADR-003 remains valid; ADR-012 evidence granularity and ADR-019 ordinary-UI exposure are clarified by ADR-020.
-- `KG-GOV14-PR-SYNC` — PR #11 reflects the current product boundary and sequence.
-- `KG-GOV14-RECONCILE` — historical 47.9% is reconciled to 45.15% product completion under the new weights.
-- `KG-GOV14-STATE-SCHEMA` — deferred; no current machine consumer justifies a separate schema gate.
+It established:
 
-Final exact-Head checks remain a moving GitHub fact and are not copied into this file.
+- one product identity and four compatibility classes;
+- product WIP of one;
+- proportional evidence requirements;
+- stop and re-plan rules;
+- a machine-readable current state;
+- a reconciled progress model;
+- a rule that engineering research stays out of ordinary UI.
 
-## 7. Matrix migration decision
+## 4. Active product batch
 
-Full row-by-row rewriting of all historical UI rows is not an upfront governance gate.
+The only active product batch is `MIG-01`.
 
-`UI_AUDIT_RECLASSIFICATION.md` immediately prevents historical labels and `DONE` counts from overriding current rules. Each parent batch must migrate the rows relevant to its own journey before those rows can support acceptance or scoring.
-
-This converts a potentially unbounded governance exercise into just-in-time traceability:
-
-- `MIG-01` migrates import, export, data, startup, Quick Switch, PAC, Rule List, persistence, and failure rows;
-- `UX-POPUP-01` migrates Toolbar, Popup, current/result, site/temporary, and ownership rows;
-- later batches migrate their own relevant rows.
-
-## 8. Progress graph
+Parent journey:
 
 ```text
-HISTORICAL AUDIT
-  -> 47.9% product score
-  -> 43%–50% confidence band
-
-TRI-TRACK RECONCILIATION
-  -> product completion 45.15% ~= 45%
-  -> evidence confidence remains 43%–50%
-  -> release state NO-GO
-  -> delta -2.75 points
-```
-
-The decrease is a method correction:
-
-- final packaging and owner acceptance now reserve five explicit points and currently score zero;
-- migration, semantics, and reliability receive more weight;
-- bounded Popup slices are not double counted;
-- governance adds zero product points.
-
-## 9. Session 13 assets retained
-
-Session 13 evidence remains valid:
-
-- 02Q form/dropdown behavior;
-- 02R competing-extension takeover and external-profile inline rename/save;
-- 02S Firefox enterprise policy ownership lock;
-- current-site temporary-rule and ownership regressions;
-- existing permanent read-only evidence workflows;
-- one background Action writer, PAC data plane, browser adapters, atomic activation, rollback, and restart foundations.
-
-These are bounded regression assets. They do not close the full Toolbar/Popup parent journey and do not outrank migration.
-
-## 10. Active state graph
-
-```text
-PR #11
-  -> Draft
-  -> release state NO-GO
-  -> latest owner result Firefox FAIL (2026-08-02)
-
-COMPLETED BATCH
-  -> GOV-01
-  -> product progress delta 0
-
-ACTIVE PRODUCT BATCH
-  -> MIG-01
-  -> phase INVENTORY_AND_CORPUS
-  -> real original export
+real original export
   -> direct import
-  -> atomic activation
+  -> compatibility report
+  -> acceptance transaction
+  -> Apply and browser confirmation
   -> real route decisions
-  -> browser restart
-  -> semantic re-export
+  -> persistent restart
+  -> semantic schema-v2 export
+  -> failure-state preservation
+  -> Chromium and Firefox
 ```
 
-## 11. MIG-01 hard acceptance
+Hard acceptance requirements:
 
-Required positive corpus:
+- Preserve all representable required data.
+- Permit no silent loss, reinterpretation or downgrade.
+- Complete the full chain on Chromium and Firefox.
+- Preserve or restore the previous confirmed state on every failure.
+- Require no mandatory manual reconstruction ritual.
+- Leak no secrets or secret references.
 
-- official/default original export;
-- sanitized owner daily-use export;
-- nested Switch/Virtual/Rule List export;
-- PAC/update/cache/bypass/authentication-metadata export.
+## 5. Official original fixture
 
-Required negative corpus:
+The authoritative positive fixture is:
 
-- malformed, cyclic, missing-reference, oversized, unsupported, unsafe, and hostile cases.
+`fixtures/zeroomega-v2/original-default-v3.5.0.bak`
 
-Hard results:
+It was produced by the pinned original ZeroOmega v3.5.0 runtime and has provenance.
 
-- representable required data preservation: 100%;
-- silent loss or downgrade: zero;
-- both browsers complete the chain;
-- every failure preserves or restores the previous confirmed state;
-- no mandatory manual reconstruction or migration ritual;
-- no secret leakage.
+Important facts:
 
-## 12. Frozen scope during MIG-01
+- Fixed profile `proxy`, color `#99ccee`.
+- HTTP fallback proxy `proxy.example.com:8080`.
+- Bypass entries `127.0.0.1`, `::1` and `localhost`.
+- Switch profile `auto switch`, color `#99dd99`.
+- `internal.example.com` routes directly.
+- `*.example.com` routes through `proxy`.
+- The default route is direct.
+- Quick Switch is disabled and its route list is empty.
+- The startup profile is empty.
 
-- Popup/Options beautification unrelated to migration;
-- broad diagnostics, scheduling, history, or backup;
-- Gist, WebDAV, browser-cloud, or other remote sync;
+The disabled Quick Switch state is contractual. Popup correctly hides `auto switch`.
+Tests must not reinterpret that behavior as a product defect.
+
+## 6. Completed backend migration oracle
+
+`apps/extension/src/lib/original-default-migration.test.ts` proves:
+
+- original backup analysis;
+- acceptance of Draft and secret material;
+- Apply to confirmed runtime state;
+- schema-v2 semantic export and re-import;
+- preservation of the previous active state after forced activation failure;
+- retention of the accepted imported Draft after Apply failure;
+- no unexpected secret-store mutation during failed Apply.
+
+The ordinary UI still composes `accept-import` and `apply` as two commands.
+
+## 7. Completed Chromium official-fixture journey
+
+`scripts/e2e-chromium-original-migration.mjs` now runs before the existing Chromium suite.
+It reuses the existing Browser E2E Chromium job and adds no permanent workflow.
+
+The packaged Chromium journey proves:
+
+- Options imports the official `.bak` through the ordinary UI.
+- Profile names, kinds, colors, order, endpoint and bypass data survive import.
+- Original Quick Switch disabled and empty settings survive import.
+- Public workflow commands temporarily enable and activate `auto switch` for testing.
+- Chromium confirms extension-controlled PAC mode.
+- `internal.example.com` reaches the direct local target without the proxy.
+- `routed.example.com` reaches the imported HTTP proxy.
+- Active Switch, PAC and both route decisions recover after browser restart.
+- Temporary route-test settings are replaced with the original imported settings.
+- Schema-v2 export preserves required original semantics.
+- Export contains no secret references.
+- Existing Chromium, Toolbar, restart, Rule List, trace and Popup suites remain green.
+
+The temporary Quick Switch mutation is test scaffolding, not a migration product step.
+
+## 8. Remaining migration debt
+
+The parent `MIG-01` batch remains open because the following are still missing:
+
+- an equivalent official-fixture Firefox packaged journey;
+- a sanitized owner daily-use backup;
+- broader original-runtime-produced complex positive fixtures;
+- complete unsupported, downgraded and opaque-field classification;
+- packaged failure injection on both browsers;
+- a complete two-browser failure matrix;
+- large real-export storage and restart-capacity evidence;
+- final wording for import acceptance followed by Apply failure.
+
+These gaps prevent release-state changes and owner retest.
+
+## 9. Exact next implementation target
+
+Next slice: `MIG-01.3B`.
+
+Goal:
+
+> Drive `original-default-v3.5.0.bak` through the equivalent packaged Firefox journey.
+
+Required Firefox evidence:
+
+- import through the supported extension surface;
+- profile and settings mapping;
+- temporary public-workflow activation of imported `auto switch`;
+- confirmed PAC installation;
+- real direct and proxied route decisions;
+- persistent browser restart recovery;
+- restoration of original imported settings;
+- semantic schema-v2 export without secret references.
+
+Constraints:
+
+- Reuse the existing Browser E2E Firefox job.
+- Do not create a new permanent workflow.
+- Do not weaken original Quick Switch settings.
+- Keep route-test mutations temporary and explicitly restored.
+- Do not add unrelated Popup, Options, diagnostics, history or engine scope.
+
+## 10. Frozen scope
+
+During `MIG-01`, continue to freeze:
+
+- unrelated Popup and Options beautification;
+- broad diagnostics expansion;
+- scheduling, history, backup and remote sync;
 - new Profile families;
 - speculative optimization;
-- Rust/WASM or native-engine expansion.
+- Rust, WASM and native-engine expansion.
 
-## 13. Drift and stop rules
+## 11. Stop and re-plan rules
 
 Stop and re-plan when:
 
-- the active batch begins modifying a second unrelated parent journey;
-- a behavior has no compatibility class;
-- real data disproves the assumed mapping;
-- a fix exposes internal architecture to ordinary users;
-- data would be silently dropped or reinterpreted;
-- evidence cost exceeds the independent migration, semantic, recovery, or security risk;
-- two cycles add no measurable parent-journey progress;
-- scope expands because infrastructure exists rather than because migration requires it.
+- work enters a second unrelated parent journey;
+- a behavior lacks a compatibility class;
+- real data disproves an assumed mapping;
+- data would be silently lost or reinterpreted;
+- a fix leaks internal architecture into ordinary UI;
+- evidence cost exceeds independent migration, recovery or security risk;
+- two cycles add no measurable parent-journey progress.
 
-## 14. Debt state
+## 12. Progress effect
 
-- Technical debt: importer, storage, activation, large-configuration, and recovery risks must be tested in `MIG-01`.
-- Compatibility debt: the real original-export chain is the highest-severity active debt.
-- Process debt reduced: one product identity, state source, WIP rule, batch contract, progress model, and matrix authority.
-- Scope debt reduced: unrelated future capabilities are explicitly frozen.
-- High-severity data-loss, activation, recovery, or secret debt cannot pass `MIG-01` closure.
+The Chromium official-fixture slice closes one browser sub-journey and raises evidence.
+It does not close the weighted parent migration capability.
+
+Audited state therefore remains:
+
+- product completion: `45.15%`, reported as `45%`;
+- evidence confidence: `43%-50%`;
+- release state: `NO-GO`;
+- PR state: Draft;
+- owner retest: prohibited.
