@@ -1,82 +1,122 @@
 # ZeroOmega Nex — Agent Operating Contract
 
-Read `docs/PRODUCT_CONSTITUTION.md` before making any change. It is the highest-authority product contract. If another document conflicts with it, the constitution wins and the conflict must be corrected.
+Read `docs/PRODUCT_CONSTITUTION.md`, `docs/EXECUTION_GOVERNANCE.md`, and `docs/PROJECT_STATE.json` before making any change. The Constitution is the highest-authority product contract. Governance controls execution. Project State records the current authorized batch and release state.
 
 ## Product objective
 
-Build a clean-room, bottom-layer rewrite of ZeroOmega v3.5.0 for Chromium and Firefox while preserving the original observable product contract as modern browser APIs permit. This is not a modernization redesign.
+Build a clean-room, bottom-layer rewrite and modern compatible successor to ZeroOmega v3.5.0 for Chromium and Firefox.
 
-## Binding constraints
+Preserve user data, configuration meaning, effective routing, persistence, failure recovery, and familiar high-frequency operation. Replace the internal architecture. Do not redesign the product mental model, and do not clone incidental pixels, DOM structure, event timing, or historical defects by default.
 
-1. Supported ZeroOmega `schemaVersion: 2` exports must import directly and become immediately usable without manual profile reconstruction or a mandatory new migration workflow.
-2. Preserve representable profile names, colors, ordering, references, startup profile, Quick Switch settings, bypass lists, rule order, proxy endpoints, PAC, Rule Lists, temporary rules, and supported authentication metadata.
-3. UI, terminology, hierarchy, defaults, validation timing, Toolbar, Popup, Options, dialogs, and state transitions are observable contracts and must be equivalent to the original by default.
-4. Do not invent visible pages, descriptions, status taxonomies, or workflow merely to expose rewrite internals.
-5. Any user-visible difference requires a `DR-xxxx` record containing original evidence, browser-limitation evidence, the minimum difference, cross-browser verification, impact analysis, and repository-owner acceptance.
-6. Ordinary browser requests must not depend on an extension-side global `<all_urls>` proxy decision listener.
-7. Use browser-native PAC execution by default. Request-level compatibility hooks must be narrowly scoped, evidence-backed, and optional.
-8. User configuration is the stable public contract. Compiled PAC, indexes, caches, and runtime snapshots are derived artifacts.
-9. Configuration activation must be atomic, confirmed, and rollback-safe.
-10. Firefox and Chromium behavior must be tested separately; do not hide platform differences behind assumptions.
-11. Unknown or target-dependent shapes fail closed. Never invent simplified wording or behavior to make a test pass.
-12. Do not add Rust/WASM merely for appearance. Introduce it only after measured need and protected differential parity.
-13. Do not repeatedly ask the repository owner to inspect micro-slices. Self-verify coherent work, then request owner QC for a complete user journey or irreducible product decision.
-14. Permanent CI is read-only. Do not create one-time workflows that commit or push implementation or documentation changes.
+## Binding compatibility classes
 
-## Technical direction
+Every changed behavior must be classified before implementation:
 
-- Browser shell and UI: TypeScript strict mode, WXT, Svelte.
-- Public configuration: versioned JSON plus JSON Schema.
-- Browser storage: IndexedDB for durable data; browser storage for small active-state records.
-- Policy core: TypeScript reference implementation remains the semantic oracle.
-- Default data plane: precompiled PAC installed through browser-native proxy APIs.
-- Optional advanced data plane: future native engine only after behavioral parity and measured need.
+1. `CONTRACT-EXACT` — data, semantics, route results, persistence, restart, export, rollback, and security.
+2. `UX-COMPATIBLE` — ordinary tasks, terminology, entry points, defaults, hierarchy, action meaning, and resulting state.
+3. `MODERNIZED` — architecture, performance, reliability, accessibility, responsive behavior, and bounded clarity improvements that preserve the contract.
+4. `LEGACY-DEFECT-REJECTED` — confirmed bugs, races, silent corruption, unsafe behavior, obsolete browser limits, and implementation accidents.
 
-## Required workflow
+Do not treat every original DOM, CSS value, blur/click sequence, animation, or pixel as a product contract. Do not use modernization as permission to rename, relocate, or expose new ordinary-user concepts.
 
-1. Read `docs/PRODUCT_CONSTITUTION.md`, `docs/PROJECT_CHARTER.md`, `docs/ARCHITECTURE.md`, `docs/COMPATIBILITY.md`, `docs/DELIVERY_PLAN.md`, and `docs/DECISIONS.md`.
-2. Read the latest knowledge graph, active delivery order, exact Head status, and unresolved evidence nodes before changing code.
-3. Work on the dedicated branch and preserve a clean, reviewable commit history for each coherent work package.
-4. State the user journey, original anchors, acceptance criteria, and known `UNKNOWN` or `DR-xxxx` items.
-5. Capture or cite original source/package/runtime evidence before implementing user-visible behavior.
-6. Add or update deterministic tests and parameterized browser evidence.
-7. Update compatibility fixtures whenever importer or semantic behavior changes.
-8. Never silently reinterpret unsupported legacy data. Map it, preserve it, explicitly downgrade it, or reject it precisely.
-9. Run the required verification pipeline against the exact committed Head.
-10. Update one authoritative status source. Do not hand-maintain competing Head, CI, progress, candidate, or blocker values across multiple documents.
-11. Accumulate verified work into a complete user-journey build and present one concise owner QC package.
+## Hard constraints
 
-## Completion levels
+1. Supported ZeroOmega `schemaVersion: 2` exports must import directly and become immediately usable without manual profile reconstruction or a mandatory migration ritual.
+2. Preserve representable names, colors, order, references, startup profile, Quick Switch, rule priority, bypass, endpoints, PAC, Rule Lists, temporary rules, safe metadata, and supported authentication boundaries.
+3. Silent data loss, silent reinterpretation, and silent downgrade are prohibited.
+4. Experienced original users must complete ordinary tasks without instructions or material relearning.
+5. Ordinary UI must not expose Draft revisions, compilation, snapshots, graph traces, capability research, migration transactions, or delivery status.
+6. A `DR-xxxx` record is required for changed `CONTRACT-EXACT` results, material task changes, target-forced differences, or unrepresentable real data.
+7. Ordinary browser requests must not depend on an extension-side global `<all_urls>` proxy decision listener.
+8. Browser-native PAC is the default data plane. Request-level compatibility hooks are narrow, optional, and evidence-backed.
+9. User configuration is the public contract; compiled PAC, indexes, caches, and snapshots are derived.
+10. Activation is atomic, confirmed, and rollback-safe.
+11. Firefox and Chromium are verified separately.
+12. Unknown behavior fails closed. Do not invent simplified product behavior to make a test pass.
+13. Rust/WASM and native engine work require measured need, semantic protection, and current-batch authorization.
+14. Permanent CI is read-only.
+15. Do not ask the owner to test micro-slices. Present complete journeys or irreducible product decisions.
 
-### Engineering Done
+## Product WIP and scope
 
-- Behavior and failure behavior are specified.
-- Unit and contract tests pass.
-- Cross-browser and import/export impact are assessed.
-- Architecture and decision records are updated where needed.
-- The exact Head passes required engineering checks.
+Product WIP is limited to one active implementation batch.
 
-### Parity Verified
+A task is unauthorized unless it has a named parent batch and journey. A new issue may enter the active batch only when it blocks the stated acceptance criteria; otherwise record it as a dependency or future batch candidate.
 
-- Original-derived evidence and explicit mapping exist.
-- Chromium and Firefox evidence pass where applicable.
-- Real data or real browser evidence exists where synthetic fixtures are insufficient.
-- Any unavoidable difference has an accepted `DR-xxxx` record.
+New features are denied unless they close an authorized first-release journey. Do not silently pull forward scheduling, broad diagnostics, history, backup, remote sync, native engine, new Profile families, or speculative optimization.
 
-### Journey Accepted
+## Required batch workflow
 
-- The complete user journey passes on one exact build.
-- The repository owner records explicit `PASS`.
+Before implementation, record:
 
-Only Journey Accepted work closes product progress. Commit count, changed lines, test count, green CI, or Nex-only screenshots do not establish product completion.
+- batch ID and parent journey;
+- user outcome;
+- affected compatibility classes;
+- included and frozen scope;
+- original or real-data anchors;
+- acceptance criteria;
+- evidence plan;
+- risks and unknowns;
+- stop rules;
+- debt impact;
+- expected knowledge-graph delta.
 
-## Current execution order
+During implementation:
 
-1. Freeze the product constitution and eliminate conflicting wording and status sources.
-2. Complete Order 1: installation, startup, Toolbar, per-tab state, Popup smoke, Inspect, and recovery.
-3. Prove real original export -> direct import -> immediate equivalent use.
-4. Correct Popup and temporary/site-rule journeys.
-5. Correct Options, dialogs, and Apply/Discard journeys.
-6. Close Fixed, Switch, PAC, Virtual, Rule List, lifecycle, export, restart, rollback, ownership, and authentication journeys.
-7. Complete localization, density, and visual alignment.
-8. Produce one exact final candidate for repository-owner acceptance.
+- use targeted unit, component, contract, and affected-browser tests;
+- keep the batch scope frozen;
+- prefer real original exports for migration claims;
+- treat synthetic fixtures as supplements;
+- do not advance public Head for every probe when staging can contain iteration;
+- stop and re-plan when the batch contract becomes invalid.
+
+At batch completion:
+
+- resolve every acceptance criterion;
+- update compatibility mappings, debt, Project State, and knowledge graph;
+- form one clean exact Head;
+- run the permanent full gate set once when required;
+- report product completion, evidence confidence, and release state separately.
+
+## Evidence proportionality
+
+Strong end-to-end evidence is mandatory for data, routing, persistence, security, activation, rollback, real migration, and complete parent journeys.
+
+Task-level browser evidence and bounded visual checks are normally sufficient for `UX-COMPATIBLE` behavior. Micro-states do not each require a permanent workflow or owner inspection unless they carry independent high risk.
+
+Modernization uses evidence appropriate to the claimed benefit: performance measurements, accessibility checks, component tests, failure injection, or bounded visual regression.
+
+## Knowledge and state
+
+- `docs/PROJECT_STATE.json` is the machine-readable source for stable current authorization, progress anchor, owner result, and release state.
+- GitHub PR metadata and Checks are authoritative for moving Head, mergeability, and CI.
+- Knowledge graphs contain evidence anchors, mappings, dependencies, debt, and incremental batch deltas.
+- Session files must not duplicate competing product contracts, moving SHAs, workflow run IDs, or independently edited percentages.
+
+After every batch, query for tasks without parent journeys, unclassified visible behavior, completed slices with incomplete parents, Nex-only evidence, duplicate dynamic state, out-of-scope features, and debt older than two batches.
+
+## Completion and release
+
+Product reporting has three tracks:
+
+- product completion;
+- evidence confidence;
+- release state: `NO-GO`, `GO-FOR-OWNER`, or `OWNER-PASS`.
+
+Owner acceptance controls release, not all measurable intermediate completion. Green CI cannot overrule an owner `FAIL`.
+
+## Current authorization
+
+Follow `docs/PROJECT_STATE.json`.
+
+Current sequence:
+
+1. `GOV-01` — governance convergence; no product progress increase.
+2. `MIG-01` — real original-export golden path.
+3. `UX-POPUP-01` — consolidated Toolbar and Popup journey.
+4. `UX-OPTIONS-01` — Options, dialogs, CRUD, and Apply/Discard.
+5. `SEM-01` — Profile-family and route semantics.
+6. `REL-01` — export, restart, rollback, ownership, authentication, reliability, and security.
+7. `FINAL-01` — localization, accessibility, bounded visual alignment, packaging, and owner candidate.
+
+No merge, release, candidate claim, unrelated redesign, or owner retest is authorized while release state is `NO-GO`.
