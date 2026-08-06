@@ -1,0 +1,66 @@
+{
+  "$schema": "./PROJECT_STATE.schema.json",
+  "project": "ZeroOmega Nex",
+  "branch": "feat/m8-profile-workflow",
+  "pull_request": 11,
+  "dynamic_sources": {
+    "exact_head": "GitHub pull request head SHA",
+    "checks": "GitHub checks for exact_head",
+    "mergeability": "GitHub pull request metadata"
+  },
+  "product_identity": "ZeroOmega user-contract-compatible modern successor rewrite",
+  "compatibility_classes": [
+    "CONTRACT-EXACT",
+    "UX-COMPATIBLE",
+    "MODERNIZED",
+    "LEGACY-DEFECT-REJECTED"
+  ],
+  "progress": {
+    "legacy_model_anchor": 47.9,
+    "reported_rounded": 48,
+    "confidence_band": {
+      "lower": 43,
+      "upper": 50
+    },
+    "tri_track_recalculation": "PENDING_AFTER_GOV-01",
+    "release_state": "NO-GO"
+  },
+  "owner": {
+    "latest_result": "FAIL",
+    "browser": "Firefox",
+    "date": "2026-08-02",
+    "retest_authorized": false
+  },
+  "active_batch": {
+    "id": "GOV-01",
+    "name": "Governance and compatibility-class convergence",
+    "type": "governance",
+    "product_progress_delta": 0,
+    "product_code_frozen": true
+  },
+  "next_product_batch": {
+    "id": "MIG-01",
+    "name": "Real original-export golden path",
+    "journey": "real original export -> direct import -> activation -> route decisions -> restart -> semantic re-export",
+    "product_wip_limit": 1
+  },
+  "authorized_sequence": [
+    "GOV-01",
+    "MIG-01",
+    "UX-POPUP-01",
+    "UX-OPTIONS-01",
+    "SEM-01",
+    "REL-01",
+    "FINAL-01"
+  ],
+  "prohibitions": [
+    "merge",
+    "release",
+    "release candidate claim",
+    "owner micro-slice retest",
+    "unrelated redesign",
+    "speculative Rust/WASM expansion",
+    "native engine expansion",
+    "remote sync expansion"
+  ]
+}
