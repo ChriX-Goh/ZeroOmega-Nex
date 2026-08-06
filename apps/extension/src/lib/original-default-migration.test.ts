@@ -1,9 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import {
-  exportZeroOmegaBackup,
-  importZeroOmegaBackup,
-} from '@zeroomega-nex/legacy-zeroomega';
+import { exportZeroOmegaBackup, importZeroOmegaBackup } from '@zeroomega-nex/legacy-zeroomega';
 import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
 import {
   acceptProfileWorkflowImport,
@@ -116,14 +113,7 @@ async function acceptedRepository() {
     throw new Error(accepted.message);
   }
 
-  return {
-    source,
-    imported: result,
-    initialApplied,
-    repository,
-    secretStore,
-    accepted,
-  };
+  return { source, imported: result, initialApplied, repository, secretStore, accepted };
 }
 
 describe('MIG-01 original default migration transaction', () => {
@@ -138,23 +128,15 @@ describe('MIG-01 original default migration transaction', () => {
     );
 
     const driver = new ActivationDriver();
-    const applied = await applyProfileWorkflow(
-      migration.repository,
-      driver,
-      applyContext,
-    );
+    const applied = await applyProfileWorkflow(migration.repository, driver, applyContext);
     expect(applied.status).toBe('applied');
     if (applied.status !== 'applied') {
       throw new Error(applied.message);
     }
 
     expect(driver.activated).toHaveLength(1);
-    expect(userIntent(driver.activated[0]!)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
-    expect(userIntent(applied.state.applied)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
+    expect(userIntent(driver.activated[0]!)).toEqual(userIntent(migration.imported.candidate));
+    expect(userIntent(applied.state.applied)).toEqual(userIntent(migration.imported.candidate));
     expect(applied.state.draft).toEqual(applied.state.applied);
 
     const exported = exportZeroOmegaBackup(applied.state.applied, {
@@ -183,9 +165,7 @@ describe('MIG-01 original default migration transaction', () => {
     if (!reimported.ok) {
       throw new Error(JSON.stringify(reimported.report, null, 2));
     }
-    expect(userIntent(reimported.candidate)).toEqual(
-      userIntent(applied.state.applied),
-    );
+    expect(userIntent(reimported.candidate)).toEqual(userIntent(applied.state.applied));
     expect(migration.secretStore.values).toEqual(new Map());
   });
 
@@ -195,11 +175,7 @@ describe('MIG-01 original default migration transaction', () => {
     const driver = new ActivationDriver();
     driver.activateError = new Error('forced browser activation failure');
 
-    const applied = await applyProfileWorkflow(
-      migration.repository,
-      driver,
-      applyContext,
-    );
+    const applied = await applyProfileWorkflow(migration.repository, driver, applyContext);
     expect(applied).toMatchObject({
       status: 'failed',
       stage: 'activate',
@@ -208,12 +184,8 @@ describe('MIG-01 original default migration transaction', () => {
 
     const state = await migration.repository.read();
     expect(state).toBeDefined();
-    expect(userIntent(state!.applied)).toEqual(
-      userIntent(migration.initialApplied),
-    );
-    expect(userIntent(state!.draft)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
+    expect(userIntent(state!.applied)).toEqual(userIntent(migration.initialApplied));
+    expect(userIntent(state!.draft)).toEqual(userIntent(migration.imported.candidate));
     expect(state!.pendingApply).toBeUndefined();
     expect(migration.secretStore.values).toEqual(secretsBeforeApply);
     expect(driver.rolledBack).toHaveLength(0);
