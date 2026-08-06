@@ -122,89 +122,100 @@ async function acceptedRepository() {
 }
 
 describe('MIG-01 original default migration transaction', () => {
-  it('accepts, applies, exports, and re-imports the original runtime backup', async () => {
-    const migration = await acceptedRepository();
+  it(
+    'accepts, applies, exports, and re-imports the original runtime backup',
+    async () => {
+      const migration = await acceptedRepository();
 
-    expect(userIntent(migration.accepted.state.applied)).toEqual(
-      userIntent(migration.initialApplied),
-    );
-    expect(userIntent(migration.accepted.state.draft)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
+      expect(userIntent(migration.accepted.state.applied)).toEqual(
+        userIntent(migration.initialApplied),
+      );
+      expect(userIntent(migration.accepted.state.draft)).toEqual(
+        userIntent(migration.imported.candidate),
+      );
 
-    const driver = new ActivationDriver();
-    const applied = await applyProfileWorkflow(
-      migration.repository,
-      driver,
-      applyContext,
-    );
-    expect(applied.status).toBe('applied');
-    if (applied.status !== 'applied') throw new Error(applied.message);
+      const driver = new ActivationDriver();
+      const applied = await applyProfileWorkflow(
+        migration.repository,
+        driver,
+        applyContext,
+      );
+      expect(applied.status).toBe('applied');
+      if (applied.status !== 'applied') throw new Error(applied.message);
 
-    expect(driver.activated).toHaveLength(1);
-    expect(userIntent(driver.activated[0]!)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
-    expect(userIntent(applied.state.applied)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
-    expect(applied.state.draft).toEqual(applied.state.applied);
+      expect(driver.activated).toHaveLength(1);
+      expect(userIntent(driver.activated[0]!)).toEqual(
+        userIntent(migration.imported.candidate),
+      );
+      expect(userIntent(applied.state.applied)).toEqual(
+        userIntent(migration.imported.candidate),
+      );
+      expect(applied.state.draft).toEqual(applied.state.applied);
 
-    const exported = exportZeroOmegaBackup(applied.state.applied, {
-      createdAt: '2026-08-06T06:02:00.000Z',
-    });
-    expect(exported.ok).toBe(true);
-    if (!exported.ok) throw new Error(JSON.stringify(exported.issues, null, 2));
+      const exported = exportZeroOmegaBackup(applied.state.applied, {
+        createdAt: '2026-08-06T06:02:00.000Z',
+      });
+      expect(exported.ok).toBe(true);
+      if (!exported.ok)
+        throw new Error(JSON.stringify(exported.issues, null, 2));
 
-    const originalOptions = JSON.parse(migration.source) as Record<string, unknown>;
-    expect(exported.options).toMatchObject({
-      schemaVersion: 2,
-      '-startupProfileName': originalOptions['-startupProfileName'],
-      '-quickSwitchProfiles': originalOptions['-quickSwitchProfiles'],
-      '+proxy': originalOptions['+proxy'],
-      '+auto switch': originalOptions['+auto switch'],
-    });
+      const originalOptions = JSON.parse(migration.source) as Record<
+        string,
+        unknown
+      >;
+      expect(exported.options).toMatchObject({
+        schemaVersion: 2,
+        '-startupProfileName': originalOptions['-startupProfileName'],
+        '-quickSwitchProfiles': originalOptions['-quickSwitchProfiles'],
+        '+proxy': originalOptions['+proxy'],
+        '+auto switch': originalOptions['+auto switch'],
+      });
 
-    const reimported = importZeroOmegaBackup(exported.content, {
-      ...importContext,
-      createdAt: applied.state.applied.revision.createdAt,
-      revisionId: applied.state.applied.revision.id,
-    });
-    expect(reimported.ok).toBe(true);
-    if (!reimported.ok) throw new Error(JSON.stringify(reimported.report, null, 2));
-    expect(userIntent(reimported.candidate)).toEqual(
-      userIntent(applied.state.applied),
-    );
-    expect(migration.secretStore.values).toEqual(new Map());
-  });
+      const reimported = importZeroOmegaBackup(exported.content, {
+        ...importContext,
+        createdAt: applied.state.applied.revision.createdAt,
+        revisionId: applied.state.applied.revision.id,
+      });
+      expect(reimported.ok).toBe(true);
+      if (!reimported.ok)
+        throw new Error(JSON.stringify(reimported.report, null, 2));
+      expect(userIntent(reimported.candidate)).toEqual(
+        userIntent(applied.state.applied),
+      );
+      expect(migration.secretStore.values).toEqual(new Map());
+    },
+  );
 
-  it('keeps the previous active state and the accepted import draft when Apply fails', async () => {
-    const migration = await acceptedRepository();
-    const secretsBeforeApply = new Map(migration.secretStore.values);
-    const driver = new ActivationDriver();
-    driver.activateError = new Error('forced browser activation failure');
+  it(
+    'keeps the previous active state and the accepted import draft when Apply fails',
+    async () => {
+      const migration = await acceptedRepository();
+      const secretsBeforeApply = new Map(migration.secretStore.values);
+      const driver = new ActivationDriver();
+      driver.activateError = new Error('forced browser activation failure');
 
-    const applied = await applyProfileWorkflow(
-      migration.repository,
-      driver,
-      applyContext,
-    );
-    expect(applied).toMatchObject({
-      status: 'failed',
-      stage: 'activate',
-      message: 'forced browser activation failure',
-    });
+      const applied = await applyProfileWorkflow(
+        migration.repository,
+        driver,
+        applyContext,
+      );
+      expect(applied).toMatchObject({
+        status: 'failed',
+        stage: 'activate',
+        message: 'forced browser activation failure',
+      });
 
-    const state = await migration.repository.read();
-    expect(state).toBeDefined();
-    expect(userIntent(state!.applied)).toEqual(
-      userIntent(migration.initialApplied),
-    );
-    expect(userIntent(state!.draft)).toEqual(
-      userIntent(migration.imported.candidate),
-    );
-    expect(state!.pendingApply).toBeUndefined();
-    expect(migration.secretStore.values).toEqual(secretsBeforeApply);
-    expect(driver.rolledBack).toHaveLength(0);
-  });
+      const state = await migration.repository.read();
+      expect(state).toBeDefined();
+      expect(userIntent(state!.applied)).toEqual(
+        userIntent(migration.initialApplied),
+      );
+      expect(userIntent(state!.draft)).toEqual(
+        userIntent(migration.imported.candidate),
+      );
+      expect(state!.pendingApply).toBeUndefined();
+      expect(migration.secretStore.values).toEqual(secretsBeforeApply);
+      expect(driver.rolledBack).toHaveLength(0);
+    },
+  );
 });
