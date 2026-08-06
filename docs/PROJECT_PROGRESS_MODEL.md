@@ -28,16 +28,15 @@ The old `52%`, `98%`, and Order 1 `80%` claims remain superseded.
 
 The tri-track recalculation must use these weights unless a later owner-approved change records the reason:
 
-| Journey | Weight |
-|---|---:|
-| Real original migration and semantic round trip | 25% |
-| Profile-family and routing semantics | 20% |
-| Toolbar, Popup, and daily switching | 15% |
-| Options, dialogs, CRUD, and Apply/Discard | 15% |
-| Export, restart, rollback, ownership, authentication, reliability, and security | 15% |
-| Localization, accessibility, and bounded visual alignment | 5% |
-| Final packaging and owner acceptance | 5% |
-| **Total** | **100%** |
+- **Real original migration and semantic round trip: 25%.**
+- **Profile-family and routing semantics: 20%.**
+- **Toolbar, Popup, and daily switching: 15%.**
+- **Options, dialogs, CRUD, and Apply/Discard: 15%.**
+- **Export, restart, rollback, ownership, authentication, reliability, and security: 15%.**
+- **Localization, accessibility, and bounded visual alignment: 5%.**
+- **Final packaging and owner acceptance: 5%.**
+
+Total: **100%**.
 
 This weighting intentionally gives real migration, effective behavior, and recovery more value than incidental presentation details.
 
@@ -49,13 +48,11 @@ A journey may gain gradual completion for verified implementation and real brows
 
 Recommended internal shares for each journey:
 
-| Gate | Share |
-|---|---:|
-| Contract and acceptance criteria defined | 10% |
-| Implementation exists | 35% |
-| Deterministic task/semantic tests pass | 20% |
-| Required real data or real browser journey passes | 25% |
-| Consolidated parent-journey decision | 10% |
+- contract and acceptance criteria defined: 10%;
+- implementation exists: 35%;
+- deterministic task/semantic tests pass: 20%;
+- required real data or real browser journey passes: 25%;
+- consolidated parent-journey decision: 10%.
 
 For the final packaging journey, the last 5% remains unavailable until the exact candidate receives owner `PASS`.
 
