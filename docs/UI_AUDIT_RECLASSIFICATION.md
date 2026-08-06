@@ -11,13 +11,11 @@
 
 ## 2. Migration mapping
 
-| Historical class | Temporary interpretation | Required migration action |
-|---|---|---|
-| `MUST_MATCH` | Unclassified requirement; often `UX-COMPATIBLE`, sometimes `CONTRACT-EXACT` | Determine whether the row protects data/semantics/recovery, a complete user task, or only incidental presentation |
-| `REFERENCE` | Non-binding visual or implementation evidence | Classify as `UX-COMPATIBLE` evidence or `MODERNIZED`; do not score independently without task impact |
-| `UNCERTAIN` | `UNKNOWN` | Obtain original/target/real-data evidence before implementation or closure |
-| `INTENTIONAL_DIVERGENCE` | Candidate `DR-xxxx`, `MODERNIZED`, or `LEGACY-DEFECT-REJECTED` | Confirm material impact, evidence, and current decision authority |
-| `NOT_PORTING` | Scope or implementation decision | Confirm it is internal technology, rejected defect, or explicitly deferred feature |
+- **Historical `MUST_MATCH`.** Treat as an unclassified requirement, often `UX-COMPATIBLE` and sometimes `CONTRACT-EXACT`. Determine whether the row protects data/semantics/recovery, a complete user task, or only incidental presentation.
+- **Historical `REFERENCE`.** Treat as non-binding visual or implementation evidence. Classify as `UX-COMPATIBLE` evidence or `MODERNIZED`; do not score independently without task impact.
+- **Historical `UNCERTAIN`.** Treat as `UNKNOWN`. Obtain original, target, or real-data evidence before implementation or closure.
+- **Historical `INTENTIONAL_DIVERGENCE`.** Treat as a candidate `DR-xxxx`, `MODERNIZED`, or `LEGACY-DEFECT-REJECTED` item. Confirm material impact, evidence, and current decision authority.
+- **Historical `NOT_PORTING`.** Treat as a scope or implementation decision. Confirm that it is internal technology, a rejected defect, or an explicitly deferred feature.
 
 ## 3. Row-level decision rules
 
