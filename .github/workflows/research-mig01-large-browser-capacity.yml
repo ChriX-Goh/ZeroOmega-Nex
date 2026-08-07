@@ -32,8 +32,6 @@ jobs:
           WXT_ICON_RENDERER_E2E: '1'
           ZEROOMEGA_RULE_SOURCE_E2E: '1'
         run: pnpm build:chromium
-      - name: Probe Chromium workflow transaction without Options rendering
-        run: node scripts/e2e-chromium-large-command-probe.mjs
       - name: Run Chromium original large persistent migration
         run: pnpm test:e2e:chromium-original-large-migration
 
@@ -59,4 +57,4 @@ jobs:
       - name: Run Firefox original large persistent migration
         run: pnpm test:e2e:firefox-original-large-migration
 
-# Includes a direct Chromium workflow transaction probe to isolate UI rendering from storage/Apply.
+# Full activation-safe capacity chain. The earlier stale-candidate direct probe was diagnostic only.
