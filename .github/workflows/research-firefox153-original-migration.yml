@@ -49,34 +49,33 @@ jobs:
           mkdir -p "$RUNNER_TEMP/firefox153"
           tar -xJf "$RUNNER_TEMP/$ARCHIVE" -C "$RUNNER_TEMP/firefox153"
           sudo ln -sfn "$RUNNER_TEMP/firefox153/firefox/firefox" /usr/bin/firefox
-          firefox --version | tee "$RUNNER_TEMP/firefox-version.txt"
-          grep -F 'Mozilla Firefox 153.0.3' "$RUNNER_TEMP/firefox-version.txt"
+          firefox --version
 
       - name: Build Firefox extension
         run: pnpm build:firefox
 
-      - name: Use WebDriver Classic for extension navigation
+      - name: Inject context diagnostics
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('scripts/e2e-firefox-original-migration.mjs')
           text = path.read_text()
-          start = text.index("  const result = await bidiCommand(driver, 'browsingContext.navigate', {")
-          end = text.index("  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);", start)
-          end += len("  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n")
-          replacement = "  await driver.get(url);\n  const expectedUrl = `${url}#/about`;\n  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
-          path.write_text(text[:start] + replacement + text[end:])
+          needle = "  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
+          addition = (
+              needle
+              + "  console.log(JSON.stringify({ firefoxOptionsDiagnostic: true, marionetteContext: await driver.getContext(), currentUrl: await driver.getCurrentUrl(), title: await driver.getTitle(), pageSource: (await driver.getPageSource()).slice(0, 4000), buttons: await driver.findElements(By.css('button')).then(async (items) => Promise.all(items.map((item) => item.getText()))) }));\n"
+          )
+          if text.count(needle) != 1:
+              raise SystemExit(f'expected one URL wait, found {text.count(needle)}')
+          path.write_text(text.replace(needle, addition))
           PY
 
-      - name: Run original migration on Firefox 153.0.3
+      - name: Run diagnostic
         shell: bash
         run: |
           set -o pipefail
-          pnpm test:e2e:firefox-original-migration 2>&1 | tee firefox153-original-migration.log
-          grep -F '"geckodriverSystemAccess":true' firefox153-original-migration.log
-          grep -F 'Firefox original Corpus A import, route, restart, and semantic export passed.' firefox153-original-migration.log
-          grep -F 'Firefox original Corpus C/D import, route, restart, and semantic export passed.' firefox153-original-migration.log
+          node scripts/e2e-firefox-original-migration.mjs 2>&1 | tee firefox153-original-migration.log
 
       - name: Upload research evidence
         if: always()
