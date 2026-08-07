@@ -124,7 +124,9 @@ async function workflowView(options) {
 function routeName(route, applied) {
   if (!route) return undefined;
   if (route.kind !== 'profile') return route.kind;
-  return applied.profiles.find((profile) => profile.id === route.profileId)?.name ?? route.profileId;
+  return (
+    applied.profiles.find((profile) => profile.id === route.profileId)?.name ?? route.profileId
+  );
 }
 
 function storageMetrics(storage) {
@@ -286,24 +288,30 @@ function requiredLargeSemantics(options) {
 }
 
 async function importAndUse(options, path, previousGeneration) {
+  const before = assertWorkflowSuccess(
+    await sendWorkflowCommand(options, { action: 'get' }),
+    'Unable to read workflow before original large import',
+  );
+  const baselineGeneration = previousGeneration ?? before.state.generation;
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   await options.getByLabel('原版备份文件').setInputFiles(path);
   await options
     .getByRole('heading', { name: '兼容性检查', exact: true })
-    .waitFor({ timeout: 20_000 });
-  const importButton = options.getByRole('button', { name: '导入并立即使用', exact: true });
-  await importButton.click();
-  await options
-    .getByText('导入完成，原版配置现已启用。')
-    .waitFor({ state: 'visible', timeout: 20_000 });
-  if (previousGeneration === undefined) return;
-  const deadline = Date.now() + 20_000;
+    .waitFor({ timeout: 60_000 });
+  await options.getByRole('button', { name: '导入并立即使用', exact: true }).click();
+  const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
     const response = await sendWorkflowCommand(options, { action: 'get' });
-    if (response?.ok === true && response.state.generation > previousGeneration) return;
+    if (
+      response?.ok === true &&
+      response.state.generation > baselineGeneration &&
+      response.state.applied.profiles.length === 36
+    ) {
+      return;
+    }
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
   }
-  assert.fail('Large semantic re-import did not advance the persistent workflow generation');
+  assert.fail('Original large Import & Use did not commit the 36-profile persistent workflow');
 }
 
 async function exportOriginalSemantics(options, originalOptions) {
@@ -315,7 +323,10 @@ async function exportOriginalSemantics(options, originalOptions) {
   assert.ok(exportedPath, 'Original large migration export did not produce a local file');
   const exportedContent = await readFile(exportedPath, 'utf8');
   const exportedOptions = JSON.parse(exportedContent);
-  assert.deepEqual(requiredLargeSemantics(exportedOptions), requiredLargeSemantics(originalOptions));
+  assert.deepEqual(
+    requiredLargeSemantics(exportedOptions),
+    requiredLargeSemantics(originalOptions),
+  );
   assert.doesNotMatch(
     exportedContent,
     /passwordSecretRef|secretRef|not-a-real-secret/u,

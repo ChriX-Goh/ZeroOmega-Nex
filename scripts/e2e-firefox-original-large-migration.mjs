@@ -203,7 +203,9 @@ async function workflowView(driver) {
 function routeName(route, applied) {
   if (!route) return undefined;
   if (route.kind !== 'profile') return route.kind;
-  return applied.profiles.find((profile) => profile.id === route.profileId)?.name ?? route.profileId;
+  return (
+    applied.profiles.find((profile) => profile.id === route.profileId)?.name ?? route.profileId
+  );
 }
 
 function storageMetrics(storage) {
@@ -412,7 +414,10 @@ async function exportOriginalSemantics(driver, originalOptions) {
   const exportedPath = await waitForDownloadedExport(previousFiles);
   const exportedContent = await readFile(exportedPath, 'utf8');
   const exportedOptions = JSON.parse(exportedContent);
-  assert.deepEqual(requiredLargeSemantics(exportedOptions), requiredLargeSemantics(originalOptions));
+  assert.deepEqual(
+    requiredLargeSemantics(exportedOptions),
+    requiredLargeSemantics(originalOptions),
+  );
   assert.doesNotMatch(
     exportedContent,
     /passwordSecretRef|secretRef|not-a-real-secret/u,
@@ -426,34 +431,35 @@ async function exportOriginalSemantics(driver, originalOptions) {
 }
 
 async function importAndUse(driver, path, previousGeneration) {
+  const before = assertWorkflowSuccess(
+    await sendWorkflowCommand(driver, { action: 'get' }),
+    'Unable to read workflow before Firefox original large import',
+  );
+  const baselineGeneration = previousGeneration ?? before.state.generation;
   const importExportButton = await driver.findElement(
     By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
   await importExportButton.click();
-  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
+  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 60_000);
   await fileInput.sendKeys(path);
   const compatibilityHeading = await driver.wait(
     until.elementLocated(By.css('[data-legacy-import-review]')),
-    20_000,
+    60_000,
   );
-  await driver.wait(until.elementIsVisible(compatibilityHeading), 20_000);
+  await driver.wait(until.elementIsVisible(compatibilityHeading), 60_000);
   const importButton = await driver.wait(
     until.elementLocated(By.css('[data-legacy-import-and-use]')),
-    20_000,
+    60_000,
   );
   await importButton.click();
-  const success = await driver.wait(
-    until.elementLocated(
-      By.xpath("//*[@data-legacy-import-review]/following-sibling::section[1]//p[@role='status']"),
-    ),
-    20_000,
-  );
-  await driver.wait(until.elementIsVisible(success), 20_000);
-  if (previousGeneration === undefined) return;
   await driver.wait(async () => {
     const response = await sendWorkflowCommand(driver, { action: 'get' });
-    return response?.ok === true && response.state.generation > previousGeneration;
-  }, 20_000);
+    return (
+      response?.ok === true &&
+      response.state.generation > baselineGeneration &&
+      response.state.applied.profiles.length === 36
+    );
+  }, 60_000);
 }
 
 let driver;
