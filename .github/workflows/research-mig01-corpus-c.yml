@@ -1,0 +1,227 @@
+name: Research MIG-01 Corpus C
+
+on:
+  push:
+    branches:
+      - research/mig01-corpus-c-generator
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout ZeroOmega Nex
+        uses: actions/checkout@v4
+
+      - name: Checkout original ZeroOmega v3.5.0
+        uses: actions/checkout@v4
+        with:
+          repository: zero-peak/ZeroOmega
+          ref: v3.5.0
+          path: original
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install pinned original runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd original/omega-pac
+          npm install --omit=dev --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund coffee-script@1.12.7
+
+      - name: Generate complex backup with original v3.5.0 runtime modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/mig01-corpus-c
+          cd original/omega-pac
+          node <<'NODE'
+          require('coffee-script/register');
+          const crypto = require('crypto');
+          const fs = require('fs');
+          const path = require('path');
+          const childProcess = require('child_process');
+
+          const Profiles = require('./src/profiles.coffee');
+          const defaultOptions = require('../omega-target/src/default_options.coffee');
+          const options = JSON.parse(JSON.stringify(defaultOptions()));
+
+          function add(profile) {
+            Profiles.create(profile);
+            options[`+${profile.name}`] = profile;
+            return profile;
+          }
+
+          const corpusProxy = add({
+            name: 'corpus proxy',
+            profileType: 'FixedProfile',
+            color: '#5c9ded',
+            fallbackProxy: {
+              scheme: 'http',
+              host: 'proxy-corpus.example.com',
+              port: 8080,
+            },
+          });
+
+          const innerSwitch = add({
+            name: 'inner switch',
+            profileType: 'SwitchProfile',
+            color: '#75c58e',
+            defaultProfileName: 'direct',
+            rules: [
+              {
+                condition: {
+                  conditionType: 'HostWildcardCondition',
+                  pattern: 'internal.corpus.example.com',
+                },
+                profileName: 'direct',
+              },
+              {
+                condition: {
+                  conditionType: 'HostWildcardCondition',
+                  pattern: '*.corpus.example.com',
+                },
+                profileName: 'corpus proxy',
+              },
+            ],
+          });
+
+          const virtualRoute = add({
+            name: 'virtual route',
+            profileType: 'VirtualProfile',
+            color: '#b684d7',
+            defaultProfileName: 'inner switch',
+          });
+
+          const ruleList = add({
+            name: 'corpus rules',
+            profileType: 'AutoProxyRuleListProfile',
+            color: '#d69b45',
+            defaultProfileName: 'direct',
+            matchProfileName: 'corpus proxy',
+          });
+          const ruleListBody = '[AutoProxy 0.2.9]\n||rulelist.corpus.example.com^\n';
+          if (!Profiles.update(ruleList, ruleListBody)) {
+            throw new Error('Original RuleListProfile rejected or failed to update the corpus rule list');
+          }
+
+          const outerSwitch = add({
+            name: 'outer switch',
+            profileType: 'SwitchProfile',
+            color: '#4aa3a2',
+            defaultProfileName: 'direct',
+            rules: [
+              {
+                condition: {
+                  conditionType: 'HostWildcardCondition',
+                  pattern: 'nested.corpus.example.com',
+                },
+                profileName: 'virtual route',
+              },
+              {
+                condition: {
+                  conditionType: 'HostWildcardCondition',
+                  pattern: 'rulelist.corpus.example.com',
+                },
+                profileName: 'corpus rules',
+              },
+            ],
+          });
+
+          const unicodePac = add({
+            name: 'PAC 中文',
+            profileType: 'PacProfile',
+            color: '#d96c75',
+            pacUrl: 'https://pac.example.com/配置.pac',
+            pacScript: [
+              'function FindProxyForURL(url, host) {',
+              '  if (dnsDomainIs(host, "pac.corpus.example.com")) {',
+              '    return "PROXY proxy-corpus.example.com:8080";',
+              '  }',
+              '  return "DIRECT";',
+              '}',
+            ].join('\n'),
+          });
+
+          options['-enableQuickSwitch'] = true;
+          options['-quickSwitchProfiles'] = ['outer switch', 'PAC 中文'];
+          options['-startupProfileName'] = 'outer switch';
+
+          for (const profile of [
+            corpusProxy,
+            innerSwitch,
+            virtualRoute,
+            ruleList,
+            outerSwitch,
+            unicodePac,
+          ]) {
+            Profiles.analyze(profile);
+            if (Profiles.isIncludable(profile)) {
+              Profiles.compile(profile);
+            }
+          }
+
+          const references = Profiles.allReferenceSet('outer switch', options, {
+            profileNotFound: 'dumb',
+          });
+          const expectedRefs = [
+            '+outer switch',
+            '+virtual route',
+            '+inner switch',
+            '+corpus proxy',
+            '+direct',
+            '+corpus rules',
+          ];
+          for (const key of expectedRefs) {
+            if (!Object.prototype.hasOwnProperty.call(references, key)) {
+              throw new Error(`Original runtime reference walk missed ${key}`);
+            }
+          }
+
+          const backup = JSON.stringify(options);
+          const outDir = path.resolve('../../../evidence/mig01-corpus-c');
+          const backupPath = path.join(outDir, 'original-complex-corpus-cd-v3.5.0.bak');
+          fs.writeFileSync(backupPath, backup);
+          const sha256 = crypto.createHash('sha256').update(backup).digest('hex');
+          const originalCommit = childProcess
+            .execFileSync('git', ['-C', '../..', 'rev-parse', 'HEAD'], { encoding: 'utf8' })
+            .trim();
+          const provenance = {
+            sourceRepository: 'zero-peak/ZeroOmega',
+            sourceTag: 'v3.5.0',
+            sourceCommit: originalCommit,
+            runtimeModules: [
+              'omega-target/src/default_options.coffee',
+              'omega-pac/src/profiles.coffee',
+              'omega-pac/src/rule_list.coffee',
+              'omega-pac/src/conditions.coffee',
+            ],
+            generationMethod:
+              'Original v3.5.0 default options plus omega-pac Profiles.create/update/analyze/compile; serialized with JSON.stringify like original IoCtrl export',
+            nodeVersion: process.version,
+            coffeeScriptVersion: require('coffee-script/package.json').version,
+            backupSha256: sha256,
+            referenceClosure: references,
+            corpus: ['C', 'D-partial'],
+          };
+          fs.writeFileSync(
+            path.join(outDir, 'original-complex-corpus-cd-v3.5.0.provenance.json'),
+            `${JSON.stringify(provenance, null, 2)}\n`,
+          );
+          console.log(JSON.stringify(provenance, null, 2));
+          NODE
+
+      - name: Upload original-runtime corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: mig01-original-complex-corpus-v3.5.0
+          path: evidence/mig01-corpus-c
+          if-no-files-found: error
