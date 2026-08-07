@@ -396,10 +396,38 @@ try {
   await options
     .getByRole('heading', { name: '兼容性检查', exact: true })
     .waitFor({ timeout: 20_000 });
+  if (complexCorpus) {
+    await options.evaluate(() => {
+      const sendMessage = chrome.runtime.sendMessage.bind(chrome.runtime);
+      globalThis.__zeroOmegaComplexImportCandidate = undefined;
+      chrome.runtime.sendMessage = async (message) => {
+        if (message?.action === 'accept-import') {
+          globalThis.__zeroOmegaComplexImportCandidate = structuredClone(message.candidate);
+        }
+        return sendMessage(message);
+      };
+    });
+  }
   await options.getByRole('button', { name: '导入并立即使用', exact: true }).click();
   await options
     .getByText('导入完成，原版配置现已启用。')
     .waitFor({ state: 'visible', timeout: 20_000 });
+
+  if (complexCorpus) {
+    const sentCandidate = await options.evaluate(
+      () => globalThis.__zeroOmegaComplexImportCandidate,
+    );
+    const sentNamesById = new Map(
+      sentCandidate.profiles.map((profile) => [profile.id, profile.name]),
+    );
+    assert.deepEqual(
+      sentCandidate.settings.quickSwitch.routes.map((route) =>
+        route.kind === 'profile' ? sentNamesById.get(route.profileId) : route.kind,
+      ),
+      ['outer switch', 'PAC 中文'],
+      'Browser import candidate lost complex Quick Switch intent before accept-import',
+    );
+  }
 
   const imported = await assertImportedState(options);
   assert.equal(imported.applied.settings.quickSwitch.enabled, complexCorpus);
