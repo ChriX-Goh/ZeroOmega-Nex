@@ -38,8 +38,8 @@ The fingerprint binds:
 - colors;
 - condition types and ordered rule shape;
 - proxy schemes and ports while excluding host values;
-- PAC line/token shape;
-- Rule List line/category shape;
+- ordered PAC line syntax shape after masking identifiers and literal values;
+- ordered Rule List line/category syntax shape after masking identifiers and literal values;
 - numeric and boolean operational settings;
 - credential/header slot shape.
 
@@ -57,7 +57,8 @@ Verification fails when:
 - proxy credentials are not literal `<redacted>` placeholders;
 - secret-like fields or sensitive request headers remain usable;
 - host/URL-bearing fields still contain routable/private identifiers;
-- condition, Rule List or PAC text contains non-reserved domain/IP identifiers.
+- condition, Rule List or PAC text contains non-reserved domain/IP identifiers;
+- URL-bearing fields retain credentials, query/fragment data, or a path other than `/redacted`.
 
 Allowed network identifiers are limited to loopback, RFC documentation IP ranges, and reserved
 `example.com`/`example.net`/`example.org`, `.invalid`, `.test`, and `.localhost` names.

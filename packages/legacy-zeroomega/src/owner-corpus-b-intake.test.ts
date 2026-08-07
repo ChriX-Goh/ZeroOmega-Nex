@@ -88,7 +88,9 @@ describe('owner Corpus B intake CLI', () => {
     sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
     const result = await run(['verify', candidatePath, manifestPath]);
-    expect(result.stdout).toContain('Corpus B sanitized candidate passed structure and safety intake');
+    expect(result.stdout).toContain(
+      'Corpus B sanitized candidate passed structure and safety intake',
+    );
   });
 
   it('rejects profile-family structural drift', async () => {

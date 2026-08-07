@@ -72,23 +72,23 @@ function patternShape(value) {
 
 function ruleListShape(value) {
   if (typeof value !== 'string') return '<non-string>';
-  const result = { lines: 0, blank: 0, comments: 0, exceptions: 0, regex: 0, rules: 0 };
-  for (const line of value.split(/\r?\n/u)) {
-    result.lines += 1;
+  return value.split(/\r?\n/u).map((line) => {
     const item = line.trim();
-    if (!item) result.blank += 1;
-    else if (item.startsWith('!') || item.startsWith('[')) result.comments += 1;
-    else if (item.startsWith('@@')) result.exceptions += 1;
-    else if (item.startsWith('/') && item.endsWith('/')) result.regex += 1;
-    else result.rules += 1;
-  }
-  return result;
+    let kind = 'rule';
+    if (!item) kind = 'blank';
+    else if (item.startsWith('!')) kind = 'comment';
+    else if (item.startsWith('[')) kind = 'header';
+    else if (item.startsWith('@@')) kind = 'exception';
+    else if (item.startsWith('/') && item.endsWith('/')) kind = 'regex';
+    return { kind, syntax: patternShape(item) };
+  });
 }
 
 function pacShape(value) {
   if (typeof value !== 'string') return '<non-string>';
+  const lines = value.split(/\r?\n/u);
   return {
-    lines: value.split(/\r?\n/u).length,
+    lines: lines.map((line) => patternShape(line)),
     findProxyForUrl: /\bFindProxyForURL\b/u.test(value),
     direct: (value.match(/\bDIRECT\b/gu) ?? []).length,
     proxy: (value.match(/\b(?:PROXY|HTTPS|SOCKS5?|SOCKS)\b/gu) ?? []).length,
@@ -257,6 +257,11 @@ function networkTokens(source) {
   }
   for (const match of value.matchAll(/\b(?:\d{1,3}\.){3}\d{1,3}\b/gu)) tokens.add(match[0]);
   for (const match of value.matchAll(
+    /(?:^|[^A-Fa-f0-9:])((?:[A-Fa-f0-9]{0,4}:){2,}[A-Fa-f0-9]{0,4})(?=$|[^A-Fa-f0-9:])/gu,
+  )) {
+    if (match[1]) tokens.add(match[1]);
+  }
+  for (const match of value.matchAll(
     /(?:\*\.)?(?:[A-Za-z0-9-]+\.)+(?:[A-Za-z]{2,63}|invalid|test|localhost)\b/gu,
   )) {
     tokens.add(match[0].replace(/^\*\./u, ''));
@@ -319,7 +324,18 @@ export function assertSanitizedSafety(data) {
     if (NETWORK_KEY.test(key)) {
       let host = value;
       try {
-        if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(value)) host = new URL(value).hostname;
+        if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(value)) {
+          const parsed = new URL(value);
+          host = parsed.hostname;
+          if (parsed.username || parsed.password) problems.add('unredacted URL credentials');
+          if (parsed.search || parsed.hash) problems.add('unredacted URL query or fragment');
+          if (
+            parsed.pathname !== '/' &&
+            !/^\/(?:redacted)(?:\/redacted)*\/?$/u.test(parsed.pathname)
+          ) {
+            problems.add('unredacted URL path');
+          }
+        }
       } catch {
         problems.add('invalid network URL');
         return;
