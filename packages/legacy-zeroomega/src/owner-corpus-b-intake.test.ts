@@ -190,6 +190,14 @@ describe('owner Corpus B intake CLI', () => {
     expect(stderr).not.toContain(rawPath);
   });
 
+  it('refuses to verify a sanitized owner backup from inside the repository', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-manifest-'));
+    temporaryDirectories.push(directory);
+    const stderr = await failure(['verify', fixturePath, join(directory, 'manifest.json')]);
+    expect(stderr).toMatch(/sanitized owner backup must stay outside the repository/u);
+    expect(stderr).not.toContain(fixturePath);
+  });
+
   it('refuses to inspect a raw owner backup from inside the repository', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-manifest-'));
     temporaryDirectories.push(directory);

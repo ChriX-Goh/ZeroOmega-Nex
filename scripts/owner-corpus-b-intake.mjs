@@ -405,6 +405,8 @@ export async function inspectCommand(rawPath, manifestPath) {
 export async function verifyCommand(sanitizedPath, manifestPath) {
   if (!sanitizedPath || !manifestPath)
     fail('usage: verify <sanitized-owner.bak> <structure-manifest.json>');
+  if (isInsideRepository(sanitizedPath))
+    fail('sanitized owner backup must stay outside the repository');
   const [source, manifestSource] = await Promise.all([
     readFile(resolve(sanitizedPath), 'utf8'),
     readFile(resolve(manifestPath), 'utf8'),

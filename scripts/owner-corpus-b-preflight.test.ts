@@ -84,6 +84,22 @@ async function prepare() {
   };
 }
 
+async function wrapperFailure(args: string[]) {
+  try {
+    await execFileAsync(process.execPath, [wrapperPath, ...args], {
+      cwd: rootDir,
+      env: process.env,
+      maxBuffer: 4 * 1024 * 1024,
+    });
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && 'stderr' in error) {
+      return { exitCode: error.code, stderr: String(error.stderr ?? '') };
+    }
+    throw error;
+  }
+  throw new Error('expected Corpus B preflight command to fail');
+}
+
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true })),
@@ -182,6 +198,33 @@ describe('owner Corpus B repository preflight', () => {
     });
     expect(reportSource).not.toContain('OWNER_PRIVATE_PROFILE');
     expect(reportSource).not.toContain('owner-private.example.com');
+  });
+
+  it('refuses a checkout-local sanitized candidate before importer execution', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-containment-'));
+    temporaryDirectories.push(directory);
+    const manifestPath = join(directory, 'manifest.json');
+    const reportPath = join(directory, 'report.json');
+
+    const failure = await wrapperFailure([fixturePath, manifestPath, reportPath]);
+    expect(failure.exitCode).toBe(1);
+    expect(failure.stderr).toContain('sanitized owner backup must stay outside the repository');
+    expect(failure.stderr).not.toContain(fixturePath);
+  });
+
+  it('refuses a checkout-local report output before importer execution', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-containment-'));
+    temporaryDirectories.push(directory);
+    const candidatePath = join(directory, 'owner-sanitized.bak');
+    const manifestPath = join(directory, 'manifest.json');
+    const privateSegment = 'OWNER_PRIVATE_CHECKOUT_REPORT_SECRET';
+    const reportPath = resolve(privateSegment + '.json');
+
+    const failure = await wrapperFailure([candidatePath, manifestPath, reportPath]);
+    expect(failure.exitCode).toBe(1);
+    expect(failure.stderr).toContain('preflight report must stay outside the repository');
+    expect(failure.stderr).not.toContain(privateSegment);
+    expect(failure.stderr).not.toContain(reportPath);
   });
 
   it('suppresses internal runner paths from public failure output', async () => {

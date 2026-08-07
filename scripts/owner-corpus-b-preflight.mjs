@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   CorpusBIntakeError,
+  isInsideRepository,
   parseBackup,
   verifyAgainstManifest,
 } from './owner-corpus-b-intake.mjs';
@@ -68,6 +69,9 @@ export async function preflightCommand(sanitizedPath, manifestPath, reportPath) 
       'usage: owner-corpus-b-preflight.mjs <sanitized-owner.bak> <structure-manifest.json> <safe-report.json>',
     );
   }
+  if (isInsideRepository(sanitizedPath))
+    fail('sanitized owner backup must stay outside the repository');
+  if (isInsideRepository(reportPath)) fail('preflight report must stay outside the repository');
 
   const candidatePath = resolve(sanitizedPath);
   const manifestFile = resolve(manifestPath);
