@@ -748,3 +748,11 @@ Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E
 - 恢复失败不得静默继续：pending 保持 `rollback-required`，并记录 `lastApply.stage = recovery` 与 `rollbackSucceeded = false`。
 - blocking 原版 `.bak` 兼容性分析不得写入 workflow storage，也不得改变已经确认的浏览器代理；Chromium/Firefox 已在 large 原版迁移链后用 missing-reference 负向备份实跑验证。
 - 该检查点属于 `CONTRACT-EXACT` 的失败恢复/原子性，不新增原版普通 UI 概念，也不改变 Popup/Options 的视觉验收状态。
+
+## MIG-01.7A semantic round-trip and secret-confinement checkpoint (2026-08-07)
+
+- Repository-controlled positive migration corpora A, C/D, and large must converge after the first ordinary `.bak` export: import -> export -> re-import -> re-export -> re-import -> re-export is byte-stable even when runtime document/revision metadata differs between passes.
+- Packaged Chromium/Firefox migration jobs remain the browser authority for import, activation, route behavior, full restart, and UI-triggered semantic export. Model-level idempotence supplements those jobs; it does not replace them.
+- Plaintext auth and sensitive request-header values from an original backup are accepted only long enough to become migration secret material and enter SecretStore. Migration report, inactive candidate, accept/apply results, workflow repository artifacts, activation candidate, compiled PAC, ordinary export, and sanitized re-import surfaces must not carry the raw value.
+- SecretStore is intentionally the protected sink and is excluded from raw-value absence assertions. Ordinary `.bak` export omits credentials, secret references, and sensitive headers; sanitized re-import must yield zero secret materials and sanitized re-export must be byte-identical.
+- `docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md` is the auditable matrix. This checkpoint closes only the repository-controlled MIG-01.7A gate after exact-head CI plus permanent Browser E2E pass. Rendered browser UI and Actions log/diagnostic-artifact sentinel scans remain MIG-01.7B; Corpus B remains external; release stays NO-GO.

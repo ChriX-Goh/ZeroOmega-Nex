@@ -244,3 +244,14 @@ browser-tested to recover the previous Applied configuration on full Chromium/Fi
 preserve the dirty Draft, clear `pendingApply` only after successful rollback, and record a
 `recovery` failure result. The auditable layer-by-layer matrix is
 `docs/MIG_01_FAILURE_PRESERVATION_MATRIX.md`.
+
+## MIG-01.7A semantic round-trip / secret evidence note
+
+This checkpoint changes migration/export/security evidence only; it changes no UI row status and adds
+no Popup/Options refinement. Repository-controlled A, C/D, and large backups now have a permanent
+normalized ordinary-export re-import/re-export idempotence gate. Sensitive original auth/header
+material is additionally gated across migration report/candidate, accept/apply command results,
+workflow repository state, activation/PAC output, ordinary export, and sanitized re-import surfaces;
+SecretStore remains the protected sink. Rendered browser UI plus Actions log/uploaded-diagnostics
+sentinel scans remain MIG-01.7B, so this note does not change release readiness or product progress.
+The auditable matrix is `docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md`.
