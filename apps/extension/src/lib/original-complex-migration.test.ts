@@ -63,7 +63,7 @@ describe('MIG-01 original complex corpus migration', () => {
       ]),
     );
     expect(imported.candidate.settings.quickSwitch.enabled).toBe(true);
-    expect(imported.candidate.settings.startupRoute).toMatchObject({ kind: 'profile' });
+    expect(imported.candidate.settings.startup.route).toMatchObject({ kind: 'profile' });
 
     const exported = exportZeroOmegaBackup(imported.candidate, {
       createdAt: '2026-08-07T02:21:00.000Z',
