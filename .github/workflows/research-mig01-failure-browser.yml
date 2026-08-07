@@ -26,7 +26,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
       - run: pnpm install --frozen-lockfile
-      - name: Fix research patcher nested templates
+      - name: Fix research patcher diagnostics
         shell: python
         run: |
           from pathlib import Path
@@ -34,6 +34,7 @@ jobs:
           text = path.read_text()
           text = text.replace('const stateKey = `${namespace}/state`;', "const stateKey = namespace + '/state';")
           text = text.replace("draft.profiles[0].name = `${draft.profiles[0].name} [interrupted draft]`;", "draft.profiles[0].name = draft.profiles[0].name + ' [interrupted draft]';")
+          text = text.replace('            injected,', '            injected: interrupted,')
           path.write_text(text)
       - run: node scripts/research-patch-mig01-failure-preservation.mjs
       - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
@@ -66,7 +67,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
       - run: pnpm install --frozen-lockfile
-      - name: Fix research patcher nested templates
+      - name: Fix research patcher diagnostics
         shell: python
         run: |
           from pathlib import Path
@@ -74,6 +75,7 @@ jobs:
           text = path.read_text()
           text = text.replace('const stateKey = `${namespace}/state`;', "const stateKey = namespace + '/state';")
           text = text.replace("draft.profiles[0].name = `${draft.profiles[0].name} [interrupted draft]`;", "draft.profiles[0].name = draft.profiles[0].name + ' [interrupted draft]';")
+          text = text.replace('            injected,', '            injected: interrupted,')
           path.write_text(text)
       - run: node scripts/research-patch-mig01-failure-preservation.mjs
       - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
@@ -109,7 +111,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
       - run: pnpm install --frozen-lockfile
-      - name: Fix research patcher nested templates
+      - name: Fix research patcher diagnostics
         shell: python
         run: |
           from pathlib import Path
@@ -117,6 +119,7 @@ jobs:
           text = path.read_text()
           text = text.replace('const stateKey = `${namespace}/state`;', "const stateKey = namespace + '/state';")
           text = text.replace("draft.profiles[0].name = `${draft.profiles[0].name} [interrupted draft]`;", "draft.profiles[0].name = draft.profiles[0].name + ' [interrupted draft]';")
+          text = text.replace('            injected,', '            injected: interrupted,')
           path.write_text(text)
       - run: node scripts/research-patch-mig01-failure-preservation.mjs
       - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
