@@ -13,6 +13,7 @@ const execFileAsync = promisify(execFile);
 const rootDir = resolve('.');
 const wrapperPath = resolve('scripts/owner-corpus-b-preflight.mjs');
 const fixturePath = resolve('fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak');
+const conditionFixturePath = resolve('fixtures/zeroomega-v2/minimal-condition-types.json');
 const temporaryDirectories: string[] = [];
 
 type JsonObject = Record<string, unknown>;
@@ -167,5 +168,43 @@ describe('owner Corpus B repository preflight', () => {
     });
     expect(reportSource).not.toContain('OWNER_PRIVATE_PROFILE');
     expect(reportSource).not.toContain('owner-private.example.com');
+  });
+
+  it('returns exit code 3 when importer evidence requires target-dependent review', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-review-test-'));
+    temporaryDirectories.push(directory);
+    const source = await readFile(conditionFixturePath, 'utf8');
+    const backup = parseBackup(source, 'sanitized owner backup');
+    const manifest = buildManifest(backup, Buffer.byteLength(source));
+    verifyAgainstManifest(backup, manifest);
+
+    const candidatePath = join(directory, 'owner-sanitized.bak');
+    const manifestPath = join(directory, 'corpus-b-structure.json');
+    const reportPath = join(directory, 'corpus-b-preflight.json');
+    await Promise.all([
+      writeFile(candidatePath, source, 'utf8'),
+      writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8'),
+    ]);
+
+    let exitCode: unknown;
+    try {
+      await execFileAsync(process.execPath, [wrapperPath, candidatePath, manifestPath, reportPath], {
+        cwd: rootDir,
+        env: process.env,
+        maxBuffer: 4 * 1024 * 1024,
+      });
+    } catch (error) {
+      if (error instanceof Error && 'code' in error) exitCode = error.code;
+      else throw error;
+    }
+    expect(exitCode).toBe(3);
+
+    expect(JSON.parse(await readFile(reportPath, 'utf8'))).toMatchObject({
+      decision: {
+        status: 'review-required',
+        readyForBrowserChain: false,
+        reason: 'target-dependent-items-present',
+      },
+    });
   });
 });

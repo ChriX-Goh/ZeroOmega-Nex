@@ -82,6 +82,10 @@ export async function preflightCommand(sanitizedPath, manifestPath, reportPath) 
 
   console.log(`Corpus B repository preflight: ${report.decision.status}.`);
   if (report.decision.status === 'blocked') process.exitCode = 2;
+  else if (report.decision.status === 'review-required') process.exitCode = 3;
+  else if (report.decision.status !== 'ready-for-browser-chain') {
+    fail(`preflight runner wrote unknown decision: ${report.decision.status}`);
+  }
 }
 
 const isMain =
