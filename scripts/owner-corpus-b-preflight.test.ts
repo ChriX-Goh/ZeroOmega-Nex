@@ -13,7 +13,6 @@ const execFileAsync = promisify(execFile);
 const rootDir = resolve('.');
 const wrapperPath = resolve('scripts/owner-corpus-b-preflight.mjs');
 const fixturePath = resolve('fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak');
-const conditionFixturePath = resolve('fixtures/zeroomega-v2/minimal-condition-types.json');
 const temporaryDirectories: string[] = [];
 
 type JsonObject = Record<string, unknown>;
@@ -103,8 +102,12 @@ describe('owner Corpus B repository preflight', () => {
       containsRawValues: false,
       intake: { verified: true },
       importer: { ok: true },
+      decision: {
+        status: 'review-required',
+        readyForBrowserChain: false,
+        reason: 'target-dependent-items-present',
+      },
     });
-    expect(['ready-for-browser-chain', 'review-required']).toContain(report.decision.status);
     expect(reportSource).not.toContain(privateName);
     expect(reportSource).not.toContain('owner-private.example.com');
     expect(reportSource).not.toContain('PAC 中文');
@@ -139,50 +142,13 @@ describe('owner Corpus B repository preflight', () => {
     expect(reportSource).not.toContain('owner-private.example.com');
   });
 
-  it('executes the public wrapper and writes a safe report file', async () => {
+  it('writes a safe report and exits non-zero when public preflight requires review', async () => {
     const { directory, candidateSource, manifest } = await prepare();
     const candidatePath = join(directory, 'owner-sanitized.bak');
     const manifestPath = join(directory, 'corpus-b-structure.json');
     const reportPath = join(directory, 'corpus-b-preflight.json');
     await Promise.all([
       writeFile(candidatePath, candidateSource, 'utf8'),
-      writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8'),
-    ]);
-
-    const result = await execFileAsync(
-      process.execPath,
-      [wrapperPath, candidatePath, manifestPath, reportPath],
-      {
-        cwd: rootDir,
-        env: process.env,
-        maxBuffer: 4 * 1024 * 1024,
-      },
-    );
-    expect(result.stdout).toContain('Corpus B repository preflight:');
-
-    const reportSource = await readFile(reportPath, 'utf8');
-    expect(JSON.parse(reportSource)).toMatchObject({
-      reportVersion: 1,
-      containsRawValues: false,
-      importer: { ok: true },
-    });
-    expect(reportSource).not.toContain('OWNER_PRIVATE_PROFILE');
-    expect(reportSource).not.toContain('owner-private.example.com');
-  });
-
-  it('returns exit code 3 when importer evidence requires target-dependent review', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-review-test-'));
-    temporaryDirectories.push(directory);
-    const source = await readFile(conditionFixturePath, 'utf8');
-    const backup = parseBackup(source, 'sanitized owner backup');
-    const manifest = buildManifest(backup, Buffer.byteLength(source));
-    verifyAgainstManifest(backup, manifest);
-
-    const candidatePath = join(directory, 'owner-sanitized.bak');
-    const manifestPath = join(directory, 'corpus-b-structure.json');
-    const reportPath = join(directory, 'corpus-b-preflight.json');
-    await Promise.all([
-      writeFile(candidatePath, source, 'utf8'),
       writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8'),
     ]);
 
@@ -199,12 +165,18 @@ describe('owner Corpus B repository preflight', () => {
     }
     expect(exitCode).toBe(3);
 
-    expect(JSON.parse(await readFile(reportPath, 'utf8'))).toMatchObject({
+    const reportSource = await readFile(reportPath, 'utf8');
+    expect(JSON.parse(reportSource)).toMatchObject({
+      reportVersion: 1,
+      containsRawValues: false,
+      importer: { ok: true },
       decision: {
         status: 'review-required',
         readyForBrowserChain: false,
         reason: 'target-dependent-items-present',
       },
     });
+    expect(reportSource).not.toContain('OWNER_PRIVATE_PROFILE');
+    expect(reportSource).not.toContain('owner-private.example.com');
   });
 });
