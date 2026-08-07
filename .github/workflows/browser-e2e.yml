@@ -40,10 +40,24 @@ jobs:
         run: WXT_ICON_RENDERER_E2E=1 ZEROOMEGA_RULE_SOURCE_E2E=1 pnpm build:chromium
 
       - name: Run Chromium extension E2E
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl
         shell: bash
         run: |
           set -o pipefail
           pnpm test:e2e:chromium 2>&1 | tee chromium-e2e.log
+
+      - name: Run Chromium MIG-01.7 secret-leak sentinel
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl
+        run: node scripts/e2e-chromium-mig01-secret-leak.mjs
+
+      - name: Upload Chromium MIG-01.7 semantic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mig01-semantic-chromium
+          path: evidence/chromium.jsonl
+          if-no-files-found: error
 
       - name: Run Chromium toolbar Action E2E
         shell: bash
@@ -133,10 +147,24 @@ jobs:
         run: pnpm build:firefox
 
       - name: Run Firefox extension E2E
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl
         shell: bash
         run: |
           set -o pipefail
           pnpm test:e2e:firefox 2>&1 | tee firefox-e2e.log
+
+      - name: Run Firefox MIG-01.7 secret-leak sentinel
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl
+        run: node scripts/e2e-firefox-mig01-secret-leak.mjs
+
+      - name: Upload Firefox MIG-01.7 semantic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mig01-semantic-firefox
+          path: evidence/firefox.jsonl
+          if-no-files-found: error
 
       - name: Run Firefox toolbar Action E2E
         shell: bash
@@ -188,6 +216,33 @@ jobs:
             firefox-external-control-toolbar-e2e.log
             firefox-renderer-fallback-toolbar-e2e.log
           if-no-files-found: warn
+
+  mig01-semantic-consolidation:
+    needs: [chromium, firefox]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Chromium semantic evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: mig01-semantic-chromium
+          path: evidence/chromium
+
+      - name: Download Firefox semantic evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: mig01-semantic-firefox
+          path: evidence/firefox
+
+      - name: Consolidate MIG-01.7 semantic and secret-leak evidence
+        run: >-
+          node scripts/validate-mig01-semantic-evidence.mjs
+          evidence/chromium/chromium.jsonl
+          evidence/firefox/firefox.jsonl
 
   firefox-policy-owned-popup:
     runs-on: ubuntu-latest
