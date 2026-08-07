@@ -1,6 +1,9 @@
 import { recoverPendingActivation, restoreActiveSnapshot } from '@zeroomega-nex/browser-adapters';
 import { productIdentity } from '@zeroomega-nex/core-contracts';
-import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
+import {
+  BrowserStorageProfileWorkflowRepository,
+  recoverInterruptedProfileWorkflowApply,
+} from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
 import {
@@ -143,9 +146,10 @@ export default defineBackground(() => {
     toolbarApi,
     currentOriginalToolbarCanvasFactory(),
   );
+  const workflowRepository = new BrowserStorageProfileWorkflowRepository(browser.storage.local);
   const toolbarRuntime = registerOriginalToolbarRuntime({
     api: rendererE2eProbe?.api ?? toolbarApi,
-    repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
+    repository: workflowRepository,
     runtime: {
       inspectRuntime: async (applied) => {
         const toolbarView = temporaryRuleCoordinator
@@ -202,6 +206,27 @@ export default defineBackground(() => {
         temporaryRuleCoordinator,
       );
       if (restoreDisposition === 'failed') return;
+      if (response.state.pendingApply) {
+        const recoveredApply = await recoverInterruptedProfileWorkflowApply(
+          workflowRepository,
+          activationDriver,
+          new Date().toISOString(),
+        );
+        if (recoveredApply.status === 'recovered') {
+          console.info(
+            `[${productIdentity.name}] interrupted profile Apply ${recoveredApply.applyId} rolled back on restart.`,
+          );
+          await refreshToolbar('interrupted profile Apply recovery');
+          return;
+        }
+        if (recoveredApply.status !== 'nothing-pending') {
+          console.error(
+            `[${productIdentity.name}] interrupted profile Apply recovery did not complete:`,
+            recoveredApply.message,
+          );
+          return;
+        }
+      }
       const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
       if (
         shouldActivateStartupRouteAfterProxyRestore(
