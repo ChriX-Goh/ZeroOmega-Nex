@@ -400,11 +400,20 @@ try {
     await options.evaluate(() => {
       const sendMessage = chrome.runtime.sendMessage.bind(chrome.runtime);
       globalThis.__zeroOmegaComplexImportCandidate = undefined;
+      globalThis.__zeroOmegaComplexImportTrace = [];
       chrome.runtime.sendMessage = async (message) => {
         if (message?.action === 'accept-import') {
           globalThis.__zeroOmegaComplexImportCandidate = structuredClone(message.candidate);
         }
-        return sendMessage(message);
+        const response = await sendMessage(message);
+        if (message?.action === 'accept-import' || message?.action === 'apply') {
+          globalThis.__zeroOmegaComplexImportTrace.push({
+            action: message.action,
+            draftRoutes: structuredClone(response?.state?.draft?.settings?.quickSwitch?.routes),
+            appliedRoutes: structuredClone(response?.state?.applied?.settings?.quickSwitch?.routes),
+          });
+        }
+        return response;
       };
     });
   }
@@ -427,6 +436,8 @@ try {
       ['outer switch', 'PAC 中文'],
       'Browser import candidate lost complex Quick Switch intent before accept-import',
     );
+    const importTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexImportTrace);
+    console.log(`[Original migration import trace] ${JSON.stringify(importTrace)}`);
   }
 
   const imported = await assertImportedState(options);
