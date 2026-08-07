@@ -45,7 +45,7 @@
     "id": "MIG-01",
     "name": "Real original-export golden path",
     "type": "product",
-    "phase": "MIG_01_8A_CORPUS_B_INTAKE_READY_BLOCKED_REAL_OWNER_BAK",
+    "phase": "MIG_01_8B_IMPORT_PREFLIGHT_READY_BLOCKED_REAL_OWNER_BAK",
     "parent_journey": "real original migration and semantic round trip",
     "contract": "docs/MIG_01_BATCH_CONTRACT.md",
     "product_wip_limit": 1,
