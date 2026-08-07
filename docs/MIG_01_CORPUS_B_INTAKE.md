@@ -1,7 +1,8 @@
 # MIG-01 Corpus B Owner Intake
 
-Status: repository-controlled `MIG-01.8A` intake readiness and `MIG-01.8B` importer-preflight
-readiness are implemented. This does not provide Corpus B and does not close `MIG-01`.
+Status: repository-controlled `MIG-01.8A` intake readiness, `MIG-01.8B` importer-preflight
+readiness, and `MIG-01.8C` failure-surface hardening are implemented. This does not provide Corpus B
+and does not close `MIG-01`.
 
 ## Purpose
 
@@ -102,6 +103,26 @@ Corpus-B-specific browser route oracle from the real sanitized topology. `exit 2
 import/mapping layer exposed by the owner corpus. `exit 3` requires explicit target/platform evidence
 before any browser-chain claim.
 
+## Failure-surface privacy boundary
+
+`MIG-01.8C` closes a remaining handoff leak path that was outside the safe JSON report itself. Before
+this hardening, top-level CLI catches could print arbitrary Node `Error.message` values, and the
+preflight wrapper inherited the internal Vitest runner's stdout/stderr. A missing or unwritable file
+could therefore expose an owner-local absolute path even though the machine report contained no raw
+owner values.
+
+The public handoff now applies these rules:
+
+- known intake/preflight domain failures retain static actionable messages;
+- unexpected filesystem, process, or runner failures collapse to a generic no-local-path message;
+- the internal preflight runner's stdout/stderr is not inherited by the public wrapper;
+- unknown decision values are not echoed;
+- structural metric mismatches use a static domain error rather than an assertion dump.
+
+This hardening changes only repository-side owner handoff tooling and tests. It does not alter the
+migration importer, extension runtime, Popup, Options, profile schema, route semantics, or the
+four-corpus acceptance contract.
+
 ## Final Corpus B acceptance
 
 After intake and importer preflight pass the applicable review gates, Corpus B must still complete
@@ -130,10 +151,10 @@ edit the sanitized backup merely to make Nex pass.
 workflows green. The final exact-head validation after its state sync remained green at
 `9e540c16710908b6b3cc1dca128d873377e9066c`.
 
-`MIG-01.8B` adds only repository tooling and test discovery: the preflight core/wrapper/runner,
-dedicated runner config, permanent preflight test, and root Vitest inclusion for `scripts/**/*.test.ts`.
-No extension runtime, Popup, Options, profile schema, migration importer, or product behavior was
-changed.
+`MIG-01.8B` added only repository tooling and test discovery: the preflight core/wrapper/runner,
+dedicated runner config, permanent preflight test, and root Vitest inclusion for
+`scripts/**/*.test.ts`. No extension runtime, Popup, Options, profile schema, migration importer, or
+product behavior changed.
 
 Focused verifier run `31196519081` / job `92925932840` completed SUCCESS after the fail-closed exit
 semantics were corrected:
@@ -144,27 +165,29 @@ semantics were corrected:
 - lint, formatting, all package type checks, Chromium/Firefox builds, manifest inspection, CSP audit,
   staging, and archive checks passed.
 
-The tests prove that a private-name/host owner-like candidate reaches the real importer and produces
-only aggregate evidence; a missing private target is blocked without copying private values into the
-report; and the public wrapper writes the safe report while returning exit `3` when the real importer
-requires target-dependent review.
+The final `MIG-01.8B` state-sync Head `e286fb17c7b92e1db371f4805a4ce7787326a2bd` then passed all
+six permanent workflows: CI `31197715431`, Browser E2E `31197714807`, Parity Documentation
+`31197714512`, Milestone 8 Visual Evidence `31197714372`, Original Nex UI Evidence `31197714273`,
+and Original Toolbar Evidence `31197714940`. Its Browser E2E retained Chromium `92929940148`,
+Firefox `92929939885`, and migration-secret-leak-gate `92930941936` as SUCCESS.
 
-Clean user code/evidence Head `9d54074ef35ee4ce0bf8afaccb4588eddf072195` has CI
-`31196832518`, Browser E2E `31196831096`, Parity Documentation `31196831805`, Milestone 8 Visual
-Evidence `31196831069`, and Original Nex UI Evidence `31196831963` successful. Browser E2E retained
-Chromium `92926983784`, Firefox `92926983708`, and downstream migration-secret-leak-gate
-`92927933594` as SUCCESS. The scanner again reported no controlled sentinel across 15 diagnostics
-files and both browser job logs. Diagnostics were:
+`MIG-01.8C` focused verifier run `31199092414` / job `92934450626` also completed SUCCESS. The
+verifier deleted its own patch helper and temporary workflow before running tests. Evidence:
 
-- Chromium artifact `9001189254`, SHA-256
-  `b40da2b2855427f155991aaeaff28e88f58ada6b27b299c7a1fea910db5f99da`;
-- Firefox artifact `9001246138`, SHA-256
-  `ab141831f04448475356f710b1192e425387fce5a86a94fc47ad2888ae034c41`.
+- focused owner handoff security suite: 2/2 files, 12/12 tests passed;
+- intake CLI coverage increased to 8 tests;
+- preflight coverage increased to 4 tests;
+- root suite: 118/118 files, 591/591 tests passed;
+- component suite: 25/25 tests passed;
+- lint, formatting, all package type checks, Chromium/Firefox builds, manifest inspection, CSP audit,
+  staging, and archive checks passed;
+- new black-box assertions prove that a missing raw owner path and an internal runner write failure do
+  not echo owner-local path sentinels to public stderr.
 
-The Original Toolbar run on that code Head was still waiting inside Playwright installation when the
-state-sync commit was prepared; it had not entered project evidence code and is not counted as a
-success claim. The final state-sync Head must therefore pass all six permanent workflows again before
-`MIG-01.8B` is treated as the completed handoff.
+The verifier produced clean tree `cd34189dc3fabb0e877f5fc107253052e5af14a4` in bot commit
+`97dc79611d97b91707864344c5634424580f5255`; both temporary helper paths are absent from that tree.
+The identical clean tree is re-emitted under the normal project identity before permanent exact-head
+gates are counted.
 
 Until a real owner export reaches this path, `MIG-01.8` stays blocked, product completion remains
 `45.15%` (reported `45%`), owner retest remains prohibited, PR #11 remains Draft, and release remains
