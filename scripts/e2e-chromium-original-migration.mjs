@@ -6,6 +6,13 @@ import { resolve } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
+import {
+  appendMig01Evidence,
+  assertNoSecretMarkers,
+  semanticSha256,
+  sha256Text,
+} from './mig01-semantic-evidence.mjs';
+
 const extensionPath = resolve('dist/chrome-mv3');
 const complexCorpus = process.env.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS === 'complex';
 const originalBackupPath = resolve(
@@ -383,6 +390,35 @@ async function exportOriginalSemantics(options, originalOptions) {
     /passwordSecretRef|secretRef|not-a-real-secret/u,
     'Original migration export leaked secret references',
   );
+  assertNoSecretMarkers(exportedContent, 'Chromium original semantic export');
+  return {
+    exportedPath,
+    bytes: Buffer.byteLength(exportedContent, 'utf8'),
+    sha256: sha256Text(exportedContent),
+    semanticSha256: semanticSha256(requiredOriginalSemantics(exportedOptions)),
+  };
+}
+
+async function workflowStorageSnapshot(options) {
+  return options.evaluate(async () => {
+    const all = await chrome.storage.local.get(null);
+    return Object.fromEntries(
+      Object.entries(all).filter(([key]) => key.startsWith('zeroomega-nex/profile-workflow/v1')),
+    );
+  });
+}
+
+async function reimportForReview(options, path) {
+  await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
+  await options.getByLabel('原版备份文件').setInputFiles(path);
+  const review = options.locator('[data-legacy-import-review]');
+  await review.waitFor({ state: 'visible', timeout: 60_000 });
+  assertNoSecretMarkers(await review.innerText(), 'Chromium semantic re-import review');
+  assert.equal(
+    await review.locator('[data-legacy-import-and-use]').isEnabled(),
+    true,
+    'Chromium semantic re-import was not accepted',
+  );
 }
 
 let context;
@@ -450,7 +486,26 @@ try {
     await waitForActiveSwitch(options, imported.pacId, 'Corpus D PAC did not become active');
     await assertPacRouteDecisions(context, 'pac');
   }
-  await exportOriginalSemantics(options, originalOptions);
+  const exported = await exportOriginalSemantics(options, originalOptions);
+  const beforeReimport = await workflowStorageSnapshot(options);
+  await reimportForReview(options, exported.exportedPath);
+  const afterReimport = await workflowStorageSnapshot(options);
+  assert.deepEqual(
+    afterReimport,
+    beforeReimport,
+    'Chromium semantic re-import review mutated workflow persistence',
+  );
+  await appendMig01Evidence({
+    kind: 'semantic',
+    browser: 'chromium',
+    corpus: complexCorpus ? 'C/D' : 'A',
+    bytes: exported.bytes,
+    sha256: exported.sha256,
+    semanticSha256: exported.semanticSha256,
+    reimportAccepted: true,
+    persistentMutation: false,
+    secretScanClean: true,
+  });
 
   console.log(
     `Chromium original ${complexCorpus ? 'Corpus C/D' : 'Corpus A'} import, route, restart, and semantic export passed.`,

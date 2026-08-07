@@ -8,6 +8,13 @@ import { resolve } from 'node:path';
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import {
+  appendMig01Evidence,
+  assertNoSecretMarkers,
+  semanticSha256,
+  sha256Text,
+} from './mig01-semantic-evidence.mjs';
+
 import { firefoxService } from './firefox-service.mjs';
 
 const extensionPath = resolve('dist/firefox-mv3');
@@ -428,6 +435,7 @@ async function exportOriginalSemantics(driver, originalOptions) {
   return {
     bytes: Buffer.byteLength(exportedContent, 'utf8'),
     sha256: createHash('sha256').update(exportedContent).digest('hex'),
+    semanticSha256: semanticSha256(requiredLargeSemantics(exportedOptions)),
   };
 }
 
@@ -649,10 +657,28 @@ try {
     driver,
     'after semantic export / before re-import analysis',
   );
+  const beforeReimportStorage = await workflowStorageSnapshot(driver);
   await reimportForReview(driver, reimportPath);
   const reimported = await assertLargeState(driver, 'after semantic re-import analysis');
   assert.equal(reimported.switchId, beforeReimport.switchId);
   assert.deepEqual(reimported.metrics, beforeReimport.metrics);
+  const afterReimportStorage = await workflowStorageSnapshot(driver);
+  assert.deepEqual(
+    afterReimportStorage,
+    beforeReimportStorage,
+    'firefox large semantic re-import review mutated workflow persistence',
+  );
+  await appendMig01Evidence({
+    kind: 'semantic',
+    browser: 'firefox',
+    corpus: 'large',
+    bytes: exported.bytes,
+    sha256: exported.sha256,
+    semanticSha256: exported.semanticSha256,
+    reimportAccepted: true,
+    persistentMutation: false,
+    secretScanClean: true,
+  });
   await waitForActiveSwitch(
     driver,
     beforeReimport.switchId,
