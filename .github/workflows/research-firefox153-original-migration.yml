@@ -8,77 +8,76 @@ on:
       - '.github/workflows/research-firefox153-original-migration.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   firefox153-original-migration:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: feat/m8-profile-workflow
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
-
-      - name: Activate pnpm
-        run: |
+      - run: |
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
-
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install official Firefox 153.0.3 zh-TW
-        shell: bash
-        run: |
-          set -euo pipefail
-          RELEASE='153.0.3'
-          LOCALE='zh-TW'
-          ARCHIVE="firefox-${RELEASE}.tar.xz"
-          BASE="https://archive.mozilla.org/pub/firefox/releases/${RELEASE}"
-          curl --fail --location --retry 3 --output "$RUNNER_TEMP/$ARCHIVE" "$BASE/linux-x86_64/$LOCALE/$ARCHIVE"
-          curl --fail --location --retry 3 --output "$RUNNER_TEMP/SHA512SUMS" "$BASE/SHA512SUMS"
-          EXPECTED="$(grep "linux-x86_64/$LOCALE/$ARCHIVE" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
-          test -n "$EXPECTED"
-          printf '%s  %s\n' "$EXPECTED" "$RUNNER_TEMP/$ARCHIVE" | sha512sum --check --strict
-          mkdir -p "$RUNNER_TEMP/firefox153"
-          tar -xJf "$RUNNER_TEMP/$ARCHIVE" -C "$RUNNER_TEMP/firefox153"
-          sudo ln -sfn "$RUNNER_TEMP/firefox153/firefox/firefox" /usr/bin/firefox
-          firefox --version
-
-      - name: Build Firefox extension
-        run: pnpm build:firefox
-
-      - name: Inject context diagnostics
+          pnpm install --frozen-lockfile
+      - name: Replace locale-coupled selectors
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('scripts/e2e-firefox-original-migration.mjs')
-          text = path.read_text()
-          needle = "  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
-          addition = (
-              needle
-              + "  console.log(JSON.stringify({ firefoxOptionsDiagnostic: true, marionetteContext: await driver.getContext(), currentUrl: await driver.getCurrentUrl(), title: await driver.getTitle(), pageSource: (await driver.getPageSource()).slice(0, 4000), buttons: await driver.findElements(By.css('button')).then(async (items) => Promise.all(items.map((item) => item.getText()))) }));\n"
-          )
-          if text.count(needle) != 1:
-              raise SystemExit(f'expected one URL wait, found {text.count(needle)}')
-          path.write_text(text.replace(needle, addition))
+          p = Path('scripts/e2e-firefox-original-migration.mjs')
+          s = p.read_text()
+          old_nav = 'By.xpath("//button[normalize-space(.)=\'匯入 / 匯出\']")'
+          if s.count(old_nav) != 3: raise SystemExit(f'nav count {s.count(old_nav)}')
+          s = s.replace(old_nav, 'By.xpath("//button[.//*[@data-options-nav-icon=\'import\']]")')
+          old_heading = 'until.elementLocated(By.xpath("//h2[normalize-space(.)=\'相容性檢查\']"))'
+          if s.count(old_heading) != 1: raise SystemExit('review selector mismatch')
+          s = s.replace(old_heading, "until.elementLocated(By.css('[data-legacy-import-review]'))")
+          old_apply = 'until.elementLocated(By.xpath("//button[normalize-space(.)=\'匯入並立即使用\']"))'
+          if s.count(old_apply) != 1: raise SystemExit('apply selector mismatch')
+          s = s.replace(old_apply, "until.elementLocated(By.css('[data-legacy-import-and-use]'))")
+          old_success = 'until.elementLocated(By.xpath("//*[normalize-space(.)=\'匯入完成，原版設定現已啟用。\']"))'
+          if s.count(old_success) != 1: raise SystemExit('success selector mismatch')
+          s = s.replace(old_success, "until.elementLocated(By.xpath(\"//*[@data-legacy-import-review]/following-sibling::section[1]//p[@role='status']\"))")
+          p.write_text(s)
           PY
-
-      - name: Run diagnostic
+          pnpm exec prettier --write scripts/e2e-firefox-original-migration.mjs
+          git diff --check
+      - name: Install official Firefox 153.0.3 zh-TW
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=153.0.3; L=zh-TW; A="firefox-$R.tar.xz"; B="https://archive.mozilla.org/pub/firefox/releases/$R"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/$A" "$B/linux-x86_64/$L/$A"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/SHA512SUMS" "$B/SHA512SUMS"
+          E="$(grep "linux-x86_64/$L/$A" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
+          printf '%s  %s\n' "$E" "$RUNNER_TEMP/$A" | sha512sum --check --strict
+          mkdir -p "$RUNNER_TEMP/ff"; tar -xJf "$RUNNER_TEMP/$A" -C "$RUNNER_TEMP/ff"
+          sudo ln -sfn "$RUNNER_TEMP/ff/firefox/firefox" /usr/bin/firefox
+          firefox --version
+      - run: pnpm build:firefox
+      - name: Verify Firefox 153 original migration
         shell: bash
         run: |
           set -o pipefail
-          node scripts/e2e-firefox-original-migration.mjs 2>&1 | tee firefox153-original-migration.log
-
-      - name: Upload research evidence
-        if: always()
+          pnpm test:e2e:firefox-original-migration 2>&1 | tee firefox153-original-migration.log
+          grep -F '"geckodriverSystemAccess":true' firefox153-original-migration.log
+          grep -F 'Firefox original Corpus A import, route, restart, and semantic export passed.' firefox153-original-migration.log
+          grep -F 'Firefox original Corpus C/D import, route, restart, and semantic export passed.' firefox153-original-migration.log
+      - name: Commit verified selector hardening
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/e2e-firefox-original-migration.mjs
+          git commit -m 'test: make Firefox migration selectors locale independent'
+          git push origin HEAD:feat/m8-profile-workflow
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: firefox153-original-migration-evidence
