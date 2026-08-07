@@ -1,0 +1,53 @@
+name: MIG-01.7B temporary Firefox cleanup lint fix
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/mig-01-7b-firefox-cleanup-lint-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 2
+      - name: Make Firefox teardown lint-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/e2e-firefox-original-large-migration.mjs')
+          source = path.read_text()
+          close_block = """async function closeServer(server) {\n  await new Promise((resolveClose) => server.close(resolveClose));\n}\n"""
+          helper_block = close_block + """\nasync function quitDriver(driver) {\n  try {\n    await driver.quit();\n  } catch (error) {\n    if (error?.name !== 'NoSuchSessionError') throw error;\n  }\n}\n"""
+          if close_block not in source:
+              raise SystemExit('closeServer insertion point not found')
+          source = source.replace(close_block, helper_block, 1)
+
+          old_cleanup = """  if (driver) {\n    try {\n      await driver.quit();\n    } catch (error) {\n      if (error?.name !== 'NoSuchSessionError') throw error;\n    }\n  }\n"""
+          new_cleanup = """  if (driver) await quitDriver(driver);\n"""
+          if old_cleanup not in source:
+              raise SystemExit('expected inline cleanup block not found')
+          path.write_text(source.replace(old_cleanup, new_cleanup, 1))
+          PY
+          git diff --check
+      - name: Commit lint-safe teardown
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/e2e-firefox-original-large-migration.mjs
+          git diff --cached --quiet && { echo 'patch produced no diff'; exit 1; }
+          git commit -m 'test: make Firefox migration teardown lint-safe [skip ci]'
+          git push origin HEAD:feat/m8-profile-workflow
