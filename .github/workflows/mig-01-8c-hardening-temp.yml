@@ -1,0 +1,72 @@
+name: MIG-01.8C temporary failure-surface verifier
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-clean:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply MIG-01.8C hardening patch
+        run: node .github/scripts/mig-01-8c-patch.mjs
+
+      - name: Format intended files with locked Prettier
+        run: |
+          pnpm exec prettier --write \
+            scripts/owner-corpus-b-intake.mjs \
+            scripts/owner-corpus-b-preflight.mjs \
+            packages/legacy-zeroomega/src/owner-corpus-b-intake.test.ts \
+            scripts/owner-corpus-b-preflight.test.ts
+
+      - name: Remove temporary verifier before testing
+        run: |
+          git rm .github/workflows/mig-01-8c-hardening-temp.yml
+          git rm .github/scripts/mig-01-8c-patch.mjs
+          git diff --check
+
+      - name: Run focused owner handoff security tests
+        run: >-
+          pnpm exec vitest run
+          packages/legacy-zeroomega/src/owner-corpus-b-intake.test.ts
+          scripts/owner-corpus-b-preflight.test.ts
+          --reporter=verbose
+
+      - name: Run full repository verification
+        run: pnpm run verify
+
+      - name: Commit clean verified tree
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            scripts/owner-corpus-b-intake.mjs \
+            scripts/owner-corpus-b-preflight.mjs \
+            packages/legacy-zeroomega/src/owner-corpus-b-intake.test.ts \
+            scripts/owner-corpus-b-preflight.test.ts
+          git add -u .github
+          git commit -m 'security: harden Corpus B handoff failure surfaces'
+          git push origin HEAD:feat/m8-profile-workflow
