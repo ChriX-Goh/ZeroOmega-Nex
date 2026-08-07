@@ -558,3 +558,7 @@ try {
   if (driver) await driver.quit();
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
   await Promise.all([
+    rm(profileDir, { recursive: true, force: true }),
+    rm(downloadDir, { recursive: true, force: true }),
+  ]);
+}
