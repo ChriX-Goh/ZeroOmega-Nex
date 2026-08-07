@@ -187,6 +187,8 @@ async function assertImportedState(options) {
   assert.equal(virtualRoute?.kind, 'virtual', 'Corpus C Virtual profile was not imported');
   assert.equal(corpusRules?.kind, 'rule-list', 'Corpus C Rule List was not imported');
   assert.equal(unicodePac?.kind, 'pac', 'Corpus D Unicode PAC was not imported');
+  const lateStorageTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexStorageTrace);
+  console.log(`[Original migration late storage trace] ${JSON.stringify(lateStorageTrace)}`);
   console.log(
     `[Original migration imported state] ${JSON.stringify({
       generation: workflow.state.generation,
@@ -426,9 +428,10 @@ try {
           globalThis.__zeroOmegaComplexImportCandidate = structuredClone(message.candidate);
         }
         const response = await sendMessage(message);
-        if (message?.action === 'accept-import' || message?.action === 'apply') {
+        if (message?.action) {
           globalThis.__zeroOmegaComplexImportTrace.push({
             action: message.action,
+            generation: response?.state?.generation,
             draftRoutes: structuredClone(response?.state?.draft?.settings?.quickSwitch?.routes),
             appliedRoutes: structuredClone(response?.state?.applied?.settings?.quickSwitch?.routes),
           });
