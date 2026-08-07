@@ -278,28 +278,30 @@ async function enableAndActivateSwitch(driver, profileId) {
     'Unable to read imported workflow',
   );
   const originalApplied = structuredClone(current.state.applied);
-  const draft = structuredClone(current.state.applied);
-  draft.settings.quickSwitch = {
-    ...draft.settings.quickSwitch,
-    enabled: true,
-    routes: complexCorpus ? draft.settings.quickSwitch.routes : [{ kind: 'profile', profileId }],
-  };
-
-  const replaced = assertWorkflowSuccess(
-    await sendWorkflowCommand(driver, {
-      action: 'replace-draft',
-      expectedGeneration: current.state.generation,
-      draft,
-    }),
-    'Unable to stage imported Switch profile',
-  );
-  const applied = assertWorkflowSuccess(
-    await sendWorkflowCommand(driver, {
-      action: 'apply',
-      expectedGeneration: replaced.state.generation,
-    }),
-    'Unable to apply imported Switch profile',
-  );
+  let applied = current;
+  if (!complexCorpus) {
+    const draft = structuredClone(current.state.applied);
+    draft.settings.quickSwitch = {
+      ...draft.settings.quickSwitch,
+      enabled: true,
+      routes: [{ kind: 'profile', profileId }],
+    };
+    const replaced = assertWorkflowSuccess(
+      await sendWorkflowCommand(driver, {
+        action: 'replace-draft',
+        expectedGeneration: current.state.generation,
+        draft,
+      }),
+      'Unable to stage imported Switch profile',
+    );
+    applied = assertWorkflowSuccess(
+      await sendWorkflowCommand(driver, {
+        action: 'apply',
+        expectedGeneration: replaced.state.generation,
+      }),
+      'Unable to apply imported Switch profile',
+    );
+  }
   assertWorkflowSuccess(
     await sendWorkflowCommand(driver, {
       action: 'activate-route',
