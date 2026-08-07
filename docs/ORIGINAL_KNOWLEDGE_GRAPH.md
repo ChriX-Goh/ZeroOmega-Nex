@@ -748,3 +748,10 @@ Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E
 - 恢复失败不得静默继续：pending 保持 `rollback-required`，并记录 `lastApply.stage = recovery` 与 `rollbackSucceeded = false`。
 - blocking 原版 `.bak` 兼容性分析不得写入 workflow storage，也不得改变已经确认的浏览器代理；Chromium/Firefox 已在 large 原版迁移链后用 missing-reference 负向备份实跑验证。
 - 该检查点属于 `CONTRACT-EXACT` 的失败恢复/原子性，不新增原版普通 UI 概念，也不改变 Popup/Options 的视觉验收状态。
+
+
+## MIG-01.7 semantic-export evidence note
+
+- Pinned original v3.5.0 `Profiles` uses `revision` as its attached-cache tag and `Options` may compare profile revisions during revision-checked updates; Nex therefore preserves compatible `revision` values rather than deleting them for deterministic hashes.
+- Browser attribution proved the C/D Chromium/Firefox export discrepancy was confined to object insertion order inside the already value-equal safe opaque `x-benign-metadata`; routing/settings/profile content, RuleList text, revision, and Unicode PAC content matched.
+- MIG-01.7 cross-browser evidence therefore canonicalizes object-key order only for evidence hashing. Ordinary `.bak` content is not rewritten by the evidence layer.

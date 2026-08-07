@@ -129,6 +129,16 @@ interrupted-Apply restart path rather than adding a separate permanent workflow 
 Closing MIG-01.6 does not satisfy Corpus B, does not close MIG-01, and does not change product
 progress by itself.
 
+### MIG-01.7 semantic export/re-import checkpoint
+
+Cross-browser export equivalence is judged on a frozen canonical semantic projection, not raw JSON object-key insertion order. The projection is first asserted value-exact against the provenance-bound source fixture, then recursively canonicalized by sorting object keys while preserving array order before SHA-256. Raw bytes and raw SHA-256 remain diagnostics. Generated RuleList `pacScript` remains excluded as rebuildable generated state; original-compatible `revision` remains preserved and is not normalized merely for hash equality.
+
+A/C/D/large ordinary exports must be accepted by review-only re-import without mutating the workflow storage namespace or changing the confirmed browser route. The package-level fixed point additionally requires `import -> export#1 -> re-import -> export#2` to stabilize byte-for-byte after sanitization.
+
+The sensitive vector injects a unique password/header-value sentinel and requires it to remain absent from compatibility UI, workflow command responses, the profile-workflow storage namespace, ordinary export, sanitized re-import review, and permanent evidence. Ordinary export must not contain secret references or sensitive header metadata. SecretStore itself is not treated as a leak surface because it is the designated secret boundary.
+
+MIG-01.7 uses the existing permanent Browser E2E workflow with one dependent consolidation job; it does not create a permanent workflow per corpus or field. Closing this checkpoint does not fabricate Corpus B, does not by itself close MIG-01, and does not change audited progress.
+
 ## 10. Stop rules
 
 Stop and re-plan when:
