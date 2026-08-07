@@ -59,11 +59,11 @@ A real or original-runtime-produced export containing nested Switch, Virtual, at
 
 ### Corpus D — PAC and operational metadata
 
-A real or original-runtime-produced export covering PAC URL or body, update/cache state, bypass, proxy authentication metadata, Unicode, duplicate names where valid, and safe unknown fields.
+A real or original-runtime-produced export covering PAC URL or body, update/cache state, bypass, proxy authentication metadata, Unicode, and safe unknown fields, plus provenance-bound original-runtime ingestion vectors for repeated name-bearing references where the original runtime defines deterministic normalization. Duplicate Profile identities are not positive corpus because the original public runtime rejects them.
 
 ### Negative corpus
 
-Malformed encoding, invalid JSON, missing references, cycles, oversized input, excessive nesting, unsupported fields, unsafe local `file:` PAC, unsupported SOCKS credentials, secret-like metadata, and hostile resource cases.
+Malformed encoding, invalid JSON, missing references, cycles, duplicate Profile identities, key/name-mismatched shadow definitions, oversized input, excessive nesting, unsupported fields, unsafe local `file:` PAC, unsupported SOCKS credentials, secret-like metadata, and hostile resource cases.
 
 Synthetic fixtures may cover isolated boundaries but cannot substitute for Corpus A–D.
 

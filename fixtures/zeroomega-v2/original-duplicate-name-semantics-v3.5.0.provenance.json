@@ -1,0 +1,62 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceCommit": "05cbb30a2204cc3bdf3bb2e65765a70644a022d7",
+  "runtimeModules": [
+    "omega-target/src/options.coffee",
+    "omega-target/src/storage.coffee",
+    "omega-pac/src/profiles.coffee"
+  ],
+  "publicProfileIdentity": {
+    "addDuplicate": {
+      "rejected": true,
+      "message": "Target name duplicate target already taken!"
+    },
+    "renameDuplicate": {
+      "rejected": true,
+      "message": "name is not defined"
+    },
+    "classification": "duplicate profile identities are not a valid public-runtime state"
+  },
+  "quickSwitchDuplicateReferences": {
+    "input": [
+      "proxy",
+      "proxy",
+      "auto switch",
+      "proxy",
+      "system",
+      "system",
+      "missing profile",
+      "",
+      "auto switch"
+    ],
+    "normalized": ["proxy", "auto switch", "system"],
+    "rule": "first occurrence wins; empty, missing, and later duplicate names are removed",
+    "classification": "valid legacy input is normalized before stable runtime/export state"
+  },
+  "shadowedRawIdentity": {
+    "duplicateNameKeys": ["+proxy", "+shadow slot"],
+    "byNameSelectedKey": "+proxy",
+    "byKeyShadowKey": "+shadow slot",
+    "referenceClosure": {
+      "+reference switch": "reference switch",
+      "+proxy": "proxy"
+    },
+    "classification": "key/name-mismatched duplicate definitions are address-ambiguous and cannot be created by addProfile/renameProfile"
+  },
+  "duplicateJsonObjectKey": {
+    "survivingName": "second",
+    "rule": "JSON.parse last key wins before ZeroOmega receives the object"
+  },
+  "normalizedBackupSha256": "56e195d0318755ae77b3cfec294832a60f59e96f7e8ca233d91d51cb93ec4af1",
+  "generationEvidence": {
+    "successfulWorkflowRunId": 31150394682,
+    "successfulWorkflowJobId": 92778615225,
+    "artifactId": 8983062405,
+    "artifactDigest": "sha256:f9c6da1fb828da1a27743d7255761bb2e0fb1f3636d8e8a4c63669537624e9c8",
+    "researchCommit": "28e638584517caf2477bd9a38d6c5ae5d3d5b588",
+    "firstEnvironmentFailureRunId": 31150283050,
+    "firstEnvironmentFailureJobId": 92778294231,
+    "firstEnvironmentFailureCause": "omega-pac runtime dependencies were not installed; semantic assertions did not run"
+  }
+}

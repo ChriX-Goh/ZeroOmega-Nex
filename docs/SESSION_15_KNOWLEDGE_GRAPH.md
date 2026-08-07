@@ -1,9 +1,9 @@
-# Session 15 Knowledge Graph - MIG-01.5 Safe Unknown Metadata
+# Session 15 Knowledge Graph - MIG-01.5 Corpus D Field Matrix
 
-This file records the Session 15 project graph at the safe-unknown-metadata checkpoint. Stable
-product rules live in `PRODUCT_CONSTITUTION.md`; current authorization and audited completion live
-in `PROJECT_STATE.json`. GitHub PR metadata and checks remain authoritative for the moving exact
-Head.
+This file records the latest Session 15 project graph after safe unknown metadata and original-runtime
+duplicate-name normalization. Stable product rules live in `PRODUCT_CONSTITUTION.md`; current
+authorization and audited completion live in `PROJECT_STATE.json`. GitHub PR metadata and checks
+remain authoritative for the moving exact Head.
 
 ## 1. Active product graph
 
@@ -13,11 +13,14 @@ ZeroOmega Nex
     -> Corpus A [dual-browser packaged complete]
     -> Corpus B [external blocker: sanitized owner backup absent]
     -> Corpus C [original-runtime complex positive packaged complete]
-    -> Corpus D [partial]
-      -> Unicode PAC / URL / body [complete evidence]
+    -> Corpus D [repository-controlled field matrix complete at this checkpoint]
+      -> Unicode PAC / URL / body / cache-update shapes [complete evidence]
       -> proxy auth + sensitive/non-sensitive headers [complete evidence]
-      -> safe unknown metadata [this checkpoint]
-      -> valid duplicate names [next executable matrix]
+      -> safe unknown metadata [complete evidence]
+      -> duplicate-name semantics [complete evidence]
+         -> duplicate Profile identity [negative corpus; original public runtime rejects]
+         -> repeated valid Quick Switch names [positive ingestion normalization; first wins]
+    -> large original/representative export storage + restart capacity [next executable MIG-01.5]
     -> owner Firefox retest [external dependency; unauthorized]
 ```
 
@@ -25,79 +28,92 @@ Popup/Options refinement remains frozen. No second product batch is authorized.
 
 ## 2. Session-start state reconciliation
 
-The Session 14 clean Head is `47e936b96aaba0c2cb3852d53a1e8dc53a8a25b5`.
-CI run `31147358627` completed successfully. Browser E2E run `31147361570` first failed before the
-migration assertions because Firefox 152.0.6 did not expose its Marionette port. Re-running only the
-failed Firefox job produced attempt 2 with all four Browser E2E jobs successful. The transient
-Firefox startup failure is runner evidence, not a migration/product regression.
+Session 15 began from product Head `565ec314b4266bb65e85dec11dd70af4d5a50bcf`.
+Its CI `31148901093`, Browser E2E `31148901192`, Parity Documentation `31148901148`, Milestone 8
+Visual Evidence `31148901109`, Original Nex UI Evidence `31148901108`, and Original Toolbar
+Evidence `31148901194` were all rechecked as successful before duplicate-name work started.
 
-This closes the pending clean-Head gate from Session 14 without changing product completion.
+The audited product completion remains `45.15%`, reported as `45%`; release remains `NO-GO` and
+owner retest remains prohibited.
 
-## 3. Safe unknown metadata source proof
+## 3. Safe unknown metadata checkpoint retained
 
-The existing importer already classifies JSON-compatible unknown profile fields as safely opaque
-only when neither field names nor nested values touch risk-bearing semantics. Safe fields live under
-`profile.legacy.fields`; unknown fields associated with secrets/auth/scripts/code/permissions/
-network/proxy/conditions/rules/headers/hosts/ports/URLs fail closed.
+The provenance-backed `x-benign-metadata` field on the real original-runtime Corpus C/D Rule List
+survives original `Profiles.create -> update -> analyze -> compile -> JSON.stringify`, then Nex
+import -> legacy namespace -> acceptance -> Apply -> export -> re-import. Risk-bearing unknown
+metadata remains fail-closed. Research run `31148550308`, job `92773166550`, artifact `8982414439`,
+and product checkpoint `565ec314b4266bb65e85dec11dd70af4d5a50bcf` remain the governing evidence.
 
-The missing evidence was therefore upstream provenance and the complete migration chain, not a new
-production workaround.
+## 4. Original-runtime duplicate-name source proof
 
-A disposable research branch generated the complex fixture from the actual pinned
+The phrase "duplicate names where valid" was ambiguous and was resolved against the actual pinned
 `zero-peak/ZeroOmega@v3.5.0` runtime, source commit
-`05cbb30a2204cc3bdf3bb2e65765a70644a022d7`. The benign field
-`x-benign-metadata` on `+corpus rules` contains nested object/array/Unicode/scalar data. Original
-runtime assertions prove exact retention through:
+`05cbb30a2204cc3bdf3bb2e65765a70644a022d7`.
+
+The first research run `31150283050` / job `92778294231` failed before semantic assertions because
+`omega-pac` runtime dependencies were not installed. This is environment evidence only and is not a
+product or compatibility failure.
+
+After installing the original runtime dependencies, run `31150394682` / job `92778615225`
+completed successfully and proved:
+
+- `Options.addProfile()` rejects a second Profile named `duplicate target` with
+  `Target name duplicate target already taken!`;
+- `Options.renameProfile()` also rejects renaming onto an occupied name. Its observed
+  `name is not defined` message is an original error-message defect, not permission to duplicate;
+- a key/name-mismatched raw shadow definition can be iterated by key, but `Profiles.byName()` and
+  reference closure resolve the canonical `+<name>` slot, making the shadow address-ambiguous;
+- duplicate JSON object keys are already last-wins at `JSON.parse` before ZeroOmega sees the object;
+- repeated valid Quick Switch names are deterministic positive ingestion input: the original runtime
+  keeps the first occurrence and removes later repeats during Options initialization;
+- the research vector
+  `proxy, proxy, auto switch, proxy, system, system, missing profile, <empty>, auto switch`
+  stabilized to `proxy, auto switch, system`;
+- the stabilized original-runtime backup SHA-256 is
+  `56e195d0318755ae77b3cfec294832a60f59e96f7e8ca233d91d51cb93ec4af1`.
+
+Research artifact `8983062405` has ZIP SHA-256
+`f9c6da1fb828da1a27743d7255761bb2e0fb1f3636d8e8a4c63669537624e9c8`.
+Research source checkpoint is `28e638584517caf2477bd9a38d6c5ae5d3d5b588`.
+
+## 5. Nex duplicate-name compatibility contract
+
+Duplicate Profile identities remain rejected by the existing inventory checks
+`profile.key-name-mismatch` / `profile.duplicate-name`; the original runtime evidence confirms this
+is the correct negative-corpus behavior and must not be relaxed.
+
+The public legacy import boundary now owns original-runtime normalization for repeated valid Quick
+Switch names. A successful source with repeated names produces one route for the first occurrence,
+omits later occurrences, and records each omission as
+`settings.quick-switch-duplicate-normalized` with status `exact`.
+
+The transaction evidence covers:
 
 ```text
-Profiles.create
-  -> Profiles.update
-  -> Profiles.analyze
-  -> Profiles.compile
-  -> pre-export options
-  -> JSON.stringify export
-```
-
-Research evidence:
-
-- run `31148550308`: success;
-- job `92773166550`: success;
-- artifact `8982414439`;
-- artifact ZIP SHA-256 `047a6fd9d2d8e1d25d8e996115c591ce75d9d2bc6d8fa0b86b64e7e42c0c5a45`;
-- generated `.bak` SHA-256 `f0190ba86c95767b97f6eccdf76d9bd10a80bcdaecddfaa35f7708f9190ae092`;
-- research commit `5de3c6d09c9b0c7198de07ed714126d161b2c6de`.
-
-## 4. Nex acceptance contract at this checkpoint
-
-`apps/extension/src/lib/original-complex-migration.test.ts` binds the provenance-backed field to the
-Nex namespace and full transaction:
-
-```text
-original-runtime .bak
-  -> import
-  -> profile.legacy.fields["x-benign-metadata"]
+legacy input with repeated valid Quick Switch names
+  -> public import normalization
+  -> inactive candidate with unique first-occurrence routes
   -> acceptance
   -> Apply / activation candidate
-  -> schema-v2 .bak export
-  -> re-import
-  -> identical namespaced metadata and user intent
+  -> schema-v2 .bak export with unique names
+  -> re-import with no further normalization required
 ```
 
-The same test mutates the real original-runtime corpus with `x-auth-token` and requires
-`field.unknown-behavior` rejection. This prevents a broad "preserve every unknown field" rule from
-weakening the security boundary.
+The original normalized backup and provenance are pinned under `fixtures/zeroomega-v2/`. The batch
+contract now distinguishes deterministic duplicate name-bearing references from invalid duplicate
+Profile identities rather than treating both as one positive Corpus D shape.
 
-The packaged Chromium and Firefox original-migration scripts already compare the complete
-`+corpus rules` semantic object, excluding only generated `pacScript`; therefore adding the
-provenance-backed field to the fixture makes both browser journeys fail if import/accept/Apply/
-restart/export loses the metadata. No browser-test-only product state mutation is needed.
+## 6. State and next handoff
 
-## 5. State and next handoff
+At this checkpoint the repository-controlled Corpus D field classes named by the batch contract are
+covered: PAC/Unicode/cache-update shapes, authentication/headers, safe unknown metadata, and
+original-runtime duplicate-name semantics. This does not close `MIG-01`: Corpus B remains externally
+blocked, larger representative export/storage/restart capacity remains unproven, and the packaged
+negative/failure-preservation matrix remains for later MIG-01 work.
 
-Audited product completion remains `45.15%`, reported as `45%`; release remains `NO-GO` and owner
-retest remains prohibited. This checkpoint strengthens Corpus D evidence but does not close Corpus
-D or `MIG-01`.
-
-Next repository-controlled work stays in `MIG-01.5`: prove and close valid duplicate-name behavior
-against the original runtime, then continue the remaining Corpus D/failure matrix. Corpus B stays
-explicitly externally blocked rather than being fabricated.
+The next highest-value repository-controlled `MIG-01.5` target is a provenance-bound large
+original/representative export capacity vector through import -> acceptance -> Apply -> persistent
+restart -> semantic export/re-import on both browser targets. It must measure storage and restart
+capacity without fabricating Corpus B owner data. After that, proceed to the remaining
+parser/mapping/storage/compile/install/confirm/restart/export failure matrix under the existing
+MIG-01 sequence.

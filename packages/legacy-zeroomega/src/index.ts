@@ -11,7 +11,7 @@ export {
   ZEROOMEGA_BACKUP_SCHEMA_VERSION,
 } from './export.js';
 export type { LegacyExportContext, LegacyExportIssue, LegacyExportResult } from './export.js';
-export { importZeroOmegaBackup } from './import.js';
+export { importZeroOmegaBackup } from './import-normalized.js';
 export { LegacyImportReportBuilder } from './report.js';
 export type {
   LegacyDecodedBackup,
