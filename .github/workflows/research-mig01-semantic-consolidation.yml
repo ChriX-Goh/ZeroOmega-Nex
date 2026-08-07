@@ -1,0 +1,28 @@
+name: Research MIG-01.7 Semantic Consolidation
+
+on:
+  push:
+    branches:
+      - research/mig01-semantic-consolidation
+
+permissions:
+  contents: write
+
+jobs:
+  package-invariants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Format check new invariant test
+        run: pnpm exec prettier --check packages/legacy-zeroomega/src/semantic-consolidation.test.ts
+      - name: Run semantic consolidation invariants
+        run: pnpm exec vitest run packages/legacy-zeroomega/src/semantic-consolidation.test.ts --reporter=verbose
