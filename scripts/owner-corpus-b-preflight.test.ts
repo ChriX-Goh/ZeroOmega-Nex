@@ -154,11 +154,15 @@ describe('owner Corpus B repository preflight', () => {
 
     let exitCode: unknown;
     try {
-      await execFileAsync(process.execPath, [wrapperPath, candidatePath, manifestPath, reportPath], {
-        cwd: rootDir,
-        env: process.env,
-        maxBuffer: 4 * 1024 * 1024,
-      });
+      await execFileAsync(
+        process.execPath,
+        [wrapperPath, candidatePath, manifestPath, reportPath],
+        {
+          cwd: rootDir,
+          env: process.env,
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
     } catch (error) {
       if (error instanceof Error && 'code' in error) exitCode = error.code;
       else throw error;
