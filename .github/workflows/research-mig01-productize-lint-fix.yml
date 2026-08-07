@@ -1,0 +1,40 @@
+name: Research MIG-01.7 Productize Lint Fix
+
+on:
+  push:
+    branches:
+      - research/mig01-semantic-productize
+    paths:
+      - '.github/workflows/research-mig01-productize-lint-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-semantic-productize
+      - name: Remove unused research imports
+        shell: python
+        run: |
+          from pathlib import Path
+          for name in [
+              'scripts/e2e-chromium-original-large-migration.mjs',
+              'scripts/e2e-firefox-original-large-migration.mjs',
+          ]:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace("  assertNoSecretMarkers,\n", "")
+              text = text.replace("  sha256Text,\n", "")
+              path.write_text(text)
+      - name: Commit lint cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
+          git diff --cached --check
+          git commit -m 'test: remove stale MIG-01.7 imports'
+          git push origin HEAD:research/mig01-semantic-productize
