@@ -255,3 +255,12 @@ workflow repository state, activation/PAC output, ordinary export, and sanitized
 SecretStore remains the protected sink. Rendered browser UI plus Actions log/uploaded-diagnostics
 sentinel scans remain MIG-01.7B, so this note does not change release readiness or product progress.
 The auditable matrix is `docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md`.
+
+## MIG-01.7B browser secret-surface evidence note
+
+MIG-01.7B adds no UI behavior or refinement. It reuses the existing real Options original-backup
+import/export surface as a security observation point: runtime-only fake password/header sentinels
+must not appear in the compatibility review, rendered body, workflow command response, public
+proxy/PAC setting, ordinary export, Chromium/Firefox Actions logs, or uploaded browser diagnostics.
+The downstream permanent gate reports only sentinel ordinals. This evidence does not alter UI row
+status, release readiness, or the 45.15% product-progress baseline.

@@ -8,7 +8,9 @@ const repository = process.env.GITHUB_REPOSITORY;
 const runId = process.env.GITHUB_RUN_ID;
 const token = process.env.GITHUB_TOKEN;
 if (!repository || !runId || !token) {
-  throw new Error('GitHub repository, run ID, and token are required for migration secret log gate');
+  throw new Error(
+    'GitHub repository, run ID, and token are required for migration secret log gate',
+  );
 }
 
 async function scanTree(path) {
@@ -20,7 +22,10 @@ async function scanTree(path) {
       scanned += await scanTree(candidate);
       continue;
     }
-    assertNoMigrationSecretSentinels(await readFile(candidate, 'utf8'), `diagnostic artifact ${entry}`);
+    assertNoMigrationSecretSentinels(
+      await readFile(candidate, 'utf8'),
+      `diagnostic artifact ${entry}`,
+    );
     scanned += 1;
   }
   return scanned;
@@ -46,7 +51,9 @@ for (const requiredName of requiredJobs) {
   const job = jobs.find((candidate) => String(candidate.name).toLowerCase() === requiredName);
   if (!job) throw new Error(`Required browser job ${requiredName} was not found`);
   if (job.conclusion !== 'success') {
-    throw new Error(`Required browser job ${requiredName} concluded ${job.conclusion ?? 'unknown'}`);
+    throw new Error(
+      `Required browser job ${requiredName} concluded ${job.conclusion ?? 'unknown'}`,
+    );
   }
   const logsResponse = await github(`/repos/${repository}/actions/jobs/${job.id}/logs`);
   assertNoMigrationSecretSentinels(await logsResponse.text(), `Actions job log ${requiredName}`);

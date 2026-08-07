@@ -52,11 +52,16 @@ try {
   await options.getByLabel('原版备份文件').setInputFiles(backupPath);
 
   const review = options.locator('[data-legacy-import-review]');
-  await review.getByRole('heading', { name: '兼容性检查', exact: true }).waitFor({ timeout: 20_000 });
+  await review
+    .getByRole('heading', { name: '兼容性检查', exact: true })
+    .waitFor({ timeout: 20_000 });
   const importButton = review.locator('[data-legacy-import-and-use]');
   await importButton.waitFor({ state: 'visible', timeout: 20_000 });
   assertNoMigrationSecretSentinels(await review.innerText(), 'Chromium migration review UI');
-  assertNoMigrationSecretSentinels(await options.locator('body').innerText(), 'Chromium rendered Options UI before import');
+  assertNoMigrationSecretSentinels(
+    await options.locator('body').innerText(),
+    'Chromium rendered Options UI before import',
+  );
 
   await importButton.click();
   await options
@@ -67,11 +72,14 @@ try {
   assert.equal(workflow?.ok, true, 'Chromium sensitive import workflow get failed');
   assertNoMigrationSecretSentinels(workflow, 'Chromium workflow command response');
 
-  const proxySetting = await options.evaluate(
-    async () => chrome.proxy.settings.get({ incognito: false }),
+  const proxySetting = await options.evaluate(async () =>
+    chrome.proxy.settings.get({ incognito: false }),
   );
   assertNoMigrationSecretSentinels(proxySetting, 'Chromium public proxy/PAC setting');
-  assertNoMigrationSecretSentinels(await options.locator('body').innerText(), 'Chromium rendered Options UI after import');
+  assertNoMigrationSecretSentinels(
+    await options.locator('body').innerText(),
+    'Chromium rendered Options UI after import',
+  );
 
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   const downloadPromise = options.waitForEvent('download');

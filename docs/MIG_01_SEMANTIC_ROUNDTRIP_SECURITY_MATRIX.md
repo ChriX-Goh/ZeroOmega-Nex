@@ -54,7 +54,10 @@ that is expected to retain the secret. A passing test therefore proves confineme
 `MIG-01.7A` is complete only when the consolidated tests pass on the exact product Head together
 with the existing permanent Browser E2E. It does not close `MIG-01.7`.
 
-The remaining repository-controlled `MIG-01.7B` work is narrow: inject a non-credential sentinel
-through the real sensitive import surface, prove rendered UI and browser command/PAC views never
-contain it, and scan permanent browser logs plus uploaded diagnostics artifacts for that sentinel.
-No new product UI or independent per-field workflow is authorized.
+`MIG-01.7B` injects three controlled fake sentinels only into original password and sensitive
+request-header values at runtime. Chromium and Firefox must prove the real Options import review,
+post-import rendered UI, workflow command response, public proxy/PAC setting, and ordinary `.bak`
+export contain none of them. A downstream permanent job downloads both browser diagnostics and
+reads the same run’s Chromium/Firefox Actions job logs, then scans every surface again. The gate
+reports only sentinel ordinals, never raw values. No new product UI or per-field workflow is
+authorized. `MIG-01.7B` closes only after this exact-head Browser E2E chain passes.

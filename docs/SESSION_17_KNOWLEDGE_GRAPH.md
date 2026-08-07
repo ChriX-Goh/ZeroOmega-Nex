@@ -293,3 +293,10 @@ scans. Corpus B remains an external owner-data dependency and must not be fabric
 
 Progress remains exactly `45.15%` (reported `45%`), release remains `NO-GO`, PR #11 remains Draft,
 and owner retest remains prohibited.
+
+## Session 18 implementation continuation — MIG-01.7B (2026-08-07)
+
+- MIG-01.7A exact-head evidence is closed at `c0b23ee765db8b50d86fc8fa61ba105cd7c2a830`; parent MIG-01.7 remains the only product WIP.
+- MIG-01.7B adds runtime-only sensitive original-backup sentinels to packaged Chromium/Firefox and a permanent downstream Actions-log/diagnostics scanner. It changes evidence only, not Popup/Options behavior.
+- Closure rule: do not mark MIG-01.7B green until CI plus the permanent Browser E2E run on the final cleaned Head succeed, including both main browser jobs and `migration-secret-leak-gate`.
+- Product progress remains 45.15%, Corpus B remains external, release remains NO-GO.

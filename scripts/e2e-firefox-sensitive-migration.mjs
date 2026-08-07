@@ -30,14 +30,21 @@ async function bidiCommand(method, params) {
   const socket = new WebSocket(webSocketUrl);
   await new Promise((resolveOpen, rejectOpen) => {
     socket.addEventListener('open', resolveOpen, { once: true });
-    socket.addEventListener('error', () => rejectOpen(new Error('Firefox BiDi connection failed')), {
-      once: true,
-    });
+    socket.addEventListener(
+      'error',
+      () => rejectOpen(new Error('Firefox BiDi connection failed')),
+      {
+        once: true,
+      },
+    );
   });
   try {
     return await new Promise((resolveResponse, rejectResponse) => {
       const id = 1;
-      const timeout = setTimeout(() => rejectResponse(new Error(`Firefox BiDi ${method} timed out`)), 20_000);
+      const timeout = setTimeout(
+        () => rejectResponse(new Error(`Firefox BiDi ${method} timed out`)),
+        20_000,
+      );
       socket.addEventListener('message', (event) => {
         const message = JSON.parse(String(event.data));
         if (message.id !== id) return;
@@ -96,7 +103,10 @@ try {
     .setPreference('browser.download.dir', downloadDir)
     .setPreference('browser.download.useDownloadDir', true)
     .setPreference('browser.download.alwaysOpenPanel', false)
-    .setPreference('browser.helperApps.neverAsk.saveToDisk', 'application/json,text/json,application/octet-stream')
+    .setPreference(
+      'browser.helperApps.neverAsk.saveToDisk',
+      'application/json,text/json,application/octet-stream',
+    )
     .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 
   driver = await new Builder()
@@ -122,7 +132,10 @@ try {
   const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
   await fileInput.sendKeys(backupPath);
 
-  const review = await driver.wait(until.elementLocated(By.css('[data-legacy-import-review]')), 20_000);
+  const review = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review]')),
+    20_000,
+  );
   await driver.wait(until.elementIsVisible(review), 20_000);
   const importButton = await driver.wait(
     until.elementLocated(By.css('[data-legacy-import-review] [data-legacy-import-and-use]')),
