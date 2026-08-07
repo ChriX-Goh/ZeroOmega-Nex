@@ -40,7 +40,10 @@ function firefoxOptions() {
     .setPreference('browser.download.dir', downloadDir)
     .setPreference('browser.download.useDownloadDir', true)
     .setPreference('browser.download.alwaysOpenPanel', false)
-    .setPreference('browser.helperApps.neverAsk.saveToDisk', 'application/json,text/json,application/octet-stream')
+    .setPreference(
+      'browser.helperApps.neverAsk.saveToDisk',
+      'application/json,text/json,application/octet-stream',
+    )
     .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 }
 
@@ -51,12 +54,19 @@ async function bidiCommand(driver, method, params) {
   const socket = new WebSocket(webSocketUrl);
   await new Promise((resolveOpen, rejectOpen) => {
     socket.addEventListener('open', resolveOpen, { once: true });
-    socket.addEventListener('error', () => rejectOpen(new Error('Could not connect to Firefox BiDi')), { once: true });
+    socket.addEventListener(
+      'error',
+      () => rejectOpen(new Error('Could not connect to Firefox BiDi')),
+      { once: true },
+    );
   });
   try {
     return await new Promise((resolveResponse, rejectResponse) => {
       const id = 1;
-      const timeout = setTimeout(() => rejectResponse(new Error(`Firefox BiDi ${method} timed out`)), 20_000);
+      const timeout = setTimeout(
+        () => rejectResponse(new Error(`Firefox BiDi ${method} timed out`)),
+        20_000,
+      );
       socket.addEventListener('message', (event) => {
         const message = JSON.parse(String(event.data));
         if (message.id !== id) return;
@@ -85,9 +95,16 @@ async function installExtension(driver) {
 async function navigateOptions(driver) {
   const context = await driver.getWindowHandle();
   const url = `moz-extension://${extensionUuid}/options.html`;
-  const result = await bidiCommand(driver, 'browsingContext.navigate', { context, url, wait: 'complete' });
+  const result = await bidiCommand(driver, 'browsingContext.navigate', {
+    context,
+    url,
+    wait: 'complete',
+  });
   assert.equal(result?.url, `${url}#/about`);
-  await driver.wait(until.elementLocated(By.xpath("//button[.//*[@data-options-nav-icon='import']]")), 20_000);
+  await driver.wait(
+    until.elementLocated(By.xpath("//button[.//*[@data-options-nav-icon='import']]")),
+    20_000,
+  );
 }
 
 async function workflowSnapshot(driver) {
@@ -128,14 +145,22 @@ try {
   await installExtension(driver);
   await navigateOptions(driver);
 
-  const importExport = await driver.findElement(By.xpath("//button[.//*[@data-options-nav-icon='import']]"));
+  const importExport = await driver.findElement(
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
+  );
   await importExport.click();
   let fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 60_000);
   await fileInput.sendKeys(inputPath);
-  let review = await driver.wait(until.elementLocated(By.css('[data-legacy-import-review]')), 60_000);
+  let review = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review]')),
+    60_000,
+  );
   await driver.wait(until.elementIsVisible(review), 60_000);
   assertSentinelAbsent(await review.getText(), 'Firefox compatibility review');
-  let importButton = await driver.wait(until.elementLocated(By.css('[data-legacy-import-and-use]')), 60_000);
+  let importButton = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
+    60_000,
+  );
   await importButton.click();
   await driver.wait(async () => {
     const response = await driver.executeAsyncScript(
@@ -169,7 +194,11 @@ try {
   const exported = await readFile(exportedPath, 'utf8');
   assertSentinelAbsent(exported, 'Firefox ordinary export');
   for (const marker of ['passwordSecretRef', 'secretRef', 'Authorization', 'X-Fixture-Token']) {
-    assert.equal(exported.includes(marker), false, 'Firefox ordinary export retained sensitive metadata');
+    assert.equal(
+      exported.includes(marker),
+      false,
+      'Firefox ordinary export retained sensitive metadata',
+    );
   }
 
   const beforeReimport = await workflowSnapshot(driver);
@@ -179,10 +208,17 @@ try {
   review = await driver.wait(until.elementLocated(By.css('[data-legacy-import-review]')), 60_000);
   await driver.wait(until.elementIsVisible(review), 60_000);
   assertSentinelAbsent(await review.getText(), 'Firefox sanitized re-import review');
-  importButton = await driver.wait(until.elementLocated(By.css('[data-legacy-import-and-use]')), 60_000);
+  importButton = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
+    60_000,
+  );
   assert.equal(await importButton.isEnabled(), true);
   const afterReimport = await workflowSnapshot(driver);
-  assert.deepEqual(afterReimport, beforeReimport, 'Firefox sanitized re-import review mutated workflow state');
+  assert.deepEqual(
+    afterReimport,
+    beforeReimport,
+    'Firefox sanitized re-import review mutated workflow state',
+  );
 
   await appendMig01Evidence({
     kind: 'secret-leak',

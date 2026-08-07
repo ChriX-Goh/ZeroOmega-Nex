@@ -72,7 +72,11 @@ try {
   const exported = await readFile(exportedPath, 'utf8');
   assertSentinelAbsent(exported, 'Chromium ordinary export');
   for (const marker of ['passwordSecretRef', 'secretRef', 'Authorization', 'X-Fixture-Token']) {
-    assert.equal(exported.includes(marker), false, 'Chromium ordinary export retained sensitive metadata');
+    assert.equal(
+      exported.includes(marker),
+      false,
+      'Chromium ordinary export retained sensitive metadata',
+    );
   }
 
   const beforeReimport = await workflowSnapshot(page);
@@ -83,7 +87,11 @@ try {
   assertSentinelAbsent(await reimportReview.innerText(), 'Chromium sanitized re-import review');
   assert.equal(await reimportReview.locator('[data-legacy-import-and-use]').isEnabled(), true);
   const afterReimport = await workflowSnapshot(page);
-  assert.deepEqual(afterReimport, beforeReimport, 'Chromium sanitized re-import review mutated workflow state');
+  assert.deepEqual(
+    afterReimport,
+    beforeReimport,
+    'Chromium sanitized re-import review mutated workflow state',
+  );
 
   await appendMig01Evidence({
     kind: 'secret-leak',
