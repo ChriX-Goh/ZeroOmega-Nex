@@ -110,65 +110,6 @@ if old not in source:
 source = source.replace(old, new, 1)
 script.write_text(source)
 
-test = Path('packages/legacy-zeroomega/src/owner-corpus-b-intake.test.mjs')
-source = test.read_text()
-old = """    expect(manifest.containsRawValues).toBe(false);
-    expect(JSON.stringify(manifest)).not.toContain('nested.corpus.example.com');
-    expect(JSON.stringify(manifest)).not.toContain('corpus proxy');
-    expect(verifyAgainstManifest(data, manifest)).toEqual(manifest.metrics);
-"""
-new = """    expect(manifest.containsRawValues).toBe(false);
-    expect(JSON.stringify(manifest)).not.toContain('nested.corpus.example.com');
-    expect(JSON.stringify(manifest)).not.toContain('corpus proxy');
-    const sanitized = structuredClone(data);
-    sanitized['+PAC 中文'].pacUrl = 'https://pac.example.com/redacted';
-    expect(verifyAgainstManifest(sanitized, manifest)).toEqual(manifest.metrics);
-"""
-if old not in source:
-    raise SystemExit('safe candidate test block not found')
-source = source.replace(old, new, 1)
-
-anchor = """  it('rejects usable credentials and non-reserved endpoints', async () => {
-"""
-insert = """  it('binds ordered Rule List and PAC syntax shape', async () => {
-    const { source, data } = await fixture();
-    const manifest = buildManifest(data, Buffer.byteLength(source));
-
-    const ruleOrder = structuredClone(data);
-    ruleOrder['+corpus rules'].ruleList = ruleOrder['+corpus rules'].ruleList
-      .split(/\\r?\\n/u)
-      .reverse()
-      .join('\\n');
-    expect(() => verifyAgainstManifest(ruleOrder, manifest)).toThrow(/structural fingerprint changed/u);
-
-    const pacSyntax = structuredClone(data);
-    pacSyntax['+PAC 中文'].pacScript = pacSyntax['+PAC 中文'].pacScript.replace(
-      'return \"DIRECT\";',
-      'if (true) return \"DIRECT\";',
-    );
-    expect(() => verifyAgainstManifest(pacSyntax, manifest)).toThrow(/structural fingerprint changed/u);
-  });
-
-  it('rejects URL metadata and non-documentation IPv6 identifiers', async () => {
-    const { data } = await fixture();
-
-    const url = structuredClone(data);
-    url['+PAC 中文'].pacUrl = 'https://owner:secret@pac.example.com/private?token=secret#owner';
-    expect(() => assertSanitizedSafety(url)).toThrow(
-      /URL credentials|URL query or fragment|URL path/u,
-    );
-
-    const ipv6 = structuredClone(data);
-    ipv6['+PAC 中文'].pacScript += '\\nreturn \"PROXY [fd00::1234]:8080\";';
-    expect(() => assertSanitizedSafety(ipv6)).toThrow(/non-reserved network identifier/u);
-  });
-
-"""
-if anchor not in source:
-    raise SystemExit('test insertion anchor not found')
-source = source.replace(anchor, insert + anchor, 1)
-test.write_text(source)
-
 doc = Path('docs/MIG_01_CORPUS_B_INTAKE.md')
 source = doc.read_text()
 old = '- condition, Rule List or PAC text contains non-reserved domain/IP identifiers.\n'
