@@ -104,3 +104,5 @@ jobs:
           path: evidence/firefox
       - name: Validate canonical semantic evidence
         run: node scripts/validate-mig01-semantic-evidence.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
+
+# Retry after removing unused imports from large migration scripts.
