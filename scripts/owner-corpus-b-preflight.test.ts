@@ -110,39 +110,33 @@ describe('owner Corpus B repository preflight', () => {
     expect(reportSource).not.toContain('配置.pac');
   });
 
-  it(
-    'blocks on importer rejection without copying private source values into the report',
-    async () => {
-      const { data, privateName } = await prepare();
-      const missingTarget = 'OWNER_PRIVATE_MISSING_TARGET';
-      object(data['+outer switch']).defaultProfileName = missingTarget;
-      const source = `${JSON.stringify(data)}\n`;
-      const manifest = buildManifest(
-        parseBackup(source, 'raw owner backup'),
-        Buffer.byteLength(source),
-      );
-      const metrics = verifyAgainstManifest(
-        parseBackup(source, 'sanitized owner backup'),
-        manifest,
-      );
-      const report = buildSafeCorpusBPreflightReport(source, metrics);
-      const reportSource = JSON.stringify(report);
+  it('blocks on importer rejection without copying private source values into the report', async () => {
+    const { data, privateName } = await prepare();
+    const missingTarget = 'OWNER_PRIVATE_MISSING_TARGET';
+    object(data['+outer switch']).defaultProfileName = missingTarget;
+    const source = `${JSON.stringify(data)}\n`;
+    const manifest = buildManifest(
+      parseBackup(source, 'raw owner backup'),
+      Buffer.byteLength(source),
+    );
+    const metrics = verifyAgainstManifest(parseBackup(source, 'sanitized owner backup'), manifest);
+    const report = buildSafeCorpusBPreflightReport(source, metrics);
+    const reportSource = JSON.stringify(report);
 
-      expect(report).toMatchObject({
-        containsRawValues: false,
-        importer: { ok: false },
-        decision: {
-          status: 'blocked',
-          readyForBrowserChain: false,
-          reason: 'import-rejected',
-        },
-      });
-      expect(report.importer.issues.some((issue) => issue.status === 'rejected')).toBe(true);
-      expect(reportSource).not.toContain(privateName);
-      expect(reportSource).not.toContain(missingTarget);
-      expect(reportSource).not.toContain('owner-private.example.com');
-    },
-  );
+    expect(report).toMatchObject({
+      containsRawValues: false,
+      importer: { ok: false },
+      decision: {
+        status: 'blocked',
+        readyForBrowserChain: false,
+        reason: 'import-rejected',
+      },
+    });
+    expect(report.importer.issues.some((issue) => issue.status === 'rejected')).toBe(true);
+    expect(reportSource).not.toContain(privateName);
+    expect(reportSource).not.toContain(missingTarget);
+    expect(reportSource).not.toContain('owner-private.example.com');
+  });
 
   it('executes the public wrapper and writes a safe report file', async () => {
     const { directory, candidateSource, manifest } = await prepare();
