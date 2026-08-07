@@ -90,7 +90,8 @@ describe('MIG-01 sensitive migration transaction', () => {
     }
     expect(
       imported.secretMaterials.some(
-        (material) => material.kind === 'request-header' && material.ref === tokenHeader.value.secretRef,
+        (material) =>
+          material.kind === 'request-header' && material.ref === tokenHeader.value.secretRef,
       ),
     ).toBe(true);
 
