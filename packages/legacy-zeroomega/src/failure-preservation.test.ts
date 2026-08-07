@@ -107,7 +107,7 @@ describe('MIG-01.6 legacy failure preservation', () => {
       expect.arrayContaining([
         expect.objectContaining({
           severity: 'error',
-          code: 'profile-spec.profile.missing-reference',
+          code: 'profile-spec.profile.missing-startup-reference',
         }),
       ]),
     );
