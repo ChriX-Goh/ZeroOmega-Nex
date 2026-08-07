@@ -56,3 +56,5 @@ jobs:
         run: pnpm build:firefox
       - name: Run Firefox original large persistent migration
         run: pnpm test:e2e:firefox-original-large-migration
+
+# Rerun after replacing UI status timing with persistent workflow acceptance.
