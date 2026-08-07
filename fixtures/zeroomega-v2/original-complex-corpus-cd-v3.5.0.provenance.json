@@ -1,0 +1,34 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceCommit": "05cbb30a2204cc3bdf3bb2e65765a70644a022d7",
+  "runtimeModules": [
+    "omega-target/src/default_options.coffee",
+    "omega-pac/src/profiles.coffee",
+    "omega-pac/src/rule_list.coffee",
+    "omega-pac/src/conditions.coffee"
+  ],
+  "generationMethod": "Original v3.5.0 default options plus omega-pac Profiles.create/update/analyze/compile; serialized with JSON.stringify like original IoCtrl export",
+  "nodeVersion": "v18.20.8",
+  "coffeeScriptVersion": "1.12.7",
+  "backupSha256": "92aec2d8932b808cc8654787ca907aa935d6dda44b018b079be8e5c7cc7397f4",
+  "referenceClosure": {
+    "+outer switch": "outer switch",
+    "+direct": "direct",
+    "+virtual route": "virtual route",
+    "+inner switch": "inner switch",
+    "+corpus proxy": "corpus proxy",
+    "+corpus rules": "corpus rules"
+  },
+  "corpus": [
+    "C",
+    "D-partial"
+  ],
+  "generationEvidence": {
+    "workflowRunId": 31140177004,
+    "workflowJobId": 92748222921,
+    "artifactId": 8979514864,
+    "artifactDigest": "sha256:fa524a7db2ff01fdc012dae4232181ab702b1097de1513333955d999b978b1b5",
+    "researchCommit": "b4eb72922710529f14263059f559eac73bac6e34"
+  }
+}
