@@ -31,7 +31,7 @@ if (!address || typeof address === 'string') throw new Error('Restart server fai
 
 function firefoxOptions() {
   return new firefox.Options()
-    .addArguments('-headless', '-profile', profileDir)
+    .addArguments('-headless', '--remote-allow-system-access', '-profile', profileDir)
     .enableBidi()
     .setPreference('intl.accept_languages', 'zh-TW')
     .setPreference('extensions.webextOptionalPermissionPrompts', false)

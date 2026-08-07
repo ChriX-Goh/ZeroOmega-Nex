@@ -53,7 +53,7 @@ await writeFile(
 );
 
 const options = new firefox.Options()
-  .addArguments('-headless')
+  .addArguments('-headless', '--remote-allow-system-access')
   .setPreference('intl.accept_languages', 'en-US')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)

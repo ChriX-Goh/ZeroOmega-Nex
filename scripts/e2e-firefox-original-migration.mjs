@@ -62,7 +62,7 @@ async function closeServer(server) {
 
 function firefoxOptions() {
   return new firefox.Options()
-    .addArguments('-headless', '-profile', profileDir)
+    .addArguments('-headless', '--remote-allow-system-access', '-profile', profileDir)
     .enableBidi()
     .setPreference('intl.accept_languages', 'zh-TW')
     .setPreference('intl.locale.requested', 'zh-TW')

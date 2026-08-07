@@ -51,7 +51,7 @@ const extensionPath = resolve('dist/firefox-mv3');
 const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000010';
 const options = new firefox.Options()
-  .addArguments('-headless')
+  .addArguments('-headless', '--remote-allow-system-access')
   .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)

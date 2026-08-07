@@ -34,7 +34,7 @@ if (!address || typeof address === 'string')
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
 const options = new firefox.Options()
-  .addArguments('-headless')
+  .addArguments('-headless', '--remote-allow-system-access')
   .setPreference('intl.accept_languages', 'zh-CN')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)

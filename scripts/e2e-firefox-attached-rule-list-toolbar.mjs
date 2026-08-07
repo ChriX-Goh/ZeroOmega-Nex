@@ -35,7 +35,7 @@ const directRuleListId = 'profile-attached-direct-rule-list';
 const directSourceId = 'source-attached-direct-rule-list';
 
 const options = new firefox.Options()
-  .addArguments('-headless')
+  .addArguments('-headless', '--remote-allow-system-access')
   .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
