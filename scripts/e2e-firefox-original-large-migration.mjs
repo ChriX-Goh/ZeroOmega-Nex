@@ -430,6 +430,29 @@ async function exportOriginalSemantics(driver, originalOptions) {
   };
 }
 
+async function reimportForReview(driver, path) {
+  const importExportButton = await driver.findElement(
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
+  );
+  await importExportButton.click();
+  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 60_000);
+  await fileInput.sendKeys(path);
+  const compatibilityHeading = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review]')),
+    60_000,
+  );
+  await driver.wait(until.elementIsVisible(compatibilityHeading), 60_000);
+  const importButton = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
+    60_000,
+  );
+  assert.equal(
+    await importButton.isEnabled(),
+    true,
+    'Firefox semantic re-import was not accepted for use',
+  );
+}
+
 async function importAndUse(driver, path, previousGeneration) {
   const before = assertWorkflowSuccess(
     await sendWorkflowCommand(driver, { action: 'get' }),
@@ -510,16 +533,16 @@ try {
   await assertRouteDecisions(driver, optionsWindow, 'after-restart');
 
   const exported = await exportOriginalSemantics(driver, originalOptions);
-  const generationBeforeReimport = restored.metrics.generation;
-  await importAndUse(driver, reimportPath, generationBeforeReimport);
-  const reimported = await assertLargeState(driver, 'after semantic re-import');
-  await activateSwitch(driver, reimported.switchId, 'after semantic re-import');
+  await reimportForReview(driver, reimportPath);
+  const reimported = await assertLargeState(driver, 'after semantic re-import analysis');
+  assert.equal(reimported.switchId, restored.switchId);
+  assert.deepEqual(reimported.metrics, restored.metrics);
   await waitForActiveSwitch(
     driver,
-    reimported.switchId,
-    'Semantic re-imported large switch did not become active in Firefox',
+    restored.switchId,
+    'Semantic re-import analysis changed the confirmed Firefox PAC route',
   );
-  await assertRouteDecisions(driver, optionsWindow, 'after-reimport');
+  await assertRouteDecisions(driver, optionsWindow, 'after-reimport-analysis');
 
   console.log(
     JSON.stringify(
@@ -530,7 +553,7 @@ try {
         storage: {
           afterImport: imported.metrics,
           afterRestart: restored.metrics,
-          afterReimport: reimported.metrics,
+          afterReimportAnalysis: reimported.metrics,
         },
         semanticExport: exported,
       },

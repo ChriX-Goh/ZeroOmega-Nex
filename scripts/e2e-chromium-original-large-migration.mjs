@@ -314,6 +314,16 @@ async function importAndUse(options, path, previousGeneration) {
   assert.fail('Original large Import & Use did not commit the 36-profile persistent workflow');
 }
 
+async function reimportForReview(options, path) {
+  await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
+  await options.getByLabel('原版备份文件').setInputFiles(path);
+  await options
+    .getByRole('heading', { name: '兼容性检查', exact: true })
+    .waitFor({ timeout: 60_000 });
+  const importButton = options.getByRole('button', { name: '导入并立即使用', exact: true });
+  assert.equal(await importButton.isEnabled(), true, 'Semantic re-import was not accepted for use');
+}
+
 async function exportOriginalSemantics(options, originalOptions) {
   await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
   const downloadPromise = options.waitForEvent('download');
@@ -385,16 +395,16 @@ try {
   await assertRouteDecisions(context, 'after-restart');
 
   const exported = await exportOriginalSemantics(options, originalOptions);
-  const generationBeforeReimport = restored.metrics.generation;
-  await importAndUse(options, reimportPath, generationBeforeReimport);
-  const reimported = await assertLargeState(options, 'after semantic re-import');
-  await activateSwitch(options, reimported.switchId, 'after semantic re-import');
+  await reimportForReview(options, reimportPath);
+  const reimported = await assertLargeState(options, 'after semantic re-import analysis');
+  assert.equal(reimported.switchId, restored.switchId);
+  assert.deepEqual(reimported.metrics, restored.metrics);
   await waitForActiveSwitch(
     options,
-    reimported.switchId,
-    'Semantic re-imported large switch did not become active',
+    restored.switchId,
+    'Semantic re-import analysis changed the confirmed Chromium PAC route',
   );
-  await assertRouteDecisions(context, 'after-reimport');
+  await assertRouteDecisions(context, 'after-reimport-analysis');
 
   console.log(
     JSON.stringify(
@@ -405,7 +415,7 @@ try {
         storage: {
           afterImport: imported.metrics,
           afterRestart: restored.metrics,
-          afterReimport: reimported.metrics,
+          afterReimportAnalysis: reimported.metrics,
         },
         semanticExport: exported,
       },
