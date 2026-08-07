@@ -16,7 +16,7 @@ ZeroOmega Nex
     -> Corpus C [complete]
     -> Corpus D repository-controlled field matrix [complete]
     -> large original/runtime-produced representative capacity [complete]
-    -> MIG-01.6 negative corpus + failure preservation [this session]
+    -> MIG-01.6 negative corpus + failure preservation [complete]
        -> parser fail-closed machine codes
        -> mapping blockers / no candidate
        -> storage / workflow CAS rollback
@@ -223,8 +223,8 @@ for:
 
 The same suite imports the official original default backup, deliberately corrupts a semantic
 startup route, and proves ordinary export returns `ok:false` with
-`profile-spec.profile.missing-reference` while leaving the invalid input candidate structurally
-unchanged.
+`profile-spec.profile.missing-startup-reference` while leaving the invalid input candidate
+structurally unchanged.
 
 ## 9. Canonical matrix
 
@@ -233,28 +233,63 @@ compilation/preflight, authentication, installation, confirmation, restart, impo
 export. It binds each failure class to its machine result, preservation invariant, and executable
 evidence rather than creating one permanent workflow per micro-state.
 
-## 10. Productization boundary
+## 10. Clean product checkpoint
 
-The research branch must not be merged. Productization starts again from the authoritative clean
-product Head `d24002c6525c282c9a87bdbe98992b5541916dd0` and copies only:
+Productization did not merge the research branch. A new tree was created directly from the previous
+fully green product Head `d24002c6525c282c9a87bdbe98992b5541916dd0` and copied only the 14
+verified product/evidence files. The resulting product commit is
+`2da0f442efedb1f8d483d6e12d22fcf1c2ad2d99`
+(`fix: preserve confirmed state across migration failures`). Compare against the parent is exactly
+`ahead_by=1`, `behind_by=0`, with no research workflow, patcher, or temporary candidate file.
 
-- recovery implementation/test and required workflow contracts/storage parser/export;
-- background startup integration;
-- final dual-browser-tested large E2E scripts;
-- legacy failure-preservation test;
-- failure matrix;
-- batch/canonical evidence documentation and this graph.
+All six permanent workflows on that exact product commit completed SUCCESS:
 
-No `research-*` workflow or research patcher belongs on the product branch.
+- CI `31163579186`, verify job `92819206043`: SUCCESS; browser-build artifact `8988087403`,
+  SHA-256 `e4bdbc499566487e07bd38d68aa837e038d1864f3b58a134ea7c157aae451068`;
+- Browser E2E `31163579021`: SUCCESS;
+  - Chromium job `92819205924`: SUCCESS. Permanent log records rejected import count 1,
+    interrupted generation 9 -> recovered 10, intentionally forced platform Direct, unchanged
+    Applied revision, preserved dirty Draft, `lastApply.stage = recovery`,
+    `rollbackSucceeded = true`, and successful real route decisions after recovery. Diagnostics
+    artifact `8988100097`, SHA-256
+    `28e6b03d7262b8a18a3507846ffd0232273a8cc7409576e8d8eccb835e447c55`;
+  - Firefox job `92819205714`: SUCCESS on Firefox 152.0.6. Permanent log records rejected import
+    count 1, interrupted generation 5 -> recovered 6, intentionally forced `proxyType = none`,
+    unchanged Applied revision, preserved dirty Draft, `lastApply.stage = recovery`,
+    `rollbackSucceeded = true`, and successful real route decisions after recovery. Diagnostics
+    artifact `8988142402`, SHA-256
+    `cd27c8585dce119bc8368ae3ed9f949fce7a7876dc6de9b5cc9353e9061828f9`;
+  - Firefox policy-owned-popup and Chromium native-inspect jobs also SUCCESS;
+- Parity Documentation `31163579037`: SUCCESS;
+- Milestone 8 Visual Evidence `31163579155`: SUCCESS;
+- Original Nex UI Evidence `31163579414`: SUCCESS;
+- Original Toolbar Evidence `31163578670`: SUCCESS.
 
-## 11. Closure/status
+The enhanced failure-preservation path is therefore part of the ordinary permanent Chromium and
+Firefox migration E2E, not research-only evidence.
 
-MIG-01.6 is closed only after the clean product Head containing the above files receives all six
-permanent workflow successes. Closing MIG-01.6 does not close MIG-01 and does not increase the
-project percentage by itself.
+## 11. Research cleanup
 
-After MIG-01.6 closure, the next repository-controlled direction is MIG-01.7 semantic export/re-import
-and secret-leak consolidation. Corpus B remains an external dependency and must not be fabricated.
+The disposable research branch was not merged. Its temporary core/browser workflows and patcher were
+removed before productization, and the last finalizer workflow was removed afterward in cleanup
+commit `786e050d84885a79a14896fdbbb437beede6b687`. The product branch never contained those helpers.
+
+## 12. Closure/status and next handoff
+
+The repository-controlled MIG-01.6 negative corpus + failure-preservation checkpoint is closed. The
+closure covers fail-closed parser/mapping behavior, transactional storage/Apply rollback, preflight
+and browser install/confirm recovery, adapter restart recovery, the newly fixed workflow-level
+interrupted-Apply restart recovery, blocked-import active-state non-mutation, and semantic export
+failure purity/security evidence.
+
+Closing MIG-01.6 does **not** close MIG-01, does not fabricate or satisfy Corpus B, and does not imply
+that every possible browser/storage failure mode outside the defined matrix has been exhausted.
+Owner retest remains prohibited and release remains `NO-GO`.
+
+The next highest-value repository-controlled direction is MIG-01.7: consolidate semantic
+export/re-import invariants and secret-leak checks across the proven A/C/D/large paths, including
+cross-browser semantic export equivalence, re-import idempotence, and artifact/log/UI/command secret
+scans. Corpus B remains an external owner-data dependency and must not be fabricated.
 
 Progress remains exactly `45.15%` (reported `45%`), release remains `NO-GO`, PR #11 remains Draft,
 and owner retest remains prohibited.
