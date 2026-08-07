@@ -103,7 +103,7 @@ The original normalized backup and provenance are pinned under `fixtures/zeroome
 contract now distinguishes deterministic duplicate name-bearing references from invalid duplicate
 Profile identities rather than treating both as one positive Corpus D shape.
 
-## 6. Gate reconciliation
+## 6. Gate reconciliation and permanent evidence
 
 The first coherent implementation checkpoint was
 `d6c7619b3a8163b2328f87fc02f631a8c42cf333` (`fix: match original duplicate-name normalization`).
@@ -121,19 +121,39 @@ canonical knowledge graph now records original public-runtime duplicate Profile 
 Quick Switch first-occurrence normalization; UI audit row G-02 records the same migration evidence
 without changing UI status or project progress.
 
-Because `79a65ac6b83f0d14fcb95e464e9a06477a771fc7` was pushed by `github-actions[bot]`, the six PR
-workflow records `31151286090`, `31151286096`, `31151286087`, `31151286101`, `31151286099`, and
-`31151286086` completed as `action_required` with no CI jobs. They are trigger-layer artifacts, not
-pass/fail evidence. This knowledge-graph synchronization commit is intentionally made through the
-normal repository write path so its resulting exact Head can receive the real permanent gate set.
+Because `79a65ac6b83f0d14fcb95e464e9a06477a771fc7` was pushed by `github-actions[bot]`, its six PR
+workflow records completed as `action_required` without jobs. They are trigger-layer artifacts, not
+pass/fail evidence. Normal repository commit `d7319d0e94f9a7ff24c78a7735f47244457cd741` then restored
+the ordinary PR event path and received the full permanent gate set:
+
+- CI `31151464776`: success; verify/test/build/manifest/CSP/package completed, artifact
+  `8983467676`, ZIP SHA-256 `9046738bb94ce575517b209c8f446ae8407a8a0631d76788fcd145afbcad87fd`;
+- Browser E2E `31151465183`: success;
+  - Chromium job `92781819117`: success, including original Corpus A and C/D import -> route ->
+    restart -> semantic export; diagnostics artifact `8983474193`, ZIP SHA-256
+    `b3d74fa5951769aa91f6d088cc97f8e00cb8142cf665ce4e046b49095529c75b`;
+  - Firefox job `92781819116`: success on Firefox 152.0.6 with
+    `geckodriverSystemAccess=false`, including original Corpus A and C/D import -> route -> restart ->
+    semantic export, Toolbar/restart/Rule List/profile-trace/external-control/renderer fallback;
+    diagnostics artifact `8983499186`, ZIP SHA-256
+    `0edd549ac8b177c2a010423174178bc89081363320518f6eea47f9f5aff1f1db`;
+  - Firefox policy-owned-popup and Chromium native-inspect jobs: success;
+- Parity Documentation `31151464770`: success;
+- Milestone 8 Visual Evidence `31151464786`: success;
+- Original Nex UI Evidence `31151464779`: success;
+- Original Toolbar Evidence `31151464801`: success.
+
+This closes the valid duplicate-name semantics milestone and the repository-controlled Corpus D
+field-class matrix named by the current batch contract. It does not close `MIG-01`, supply Corpus B,
+or authorize owner retest/release.
 
 ## 7. State and next handoff
 
-At this checkpoint the repository-controlled Corpus D field classes named by the batch contract are
-covered: PAC/Unicode/cache-update shapes, authentication/headers, safe unknown metadata, and
-original-runtime duplicate-name semantics. This does not close `MIG-01`: Corpus B remains externally
-blocked, larger representative export/storage/restart capacity remains unproven, and the packaged
-negative/failure-preservation matrix remains for later MIG-01 work.
+The repository-controlled Corpus D field classes named by the batch contract are now covered:
+PAC/Unicode/cache-update shapes, authentication/headers, safe unknown metadata, and
+original-runtime duplicate-name semantics. Corpus B remains externally blocked; larger
+representative export/storage/restart capacity remains unproven; the packaged negative and
+failure-preservation matrix remains for later MIG-01 work.
 
 The next highest-value repository-controlled `MIG-01.5` target is a provenance-bound large
 original/representative export capacity vector through import -> acceptance -> Apply -> persistent
