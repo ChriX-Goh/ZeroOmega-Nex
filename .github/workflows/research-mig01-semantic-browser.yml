@@ -95,3 +95,5 @@ jobs:
           path: evidence/firefox
       - name: Cross-browser semantic and secret-leak consolidation
         run: node scripts/validate-mig01-semantic-evidence.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
+
+# Rerun after narrowing the secret sentinel to password and sensitive-header value fields only.
