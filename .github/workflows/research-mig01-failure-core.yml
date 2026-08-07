@@ -213,3 +213,5 @@ jobs:
           git diff --cached --check
           git commit -m 'fix: recover interrupted profile Apply on restart'
           git push origin HEAD:research/mig01-failure-preservation
+
+# Retry after exactOptionalPropertyTypes result-shape fix.
