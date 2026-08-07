@@ -428,7 +428,12 @@ try {
   );
   await assertRouteDecisions(context, 'after-restart');
 
-  const originalState = await restoreOriginalApplied(options, originalApplied);
+  const originalState = complexCorpus
+    ? assertWorkflowSuccess(
+        await sendWorkflowCommand(options, { action: 'get' }),
+        'Unable to read restored complex import',
+      )
+    : await restoreOriginalApplied(options, originalApplied);
   assert.equal(originalState.state.applied.settings.quickSwitch.enabled, complexCorpus);
   if (!complexCorpus) {
     assert.deepEqual(originalState.state.applied.settings.quickSwitch.routes, []);

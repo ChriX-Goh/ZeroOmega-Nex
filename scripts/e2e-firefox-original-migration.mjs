@@ -534,7 +534,12 @@ try {
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-restart');
 
-  const originalState = await restoreOriginalApplied(driver, originalApplied);
+  const originalState = complexCorpus
+    ? assertWorkflowSuccess(
+        await sendWorkflowCommand(driver, { action: 'get' }),
+        'Unable to read restored complex import',
+      )
+    : await restoreOriginalApplied(driver, originalApplied);
   assert.equal(originalState.state.applied.settings.quickSwitch.enabled, complexCorpus);
   if (!complexCorpus) {
     assert.deepEqual(originalState.state.applied.settings.quickSwitch.routes, []);
