@@ -1,0 +1,84 @@
+name: Research Firefox geckodriver system access
+
+on:
+  push:
+    branches:
+      - 'feat/m8-profile-workflow'
+    paths:
+      - '.github/workflows/research-firefox-geckodriver-access.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  adapt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Route system access through geckodriver
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          targets = []
+          for path in sorted(Path('scripts').glob('*firefox*.mjs')):
+              text = path.read_text()
+              if '--remote-allow-system-access' not in text:
+                  continue
+              if '.setFirefoxService(' in text:
+                  raise SystemExit(f'{path}: Firefox service already configured; refusing ambiguous rewrite')
+
+              bad_count = text.count(", '--remote-allow-system-access'")
+              option_count = text.count('.setFirefoxOptions(')
+              if bad_count != 1 or option_count != 1:
+                  raise SystemExit(
+                      f'{path}: expected one capability flag and one Firefox options binding; '
+                      f'found bad_count={bad_count}, option_count={option_count}'
+                  )
+
+              text = text.replace(", '--remote-allow-system-access'", '')
+              text = text.replace(
+                  '.setFirefoxOptions(',
+                  ".setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access')).setFirefoxOptions(",
+              )
+              path.write_text(text)
+              targets.append(str(path))
+
+          if not targets:
+              raise SystemExit('No capability-level Firefox system-access flags found')
+
+          print('Moved system access to geckodriver service:')
+          for path in targets:
+              print(f'  {path}')
+          print(f'Total targets: {len(targets)}')
+          PY
+
+          pnpm exec prettier --write scripts/*firefox*.mjs
+          git diff --check
+          git diff --stat
+
+      - name: Commit adaptation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/*firefox*.mjs
+          git commit -m 'test: grant Firefox system access via geckodriver'
+          git push origin HEAD:feat/m8-profile-workflow
