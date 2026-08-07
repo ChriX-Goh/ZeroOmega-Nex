@@ -33,18 +33,19 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install official Firefox 153.0.3
+      - name: Install official Firefox 153.0.3 zh-TW
         shell: bash
         run: |
           set -euo pipefail
           RELEASE='153.0.3'
+          LOCALE='zh-TW'
           ARCHIVE="firefox-${RELEASE}.tar.xz"
           BASE="https://archive.mozilla.org/pub/firefox/releases/${RELEASE}"
           curl --fail --location --retry 3 --output "$RUNNER_TEMP/$ARCHIVE" \
-            "$BASE/linux-x86_64/en-US/$ARCHIVE"
+            "$BASE/linux-x86_64/$LOCALE/$ARCHIVE"
           curl --fail --location --retry 3 --output "$RUNNER_TEMP/SHA512SUMS" \
             "$BASE/SHA512SUMS"
-          EXPECTED="$(grep "linux-x86_64/en-US/$ARCHIVE" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
+          EXPECTED="$(grep "linux-x86_64/$LOCALE/$ARCHIVE" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
           test -n "$EXPECTED"
           printf '%s  %s\n' "$EXPECTED" "$RUNNER_TEMP/$ARCHIVE" | sha512sum --check --strict
           mkdir -p "$RUNNER_TEMP/firefox153"
