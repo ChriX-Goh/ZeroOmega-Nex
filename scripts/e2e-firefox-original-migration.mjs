@@ -8,7 +8,12 @@ import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
 const extensionPath = resolve('dist/firefox-mv3');
-const originalBackupPath = resolve('fixtures/zeroomega-v2/original-default-v3.5.0.bak');
+const complexCorpus = process.env.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS === 'complex';
+const originalBackupPath = resolve(
+  complexCorpus
+    ? 'fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak'
+    : 'fixtures/zeroomega-v2/original-default-v3.5.0.bak',
+);
 const profileDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-migration-'));
 const downloadDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-export-'));
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -65,7 +70,9 @@ function firefoxOptions() {
     .setPreference('network.dns.disableIPv6', true)
     .setPreference(
       'network.dns.localDomains',
-      'proxy.example.com,internal.example.com,routed.example.com',
+      'proxy.example.com,internal.example.com,routed.example.com,' +
+        'proxy-corpus.example.com,direct.corpus.test,nested.corpus.example.com,' +
+        'rulelist.corpus.example.com,pac.corpus.example.com',
     )
     .setPreference('network.proxy.allow_hijacking_localhost', true)
     .setPreference('browser.download.folderList', 2)
@@ -222,12 +229,14 @@ async function assertImportedState(driver) {
   assert.equal(workflow?.ok, true, `Imported workflow failed: ${JSON.stringify(workflow)}`);
 
   const applied = workflow.state.applied;
-  const fixed = applied.profiles.find((profile) => profile.name === 'proxy');
-  const autoSwitch = applied.profiles.find((profile) => profile.name === 'auto switch');
+  const fixedName = complexCorpus ? 'corpus proxy' : 'proxy';
+  const switchName = complexCorpus ? 'outer switch' : 'auto switch';
+  const fixed = applied.profiles.find((profile) => profile.name === fixedName);
+  const autoSwitch = applied.profiles.find((profile) => profile.name === switchName);
   assert.equal(fixed?.kind, 'fixed', 'Original Fixed profile was not imported');
-  assert.equal(fixed.color, '#99ccee');
+  assert.equal(fixed.color, complexCorpus ? '#5c9ded' : '#99ccee');
   assert.equal(autoSwitch?.kind, 'switch', 'Original Switch profile was not imported');
-  assert.equal(autoSwitch.color, '#99dd99');
+  assert.equal(autoSwitch.color, complexCorpus ? '#4aa3a2' : '#99dd99');
   assert.equal(applied.profiles.indexOf(fixed) < applied.profiles.indexOf(autoSwitch), true);
   assert.equal(workflow.state.draft.revision.id, applied.revision.id);
 
@@ -236,14 +245,31 @@ async function assertImportedState(driver) {
   );
   assert.ok(fallback, 'Original Fixed fallback endpoint was not imported');
   assert.equal(fallback.protocol, 'http');
-  assert.equal(fallback.host, 'proxy.example.com');
+  assert.equal(fallback.host, complexCorpus ? 'proxy-corpus.example.com' : 'proxy.example.com');
   assert.equal(fallback.port, 8080);
   assert.deepEqual(
     fixed.bypass?.map((entry) => entry.pattern),
-    ['127.0.0.1', '::1', 'localhost'],
+    complexCorpus ? ['127.0.0.1', '[::1]', 'localhost'] : ['127.0.0.1', '::1', 'localhost'],
   );
 
-  return { autoSwitchId: autoSwitch.id, applied };
+  if (!complexCorpus) return { autoSwitchId: autoSwitch.id, applied };
+
+  const innerSwitch = applied.profiles.find((profile) => profile.name === 'inner switch');
+  const virtualRoute = applied.profiles.find((profile) => profile.name === 'virtual route');
+  const corpusRules = applied.profiles.find((profile) => profile.name === 'corpus rules');
+  const unicodePac = applied.profiles.find((profile) => profile.name === 'PAC 中文');
+  assert.equal(innerSwitch?.kind, 'switch', 'Corpus C inner Switch was not imported');
+  assert.equal(virtualRoute?.kind, 'virtual', 'Corpus C Virtual profile was not imported');
+  assert.equal(corpusRules?.kind, 'rule-list', 'Corpus C Rule List was not imported');
+  assert.equal(unicodePac?.kind, 'pac', 'Corpus D Unicode PAC was not imported');
+  assert.deepEqual(applied.settings.startup.route, { kind: 'profile', profileId: autoSwitch.id });
+  assert.equal(applied.settings.quickSwitch.enabled, true);
+  assert.deepEqual(applied.settings.quickSwitch.routes, [
+    { kind: 'profile', profileId: autoSwitch.id },
+    { kind: 'profile', profileId: unicodePac.id },
+  ]);
+
+  return { autoSwitchId: autoSwitch.id, pacId: unicodePac.id, applied };
 }
 
 async function enableAndActivateSwitch(driver, profileId) {
@@ -328,23 +354,67 @@ async function assertRouteDecisions(driver, optionsWindow, label) {
   const directBefore = targetRequestCount;
   const proxyBefore = proxyRequests.length;
 
-  const directUrl = `http://internal.example.com:${targetAddress.port}/${label}-direct`;
+  const directHost = complexCorpus ? 'direct.corpus.test' : 'internal.example.com';
+  const directUrl = `http://${directHost}:${targetAddress.port}/${label}-direct`;
   assert.equal(await navigateAndRead(driver, optionsWindow, directUrl), targetMarker);
   assert.equal(targetRequestCount > directBefore, true);
   assert.equal(proxyRequests.length, proxyBefore);
 
   const directAfter = targetRequestCount;
-  const proxyUrl = `http://routed.example.com:${targetAddress.port}/${label}-proxy`;
+  const proxyHost = complexCorpus ? 'nested.corpus.example.com' : 'routed.example.com';
+  const proxyUrl = `http://${proxyHost}:${targetAddress.port}/${label}-proxy`;
   assert.equal(await navigateAndRead(driver, optionsWindow, proxyUrl), proxyMarker);
   assert.equal(targetRequestCount, directAfter);
   assert.equal(proxyRequests.length > proxyBefore, true);
   assert.equal(
-    proxyRequests.slice(proxyBefore).some((request) => /routed\.example\.com/u.test(request)),
+    proxyRequests.slice(proxyBefore).some((request) => request.includes(proxyHost)),
+    true,
+  );
+
+  if (complexCorpus) {
+    const ruleListUrl = `http://rulelist.corpus.example.com:${targetAddress.port}/${label}-rules`;
+    assert.equal(await navigateAndRead(driver, optionsWindow, ruleListUrl), proxyMarker);
+    assert.equal(
+      proxyRequests.some((request) => request.includes('rulelist.corpus.example.com')),
+      true,
+    );
+  }
+}
+
+async function assertPacRouteDecisions(driver, optionsWindow, label) {
+  const directBefore = targetRequestCount;
+  const proxyBefore = proxyRequests.length;
+  const directUrl = `http://direct.corpus.test:${targetAddress.port}/${label}-direct`;
+  assert.equal(await navigateAndRead(driver, optionsWindow, directUrl), targetMarker);
+  assert.equal(targetRequestCount > directBefore, true);
+  assert.equal(proxyRequests.length, proxyBefore);
+
+  const proxyUrl = `http://pac.corpus.example.com:${targetAddress.port}/${label}-proxy`;
+  assert.equal(await navigateAndRead(driver, optionsWindow, proxyUrl), proxyMarker);
+  assert.equal(proxyRequests.length > proxyBefore, true);
+  assert.equal(
+    proxyRequests.slice(proxyBefore).some((request) => request.includes('pac.corpus.example.com')),
     true,
   );
 }
 
 function requiredOriginalSemantics(options) {
+  if (complexCorpus) {
+    const corpusRules = structuredClone(options['+corpus rules']);
+    if (corpusRules && typeof corpusRules === 'object') delete corpusRules.pacScript;
+    return {
+      schemaVersion: options.schemaVersion,
+      startupProfileName: options['-startupProfileName'],
+      enableQuickSwitch: options['-enableQuickSwitch'],
+      quickSwitchProfiles: options['-quickSwitchProfiles'],
+      corpusProxy: options['+corpus proxy'],
+      innerSwitch: options['+inner switch'],
+      virtualRoute: options['+virtual route'],
+      corpusRules,
+      outerSwitch: options['+outer switch'],
+      unicodePac: options['+PAC 中文'],
+    };
+  }
   return {
     schemaVersion: options.schemaVersion,
     startupProfileName: options['-startupProfileName'],
@@ -436,8 +506,8 @@ try {
   await importOriginalBackup(driver);
 
   const imported = await assertImportedState(driver);
-  assert.equal(imported.applied.settings.quickSwitch.enabled, false);
-  assert.deepEqual(imported.applied.settings.quickSwitch.routes, []);
+  assert.equal(imported.applied.settings.quickSwitch.enabled, complexCorpus);
+  if (!complexCorpus) assert.deepEqual(imported.applied.settings.quickSwitch.routes, []);
 
   const originalApplied = await enableAndActivateSwitch(driver, imported.autoSwitchId);
   await waitForActiveSwitch(
@@ -463,11 +533,27 @@ try {
   await assertRouteDecisions(driver, optionsWindow, 'after-restart');
 
   const originalState = await restoreOriginalApplied(driver, originalApplied);
-  assert.equal(originalState.state.applied.settings.quickSwitch.enabled, false);
-  assert.deepEqual(originalState.state.applied.settings.quickSwitch.routes, []);
+  assert.equal(originalState.state.applied.settings.quickSwitch.enabled, complexCorpus);
+  if (!complexCorpus) {
+    assert.deepEqual(originalState.state.applied.settings.quickSwitch.routes, []);
+  } else {
+    assert.ok(imported.pacId, 'Corpus D PAC route was not available after import');
+    assertWorkflowSuccess(
+      await sendWorkflowCommand(driver, {
+        action: 'activate-route',
+        expectedAppliedRevisionId: originalState.state.applied.revision.id,
+        route: { kind: 'profile', profileId: imported.pacId },
+      }),
+      'Unable to activate imported Corpus D PAC profile',
+    );
+    await waitForActiveSwitch(driver, imported.pacId, 'Corpus D PAC did not become active');
+    await assertPacRouteDecisions(driver, optionsWindow, 'pac');
+  }
   await exportOriginalSemantics(driver, originalOptions);
 
-  console.log('Firefox original backup import, route, restart, and semantic export passed.');
+  console.log(
+    `Firefox original ${complexCorpus ? 'Corpus C/D' : 'Corpus A'} import, route, restart, and semantic export passed.`,
+  );
 } finally {
   if (driver) await driver.quit();
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
