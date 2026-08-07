@@ -1,0 +1,72 @@
+name: Research MIG-01 Large Import Probe
+
+on:
+  push:
+    branches:
+      - research/mig01-large-runtime-export
+    paths:
+      - '.github/workflows/research-mig01-large-import-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Probe exact original large backup through public importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > packages/legacy-zeroomega/src/original-large-probe.test.ts <<'TS'
+          import { readFile } from 'node:fs/promises';
+          import { describe, expect, it } from 'vitest';
+          import { importZeroOmegaBackup } from './index.js';
+
+          const backupUrl = new URL(
+            '../../../fixtures/zeroomega-v2/original-large-representative-v3.5.0.bak',
+            import.meta.url,
+          );
+          const context = {
+            createdAt: '2026-08-07T06:30:00.000Z',
+            documentId: 'document-large-probe',
+            revisionId: 'revision-large-probe',
+            deviceId: 'device-large-probe',
+          } as const;
+
+          describe('original large importer probe', () => {
+            it('prints the exact public-import result', async () => {
+              const content = await readFile(backupUrl, 'utf8');
+              const result = importZeroOmegaBackup(content, context);
+              const diagnostic = result.ok
+                ? {
+                    ok: true,
+                    report: result.report,
+                    candidate: {
+                      profiles: result.candidate.profiles.length,
+                      endpoints: result.candidate.proxyEndpoints.length,
+                      ruleSources: result.candidate.ruleSources.length,
+                      switchRules: result.candidate.profiles
+                        .filter((profile) => profile.kind === 'switch')
+                        .reduce((sum, profile) => sum + profile.rules.length, 0),
+                      startup: result.candidate.settings.startup,
+                      quickSwitch: result.candidate.settings.quickSwitch,
+                    },
+                  }
+                : { ok: false, report: result.report };
+              console.log('LARGE_IMPORT_PROBE=' + JSON.stringify(diagnostic));
+              expect(result).toBeDefined();
+            });
+          });
+          TS
+          pnpm exec vitest run packages/legacy-zeroomega/src/original-large-probe.test.ts --reporter=verbose
