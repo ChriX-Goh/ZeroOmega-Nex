@@ -17,6 +17,13 @@ const ORIGINAL_COMPLEX_URL = new URL(
   '../../../../fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak',
   import.meta.url,
 );
+const SAFE_UNKNOWN_METADATA_KEY = 'x-benign-metadata';
+const SAFE_UNKNOWN_METADATA_VALUE = {
+  label: 'opaque-round-trip',
+  ordinal: 7,
+  tags: ['alpha', '中文'],
+  nested: { note: 'preserve exactly' },
+} as const;
 
 const importContext = {
   createdAt: '2026-08-07T02:20:00.000Z',
@@ -55,6 +62,14 @@ function originalComplexSemantics(options: OriginalOptions) {
   };
 }
 
+function expectSafeUnknownMetadata(spec: ProfileSpec) {
+  const corpusRules = spec.profiles.find((profile) => profile.name === 'corpus rules');
+  expect(corpusRules?.kind).toBe('rule-list');
+  expect(corpusRules?.legacy?.fields?.[SAFE_UNKNOWN_METADATA_KEY]).toEqual(
+    SAFE_UNKNOWN_METADATA_VALUE,
+  );
+}
+
 describe('MIG-01 original complex corpus migration', () => {
   it('imports and semantically round trips original-runtime Corpus C/D data', async () => {
     const source = await readFile(ORIGINAL_COMPLEX_URL, 'utf8');
@@ -74,6 +89,7 @@ describe('MIG-01 original complex corpus migration', () => {
         'PAC 中文',
       ]),
     );
+    expectSafeUnknownMetadata(imported.candidate);
     expect(imported.candidate.settings.quickSwitch.enabled).toBe(true);
     const profileNameById = new Map(
       imported.candidate.profiles.map((profile) => [profile.id, profile.name]),
@@ -96,6 +112,11 @@ describe('MIG-01 original complex corpus migration', () => {
     expect(originalComplexSemantics(exported.options)).toEqual(
       originalComplexSemantics(originalOptions),
     );
+    expect(
+      (exported.options['+corpus rules'] as Record<string, unknown> | undefined)?.[
+        SAFE_UNKNOWN_METADATA_KEY
+      ],
+    ).toEqual(SAFE_UNKNOWN_METADATA_VALUE);
 
     const reimported = importZeroOmegaBackup(exported.content, {
       ...importContext,
@@ -106,13 +127,15 @@ describe('MIG-01 original complex corpus migration', () => {
     if (!reimported.ok) {
       throw new Error(JSON.stringify(reimported.report, null, 2));
     }
+    expectSafeUnknownMetadata(reimported.candidate);
     expect(userIntent(reimported.candidate)).toEqual(userIntent(imported.candidate));
   });
 
-  it('preserves complex Quick Switch routes through accept and Apply', async () => {
+  it('preserves complex Quick Switch routes and safe metadata through accept and Apply', async () => {
     const source = await readFile(ORIGINAL_COMPLEX_URL, 'utf8');
     const imported = importZeroOmegaBackup(source, importContext);
     if (!imported.ok) throw new Error(JSON.stringify(imported.report, null, 2));
+    expectSafeUnknownMetadata(imported.candidate);
 
     const initial = structuredClone(imported.candidate);
     initial.settings.quickSwitch.routes = [];
@@ -149,6 +172,32 @@ describe('MIG-01 original complex corpus migration', () => {
     );
     expect(applied.state.applied.settings.quickSwitch.routes).toEqual(
       imported.candidate.settings.quickSwitch.routes,
+    );
+    expectSafeUnknownMetadata(activated[0]!);
+    expectSafeUnknownMetadata(applied.state.applied);
+  });
+
+  it('rejects risk-bearing unknown metadata instead of preserving it opaquely', async () => {
+    const source = await readFile(ORIGINAL_COMPLEX_URL, 'utf8');
+    const riskyOptions = JSON.parse(source) as OriginalOptions;
+    const corpusRules = riskyOptions['+corpus rules'];
+    if (!corpusRules || typeof corpusRules !== 'object' || Array.isArray(corpusRules)) {
+      throw new Error('Original-runtime Corpus D Rule List profile was not available');
+    }
+    (corpusRules as Record<string, unknown>)['x-auth-token'] = 'not-a-real-secret';
+
+    const rejected = importZeroOmegaBackup(JSON.stringify(riskyOptions), {
+      ...importContext,
+      revisionId: 'revision-mig-01-original-complex-risky',
+    });
+    expect(rejected.ok).toBe(false);
+    expect(rejected.report.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: 'rejected',
+          code: 'field.unknown-behavior',
+        }),
+      ]),
     );
   });
 });

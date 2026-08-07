@@ -11,7 +11,7 @@
   "generationMethod": "Original v3.5.0 default options plus omega-pac Profiles.create/update/analyze/compile; serialized with JSON.stringify like original IoCtrl export",
   "nodeVersion": "v18.20.8",
   "coffeeScriptVersion": "1.12.7",
-  "backupSha256": "92aec2d8932b808cc8654787ca907aa935d6dda44b018b079be8e5c7cc7397f4",
+  "backupSha256": "f0190ba86c95767b97f6eccdf76d9bd10a80bcdaecddfaa35f7708f9190ae092",
   "referenceClosure": {
     "+outer switch": "outer switch",
     "+direct": "direct",
@@ -21,11 +21,31 @@
     "+corpus rules": "corpus rules"
   },
   "corpus": ["C", "D-partial"],
+  "safeUnknownMetadataProof": {
+    "profile": "+corpus rules",
+    "key": "x-benign-metadata",
+    "value": {
+      "label": "opaque-round-trip",
+      "ordinal": 7,
+      "tags": ["alpha", "中文"],
+      "nested": {
+        "note": "preserve exactly"
+      }
+    },
+    "checkpoints": [
+      "Profiles.create",
+      "Profiles.update",
+      "Profiles.analyze",
+      "Profiles.compile",
+      "pre-export options",
+      "JSON.stringify export"
+    ]
+  },
   "generationEvidence": {
-    "workflowRunId": 31140177004,
-    "workflowJobId": 92748222921,
-    "artifactId": 8979514864,
-    "artifactDigest": "sha256:fa524a7db2ff01fdc012dae4232181ab702b1097de1513333955d999b978b1b5",
-    "researchCommit": "b4eb72922710529f14263059f559eac73bac6e34"
+    "workflowRunId": 31148550308,
+    "workflowJobId": 92773166550,
+    "artifactId": 8982414439,
+    "artifactDigest": "sha256:047a6fd9d2d8e1d25d8e996115c591ce75d9d2bc6d8fa0b86b64e7e42c0c5a45",
+    "researchCommit": "5de3c6d09c9b0c7198de07ed714126d161b2c6de"
   }
 }
