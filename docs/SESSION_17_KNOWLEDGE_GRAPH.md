@@ -300,3 +300,44 @@ and owner retest remains prohibited.
 - MIG-01.7B adds runtime-only sensitive original-backup sentinels to packaged Chromium/Firefox and a permanent downstream Actions-log/diagnostics scanner. It changes evidence only, not Popup/Options behavior.
 - Closure rule: do not mark MIG-01.7B green until CI plus the permanent Browser E2E run on the final cleaned Head succeed, including both main browser jobs and `migration-secret-leak-gate`.
 - Product progress remains 45.15%, Corpus B remains external, release remains NO-GO.
+
+## Session 17 actual continuation — MIG-01.7B closure and handoff (2026-08-07)
+
+This ordinary-chat continuation revalidated the handoff against the repository rather than trusting
+the prior summary. Session-start Head was `e3f7965a229734ab1daf6dc76cf1ddd415aa7f1c`. Five permanent
+workflows were green there, while Browser E2E `31181996638` was red because Firefox lost its
+WebDriver session during the pre-existing large-migration chain; the downstream secret scanner
+correctly refused to pass when the required Firefox job was red. Chromium's new sensitive migration
+gate itself was already green, so no sentinel leak was observed.
+
+The stale one-shot `mig-01-7b-materialize-temp.yml` was removed first, producing clean checkpoint
+`96ff2cc108c94850dae035be383d4f951ef36dfd`. Firefox then reproduced the same teardown failure. A
+second old-Head rerun failed at a different Firefox lifecycle point, confirming runner/browser
+lifecycle instability rather than deterministic sentinel leakage. The large-migration fixture was
+therefore changed only at teardown: an already-ended WebDriver session is accepted as idempotent
+cleanup, while all other quit errors continue to fail. The initial inline implementation exposed an
+ESLint `no-unsafe-finally` error on clean Head `b3a783446d7560716e8b523e552c5eb7a5c07cc6`; the same
+semantics were moved into a helper outside `finally`, yielding code/evidence Head
+`83451c1b313057e45fb954a47fc5fb08bb9268c6`. No product UI behavior changed.
+
+Exact-head evidence on `83451c1b313057e45fb954a47fc5fb08bb9268c6`:
+
+- CI `31185198202`: SUCCESS;
+- Browser E2E `31185199106`: SUCCESS; Chromium `92887883714`, Firefox `92887883688`, and downstream
+  `migration-secret-leak-gate` `92888843896` all SUCCESS;
+- downstream scanner: 15 diagnostics files + 2 browser job logs scanned with no controlled sentinel
+  found;
+- Chromium diagnostics artifact `8996480031`, SHA-256
+  `6c06fa9399ac1fb0cef55bdf2693290eb790ee45f2f749db7d1cd1f1155dc8d5`;
+- Firefox diagnostics artifact `8996523043`, SHA-256
+  `fbbc00652e10d9879652fabe8f0193b0e77d3bdec85899239645b0b76ca04fd9`;
+- Parity Documentation `31185196419`, Milestone 8 Visual `31185196254`, Original Nex UI
+  `31185200569`, and Original Toolbar `31185201981`: all SUCCESS.
+
+`MIG-01.7B` and the repository-controlled scope of parent `MIG-01.7` are closed. WIP remains the
+single parent `MIG-01`. Per the batch contract, `MIG-01.8` is the next sequence position, but final
+batch closure cannot satisfy the four-corpus acceptance set while Corpus B is absent. Corpus B
+remains an external owner-data blocker; it must be a sanitized representative original export and
+must not be synthesized from repository guesses. Owner micro-slice retest remains prohibited.
+Product completion remains exactly `45.15%` (reported `45%`), PR #11 remains Draft, and release
+remains `NO-GO`.

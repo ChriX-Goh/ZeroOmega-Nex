@@ -45,7 +45,7 @@
     "id": "MIG-01",
     "name": "Real original-export golden path",
     "type": "product",
-    "phase": "OFFICIAL_DEFAULT_DUAL_BROWSER_GREEN_CORPUS_BCD_NEXT",
+    "phase": "MIG_01_7_REPOSITORY_CONTROLLED_CLOSED_MIG_01_8_BLOCKED_CORPUS_B",
     "parent_journey": "real original migration and semantic round trip",
     "contract": "docs/MIG_01_BATCH_CONTRACT.md",
     "product_wip_limit": 1,
