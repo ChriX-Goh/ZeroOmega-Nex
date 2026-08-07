@@ -57,6 +57,28 @@ jobs:
       - name: Build Firefox extension
         run: pnpm build:firefox
 
+      - name: Inject read-only Firefox 153 diagnostics
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/e2e-firefox-original-migration.mjs')
+          text = path.read_text()
+          needle = "  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
+          diagnostic = """  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
+  console.log(JSON.stringify({
+    firefoxOptionsDiagnostic: true,
+    marionetteContext: await driver.getContext(),
+    currentUrl: await driver.getCurrentUrl(),
+    title: await driver.getTitle(),
+    pageSource: (await driver.getPageSource()).slice(0, 4000),
+  }));
+"""
+          if text.count(needle) != 1:
+              raise SystemExit('Expected one Firefox options URL wait site')
+          path.write_text(text.replace(needle, diagnostic))
+          PY
+
       - name: Run original migration on Firefox 153.0.3
         shell: bash
         run: |
