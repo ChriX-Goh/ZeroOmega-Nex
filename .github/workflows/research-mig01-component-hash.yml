@@ -91,3 +91,5 @@ jobs:
           path: evidence/firefox
       - name: Attribute C-D cross-browser component hashes
         run: node scripts/research-compare-mig01-component-hashes.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
+
+# Second pass: split the sole mismatching RuleList component without printing configuration values.
