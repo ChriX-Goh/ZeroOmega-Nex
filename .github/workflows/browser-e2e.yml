@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   chromium:
@@ -44,6 +45,12 @@ jobs:
         run: |
           set -o pipefail
           pnpm test:e2e:chromium 2>&1 | tee chromium-e2e.log
+
+      - name: Run Chromium sensitive original migration leak gate
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/e2e-chromium-sensitive-migration.mjs 2>&1 | tee -a chromium-e2e.log
 
       - name: Run Chromium toolbar Action E2E
         shell: bash
@@ -137,6 +144,12 @@ jobs:
         run: |
           set -o pipefail
           pnpm test:e2e:firefox 2>&1 | tee firefox-e2e.log
+
+      - name: Run Firefox sensitive original migration leak gate
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/e2e-firefox-sensitive-migration.mjs 2>&1 | tee -a firefox-e2e.log
 
       - name: Run Firefox toolbar Action E2E
         shell: bash
@@ -289,3 +302,30 @@ jobs:
             inspect-native-menu-before.png
             inspect-native-menu-failure.png
           if-no-files-found: warn
+
+  migration-secret-leak-gate:
+    if: always()
+    needs: [chromium, firefox]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Download browser diagnostics
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-e2e-diagnostics'
+          path: tmp/migration-secret-diagnostics
+          merge-multiple: true
+
+      - name: Verify migration secrets never reached browser logs or diagnostics
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-browser-migration-secret-leaks.mjs tmp/migration-secret-diagnostics
