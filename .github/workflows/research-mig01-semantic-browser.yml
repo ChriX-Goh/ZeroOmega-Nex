@@ -1,0 +1,97 @@
+name: Research MIG-01.7 Semantic Browser
+
+on:
+  push:
+    branches:
+      - research/mig01-semantic-consolidation
+    paths:
+      - '.github/workflows/research-mig01-semantic-browser.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Format check MIG-01.7 files
+        run: pnpm exec prettier --check scripts/mig01-semantic-evidence.mjs scripts/validate-mig01-semantic-evidence.mjs scripts/e2e-chromium-mig01-secret-leak.mjs scripts/e2e-firefox-mig01-secret-leak.mjs packages/legacy-zeroomega/src/semantic-consolidation.test.ts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium A C-D large semantic chain
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl
+        run: pnpm test:e2e:chromium-original-migration
+      - name: Run Chromium secret-leak sentinel
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl
+        run: node scripts/e2e-chromium-mig01-secret-leak.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mig01-semantic-chromium
+          path: evidence/chromium.jsonl
+          if-no-files-found: error
+
+  firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Show Firefox version
+        run: firefox --version
+      - name: Build Firefox extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
+      - name: Run Firefox A C-D large semantic chain
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl
+        run: pnpm test:e2e:firefox-original-migration
+      - name: Run Firefox secret-leak sentinel
+        env:
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl
+        run: node scripts/e2e-firefox-mig01-secret-leak.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mig01-semantic-firefox
+          path: evidence/firefox.jsonl
+          if-no-files-found: error
+
+  consolidate:
+    needs: [chromium, firefox]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: mig01-semantic-chromium
+          path: evidence/chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: mig01-semantic-firefox
+          path: evidence/firefox
+      - name: Cross-browser semantic and secret-leak consolidation
+        run: node scripts/validate-mig01-semantic-evidence.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
