@@ -24,13 +24,20 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
       - run: pnpm install --frozen-lockfile
-      - name: Probe exact original large backup through public importer
+      - name: Probe exact original large backup through importer and acceptance
         shell: bash
         run: |
           set -euo pipefail
           cat > packages/legacy-zeroomega/src/original-large-probe.test.ts <<'TS'
           import { readFile } from 'node:fs/promises';
           import { describe, expect, it } from 'vitest';
+          import {
+            acceptProfileWorkflowImport,
+            applyProfileWorkflow,
+            createDefaultProfileSpec,
+            createProfileWorkflowState,
+            MemoryProfileWorkflowRepository,
+          } from '@zeroomega-nex/profile-workflow';
           import { importZeroOmegaBackup } from './index.js';
 
           const backupUrl = new URL(
@@ -45,27 +52,96 @@ jobs:
           } as const;
 
           describe('original large importer probe', () => {
-            it('prints the exact public-import result', async () => {
+            it('prints importer, acceptance, and fake-Apply results', async () => {
               const content = await readFile(backupUrl, 'utf8');
+              const importStarted = performance.now();
               const result = importZeroOmegaBackup(content, context);
-              const diagnostic = result.ok
-                ? {
-                    ok: true,
-                    report: result.report,
-                    candidate: {
+              const importMs = performance.now() - importStarted;
+              expect(result.ok).toBe(true);
+              if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+
+              const candidateBytes = Buffer.byteLength(JSON.stringify(result.candidate), 'utf8');
+              const initialSpec = createDefaultProfileSpec({
+                documentId: 'browser-document-large-probe',
+                revisionId: 'browser-revision-initial',
+                createdAt: '2026-08-07T06:29:00.000Z',
+                deviceId: 'browser-device-large-probe',
+              });
+              const initialState = createProfileWorkflowState(initialSpec);
+              const repository = new MemoryProfileWorkflowRepository(initialState);
+              const acceptStarted = performance.now();
+              const accepted = await acceptProfileWorkflowImport(
+                repository,
+                initialState,
+                result.candidate,
+                result.secretMaterials,
+              );
+              const acceptMs = performance.now() - acceptStarted;
+              expect(accepted.status).toBe('accepted');
+              if (accepted.status !== 'accepted') {
+                throw new Error(`accept failed: ${JSON.stringify(accepted)}`);
+              }
+              const acceptedStateBytes = Buffer.byteLength(
+                JSON.stringify(accepted.state),
+                'utf8',
+              );
+
+              const applyStarted = performance.now();
+              const applied = await applyProfileWorkflow(
+                repository,
+                {
+                  async activate() {
+                    return { snapshotId: 'snapshot-large-probe' };
+                  },
+                  async rollback() {},
+                },
+                {
+                  applyId: 'apply-large-probe',
+                  revisionId: 'browser-revision-large-applied',
+                  startedAt: '2026-08-07T06:31:00.000Z',
+                  completedAt: '2026-08-07T06:31:01.000Z',
+                  deviceId: 'browser-device-large-probe',
+                },
+              );
+              const applyMs = performance.now() - applyStarted;
+              expect(applied.status).toBe('applied');
+              if (applied.status !== 'applied') {
+                throw new Error(`fake apply failed: ${JSON.stringify(applied)}`);
+              }
+              const appliedStateBytes = Buffer.byteLength(
+                JSON.stringify(applied.state),
+                'utf8',
+              );
+
+              console.log(
+                'LARGE_TRANSACTION_PROBE=' +
+                  JSON.stringify({
+                    importer: {
+                      ms: importMs,
+                      summary: result.report.summary,
+                      bytes: result.report.stats.bytes,
                       profiles: result.candidate.profiles.length,
                       endpoints: result.candidate.proxyEndpoints.length,
                       ruleSources: result.candidate.ruleSources.length,
                       switchRules: result.candidate.profiles
                         .filter((profile) => profile.kind === 'switch')
                         .reduce((sum, profile) => sum + profile.rules.length, 0),
-                      startup: result.candidate.settings.startup,
-                      quickSwitch: result.candidate.settings.quickSwitch,
+                      candidateBytes,
                     },
-                  }
-                : { ok: false, report: result.report };
-              console.log('LARGE_IMPORT_PROBE=' + JSON.stringify(diagnostic));
-              expect(result).toBeDefined();
+                    acceptance: {
+                      ms: acceptMs,
+                      status: accepted.status,
+                      generation: accepted.state.generation,
+                      stateBytes: acceptedStateBytes,
+                    },
+                    fakeApply: {
+                      ms: applyMs,
+                      status: applied.status,
+                      generation: applied.state.generation,
+                      stateBytes: appliedStateBytes,
+                    },
+                  }),
+              );
             });
           });
           TS
