@@ -1,0 +1,43 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceCommit": "05cbb30a2204cc3bdf3bb2e65765a70644a022d7",
+  "runtimeModules": [
+    "omega-target/src/options.coffee",
+    "omega-target/src/storage.coffee",
+    "omega-pac/src/profiles.coffee"
+  ],
+  "generationMethod": "Deterministic Nex scale seed -> original v3.5.0 Options.initWithOptions -> stable Options.getAll -> JSON.stringify, matching original IoCtrl export serialization",
+  "sourceSeed": {
+    "path": "fixtures/zeroomega-v2/large-representative.json",
+    "nexCommit": "d819dfc93c12b841b3ccffa59e00a89e42efd7a3",
+    "gitBlob": "862d140d569be120949d58c7907cba514b9c02b6",
+    "sha256": "62705deda6bd29a6f1dd529d73252f2855e14719a261d2c1749d00534c43701c",
+    "bytes": 308038,
+    "role": "scale/structure seed only; not Corpus B owner data"
+  },
+  "dimensions": {
+    "profiles": 36,
+    "fixedProfiles": 24,
+    "switchProfiles": 8,
+    "switchRules": 1024,
+    "ruleListProfiles": 4,
+    "ruleListEntries": 1024
+  },
+  "stableBackup": {
+    "sha256": "042c35492aaeb3b023bf3dc4eba607586df934bcc6827d141e903e84efc85f78",
+    "bytes": 222757,
+    "schemaVersion": 2,
+    "startupProfileName": "switch-00",
+    "quickSwitchProfiles": [
+      "switch-00",
+      "switch-01",
+      "rules-00",
+      "rules-01",
+      "proxy-00",
+      "proxy-01",
+      "direct"
+    ]
+  },
+  "capacityPurpose": "Repository-controlled MIG-01.5 storage/restart scale evidence; does not substitute for Corpus B."
+}
