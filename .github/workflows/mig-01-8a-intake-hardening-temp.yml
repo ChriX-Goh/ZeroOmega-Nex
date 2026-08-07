@@ -48,4 +48,4 @@ jobs:
           git commit -m 'test: harden Corpus B intake privacy gates [skip ci]'
           git push origin HEAD:feat/m8-profile-workflow
 
-# retry: isolated safety invariants
+# retry: IPv6 shape isolated
