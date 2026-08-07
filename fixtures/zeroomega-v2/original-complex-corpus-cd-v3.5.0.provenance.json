@@ -20,10 +20,7 @@
     "+corpus proxy": "corpus proxy",
     "+corpus rules": "corpus rules"
   },
-  "corpus": [
-    "C",
-    "D-partial"
-  ],
+  "corpus": ["C", "D-partial"],
   "generationEvidence": {
     "workflowRunId": 31140177004,
     "workflowJobId": 92748222921,
