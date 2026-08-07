@@ -8,7 +8,7 @@ on:
       - '.github/workflows/research-mig01-large-import-probe.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   probe:
@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -29,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           cat > packages/legacy-zeroomega/src/original-large-probe.test.ts <<'TS'
-          import { readFile } from 'node:fs/promises';
+          import { readFile, writeFile } from 'node:fs/promises';
           import { describe, expect, it } from 'vitest';
           import {
             acceptProfileWorkflowImport,
@@ -42,6 +44,10 @@ jobs:
 
           const backupUrl = new URL(
             '../../../fixtures/zeroomega-v2/original-large-representative-v3.5.0.bak',
+            import.meta.url,
+          );
+          const candidateUrl = new URL(
+            '../../../evidence/mig01-large-runtime/original-large-representative.candidate.json',
             import.meta.url,
           );
           const context = {
@@ -60,7 +66,9 @@ jobs:
               expect(result.ok).toBe(true);
               if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
 
-              const candidateBytes = Buffer.byteLength(JSON.stringify(result.candidate), 'utf8');
+              const candidateContent = JSON.stringify(result.candidate);
+              await writeFile(candidateUrl, candidateContent);
+              const candidateBytes = Buffer.byteLength(candidateContent, 'utf8');
               const initialSpec = createDefaultProfileSpec({
                 documentId: 'browser-document-large-probe',
                 revisionId: 'browser-revision-initial',
@@ -135,4 +143,15 @@ jobs:
             });
           });
           TS
+          mkdir -p evidence/mig01-large-runtime
           pnpm exec vitest run packages/legacy-zeroomega/src/original-large-probe.test.ts --reporter=verbose
+      - name: Commit candidate evidence on research branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add evidence/mig01-large-runtime/original-large-representative.candidate.json
+          git diff --cached --check
+          git commit -m 'research: pin original large candidate'
+          git push origin HEAD:research/mig01-large-runtime-export
