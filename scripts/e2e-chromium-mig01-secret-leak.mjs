@@ -33,8 +33,17 @@ async function workflowSnapshot(page) {
 
 let context;
 try {
-  const source = (await readFile(fixturePath, 'utf8')).replaceAll('<redacted>', sentinel);
-  await writeFile(inputPath, source);
+  const sourceOptions = JSON.parse(await readFile(fixturePath, 'utf8'));
+  for (const slot of ['fallbackProxy', 'all']) {
+    sourceOptions['+authenticated-proxy'].auth[slot].username = 'fixture-user';
+    sourceOptions['+authenticated-proxy'].auth[slot].password = sentinel;
+  }
+  for (const profileName of ['+header-rule-list', '+header-pac']) {
+    for (const header of sourceOptions[profileName].headers ?? []) {
+      if (/authorization|token/i.test(header.name)) header.value = sentinel;
+    }
+  }
+  await writeFile(inputPath, JSON.stringify(sourceOptions));
   context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
     headless: true,

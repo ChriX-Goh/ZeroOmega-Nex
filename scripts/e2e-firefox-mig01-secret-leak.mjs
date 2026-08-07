@@ -135,8 +135,17 @@ async function waitForDownloadedExport(previousFiles) {
 
 let driver;
 try {
-  const source = (await readFile(fixturePath, 'utf8')).replaceAll('<redacted>', sentinel);
-  await writeFile(inputPath, source);
+  const sourceOptions = JSON.parse(await readFile(fixturePath, 'utf8'));
+  for (const slot of ['fallbackProxy', 'all']) {
+    sourceOptions['+authenticated-proxy'].auth[slot].username = 'fixture-user';
+    sourceOptions['+authenticated-proxy'].auth[slot].password = sentinel;
+  }
+  for (const profileName of ['+header-rule-list', '+header-pac']) {
+    for (const header of sourceOptions[profileName].headers ?? []) {
+      if (/authorization|token/i.test(header.name)) header.value = sentinel;
+    }
+  }
+  await writeFile(inputPath, JSON.stringify(sourceOptions));
   driver = await new Builder()
     .forBrowser(Browser.FIREFOX)
     .setFirefoxService(firefoxService())
