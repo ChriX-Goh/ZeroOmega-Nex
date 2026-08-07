@@ -29,6 +29,11 @@ function userIntent(spec: ProfileSpec) {
 }
 
 function originalComplexSemantics(options: OriginalOptions) {
+  const corpusRules = options['+corpus rules'];
+  const corpusRuleIntent =
+    corpusRules && typeof corpusRules === 'object' && !Array.isArray(corpusRules)
+      ? Object.fromEntries(Object.entries(corpusRules).filter(([key]) => key !== 'pacScript'))
+      : corpusRules;
   return {
     schemaVersion: options.schemaVersion,
     startupProfileName: options['-startupProfileName'],
@@ -37,7 +42,7 @@ function originalComplexSemantics(options: OriginalOptions) {
     corpusProxy: options['+corpus proxy'],
     innerSwitch: options['+inner switch'],
     virtualRoute: options['+virtual route'],
-    corpusRules: options['+corpus rules'],
+    corpusRules: corpusRuleIntent,
     outerSwitch: options['+outer switch'],
     unicodePac: options['+PAC 中文'],
   };

@@ -1198,7 +1198,7 @@ function mapVirtualProfile(descriptor: ProfileDescriptor, state: ImportState): V
   }
   const known = new Set([...COMMON_PROFILE_FIELDS, 'defaultProfileName', 'rules']);
   const fields = safeUnknownFields(raw, known, descriptor.path, state.report) ?? {};
-  if (rules.length > 0 && isJsonValue(rules)) fields.rules = rules;
+  if (Array.isArray(raw.rules) && isJsonValue(rules)) fields.rules = rules;
   return {
     ...profileBase(descriptor, Object.keys(fields).length === 0 ? undefined : fields),
     kind: 'virtual',
