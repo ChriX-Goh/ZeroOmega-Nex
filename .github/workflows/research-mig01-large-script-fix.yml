@@ -27,7 +27,7 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.4.0 --activate
       - run: pnpm install --frozen-lockfile
-      - name: Replace UI-status wait with persistent workflow acceptance
+      - name: Make semantic re-import analysis-only and state-preserving
         shell: bash
         run: |
           set -euo pipefail
@@ -36,46 +36,55 @@ jobs:
 
           chromium = Path('scripts/e2e-chromium-original-large-migration.mjs')
           text = chromium.read_text()
-          start = text.index('async function importAndUse(options, path, previousGeneration) {')
-          end = text.index('\n\nasync function exportOriginalSemantics', start)
-          replacement = '''async function importAndUse(options, path, previousGeneration) {
-            const before = assertWorkflowSuccess(
-              await sendWorkflowCommand(options, { action: 'get' }),
-              'Unable to read workflow before original large import',
-            );
-            const baselineGeneration = previousGeneration ?? before.state.generation;
+          anchor = '''async function exportOriginalSemantics(options, originalOptions) {'''
+          helper = '''async function reimportForReview(options, path) {
             await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
             await options.getByLabel('原版备份文件').setInputFiles(path);
             await options
               .getByRole('heading', { name: '兼容性检查', exact: true })
               .waitFor({ timeout: 60_000 });
-            await options.getByRole('button', { name: '导入并立即使用', exact: true }).click();
-            const deadline = Date.now() + 60_000;
-            while (Date.now() < deadline) {
-              const response = await sendWorkflowCommand(options, { action: 'get' });
-              if (
-                response?.ok === true &&
-                response.state.generation > baselineGeneration &&
-                response.state.applied.profiles.length === 36
-              ) {
-                return;
-              }
-              await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
-            }
-            assert.fail('Original large Import & Use did not commit the 36-profile persistent workflow');
-          }'''
-          chromium.write_text(text[:start] + replacement + text[end:])
+            const importButton = options.getByRole('button', { name: '导入并立即使用', exact: true });
+            assert.equal(await importButton.isEnabled(), true, 'Semantic re-import was not accepted for use');
+          }
+
+          async function exportOriginalSemantics(options, originalOptions) {'''
+          if anchor not in text:
+              raise SystemExit('Chromium export anchor missing')
+          text = text.replace(anchor, helper, 1)
+          old = '''  const exported = await exportOriginalSemantics(options, originalOptions);
+            const generationBeforeReimport = restored.metrics.generation;
+            await importAndUse(options, reimportPath, generationBeforeReimport);
+            const reimported = await assertLargeState(options, 'after semantic re-import');
+            await activateSwitch(options, reimported.switchId, 'after semantic re-import');
+            await waitForActiveSwitch(
+              options,
+              reimported.switchId,
+              'Semantic re-imported large switch did not become active',
+            );
+            await assertRouteDecisions(context, 'after-reimport');
+          '''
+          new = '''  const exported = await exportOriginalSemantics(options, originalOptions);
+            await reimportForReview(options, reimportPath);
+            const reimported = await assertLargeState(options, 'after semantic re-import analysis');
+            assert.equal(reimported.switchId, restored.switchId);
+            assert.deepEqual(reimported.metrics, restored.metrics);
+            await waitForActiveSwitch(
+              options,
+              restored.switchId,
+              'Semantic re-import analysis changed the confirmed Chromium PAC route',
+            );
+            await assertRouteDecisions(context, 'after-reimport-analysis');
+          '''
+          if old not in text:
+              raise SystemExit('Chromium reimport block missing')
+          text = text.replace(old, new, 1)
+          text = text.replace('afterReimport: reimported.metrics,', 'afterReimportAnalysis: reimported.metrics,', 1)
+          chromium.write_text(text)
 
           firefox = Path('scripts/e2e-firefox-original-large-migration.mjs')
           text = firefox.read_text()
-          start = text.index('async function importAndUse(driver, path, previousGeneration) {')
-          end = text.index('\n\nlet driver;', start)
-          replacement = '''async function importAndUse(driver, path, previousGeneration) {
-            const before = assertWorkflowSuccess(
-              await sendWorkflowCommand(driver, { action: 'get' }),
-              'Unable to read workflow before Firefox original large import',
-            );
-            const baselineGeneration = previousGeneration ?? before.state.generation;
+          anchor = '''async function importAndUse(driver, path, previousGeneration) {'''
+          helper = '''async function reimportForReview(driver, path) {
             const importExportButton = await driver.findElement(
               By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
             );
@@ -91,17 +100,42 @@ jobs:
               until.elementLocated(By.css('[data-legacy-import-and-use]')),
               60_000,
             );
-            await importButton.click();
-            await driver.wait(async () => {
-              const response = await sendWorkflowCommand(driver, { action: 'get' });
-              return (
-                response?.ok === true &&
-                response.state.generation > baselineGeneration &&
-                response.state.applied.profiles.length === 36
-              );
-            }, 60_000);
-          }'''
-          firefox.write_text(text[:start] + replacement + text[end:])
+            assert.equal(await importButton.isEnabled(), true, 'Firefox semantic re-import was not accepted for use');
+          }
+
+          async function importAndUse(driver, path, previousGeneration) {'''
+          if anchor not in text:
+              raise SystemExit('Firefox import anchor missing')
+          text = text.replace(anchor, helper, 1)
+          old = '''  const exported = await exportOriginalSemantics(driver, originalOptions);
+            const generationBeforeReimport = restored.metrics.generation;
+            await importAndUse(driver, reimportPath, generationBeforeReimport);
+            const reimported = await assertLargeState(driver, 'after semantic re-import');
+            await activateSwitch(driver, reimported.switchId, 'after semantic re-import');
+            await waitForActiveSwitch(
+              driver,
+              reimported.switchId,
+              'Semantic re-imported large switch did not become active in Firefox',
+            );
+            await assertRouteDecisions(driver, optionsWindow, 'after-reimport');
+          '''
+          new = '''  const exported = await exportOriginalSemantics(driver, originalOptions);
+            await reimportForReview(driver, reimportPath);
+            const reimported = await assertLargeState(driver, 'after semantic re-import analysis');
+            assert.equal(reimported.switchId, restored.switchId);
+            assert.deepEqual(reimported.metrics, restored.metrics);
+            await waitForActiveSwitch(
+              driver,
+              restored.switchId,
+              'Semantic re-import analysis changed the confirmed Firefox PAC route',
+            );
+            await assertRouteDecisions(driver, optionsWindow, 'after-reimport-analysis');
+          '''
+          if old not in text:
+              raise SystemExit('Firefox reimport block missing')
+          text = text.replace(old, new, 1)
+          text = text.replace('afterReimport: reimported.metrics,', 'afterReimportAnalysis: reimported.metrics,', 1)
+          firefox.write_text(text)
           PY
       - name: Format large E2E scripts
         run: |
@@ -122,5 +156,5 @@ jobs:
             scripts/e2e-chromium-original-large-migration.mjs \
             scripts/e2e-firefox-original-large-migration.mjs
           git diff --cached --check
-          git commit -m 'research: strengthen large Import and Use acceptance'
+          git commit -m 'research: make large reimport analysis state-preserving'
           git push origin HEAD:research/mig01-large-runtime-export
