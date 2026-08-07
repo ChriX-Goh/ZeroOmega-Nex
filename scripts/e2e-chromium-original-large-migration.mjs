@@ -395,13 +395,17 @@ try {
   await assertRouteDecisions(context, 'after-restart');
 
   const exported = await exportOriginalSemantics(options, originalOptions);
+  const beforeReimport = await assertLargeState(
+    options,
+    'after semantic export / before re-import analysis',
+  );
   await reimportForReview(options, reimportPath);
   const reimported = await assertLargeState(options, 'after semantic re-import analysis');
-  assert.equal(reimported.switchId, restored.switchId);
-  assert.deepEqual(reimported.metrics, restored.metrics);
+  assert.equal(reimported.switchId, beforeReimport.switchId);
+  assert.deepEqual(reimported.metrics, beforeReimport.metrics);
   await waitForActiveSwitch(
     options,
-    restored.switchId,
+    beforeReimport.switchId,
     'Semantic re-import analysis changed the confirmed Chromium PAC route',
   );
   await assertRouteDecisions(context, 'after-reimport-analysis');
@@ -415,6 +419,7 @@ try {
         storage: {
           afterImport: imported.metrics,
           afterRestart: restored.metrics,
+          afterExportBeforeReimport: beforeReimport.metrics,
           afterReimportAnalysis: reimported.metrics,
         },
         semanticExport: exported,

@@ -533,13 +533,17 @@ try {
   await assertRouteDecisions(driver, optionsWindow, 'after-restart');
 
   const exported = await exportOriginalSemantics(driver, originalOptions);
+  const beforeReimport = await assertLargeState(
+    driver,
+    'after semantic export / before re-import analysis',
+  );
   await reimportForReview(driver, reimportPath);
   const reimported = await assertLargeState(driver, 'after semantic re-import analysis');
-  assert.equal(reimported.switchId, restored.switchId);
-  assert.deepEqual(reimported.metrics, restored.metrics);
+  assert.equal(reimported.switchId, beforeReimport.switchId);
+  assert.deepEqual(reimported.metrics, beforeReimport.metrics);
   await waitForActiveSwitch(
     driver,
-    restored.switchId,
+    beforeReimport.switchId,
     'Semantic re-import analysis changed the confirmed Firefox PAC route',
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-reimport-analysis');
@@ -553,6 +557,7 @@ try {
         storage: {
           afterImport: imported.metrics,
           afterRestart: restored.metrics,
+          afterExportBeforeReimport: beforeReimport.metrics,
           afterReimportAnalysis: reimported.metrics,
         },
         semanticExport: exported,
