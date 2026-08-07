@@ -739,3 +739,12 @@ Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E
 - 跨 document revision 历史先按当前 `documentId` 隔离，防止旧导入文档历史破坏新安装／当前文档历史读取。
 - 仍未闭合：Switch、PAC、Virtual、附属 Rule List、临时规则、外部控制完整 trace；Firefox 直接 Action API 验收；headed 图标像素；Owner PASS。
 - 该 Session 8 检查点当时记录为总进度 47%、Order 1 35%；当前统一采用 owner FAIL 后的 48% / 45% 暂定口径。新增自动化证据仍不等于 Owner 完成度。
+
+## MIG-01.6 failure-preservation checkpoint (2026-08-07)
+
+- 原版 v3.5.0 的 Options / Browser Target 行为仍是兼容语义事实来源；Nex 不复制原版可能留下半事务或明文秘密的缺陷。
+- 对真实迁移而言，Nex 的 `Applied` 是唯一已确认配置；候选配置在完整 activation/confirmation 前不得取代它。持久 `pendingApply` 表示真实两阶段事务，不是 UI busy 标记。
+- 若浏览器在 Apply 的 `activating` / `committing` / `rollback-required` 阶段退出，重启必须先用同一 activation rollback 路径恢复旧 `Applied` 与 startup route；只有浏览器恢复成功后才能清除 pending，用户 Draft 必须保留供检查/重试。
+- 恢复失败不得静默继续：pending 保持 `rollback-required`，并记录 `lastApply.stage = recovery` 与 `rollbackSucceeded = false`。
+- blocking 原版 `.bak` 兼容性分析不得写入 workflow storage，也不得改变已经确认的浏览器代理；Chromium/Firefox 已在 large 原版迁移链后用 missing-reference 负向备份实跑验证。
+- 该检查点属于 `CONTRACT-EXACT` 的失败恢复/原子性，不新增原版普通 UI 概念，也不改变 Popup/Options 的视觉验收状态。

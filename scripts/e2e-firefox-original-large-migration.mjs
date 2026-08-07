@@ -17,6 +17,7 @@ const originalBackupPath = resolve(
 const provenancePath = resolve(
   'fixtures/zeroomega-v2/original-large-representative-v3.5.0.provenance.json',
 );
+const invalidBackupPath = resolve('fixtures/zeroomega-v2/invalid/missing-reference.json');
 const profileDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-large-migration-'));
 const downloadDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-large-export-'));
 const reimportPath = resolve(downloadDir, 'zeroomega-large-semantic-reimport.bak');
@@ -485,6 +486,117 @@ async function importAndUse(driver, path, previousGeneration) {
   }, 60_000);
 }
 
+async function workflowStorageSnapshot(driver) {
+  return driver.executeAsyncScript(
+    `
+      const namespace = arguments[0];
+      const done = arguments[1];
+      browser.storage.local.get(null).then((all) => {
+        done(Object.fromEntries(Object.entries(all).filter(([key]) => key.startsWith(namespace))));
+      }, (error) => done({ error: String(error) }));
+    `,
+    workflowStorageNamespace,
+  );
+}
+
+async function analyzeRejectedBackupWithoutMutation(driver, path) {
+  const before = await workflowStorageSnapshot(driver);
+  const importExportButton = await driver.findElement(
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
+  );
+  await importExportButton.click();
+  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
+  await fileInput.sendKeys(path);
+  const review = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review]')),
+    20_000,
+  );
+  await driver.wait(until.elementIsVisible(review), 20_000);
+  assert.equal(
+    (await driver.findElements(By.css('[data-legacy-import-review] [data-legacy-import-and-use]')))
+      .length,
+    0,
+    'Rejected legacy backup unexpectedly exposed Import & Use in Firefox',
+  );
+  const alert = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review] [role="alert"]')),
+    20_000,
+  );
+  await driver.wait(until.elementIsVisible(alert), 20_000);
+  const rejectedText = await driver
+    .findElement(By.css('[data-legacy-import-review] [data-legacy-status="rejected"] strong'))
+    .getText();
+  const rejectedCount = Number(rejectedText);
+  assert.equal(rejectedCount > 0, true, 'Firefox rejected import did not report a blocking item');
+  const after = await workflowStorageSnapshot(driver);
+  assert.deepEqual(after, before, 'Firefox rejected legacy analysis mutated workflow persistence');
+  return { rejectedCount };
+}
+
+async function injectInterruptedApply(driver) {
+  return driver.executeAsyncScript(
+    `
+      const namespace = arguments[0];
+      const done = arguments[1];
+      (async () => {
+        const stateKey = namespace + '/state';
+        const values = await browser.storage.local.get(stateKey);
+        const state = values[stateKey];
+        if (!state) throw new Error('workflow state is unavailable for interrupted Apply injection');
+        const draft = structuredClone(state.draft);
+        if (!draft.profiles?.[0]) throw new Error('workflow Draft has no profile to edit');
+        draft.profiles[0].name = draft.profiles[0].name + ' [interrupted draft]';
+        const candidate = structuredClone(draft);
+        candidate.revision = {
+          id: 'revision-e2e-interrupted-apply',
+          parentId: state.applied.revision.id,
+          createdAt: '2026-08-07T08:30:00.000Z',
+          deviceId: 'device-e2e-interrupted-apply',
+        };
+        const interrupted = {
+          ...state,
+          generation: state.generation + 1,
+          draft,
+          pendingApply: {
+            applyId: 'apply-e2e-interrupted-commit',
+            candidate,
+            previousAppliedRevisionId: state.applied.revision.id,
+            startedAt: '2026-08-07T08:30:00.000Z',
+            phase: 'committing',
+          },
+        };
+        await browser.storage.local.set({ [stateKey]: interrupted });
+        await browser.proxy.settings.set({ value: { proxyType: 'none' } });
+        const platform = await browser.proxy.settings.get({});
+        return {
+          appliedRevisionId: state.applied.revision.id,
+          injectedGeneration: interrupted.generation,
+          draftName: draft.profiles[0].name,
+          platformMode: platform.value?.proxyType,
+        };
+      })().then(done, (error) => done({ error: String(error) }));
+    `,
+    workflowStorageNamespace,
+  );
+}
+
+async function assertInterruptedApplyRecovered(driver, injected) {
+  const current = assertWorkflowSuccess(
+    await sendWorkflowCommand(driver, { action: 'get' }),
+    'Firefox interrupted Apply recovery did not expose a usable workflow',
+  );
+  assert.equal(current.state.applied.revision.id, injected.appliedRevisionId);
+  assert.equal(current.state.pendingApply, undefined);
+  assert.equal(current.view.busy, false);
+  assert.equal(current.view.dirty, true);
+  assert.equal(current.state.draft.profiles[0]?.name, injected.draftName);
+  assert.equal(current.state.lastApply?.status, 'failed');
+  assert.equal(current.state.lastApply?.stage, 'recovery');
+  assert.equal(current.state.lastApply?.rollbackSucceeded, true);
+  assert.equal(current.state.generation > injected.injectedGeneration, true);
+  return current;
+}
+
 let driver;
 try {
   const [originalContent, provenanceContent] = await Promise.all([
@@ -548,6 +660,30 @@ try {
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-reimport-analysis');
 
+  const rejectedImport = await analyzeRejectedBackupWithoutMutation(driver, invalidBackupPath);
+  await waitForActiveSwitch(
+    driver,
+    beforeReimport.switchId,
+    'Rejected legacy analysis changed the confirmed Firefox PAC route',
+  );
+  await assertRouteDecisions(driver, optionsWindow, 'after-rejected-import-analysis');
+
+  const interrupted = await injectInterruptedApply(driver);
+  assert.equal(interrupted.platformMode, 'none');
+  await driver.quit();
+  driver = undefined;
+
+  driver = await launch();
+  await installExtension(driver);
+  optionsWindow = await navigateOptions(driver);
+  const recoveredInterruptedApply = await assertInterruptedApplyRecovered(driver, interrupted);
+  await waitForActiveSwitch(
+    driver,
+    beforeReimport.switchId,
+    'Interrupted Apply restart recovery did not restore the previous Firefox PAC route',
+  );
+  await assertRouteDecisions(driver, optionsWindow, 'after-interrupted-apply-recovery');
+
   console.log(
     JSON.stringify(
       {
@@ -561,13 +697,21 @@ try {
           afterReimportAnalysis: reimported.metrics,
         },
         semanticExport: exported,
+        failurePreservation: {
+          rejectedImport,
+          interruptedApply: {
+            injected: interrupted,
+            recoveredGeneration: recoveredInterruptedApply.state.generation,
+            lastApply: recoveredInterruptedApply.state.lastApply,
+          },
+        },
       },
       null,
       2,
     ),
   );
   console.log(
-    'Firefox original large import, acceptance, Apply, restart, semantic export, and reimport passed.',
+    'Firefox original large migration plus rejected-import and interrupted-Apply preservation passed.',
   );
 } finally {
   if (driver) await driver.quit();

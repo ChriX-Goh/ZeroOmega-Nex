@@ -234,3 +234,13 @@
 | J-07 | 每标签页 Action 运行时收敛    | 工具栏源码/运行矩阵与 `DELIVERY_ORDER_01_TOOLBAR_STATE.md` | 标签页、Profile、Inspect、临时规则和外部控制统一进入一个协调器       | MUST_MATCH | MISSING  | N/A      | 隔离协调器已验证；真实 Chromium/Firefox 绑定和用户 PASS 缺失 | 完成双浏览器状态迁移与用户验收 |
 
 This section supersedes any older implication that toolbar target constants or localization are unknown. It does not supersede the project-wide failure state or authorize a candidate.
+
+## MIG-01.6 failure-preservation evidence note
+
+This checkpoint changes migration/recovery evidence only; it changes no UI row status and adds no
+Popup/Options refinement. Blocking original-backup analysis is now browser-tested to leave the
+workflow storage namespace and confirmed PAC route unchanged. A persisted interrupted Apply is
+browser-tested to recover the previous Applied configuration on full Chromium/Firefox restart,
+preserve the dirty Draft, clear `pendingApply` only after successful rollback, and record a
+`recovery` failure result. The auditable layer-by-layer matrix is
+`docs/MIG_01_FAILURE_PRESERVATION_MATRIX.md`.

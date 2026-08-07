@@ -15,6 +15,10 @@ export {
 } from './advanced-profile-operations.js';
 export { applyProfileWorkflow } from './apply.js';
 export {
+  recoverInterruptedProfileWorkflowApply,
+  type ProfileWorkflowInterruptedApplyRecoveryResult,
+} from './apply-recovery.js';
+export {
   PROFILE_WORKFLOW_MESSAGE_CHANNEL,
   executeProfileWorkflowCommand,
   isProfileWorkflowCommand,

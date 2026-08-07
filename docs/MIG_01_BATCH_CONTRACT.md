@@ -63,7 +63,7 @@ A real or original-runtime-produced export covering PAC URL or body, update/cach
 
 ### Negative corpus
 
-Malformed encoding, invalid JSON, missing references, cycles, duplicate Profile identities, key/name-mismatched shadow definitions, oversized input, excessive nesting, unsupported fields, unsafe local `file:` PAC, unsupported SOCKS credentials, secret-like metadata, and hostile resource cases.
+Malformed encoding, invalid JSON, missing references, cycles, duplicate Profile identities, key/name-mismatched shadow definitions, oversized input, excessive nesting, unsupported fields, unsafe local `file:` PAC, unsupported SOCKS credentials, secret-like metadata, hostile resource cases, blocked import analysis after a known-good activation, and interrupted persisted Apply transactions across browser restart.
 
 Synthetic fixtures may cover isolated boundaries but cannot substitute for Corpus A–D.
 
@@ -107,6 +107,27 @@ Synthetic fixtures may cover isolated boundaries but cannot substitute for Corpu
 8. `MIG-01.8` — form one clean exact Head, run final gates, update progress/confidence/debt, and close the batch.
 
 The sequence follows the first failing layer. It does not split each field or micro-state into a separate delivery batch.
+
+### MIG-01.6 failure-preservation checkpoint
+
+The repository-controlled MIG-01.6 matrix is maintained in
+`docs/MIG_01_FAILURE_PRESERVATION_MATRIX.md`. Closure requires fail-closed evidence across parser,
+mapping, storage/transaction, compilation/preflight, authentication, installation, confirmation,
+restart, import-analysis, and export layers.
+
+The restart contract treats durable workflow `pendingApply` as a real interrupted transaction rather
+than a cosmetic busy flag. On startup, the previous `state.applied` configuration is authoritative;
+the browser must be rolled back to it before `pendingApply` may be cleared. A successful recovery
+preserves the user Draft for retry and records a failed Apply with `stage = recovery`. A failed
+recovery remains `rollback-required` and must not be reported as success.
+
+A blocking `.bak` selected after a known-good activation must expose no Import & Use action, must
+leave the workflow storage namespace unchanged, and must leave the already confirmed browser route
+usable. Chromium and Firefox permanent migration E2E carry this negative path together with the
+interrupted-Apply restart path rather than adding a separate permanent workflow per failure class.
+
+Closing MIG-01.6 does not satisfy Corpus B, does not close MIG-01, and does not change product
+progress by itself.
 
 ## 10. Stop rules
 

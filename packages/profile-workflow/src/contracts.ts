@@ -23,7 +23,7 @@ export type ProfileWorkflowApplyRecord =
   | {
       readonly status: 'failed';
       readonly applyId: string;
-      readonly stage: 'prepare' | 'activate' | 'commit' | 'rollback';
+      readonly stage: 'prepare' | 'activate' | 'commit' | 'rollback' | 'recovery';
       readonly message: string;
       readonly occurredAt: string;
       readonly rollbackSucceeded?: boolean;

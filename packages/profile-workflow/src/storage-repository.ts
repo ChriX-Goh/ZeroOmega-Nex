@@ -108,7 +108,13 @@ function parseLastApply(value: unknown): ProfileWorkflowApplyRecord {
   }
   if (status !== 'failed') throw new TypeError('lastApply.status is invalid');
   const stage = lastApply.stage;
-  if (stage !== 'prepare' && stage !== 'activate' && stage !== 'commit' && stage !== 'rollback') {
+  if (
+    stage !== 'prepare' &&
+    stage !== 'activate' &&
+    stage !== 'commit' &&
+    stage !== 'rollback' &&
+    stage !== 'recovery'
+  ) {
     throw new TypeError('lastApply.stage is invalid');
   }
   const rollbackSucceeded = lastApply.rollbackSucceeded;
