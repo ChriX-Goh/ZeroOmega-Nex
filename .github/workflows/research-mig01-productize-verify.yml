@@ -105,4 +105,4 @@ jobs:
       - name: Validate canonical semantic evidence
         run: node scripts/validate-mig01-semantic-evidence.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
 
-# Coherent staging pass after final Prettier-conformant test helper fix.
+# Final formatter-produced staging verification.
