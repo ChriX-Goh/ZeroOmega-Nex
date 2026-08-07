@@ -28,76 +28,12 @@ jobs:
           corepack prepare pnpm@11.4.0 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-      - name: Wire MIG-01.7B permanent evidence
+      - name: Materialize MIG-01.7B evidence
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-
-          workflow = Path('.github/workflows/browser-e2e.yml')
-          source = workflow.read_text()
-          permissions = "permissions:\n  contents: read\n"
-          if permissions not in source:
-              raise SystemExit('Browser E2E permissions marker missing')
-          source = source.replace(permissions, "permissions:\n  contents: read\n  actions: read\n", 1)
-
-          chromium_marker = "      - name: Run Chromium toolbar Action E2E\n"
-          chromium_step = """      - name: Run Chromium sensitive original migration leak gate
-                  shell: bash
-                  run: |
-                    set -o pipefail
-                    node scripts/e2e-chromium-sensitive-migration.mjs 2>&1 | tee -a chromium-e2e.log
-
-          """
-          if chromium_marker not in source:
-              raise SystemExit('Chromium toolbar marker missing')
-          source = source.replace(chromium_marker, chromium_step + chromium_marker, 1)
-
-          firefox_marker = "      - name: Run Firefox toolbar Action E2E\n"
-          firefox_step = """      - name: Run Firefox sensitive original migration leak gate
-                  shell: bash
-                  run: |
-                    set -o pipefail
-                    node scripts/e2e-firefox-sensitive-migration.mjs 2>&1 | tee -a firefox-e2e.log
-
-          """
-          if firefox_marker not in source:
-              raise SystemExit('Firefox toolbar marker missing')
-          source = source.replace(firefox_marker, firefox_step + firefox_marker, 1)
-
-          if '  migration-secret-leak-gate:' in source:
-              raise SystemExit('Migration secret leak gate already exists')
-          source = source.rstrip() + """
-
-            migration-secret-leak-gate:
-              if: always()
-              needs: [chromium, firefox]
-              runs-on: ubuntu-latest
-              timeout-minutes: 10
-
-              steps:
-                - name: Checkout
-                  uses: actions/checkout@v4
-
-                - name: Set up Node.js
-                  uses: actions/setup-node@v4
-                  with:
-                    node-version: 24
-
-                - name: Download browser diagnostics
-                  uses: actions/download-artifact@v4
-                  with:
-                    pattern: '*-e2e-diagnostics'
-                    path: tmp/migration-secret-diagnostics
-                    merge-multiple: true
-
-                - name: Verify migration secrets never reached browser logs or diagnostics
-                  env:
-                    GITHUB_TOKEN: ${{ github.token }}
-                  run: node scripts/verify-browser-migration-secret-leaks.mjs tmp/migration-secret-diagnostics
-          """
-          workflow.write_text(source)
 
           matrix = Path('docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md')
           source = matrix.read_text()
@@ -155,13 +91,12 @@ jobs:
             scripts/e2e-chromium-sensitive-migration.mjs \
             scripts/e2e-firefox-sensitive-migration.mjs \
             scripts/verify-browser-migration-secret-leaks.mjs \
-            .github/workflows/browser-e2e.yml \
             docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
             docs/SESSION_17_KNOWLEDGE_GRAPH.md
           git diff --check
-      - name: Commit materialized evidence blobs
+      - name: Commit materialized non-workflow blobs
         shell: bash
         run: |
           set -euo pipefail
@@ -172,7 +107,6 @@ jobs:
             scripts/e2e-chromium-sensitive-migration.mjs \
             scripts/e2e-firefox-sensitive-migration.mjs \
             scripts/verify-browser-migration-secret-leaks.mjs \
-            .github/workflows/browser-e2e.yml \
             docs/MIG_01_SEMANTIC_ROUNDTRIP_SECURITY_MATRIX.md \
             docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
             docs/UI_AUDIT_MATRIX.md \
