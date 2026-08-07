@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
@@ -13,8 +13,16 @@ const NETWORK_KEY = /(host|hostname|url|uri|endpoint|server)/iu;
 const REFERENCE_KEYS = new Set(['defaultProfileName', 'matchProfileName', 'profileName']);
 const EXACT_STRING_KEYS = new Set(['profileType', 'conditionType', 'scheme', 'format', 'color']);
 
+export class CorpusBIntakeError extends Error {}
+
 function fail(message) {
-  throw new Error(message);
+  throw new CorpusBIntakeError(message);
+}
+
+export function corpusBIntakeErrorMessage(error) {
+  return error instanceof CorpusBIntakeError
+    ? error.message
+    : 'Corpus B intake failed without exposing local path details';
 }
 
 function object(value) {
@@ -373,7 +381,9 @@ export function verifyAgainstManifest(data, manifest) {
   const current = buildManifest(data, manifest.sourceBytes);
   if (current.structureSha256 !== manifest.structureSha256)
     fail('sanitized candidate rejected: structural fingerprint changed');
-  assert.deepEqual(current.metrics, manifest.metrics, 'sanitized candidate metrics changed');
+  if (!isDeepStrictEqual(current.metrics, manifest.metrics)) {
+    fail('sanitized candidate rejected: aggregate metrics changed');
+  }
   assertSanitizedSafety(data);
   return current.metrics;
 }
@@ -424,7 +434,7 @@ if (isMain) {
         'usage: owner-corpus-b-intake.mjs <inspect raw.bak manifest.json | verify sanitized.bak manifest.json>',
       );
   } catch (error) {
-    console.error(error instanceof Error ? error.message : 'Corpus B intake failed');
+    console.error(corpusBIntakeErrorMessage(error));
     process.exitCode = 1;
   }
 }

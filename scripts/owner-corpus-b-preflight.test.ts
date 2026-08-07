@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -182,5 +182,43 @@ describe('owner Corpus B repository preflight', () => {
     });
     expect(reportSource).not.toContain('OWNER_PRIVATE_PROFILE');
     expect(reportSource).not.toContain('owner-private.example.com');
+  });
+
+  it('suppresses internal runner paths from public failure output', async () => {
+    const { directory, candidateSource, manifest } = await prepare();
+    const candidatePath = join(directory, 'owner-sanitized.bak');
+    const manifestPath = join(directory, 'corpus-b-structure.json');
+    const privateSegment = 'OWNER_PRIVATE_REPORT_PATH_SECRET';
+    const reportPath = join(directory, privateSegment);
+    await Promise.all([
+      writeFile(candidatePath, candidateSource, 'utf8'),
+      writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8'),
+      mkdir(reportPath),
+    ]);
+
+    let exitCode: unknown;
+    let stderr = '';
+    try {
+      await execFileAsync(
+        process.execPath,
+        [wrapperPath, candidatePath, manifestPath, reportPath],
+        {
+          cwd: rootDir,
+          env: process.env,
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && 'stderr' in error) {
+        exitCode = error.code;
+        stderr = String(error.stderr ?? '');
+      } else throw error;
+    }
+
+    expect(exitCode).toBe(1);
+    expect(stderr).toContain('repository preflight runner failed with exit code 1');
+    expect(stderr).not.toContain(privateSegment);
+    expect(stderr).not.toContain(reportPath);
+    expect(stderr).not.toContain(candidatePath);
   });
 });

@@ -4,13 +4,26 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-import { parseBackup, verifyAgainstManifest } from './owner-corpus-b-intake.mjs';
+import {
+  CorpusBIntakeError,
+  parseBackup,
+  verifyAgainstManifest,
+} from './owner-corpus-b-intake.mjs';
 
 const rootDir = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const runnerConfig = resolve(rootDir, 'scripts/owner-corpus-b-preflight.vitest.config.ts');
 
+class CorpusBPreflightError extends Error {}
+
 function fail(message) {
-  throw new Error(message);
+  throw new CorpusBPreflightError(message);
+}
+
+function corpusBPreflightErrorMessage(error) {
+  if (error instanceof CorpusBPreflightError || error instanceof CorpusBIntakeError) {
+    return error.message;
+  }
+  return 'Corpus B repository preflight failed without exposing local path details';
 }
 
 function object(value) {
@@ -39,7 +52,7 @@ async function runImporterPreflight(candidatePath, manifestPath, reportPath) {
       ZEROOMEGA_CORPUS_B_PREFLIGHT_MANIFEST: manifestPath,
       ZEROOMEGA_CORPUS_B_PREFLIGHT_REPORT: reportPath,
     },
-    stdio: 'inherit',
+    stdio: ['ignore', 'ignore', 'ignore'],
   });
 
   const exitCode = await new Promise((resolveExit, rejectExit) => {
@@ -84,7 +97,7 @@ export async function preflightCommand(sanitizedPath, manifestPath, reportPath) 
   if (report.decision.status === 'blocked') process.exitCode = 2;
   else if (report.decision.status === 'review-required') process.exitCode = 3;
   else if (report.decision.status !== 'ready-for-browser-chain') {
-    fail(`preflight runner wrote unknown decision: ${report.decision.status}`);
+    fail('preflight runner wrote unknown decision');
   }
 }
 
@@ -96,7 +109,7 @@ if (isMain) {
   try {
     await preflightCommand(...process.argv.slice(2, 5));
   } catch (error) {
-    console.error(error instanceof Error ? error.message : 'Corpus B repository preflight failed');
+    console.error(corpusBPreflightErrorMessage(error));
     process.exitCode = 1;
   }
 }

@@ -177,6 +177,19 @@ describe('owner Corpus B intake CLI', () => {
     );
   });
 
+  it('does not expose a missing raw owner path in failure output', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-private-path-'));
+    temporaryDirectories.push(directory);
+    const privateSegment = 'OWNER_PRIVATE_RAW_PATH_SECRET';
+    const rawPath = join(directory, privateSegment, 'owner.bak');
+    const manifestPath = join(directory, 'manifest.json');
+
+    const stderr = await failure(['inspect', rawPath, manifestPath]);
+    expect(stderr).toContain('Corpus B intake failed without exposing local path details');
+    expect(stderr).not.toContain(privateSegment);
+    expect(stderr).not.toContain(rawPath);
+  });
+
   it('refuses to inspect a raw owner backup from inside the repository', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'zeroomega-corpus-b-manifest-'));
     temporaryDirectories.push(directory);
