@@ -1,0 +1,119 @@
+name: Research MIG-01 Duplicate Name Gate Fix
+
+on:
+  push:
+    branches:
+      - research/mig01-duplicate-name-gate-fix
+    paths:
+      - '.github/workflows/research-mig01-duplicate-name-gate-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact product head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 2
+
+      - name: Require expected parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "d6c7619b3a8163b2328f87fc02f631a8c42cf333"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Synchronize canonical parity facts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          graph_path = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          graph = graph_path.read_text()
+          anchor = '- 恢复后根据启动情景模式应用。\n- 单情景模式 PAC/规则列表导出。\n'
+          replacement = (
+              '- 恢复后根据启动情景模式应用。\n'
+              '- 原版公共 `Options.addProfile()` / `renameProfile()` 不允许占用已有 Profile 名称；'
+              '键名与 `profile.name` 不一致的影子定义不属于可由公共运行时创建的稳定状态。\n'
+              '- `-quickSwitchProfiles` 在 Options 初始化时按实际 Profile identity 清理：首个有效名称保留，'
+              '后续重复名称、空名称和不存在的名称移除；因此稳定原版导出不保留重复 Quick Switch 引用。\n'
+              '- 单情景模式 PAC/规则列表导出。\n'
+          )
+          if anchor not in graph:
+              raise SystemExit('ORIGINAL_KNOWLEDGE_GRAPH import/export anchor not found')
+          graph_path.write_text(graph.replace(anchor, replacement, 1))
+
+          matrix_path = Path('docs/UI_AUDIT_MATRIX.md')
+          lines = matrix_path.read_text().splitlines()
+          changed = False
+          for index, line in enumerate(lines):
+              if not line.startswith('| G-02 | 本地备份恢复'):
+                  continue
+              needle = '；仓库所有者真实复杂备份仍属最终 QC'
+              addition = (
+                  '；原版 v3.5.0 runtime 已证明重复 Quick Switch 名称按首项保留归一化，'
+                  '同名 Profile identity 仍拒绝'
+              )
+              if needle not in line:
+                  raise SystemExit('UI_AUDIT_MATRIX G-02 evidence anchor not found')
+              lines[index] = line.replace(needle, addition + needle, 1)
+              changed = True
+              break
+          if not changed:
+              raise SystemExit('UI_AUDIT_MATRIX G-02 row not found')
+          matrix_path.write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Apply repository formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec prettier --write \
+            packages/legacy-zeroomega/src/import-normalized.ts \
+            packages/legacy-zeroomega/src/import-normalized.test.ts \
+            apps/extension/src/lib/original-duplicate-name-migration.test.ts \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+          pnpm exec prettier --check \
+            packages/legacy-zeroomega/src/import-normalized.ts \
+            packages/legacy-zeroomega/src/import-normalized.test.ts \
+            apps/extension/src/lib/original-duplicate-name-migration.test.ts \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+
+      - name: Commit coherent gate fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ChriX-Goh'
+          git config user.email 'Chrix.holy@gmail.com'
+          git add \
+            packages/legacy-zeroomega/src/import-normalized.ts \
+            packages/legacy-zeroomega/src/import-normalized.test.ts \
+            apps/extension/src/lib/original-duplicate-name-migration.test.ts \
+            docs/ORIGINAL_KNOWLEDGE_GRAPH.md \
+            docs/UI_AUDIT_MATRIX.md
+          git diff --cached --check
+          git commit -m 'test: close duplicate-name evidence gates'
+          git push origin HEAD:feat/m8-profile-workflow
