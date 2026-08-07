@@ -103,7 +103,31 @@ The original normalized backup and provenance are pinned under `fixtures/zeroome
 contract now distinguishes deterministic duplicate name-bearing references from invalid duplicate
 Profile identities rather than treating both as one positive Corpus D shape.
 
-## 6. State and next handoff
+## 6. Gate reconciliation
+
+The first coherent implementation checkpoint was
+`d6c7619b3a8163b2328f87fc02f631a8c42cf333` (`fix: match original duplicate-name normalization`).
+Its first permanent CI run `31151027978` stopped at repository Prettier before TypeScript, tests, or
+builds; only the three newly added TypeScript files required formatting. Parity Documentation run
+`31151028129` passed canonical parity-content validation but then correctly blocked the commit because
+a `packages/legacy-zeroomega/` change had not simultaneously synchronized
+`docs/ORIGINAL_KNOWLEDGE_GRAPH.md` and `docs/UI_AUDIT_MATRIX.md`. Neither failure was a migration
+behavior result.
+
+A disposable gate-fix workflow then ran repository Prettier and synchronized those two canonical
+documents. Run `31151266222` / job `92781227855` succeeded and produced product commit
+`79a65ac6b83f0d14fcb95e464e9a06477a771fc7` (`test: close duplicate-name evidence gates`). The
+canonical knowledge graph now records original public-runtime duplicate Profile rejection and
+Quick Switch first-occurrence normalization; UI audit row G-02 records the same migration evidence
+without changing UI status or project progress.
+
+Because `79a65ac6b83f0d14fcb95e464e9a06477a771fc7` was pushed by `github-actions[bot]`, the six PR
+workflow records `31151286090`, `31151286096`, `31151286087`, `31151286101`, `31151286099`, and
+`31151286086` completed as `action_required` with no CI jobs. They are trigger-layer artifacts, not
+pass/fail evidence. This knowledge-graph synchronization commit is intentionally made through the
+normal repository write path so its resulting exact Head can receive the real permanent gate set.
+
+## 7. State and next handoff
 
 At this checkpoint the repository-controlled Corpus D field classes named by the batch contract are
 covered: PAC/Unicode/cache-update shapes, authentication/headers, safe unknown metadata, and
