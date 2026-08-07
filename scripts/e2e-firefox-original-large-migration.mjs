@@ -70,6 +70,14 @@ async function closeServer(server) {
   await new Promise((resolveClose) => server.close(resolveClose));
 }
 
+async function quitDriver(driver) {
+  try {
+    await driver.quit();
+  } catch (error) {
+    if (error?.name !== 'NoSuchSessionError') throw error;
+  }
+}
+
 function firefoxOptions() {
   return new firefox.Options()
     .addArguments('-headless', '-profile', profileDir)
@@ -714,13 +722,7 @@ try {
     'Firefox original large migration plus rejected-import and interrupted-Apply preservation passed.',
   );
 } finally {
-  if (driver) {
-    try {
-      await driver.quit();
-    } catch (error) {
-      if (error?.name !== 'NoSuchSessionError') throw error;
-    }
-  }
+  if (driver) await quitDriver(driver);
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
   await Promise.all([
     rm(profileDir, { recursive: true, force: true }),
