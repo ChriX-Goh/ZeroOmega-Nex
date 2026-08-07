@@ -59,8 +59,8 @@ function firefoxOptions() {
   return new firefox.Options()
     .addArguments('-headless', '-profile', profileDir)
     .enableBidi()
-    .setPreference('intl.accept_languages', 'zh-CN')
-    .setPreference('intl.locale.requested', 'zh-CN')
+    .setPreference('intl.accept_languages', 'zh-TW')
+    .setPreference('intl.locale.requested', 'zh-TW')
     .setPreference('extensions.webextOptionalPermissionPrompts', false)
     .setPreference('network.dns.disableIPv6', true)
     .setPreference(
@@ -145,7 +145,7 @@ async function navigateOptions(driver) {
   assert.equal(result?.url, expectedUrl, 'Firefox did not navigate to the Options page');
   await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
   await driver.wait(
-    until.elementLocated(By.xpath("//button[normalize-space(.)='导入 / 导出']")),
+    until.elementLocated(By.xpath("//button[normalize-space(.)='匯入 / 匯出']")),
     20_000,
   );
   return driver.getWindowHandle();
@@ -382,7 +382,7 @@ async function waitForDownloadedExport(previousFiles) {
 
 async function exportOriginalSemantics(driver, originalOptions) {
   const importExportButton = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='导入 / 导出']"),
+    By.xpath("//button[normalize-space(.)='匯入 / 匯出']"),
   );
   await importExportButton.click();
   const previousFiles = new Set(await readdir(downloadDir));
@@ -403,7 +403,7 @@ async function exportOriginalSemantics(driver, originalOptions) {
 
 async function importOriginalBackup(driver) {
   const importExportButton = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='导入 / 导出']"),
+    By.xpath("//button[normalize-space(.)='匯入 / 匯出']"),
   );
   await importExportButton.click();
   const fileInput = await driver.wait(
@@ -412,18 +412,18 @@ async function importOriginalBackup(driver) {
   );
   await fileInput.sendKeys(originalBackupPath);
   const compatibilityHeading = await driver.wait(
-    until.elementLocated(By.xpath("//h2[normalize-space(.)='兼容性检查']")),
+    until.elementLocated(By.xpath("//h2[normalize-space(.)='相容性檢查']")),
     20_000,
   );
   await driver.wait(until.elementIsVisible(compatibilityHeading), 20_000);
   const importButton = await driver.wait(
-    until.elementLocated(By.xpath("//button[normalize-space(.)='导入并立即使用']")),
+    until.elementLocated(By.xpath("//button[normalize-space(.)='匯入並立即使用']")),
     20_000,
   );
   await importButton.click();
   const success = await driver.wait(
     until.elementLocated(
-      By.xpath("//*[normalize-space(.)='导入完成，原版配置现已启用。']"),
+      By.xpath("//*[normalize-space(.)='匯入完成，原版設定現已啟用。']"),
     ),
     20_000,
   );
