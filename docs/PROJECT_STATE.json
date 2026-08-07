@@ -45,7 +45,7 @@
     "id": "MIG-01",
     "name": "Real original-export golden path",
     "type": "product",
-    "phase": "CHROMIUM_OFFICIAL_GREEN_FIREFOX_NEXT",
+    "phase": "OFFICIAL_DEFAULT_DUAL_BROWSER_GREEN_CORPUS_BCD_NEXT",
     "parent_journey": "real original migration and semantic round trip",
     "contract": "docs/MIG_01_BATCH_CONTRACT.md",
     "product_wip_limit": 1,
