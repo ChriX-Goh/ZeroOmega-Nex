@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { readEvidence } from './mig01-semantic-evidence.mjs';
 
 const [chromiumPath, firefoxPath] = process.argv.slice(2);
-assert.ok(chromiumPath && firefoxPath, 'Usage: validate-mig01-semantic-evidence <chromium> <firefox>');
+assert.ok(
+  chromiumPath && firefoxPath,
+  'Usage: validate-mig01-semantic-evidence <chromium> <firefox>',
+);
 
 const allowedSemanticKeys = new Set([
   'kind',
@@ -40,7 +43,10 @@ function validateRows(rows, browser) {
   assert.equal(secret.length, 1, `${browser}: expected one secret-leak row`);
   for (const row of semantic) {
     assert.equal(row.browser, browser);
-    assert.deepEqual(Object.keys(row).every((key) => allowedSemanticKeys.has(key)), true);
+    assert.deepEqual(
+      Object.keys(row).every((key) => allowedSemanticKeys.has(key)),
+      true,
+    );
     assert.equal(row.bytes > 0, true);
     assert.match(row.sha256, /^[0-9a-f]{64}$/u);
     assert.match(row.semanticSha256, /^[0-9a-f]{64}$/u);
@@ -51,8 +57,17 @@ function validateRows(rows, browser) {
   const leak = secret[0];
   assert.equal(leak.browser, browser);
   assert.equal(leak.corpus, 'sensitive');
-  assert.deepEqual(Object.keys(leak).every((key) => allowedSecretKeys.has(key)), true);
-  for (const key of ['uiClean', 'commandClean', 'workflowStorageClean', 'exportClean', 'reimportClean']) {
+  assert.deepEqual(
+    Object.keys(leak).every((key) => allowedSecretKeys.has(key)),
+    true,
+  );
+  for (const key of [
+    'uiClean',
+    'commandClean',
+    'workflowStorageClean',
+    'exportClean',
+    'reimportClean',
+  ]) {
     assert.equal(leak[key], true, `${browser}: ${key} failed`);
   }
   assert.equal(leak.persistentMutation, false);

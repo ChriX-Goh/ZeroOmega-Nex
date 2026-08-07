@@ -7,6 +7,13 @@ import { resolve } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
+import {
+  appendMig01Evidence,
+  assertNoSecretMarkers,
+  semanticSha256,
+  sha256Text,
+} from './mig01-semantic-evidence.mjs';
+
 const extensionPath = resolve('dist/chrome-mv3');
 const originalBackupPath = resolve(
   'fixtures/zeroomega-v2/original-large-representative-v3.5.0.bak',
@@ -347,6 +354,7 @@ async function exportOriginalSemantics(options, originalOptions) {
   return {
     bytes: Buffer.byteLength(exportedContent, 'utf8'),
     sha256: createHash('sha256').update(exportedContent).digest('hex'),
+    semanticSha256: semanticSha256(requiredLargeSemantics(exportedOptions)),
   };
 }
 
@@ -488,10 +496,28 @@ try {
     options,
     'after semantic export / before re-import analysis',
   );
+  const beforeReimportStorage = await workflowStorageSnapshot(options);
   await reimportForReview(options, reimportPath);
   const reimported = await assertLargeState(options, 'after semantic re-import analysis');
   assert.equal(reimported.switchId, beforeReimport.switchId);
   assert.deepEqual(reimported.metrics, beforeReimport.metrics);
+  const afterReimportStorage = await workflowStorageSnapshot(options);
+  assert.deepEqual(
+    afterReimportStorage,
+    beforeReimportStorage,
+    'chromium large semantic re-import review mutated workflow persistence',
+  );
+  await appendMig01Evidence({
+    kind: 'semantic',
+    browser: 'chromium',
+    corpus: 'large',
+    bytes: exported.bytes,
+    sha256: exported.sha256,
+    semanticSha256: exported.semanticSha256,
+    reimportAccepted: true,
+    persistentMutation: false,
+    secretScanClean: true,
+  });
   await waitForActiveSwitch(
     options,
     beforeReimport.switchId,

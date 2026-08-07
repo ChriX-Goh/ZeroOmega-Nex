@@ -7,6 +7,13 @@ import { resolve } from 'node:path';
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import {
+  appendMig01Evidence,
+  assertNoSecretMarkers,
+  semanticSha256,
+  sha256Text,
+} from './mig01-semantic-evidence.mjs';
+
 import { firefoxService } from './firefox-service.mjs';
 
 const extensionPath = resolve('dist/firefox-mv3');
@@ -477,6 +484,44 @@ async function exportOriginalSemantics(driver, originalOptions) {
     /passwordSecretRef|secretRef|not-a-real-secret/u,
     'Firefox original migration export leaked secret references',
   );
+  assertNoSecretMarkers(exportedContent, 'Firefox original semantic export');
+  return {
+    exportedPath,
+    bytes: Buffer.byteLength(exportedContent, 'utf8'),
+    sha256: sha256Text(exportedContent),
+    semanticSha256: semanticSha256(requiredOriginalSemantics(exportedOptions)),
+  };
+}
+
+async function workflowStorageSnapshot(driver) {
+  return driver.executeAsyncScript(
+    `
+      const done = arguments[0];
+      browser.storage.local.get(null).then((all) => {
+        done(Object.fromEntries(Object.entries(all).filter(([key]) => key.startsWith('zeroomega-nex/profile-workflow/v1'))));
+      }, (error) => done({ error: String(error) }));
+    `,
+  );
+}
+
+async function reimportForReview(driver, path) {
+  const importExportButton = await driver.findElement(
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
+  );
+  await importExportButton.click();
+  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 60_000);
+  await fileInput.sendKeys(path);
+  const review = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review]')),
+    60_000,
+  );
+  await driver.wait(until.elementIsVisible(review), 60_000);
+  assertNoSecretMarkers(await review.getText(), 'Firefox semantic re-import review');
+  const importButton = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
+    60_000,
+  );
+  assert.equal(await importButton.isEnabled(), true, 'Firefox semantic re-import was not accepted');
 }
 
 async function importOriginalBackup(driver) {
@@ -564,7 +609,26 @@ try {
     await waitForActiveSwitch(driver, imported.pacId, 'Corpus D PAC did not become active');
     await assertPacRouteDecisions(driver, optionsWindow, 'pac');
   }
-  await exportOriginalSemantics(driver, originalOptions);
+  const exported = await exportOriginalSemantics(driver, originalOptions);
+  const beforeReimport = await workflowStorageSnapshot(driver);
+  await reimportForReview(driver, exported.exportedPath);
+  const afterReimport = await workflowStorageSnapshot(driver);
+  assert.deepEqual(
+    afterReimport,
+    beforeReimport,
+    'Firefox semantic re-import review mutated workflow persistence',
+  );
+  await appendMig01Evidence({
+    kind: 'semantic',
+    browser: 'firefox',
+    corpus: complexCorpus ? 'C/D' : 'A',
+    bytes: exported.bytes,
+    sha256: exported.sha256,
+    semanticSha256: exported.semanticSha256,
+    reimportAccepted: true,
+    persistentMutation: false,
+    secretScanClean: true,
+  });
 
   console.log(
     `Firefox original ${complexCorpus ? 'Corpus C/D' : 'Corpus A'} import, route, restart, and semantic export passed.`,
