@@ -406,10 +406,7 @@ async function importOriginalBackup(driver) {
     By.xpath("//button[normalize-space(.)='匯入 / 匯出']"),
   );
   await importExportButton.click();
-  const fileInput = await driver.wait(
-    until.elementLocated(By.css('input[type="file"]')),
-    20_000,
-  );
+  const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
   await fileInput.sendKeys(originalBackupPath);
   const compatibilityHeading = await driver.wait(
     until.elementLocated(By.xpath("//h2[normalize-space(.)='相容性檢查']")),
@@ -422,9 +419,7 @@ async function importOriginalBackup(driver) {
   );
   await importButton.click();
   const success = await driver.wait(
-    until.elementLocated(
-      By.xpath("//*[normalize-space(.)='匯入完成，原版設定現已啟用。']"),
-    ),
+    until.elementLocated(By.xpath("//*[normalize-space(.)='匯入完成，原版設定現已啟用。']")),
     20_000,
   );
   await driver.wait(until.elementIsVisible(success), 20_000);
@@ -472,9 +467,7 @@ try {
   assert.deepEqual(originalState.state.applied.settings.quickSwitch.routes, []);
   await exportOriginalSemantics(driver, originalOptions);
 
-  console.log(
-    'Firefox original backup import, route, restart, and semantic export passed.',
-  );
+  console.log('Firefox original backup import, route, restart, and semantic export passed.');
 } finally {
   if (driver) await driver.quit();
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
