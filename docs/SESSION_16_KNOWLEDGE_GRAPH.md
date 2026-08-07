@@ -15,7 +15,7 @@ ZeroOmega Nex
     -> Corpus B [external blocker: sanitized owner backup absent]
     -> Corpus C [original-runtime complex positive packaged complete]
     -> Corpus D repository-controlled field matrix [complete]
-    -> large original/representative persistent-capacity evidence [this milestone]
+    -> large original/representative persistent-capacity evidence [complete]
        -> deterministic scale seed [36 profiles / 1,024 Switch rules / 1,024 Rule List entries]
        -> original v3.5.0 runtime stabilization [provenance-bound]
        -> real browser storage acceptance
@@ -158,14 +158,48 @@ The permanent Browser E2E entrypoints append the large capacity chain after exis
 Corpus C/D journeys for both Chromium and Firefox. This adds no Popup/Options product refinement;
 the existing import/export surface is used only as the real migration entrypoint under test.
 
-## 8. Status and handoff
+## 8. Product checkpoint and permanent gates
 
-This milestone closes only after a normal product Head containing the proven files receives the full
-six permanent gate set. It does not close `MIG-01`, does not supply Corpus B, does not authorize
-owner retest, and does not change the audited project percentage.
+Product commit `cb777978c7ca98efba92795c7b310cd2f464ca5e`
+(`test: prove large original persistent migration`) was formed directly on
+`feat/m8-profile-workflow` from the previously green duplicate-name Head. The research branch was
+not merged. The product commit contains only the stable `.bak`, provenance, two final browser E2E
+scripts, permanent package-script wiring, fixture documentation, and this Session 16 graph.
 
-After this capacity milestone is green on the exact product Head, the next highest-value
-repository-controlled task is `MIG-01.6`: complete the negative corpus and failure-preservation
-matrix across parser, mapping, storage, compilation, installation, confirmation, restart, and
-export failure layers while proving the previous confirmed active configuration survives or is
-restored.
+All six permanent workflows on that exact product commit completed SUCCESS:
+
+- CI `31156746456`: SUCCESS; browser-build artifact `8985450502`, digest
+  `sha256:4f8edf744304c16a38172f38a32a8be3408c1bf9b44f3fd35a90048e73581118`;
+- Browser E2E `31156746427`: SUCCESS;
+  - Chromium job `92797787580`: SUCCESS, including existing Corpus A/C/D plus the new large
+    persistent migration chain; diagnostics artifact `8985460221`, digest
+    `sha256:e89e0b472fd6885c2a7aa62e6304bc9835e217260cfc7d1db846bc8c8889fbb2`;
+  - Firefox job `92797787636`: SUCCESS, including existing Corpus A/C/D plus the new large
+    persistent migration chain; diagnostics artifact `8985502582`, digest
+    `sha256:7bf1c0fd1f50219e49ba82f198558e1d9f658969c18694cba2fecfbd79a12b72`;
+  - Firefox policy-owned-popup and Chromium native-inspect jobs: SUCCESS;
+- Parity Documentation `31156746529`: SUCCESS;
+- Milestone 8 Visual Evidence `31156746458`: SUCCESS;
+- Original Nex UI Evidence `31156746399`: SUCCESS;
+- Original Toolbar Evidence `31156746428`: SUCCESS.
+
+This permanently wires the large capacity journey into both browser E2E entrypoints, so later
+product changes continue to exercise it automatically.
+
+## 9. Status and next handoff
+
+The repository-controlled large original/representative `.bak` storage + persistent-restart
+capacity milestone is closed. It proves the chosen 222,565-byte original-runtime vector survives
+real import, acceptance, Apply, PAC activation, route decisions, approximately 865 KB of workflow
+browser storage, complete browser restart, semantic export, and state-preserving semantic re-import
+analysis on both Chromium and Firefox.
+
+This is not a claim that every configuration up to the parser's 16 MiB ceiling fits browser
+persistence; it is a provenance-bound representative capacity checkpoint at the current migration
+scale. It does not close `MIG-01`, does not supply Corpus B, does not authorize owner retest, and
+does not change the audited project percentage: `45.15%`, reported `45%`, release `NO-GO`.
+
+The next highest-value repository-controlled task is `MIG-01.6`: complete the negative corpus and
+failure-preservation matrix across parser, mapping, storage, compilation, installation,
+confirmation, restart, and export failure layers while proving the previous confirmed active
+configuration survives or is restored. Corpus B remains the external owner-data blocker.
