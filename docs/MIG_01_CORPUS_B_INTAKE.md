@@ -1,6 +1,6 @@
 # MIG-01 Corpus B Owner Intake
 
-Status: repository-controlled readiness only. This does not provide Corpus B and does not close `MIG-01`.
+Status: repository-controlled `MIG-01.8A` intake readiness closed at code/evidence Head `ba009829d4b94a4e9505891301f246b5877a7f2b`. This does not provide Corpus B and does not close `MIG-01`.
 
 ## Purpose
 
@@ -87,6 +87,38 @@ direct import
 Any real owner field that exposes an unsupported, downgraded, silently reinterpreted, or
 behavior-changing path reopens the relevant MIG-01 implementation layer. The repository must not
 edit the sanitized backup merely to make Nex pass.
+
+## Repository-controlled readiness evidence
+
+The final clean implementation Head `ba009829d4b94a4e9505891301f246b5877a7f2b` contains no
+MIG-01.8A temporary workflow or patch helper. Relative to the preceding fully-green Head
+`feb17e5b41d33e1cc6e8dd31cd95b79e47d86643`, its net scope is limited to the intake CLI, its
+permanent Vitest CLI integration coverage, one production-tsconfig test exclusion, this contract,
+and one bounded no-UI-change note in each canonical parity document.
+
+Focused intake evidence first passed in hardening run `31190627930` / job `92906223632`: seven of
+seven CLI integration tests passed. The same job then completed the full `pnpm verify`, including
+117 test files and 586 tests, 25 component tests, lint, formatting, package type checks, both browser
+builds, manifest inspection, CSP audit, staging and archive checks.
+
+All six permanent workflows then passed again on the exact clean implementation Head:
+
+- CI `31190899945`: SUCCESS;
+- Browser E2E `31190899444`: SUCCESS;
+- Parity Documentation `31190900419`: SUCCESS;
+- Milestone 8 Visual Evidence `31190900037`: SUCCESS;
+- Original Nex UI Evidence `31190900825`: SUCCESS;
+- Original Toolbar Evidence `31190899947`: SUCCESS.
+
+The exact-head Browser E2E retained the previously closed migration/security chain: Chromium job
+`92907128431` SUCCESS, Firefox job `92907128519` SUCCESS, and downstream
+`migration-secret-leak-gate` job `92908097019` SUCCESS. The scanner reported that the controlled
+sentinels were absent across 15 diagnostics files and both browser job logs. Exact-head diagnostics:
+
+- Chromium artifact `8998841691`, SHA-256
+  `bd5ad643a45bbf4ce08a9e70c1f25f67cba5ecf97a69704beec34f29143f0258`;
+- Firefox artifact `8998854117`, SHA-256
+  `0c0ff13349a18ff9b3b49fa91bebe0e29ffdcebf671d068771f4d89534a82e45`.
 
 Until a real owner export reaches this path, `MIG-01.8` stays blocked, product completion remains
 `45.15%` (reported `45%`), owner retest remains prohibited, PR #11 remains Draft, and release remains
