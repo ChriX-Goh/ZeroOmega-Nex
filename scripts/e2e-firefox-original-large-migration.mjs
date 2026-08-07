@@ -714,7 +714,13 @@ try {
     'Firefox original large migration plus rejected-import and interrupted-Apply preservation passed.',
   );
 } finally {
-  if (driver) await driver.quit();
+  if (driver) {
+    try {
+      await driver.quit();
+    } catch (error) {
+      if (error?.name !== 'NoSuchSessionError') throw error;
+    }
+  }
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
   await Promise.all([
     rm(profileDir, { recursive: true, force: true }),
