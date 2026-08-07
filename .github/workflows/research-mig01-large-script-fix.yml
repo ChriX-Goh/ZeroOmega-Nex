@@ -1,0 +1,126 @@
+name: Research MIG-01 Large Script Fix
+
+on:
+  push:
+    branches:
+      - research/mig01-large-runtime-export
+    paths:
+      - '.github/workflows/research-mig01-large-script-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-large-runtime-export
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Replace UI-status wait with persistent workflow acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          chromium = Path('scripts/e2e-chromium-original-large-migration.mjs')
+          text = chromium.read_text()
+          start = text.index('async function importAndUse(options, path, previousGeneration) {')
+          end = text.index('\n\nasync function exportOriginalSemantics', start)
+          replacement = '''async function importAndUse(options, path, previousGeneration) {
+            const before = assertWorkflowSuccess(
+              await sendWorkflowCommand(options, { action: 'get' }),
+              'Unable to read workflow before original large import',
+            );
+            const baselineGeneration = previousGeneration ?? before.state.generation;
+            await options.getByRole('button', { name: '导入 / 导出', exact: true }).click();
+            await options.getByLabel('原版备份文件').setInputFiles(path);
+            await options
+              .getByRole('heading', { name: '兼容性检查', exact: true })
+              .waitFor({ timeout: 60_000 });
+            await options.getByRole('button', { name: '导入并立即使用', exact: true }).click();
+            const deadline = Date.now() + 60_000;
+            while (Date.now() < deadline) {
+              const response = await sendWorkflowCommand(options, { action: 'get' });
+              if (
+                response?.ok === true &&
+                response.state.generation > baselineGeneration &&
+                response.state.applied.profiles.length === 36
+              ) {
+                return;
+              }
+              await new Promise((resolveDelay) => setTimeout(resolveDelay, 100));
+            }
+            assert.fail('Original large Import & Use did not commit the 36-profile persistent workflow');
+          }'''
+          chromium.write_text(text[:start] + replacement + text[end:])
+
+          firefox = Path('scripts/e2e-firefox-original-large-migration.mjs')
+          text = firefox.read_text()
+          start = text.index('async function importAndUse(driver, path, previousGeneration) {')
+          end = text.index('\n\nlet driver;', start)
+          replacement = '''async function importAndUse(driver, path, previousGeneration) {
+            const before = assertWorkflowSuccess(
+              await sendWorkflowCommand(driver, { action: 'get' }),
+              'Unable to read workflow before Firefox original large import',
+            );
+            const baselineGeneration = previousGeneration ?? before.state.generation;
+            const importExportButton = await driver.findElement(
+              By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
+            );
+            await importExportButton.click();
+            const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 60_000);
+            await fileInput.sendKeys(path);
+            const compatibilityHeading = await driver.wait(
+              until.elementLocated(By.css('[data-legacy-import-review]')),
+              60_000,
+            );
+            await driver.wait(until.elementIsVisible(compatibilityHeading), 60_000);
+            const importButton = await driver.wait(
+              until.elementLocated(By.css('[data-legacy-import-and-use]')),
+              60_000,
+            );
+            await importButton.click();
+            await driver.wait(async () => {
+              const response = await sendWorkflowCommand(driver, { action: 'get' });
+              return (
+                response?.ok === true &&
+                response.state.generation > baselineGeneration &&
+                response.state.applied.profiles.length === 36
+              );
+            }, 60_000);
+          }'''
+          firefox.write_text(text[:start] + replacement + text[end:])
+          PY
+      - name: Format large E2E scripts
+        run: |
+          pnpm exec prettier --write \
+            scripts/e2e-chromium-original-large-migration.mjs \
+            scripts/e2e-firefox-original-large-migration.mjs
+          pnpm exec prettier --check \
+            scripts/e2e-chromium-original-large-migration.mjs \
+            scripts/e2e-firefox-original-large-migration.mjs \
+            package.json
+      - name: Commit research fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            scripts/e2e-chromium-original-large-migration.mjs \
+            scripts/e2e-firefox-original-large-migration.mjs
+          git diff --cached --check
+          git commit -m 'research: strengthen large Import and Use acceptance'
+          git push origin HEAD:research/mig01-large-runtime-export
