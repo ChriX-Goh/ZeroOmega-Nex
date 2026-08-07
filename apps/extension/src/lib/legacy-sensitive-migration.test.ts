@@ -87,10 +87,10 @@ describe('MIG-01 sensitive migration transaction', () => {
     if (!tokenHeader || tokenHeader.value.kind !== 'secret') {
       throw new Error('rule-list sensitive header did not map to a secret reference');
     }
+    const tokenSecretRef = tokenHeader.value.secretRef;
     expect(
       imported.secretMaterials.some(
-        (material) =>
-          material.kind === 'request-header' && material.ref === tokenHeader.value.secretRef,
+        (material) => material.kind === 'request-header' && material.ref === tokenSecretRef,
       ),
     ).toBe(true);
 
