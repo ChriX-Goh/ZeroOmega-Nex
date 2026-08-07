@@ -78,9 +78,7 @@ jobs:
               );
               const acceptMs = performance.now() - acceptStarted;
               expect(accepted.status).toBe('accepted');
-              if (accepted.status !== 'accepted') {
-                throw new Error(`accept failed: ${JSON.stringify(accepted)}`);
-              }
+              if (accepted.status !== 'accepted') throw new Error(JSON.stringify(accepted));
               const acceptedStateBytes = Buffer.byteLength(JSON.stringify(accepted.state), 'utf8');
 
               const applyStarted = performance.now();
@@ -102,9 +100,7 @@ jobs:
               );
               const applyMs = performance.now() - applyStarted;
               expect(applied.status).toBe('applied');
-              if (applied.status !== 'applied') {
-                throw new Error(`fake apply failed: ${JSON.stringify(applied)}`);
-              }
+              if (applied.status !== 'applied') throw new Error(JSON.stringify(applied));
               const appliedStateBytes = Buffer.byteLength(JSON.stringify(applied.state), 'utf8');
 
               console.log(
@@ -112,8 +108,8 @@ jobs:
                   JSON.stringify({
                     importer: {
                       ms: importMs,
+                      sourceBytes: Buffer.byteLength(content, 'utf8'),
                       summary: result.report.summary,
-                      bytes: result.report.stats.bytes,
                       profiles: result.candidate.profiles.length,
                       endpoints: result.candidate.proxyEndpoints.length,
                       ruleSources: result.candidate.ruleSources.length,
