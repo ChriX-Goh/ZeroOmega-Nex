@@ -63,8 +63,14 @@ async function writeCandidate(path: string, data: JsonObject) {
   await writeFile(path, `${JSON.stringify(data)}\n`, 'utf8');
 }
 
+function sanitizePacUrl(data: JsonObject) {
+  object(data['+PAC 中文']).pacUrl = 'https://pac.example.com/redacted';
+}
+
 afterEach(async () => {
-  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true })));
+  await Promise.all(
+    temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true })),
+  );
 });
 
 describe('owner Corpus B intake CLI', () => {
@@ -79,7 +85,7 @@ describe('owner Corpus B intake CLI', () => {
     expect(manifest).not.toContain('配置.pac');
     expect(JSON.parse(manifest)).toMatchObject({ containsRawValues: false, manifestVersion: 1 });
 
-    object(data['+PAC 中文']).pacUrl = 'https://pac.example.com/redacted';
+    sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
     const result = await run(['verify', candidatePath, manifestPath]);
     expect(result.stdout).toContain('Corpus B sanitized candidate passed structure and safety intake');
@@ -89,9 +95,12 @@ describe('owner Corpus B intake CLI', () => {
     const { data, rawPath, candidatePath, manifestPath } = await prepare();
     await inspect(rawPath, manifestPath);
     object(data['+inner switch']).profileType = 'FixedProfile';
+    sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
 
-    expect(await failure(['verify', candidatePath, manifestPath])).toMatch(/structural fingerprint changed/u);
+    expect(await failure(['verify', candidatePath, manifestPath])).toMatch(
+      /structural fingerprint changed/u,
+    );
   });
 
   it('binds Rule List ordering and PAC syntax shape', async () => {
@@ -100,25 +109,37 @@ describe('owner Corpus B intake CLI', () => {
 
     const rules = object(data['+corpus rules']);
     rules.ruleList = text(rules.ruleList).split(/\r?\n/u).reverse().join('\n');
+    sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
-    expect(await failure(['verify', candidatePath, manifestPath])).toMatch(/structural fingerprint changed/u);
+    expect(await failure(['verify', candidatePath, manifestPath])).toMatch(
+      /structural fingerprint changed/u,
+    );
 
     const second = await prepare();
     await inspect(second.rawPath, second.manifestPath);
     const pac = object(second.data['+PAC 中文']);
     pac.pacScript = text(pac.pacScript).replace('return "DIRECT";', 'if (true) return "DIRECT";');
+    sanitizePacUrl(second.data);
     await writeCandidate(second.candidatePath, second.data);
     expect(await failure(['verify', second.candidatePath, second.manifestPath])).toMatch(
       /structural fingerprint changed/u,
     );
   });
 
-  it('rejects usable credentials and non-reserved endpoints', async () => {
+  it('rejects usable credentials and a non-reserved endpoint without structural drift', async () => {
     const { data, rawPath, candidatePath, manifestPath } = await prepare();
+    const rawProxy = object(data['+corpus proxy']);
+    rawProxy.auth = {
+      all: { username: 'raw-owner-user', password: 'raw-owner-password' },
+    };
+    await writeCandidate(rawPath, data);
     await inspect(rawPath, manifestPath);
-    const proxy = object(data['+corpus proxy']);
-    object(proxy.fallbackProxy).host = '10.23.45.67';
-    proxy.auth = { all: { username: 'owner-user', password: 'owner-password' } };
+
+    object(rawProxy.fallbackProxy).host = '10.23.45.67';
+    rawProxy.auth = {
+      all: { username: 'owner-user', password: 'owner-password' },
+    };
+    sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
 
     expect(await failure(['verify', candidatePath, manifestPath])).toMatch(
@@ -126,16 +147,31 @@ describe('owner Corpus B intake CLI', () => {
     );
   });
 
-  it('rejects URL credentials/query/path data and non-documentation IPv6 identifiers', async () => {
+  it('rejects URL credentials, query, fragment, and private path without structural drift', async () => {
     const { data, rawPath, candidatePath, manifestPath } = await prepare();
     await inspect(rawPath, manifestPath);
-    const pac = object(data['+PAC 中文']);
-    pac.pacUrl = 'https://owner:secret@pac.example.com/private?token=secret#owner';
-    pac.pacScript = `${text(pac.pacScript)}\nreturn "PROXY [fd00::1234]:8080";`;
+    object(data['+PAC 中文']).pacUrl =
+      'https://owner:secret@pac.example.com/private?token=secret#owner';
     await writeCandidate(candidatePath, data);
 
     expect(await failure(['verify', candidatePath, manifestPath])).toMatch(
-      /URL credentials|URL query or fragment|URL path|non-reserved network identifier/u,
+      /URL credentials|URL query or fragment|URL path/u,
+    );
+  });
+
+  it('rejects a non-documentation IPv6 target while preserving PAC syntax shape', async () => {
+    const { data, rawPath, candidatePath, manifestPath } = await prepare();
+    const pac = object(data['+PAC 中文']);
+    pac.pacScript = `${text(pac.pacScript)}\nreturn "PROXY [2001:db8::1234]:8080";`;
+    await writeCandidate(rawPath, data);
+    await inspect(rawPath, manifestPath);
+
+    pac.pacScript = text(pac.pacScript).replace('2001:db8::1234', 'fd00::1234');
+    sanitizePacUrl(data);
+    await writeCandidate(candidatePath, data);
+
+    expect(await failure(['verify', candidatePath, manifestPath])).toMatch(
+      /non-reserved network identifier/u,
     );
   });
 
