@@ -158,7 +158,7 @@ async function navigateOptions(driver) {
   assert.equal(result?.url, expectedUrl, 'Firefox did not navigate to the Options page');
   await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
   await driver.wait(
-    until.elementLocated(By.xpath("//button[normalize-space(.)='匯入 / 匯出']")),
+    until.elementLocated(By.xpath("//button[.//*[@data-options-nav-icon='import']]")),
     20_000,
   );
   return driver.getWindowHandle();
@@ -460,7 +460,7 @@ async function waitForDownloadedExport(previousFiles) {
 
 async function exportOriginalSemantics(driver, originalOptions) {
   const importExportButton = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='匯入 / 匯出']"),
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
   await importExportButton.click();
   const previousFiles = new Set(await readdir(downloadDir));
@@ -481,23 +481,25 @@ async function exportOriginalSemantics(driver, originalOptions) {
 
 async function importOriginalBackup(driver) {
   const importExportButton = await driver.findElement(
-    By.xpath("//button[normalize-space(.)='匯入 / 匯出']"),
+    By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
   await importExportButton.click();
   const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
   await fileInput.sendKeys(originalBackupPath);
   const compatibilityHeading = await driver.wait(
-    until.elementLocated(By.xpath("//h2[normalize-space(.)='相容性檢查']")),
+    until.elementLocated(By.css('[data-legacy-import-review]')),
     20_000,
   );
   await driver.wait(until.elementIsVisible(compatibilityHeading), 20_000);
   const importButton = await driver.wait(
-    until.elementLocated(By.xpath("//button[normalize-space(.)='匯入並立即使用']")),
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
     20_000,
   );
   await importButton.click();
   const success = await driver.wait(
-    until.elementLocated(By.xpath("//*[normalize-space(.)='匯入完成，原版設定現已啟用。']")),
+    until.elementLocated(
+      By.xpath("//*[@data-legacy-import-review]/following-sibling::section[1]//p[@role='status']"),
+    ),
     20_000,
   );
   await driver.wait(until.elementIsVisible(success), 20_000);
