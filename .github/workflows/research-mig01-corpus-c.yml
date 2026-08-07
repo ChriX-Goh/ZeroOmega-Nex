@@ -187,12 +187,12 @@ jobs:
           }
 
           const backup = JSON.stringify(options);
-          const outDir = path.resolve('../../../evidence/mig01-corpus-c');
+          const outDir = path.resolve('../../evidence/mig01-corpus-c');
           const backupPath = path.join(outDir, 'original-complex-corpus-cd-v3.5.0.bak');
           fs.writeFileSync(backupPath, backup);
           const sha256 = crypto.createHash('sha256').update(backup).digest('hex');
           const originalCommit = childProcess
-            .execFileSync('git', ['-C', '../..', 'rev-parse', 'HEAD'], { encoding: 'utf8' })
+            .execFileSync('git', ['-C', '..', 'rev-parse', 'HEAD'], { encoding: 'utf8' })
             .trim();
           const provenance = {
             sourceRepository: 'zero-peak/ZeroOmega',
