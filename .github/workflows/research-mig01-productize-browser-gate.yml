@@ -1,0 +1,53 @@
+name: Research MIG-01.7 Productize Browser Gate
+
+on:
+  push:
+    branches:
+      - research/mig01-semantic-productize
+    paths:
+      - '.github/workflows/research-mig01-productize-browser-gate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-semantic-productize
+      - name: Wire permanent semantic evidence into Browser E2E
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('.github/workflows/browser-e2e.yml')
+          text = path.read_text()
+
+          chromium_old = """      - name: Run Chromium extension E2E\n        shell: bash\n        run: |\n          set -o pipefail\n          pnpm test:e2e:chromium 2>&1 | tee chromium-e2e.log\n"""
+          chromium_new = """      - name: Run Chromium extension E2E\n        env:\n          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl\n        shell: bash\n        run: |\n          set -o pipefail\n          pnpm test:e2e:chromium 2>&1 | tee chromium-e2e.log\n\n      - name: Run Chromium MIG-01.7 secret-leak sentinel\n        env:\n          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl\n        run: node scripts/e2e-chromium-mig01-secret-leak.mjs\n\n      - name: Upload Chromium MIG-01.7 semantic evidence\n        uses: actions/upload-artifact@v4\n        with:\n          name: mig01-semantic-chromium\n          path: evidence/chromium.jsonl\n          if-no-files-found: error\n"""
+          if chromium_old not in text:
+              raise SystemExit('Chromium E2E anchor missing')
+          text = text.replace(chromium_old, chromium_new, 1)
+
+          firefox_old = """      - name: Run Firefox extension E2E\n        shell: bash\n        run: |\n          set -o pipefail\n          pnpm test:e2e:firefox 2>&1 | tee firefox-e2e.log\n"""
+          firefox_new = """      - name: Run Firefox extension E2E\n        env:\n          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl\n        shell: bash\n        run: |\n          set -o pipefail\n          pnpm test:e2e:firefox 2>&1 | tee firefox-e2e.log\n\n      - name: Run Firefox MIG-01.7 secret-leak sentinel\n        env:\n          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl\n        run: node scripts/e2e-firefox-mig01-secret-leak.mjs\n\n      - name: Upload Firefox MIG-01.7 semantic evidence\n        uses: actions/upload-artifact@v4\n        with:\n          name: mig01-semantic-firefox\n          path: evidence/firefox.jsonl\n          if-no-files-found: error\n"""
+          if firefox_old not in text:
+              raise SystemExit('Firefox E2E anchor missing')
+          text = text.replace(firefox_old, firefox_new, 1)
+
+          job_anchor = """  firefox-policy-owned-popup:\n"""
+          consolidation = """  mig01-semantic-consolidation:\n    needs: [chromium, firefox]\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n\n      - name: Download Chromium semantic evidence\n        uses: actions/download-artifact@v4\n        with:\n          name: mig01-semantic-chromium\n          path: evidence/chromium\n\n      - name: Download Firefox semantic evidence\n        uses: actions/download-artifact@v4\n        with:\n          name: mig01-semantic-firefox\n          path: evidence/firefox\n\n      - name: Consolidate MIG-01.7 semantic and secret-leak evidence\n        run: >-\n          node scripts/validate-mig01-semantic-evidence.mjs\n          evidence/chromium/chromium.jsonl\n          evidence/firefox/firefox.jsonl\n\n"""
+          if job_anchor not in text:
+              raise SystemExit('Browser E2E job anchor missing')
+          text = text.replace(job_anchor, consolidation + job_anchor, 1)
+          path.write_text(text)
+      - name: Commit permanent Browser E2E gate
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/browser-e2e.yml
+          git diff --cached --check
+          git commit -m 'ci: consolidate MIG-01.7 semantic evidence'
+          git push origin HEAD:research/mig01-semantic-productize
