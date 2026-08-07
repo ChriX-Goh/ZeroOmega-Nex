@@ -1,0 +1,93 @@
+name: Research MIG-01.7 C-D Component Hash
+
+on:
+  push:
+    branches:
+      - research/mig01-semantic-consolidation
+    paths:
+      - '.github/workflows/research-mig01-component-hash.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Patch component-hash research instrumentation
+        run: node scripts/research-mig01-component-hash.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium C-D component hash vector
+        env:
+          ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS: complex
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/chromium.jsonl
+        run: node scripts/e2e-chromium-original-migration.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mig01-component-hash-chromium
+          path: evidence/chromium.jsonl
+          if-no-files-found: error
+
+  firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Show Firefox version
+        run: firefox --version
+      - name: Patch component-hash research instrumentation
+        run: node scripts/research-mig01-component-hash.mjs
+      - name: Build Firefox extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
+      - name: Run Firefox C-D component hash vector
+        env:
+          ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS: complex
+          ZEROOMEGA_MIG01_SEMANTIC_EVIDENCE_FILE: ${{ github.workspace }}/evidence/firefox.jsonl
+        run: node scripts/e2e-firefox-original-migration.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mig01-component-hash-firefox
+          path: evidence/firefox.jsonl
+          if-no-files-found: error
+
+  consolidate:
+    needs: [chromium, firefox]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: mig01-component-hash-chromium
+          path: evidence/chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: mig01-component-hash-firefox
+          path: evidence/firefox
+      - name: Attribute C-D cross-browser component hashes
+        run: node scripts/research-compare-mig01-component-hashes.mjs evidence/chromium/chromium.jsonl evidence/firefox/firefox.jsonl
