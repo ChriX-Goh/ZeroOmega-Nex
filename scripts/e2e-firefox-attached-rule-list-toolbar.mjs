@@ -5,6 +5,8 @@ import { resolve } from 'node:path';
 import { Browser, Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import { firefoxService } from './firefox-service.mjs';
+
 const server = createServer((_request, response) => {
   response.writeHead(200, {
     'content-type': 'text/html; charset=utf-8',
@@ -44,7 +46,7 @@ const options = new firefox.Options()
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder()
   .forBrowser(Browser.FIREFOX)
-  .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+  .setFirefoxService(firefoxService())
   .setFirefoxOptions(options)
   .build();
 

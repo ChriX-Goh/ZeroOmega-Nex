@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import { firefoxService } from './firefox-service.mjs';
+
 import { createBasicAuthProxyChallengeServer } from './e2e-basic-auth-proxy.mjs';
 
 const remoteRuleText = '[SwitchyOmega Conditions]\n@with result\n\n* +direct\n';
@@ -90,7 +92,7 @@ const options = new firefox.Options()
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
 const driver = await new Builder()
   .forBrowser(Browser.FIREFOX)
-  .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+  .setFirefoxService(firefoxService())
   .setFirefoxOptions(options)
   .build();
 const toolbarOnly = process.env.ZEROOMEGA_FIREFOX_TOOLBAR_ONLY === '1';

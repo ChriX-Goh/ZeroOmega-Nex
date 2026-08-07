@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 import { Browser, Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import { firefoxService } from './firefox-service.mjs';
+
 const extensionPath = resolve(
   process.env.ZEROOMEGA_ORIGINAL_FIREFOX_PATH ?? 'original-release/firefox',
 );
@@ -91,7 +93,7 @@ async function bidiCommand(method, params) {
 try {
   driver = await new Builder()
     .forBrowser(Browser.FIREFOX)
-    .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+    .setFirefoxService(firefoxService())
     .setFirefoxOptions(options)
     .build();
 

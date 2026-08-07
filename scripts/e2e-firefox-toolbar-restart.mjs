@@ -7,6 +7,8 @@ import { resolve } from 'node:path';
 import { Browser, Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
+import { firefoxService } from './firefox-service.mjs';
+
 const extensionPath = resolve('dist/firefox-mv3');
 const profileDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-restart-'));
 const addonId = 'zeroomega-nex@chrix-goh.github';
@@ -43,7 +45,7 @@ function firefoxOptions() {
 async function launch() {
   return new Builder()
     .forBrowser(Browser.FIREFOX)
-    .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+    .setFirefoxService(firefoxService())
     .setFirefoxOptions(firefoxOptions())
     .build();
 }
