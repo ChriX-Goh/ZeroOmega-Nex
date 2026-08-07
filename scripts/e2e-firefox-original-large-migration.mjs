@@ -10,9 +10,7 @@ import firefox from 'selenium-webdriver/firefox.js';
 
 import {
   appendMig01Evidence,
-  assertNoSecretMarkers,
   semanticSha256,
-  sha256Text,
 } from './mig01-semantic-evidence.mjs';
 
 import { firefoxService } from './firefox-service.mjs';

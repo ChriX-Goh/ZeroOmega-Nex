@@ -9,9 +9,7 @@ import { chromium } from '@playwright/test';
 
 import {
   appendMig01Evidence,
-  assertNoSecretMarkers,
   semanticSha256,
-  sha256Text,
 } from './mig01-semantic-evidence.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
