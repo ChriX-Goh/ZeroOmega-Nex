@@ -1,0 +1,113 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceCommit": "05cbb30a2204cc3bdf3bb2e65765a70644a022d7",
+  "runtimeModules": [
+    "omega-target/src/options.coffee",
+    "omega-target/src/storage.coffee",
+    "omega-pac/src/profiles.coffee"
+  ],
+  "generationMethod": "Deterministic Nex scale seed -> replace 64 target-dependent UrlWildcardCondition entries with exact HostWildcardCondition capacity entries -> original v3.5.0 Options.initWithOptions -> stable Options.getAll -> JSON.stringify, matching original IoCtrl export serialization",
+  "baseSeed": {
+    "path": "fixtures/zeroomega-v2/large-representative.json",
+    "nexCommit": "77dc2216b549b758d10310946eef74c1c8520149",
+    "gitBlob": "862d140d569be120949d58c7907cba514b9c02b6",
+    "sha256": "62705deda6bd29a6f1dd529d73252f2855e14719a261d2c1749d00534c43701c",
+    "bytes": 308038,
+    "role": "scale/structure seed only; not Corpus B owner data"
+  },
+  "activationSafeTransformation": {
+    "rewrittenUrlWildcardConditions": 64,
+    "replacementConditionType": "HostWildcardCondition",
+    "reason": "Capacity/restart evidence must isolate storage and activation scale from the separately classified target-dependent URL wildcard semantics.",
+    "transformedSeedSha256": "41b59affa4fa80dce3cb18a540a62a62ae72bc752e3901b503127b13039cd91d",
+    "transformedSeedBytes": 222514
+  },
+  "dimensions": {
+    "profiles": 36,
+    "fixedProfiles": 24,
+    "switchProfiles": 8,
+    "switchRules": 1024,
+    "ruleListProfiles": 4,
+    "ruleListEntries": 1024,
+    "urlWildcardConditions": 0
+  },
+  "stableBackup": {
+    "sha256": "e0aacb5a7b1173942ddb8880036e0dc67bebacea454d35b6f70d587beffc4d51",
+    "bytes": 222565,
+    "schemaVersion": 2,
+    "startupProfileName": "switch-00",
+    "quickSwitchProfiles": [
+      "switch-00",
+      "switch-01",
+      "rules-00",
+      "rules-01",
+      "proxy-00",
+      "proxy-01",
+      "direct"
+    ]
+  },
+  "researchEvidence": {
+    "activationSafeGeneration": {
+      "workflowRunId": 31155231147,
+      "headSha": "77dc2216b549b758d10310946eef74c1c8520149",
+      "artifactId": 8984876512,
+      "artifactDigest": "sha256:92bdba7d11138528dc230a9496c0b7b95fa93312b3315b7ac5db0d8e8fb2de33"
+    },
+    "targetDependentVectorDiagnosis": {
+      "workflowRunId": 31155032522,
+      "chromiumJobId": 92792564443,
+      "storageAcceptImportMs": 385.124,
+      "storageAcceptResult": "success",
+      "applyMs": 575.292,
+      "applyResult": "apply-failed",
+      "applyCode": "condition.url-wildcard-target-dependent",
+      "decision": "Keep the target-dependent classification unchanged and remove that semantic boundary from the capacity vector instead of weakening the compiler."
+    },
+    "memoryTransactionProbe": {
+      "workflowRunId": 31154743155,
+      "jobId": 92791695421,
+      "importMs": 77.699,
+      "candidateBytes": 287553,
+      "acceptMs": 40.3,
+      "acceptedStateBytes": 289406,
+      "fakeApplyMs": 78.41,
+      "appliedStateBytes": 575532
+    },
+    "finalDualBrowserCapacity": {
+      "workflowRunId": 31156296235,
+      "researchHead": "89f60dc4549ece8037260fd31f45f0b9c8469f33",
+      "chromiumJobId": 92796402453,
+      "firefoxJobId": 92796402550,
+      "semanticExport": {
+        "bytes": 222809,
+        "sha256": "30d54fc83cbd799aeb2b10c6b5588ba56ab774a4e8f2a84820e358cefcfb04fd"
+      },
+      "chromiumStorage": {
+        "afterImportBytes": 864838,
+        "afterImportStateBytes": 575322,
+        "afterRestartBytes": 864838,
+        "afterRestartStateBytes": 575322,
+        "revisionCount": 2,
+        "generationAfterRestart": 4,
+        "afterExportBeforeReimportBytes": 866124,
+        "afterReimportAnalysisBytes": 866124,
+        "reimportAnalysisMutatedPersistentState": false
+      },
+      "firefoxStorage": {
+        "afterImportBytes": 864830,
+        "afterImportStateBytes": 575318,
+        "afterRestartBytes": 864830,
+        "afterRestartStateBytes": 575318,
+        "revisionCount": 2,
+        "generationAfterRestart": 4,
+        "afterExportBeforeReimportBytes": 864830,
+        "afterReimportAnalysisBytes": 864830,
+        "reimportAnalysisMutatedPersistentState": false,
+        "firefoxVersion": "152.0.6",
+        "geckodriverSystemAccess": false
+      }
+    }
+  },
+  "capacityPurpose": "Repository-controlled MIG-01.5 storage/activation/restart capacity evidence; does not substitute for Corpus B and does not alter target-dependent compatibility classification."
+}
