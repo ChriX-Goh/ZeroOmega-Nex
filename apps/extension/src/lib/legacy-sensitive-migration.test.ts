@@ -65,8 +65,7 @@ describe('MIG-01 sensitive migration transaction', () => {
     const passwordSecretRef = endpoint?.credential?.passwordSecretRef;
     expect(
       imported.secretMaterials.some(
-        (material) =>
-          material.kind === 'proxy-password' && material.ref === passwordSecretRef,
+        (material) => material.kind === 'proxy-password' && material.ref === passwordSecretRef,
       ),
     ).toBe(true);
 
