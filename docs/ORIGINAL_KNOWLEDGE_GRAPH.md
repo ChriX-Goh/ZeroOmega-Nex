@@ -1,6 +1,7 @@
 # ZeroOmega 原版知识图谱
 
 > 状态：Milestone 8 的强制事实基线。任何 Options、Popup、情景模式、导入导出、语言或默认值改动，都必须同时更新本文与 [`UI_AUDIT_MATRIX.md`](./UI_AUDIT_MATRIX.md)。
+> MIG-01.8A：新增 owner Corpus B 的仓库外 raw `.bak` 结构指纹与脱敏候选 fail-closed intake；它不改变原版 UI、导入入口、导入语义或普通用户工作流，也不提供 Corpus B 本身。
 
 ## 1. 证据基线
 

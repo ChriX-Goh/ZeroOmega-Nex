@@ -6,6 +6,7 @@
 > 最新 owner 结果：Firefox `FAIL`，2026-08-02；历史候选 `M8-OWNER-QC-1` 已退役。
 > 暂定产品进度：48%（47.9%，置信区间 43%–50%）；Order 1 entry experience：45%。
 > 表内工程能力行数不得直接换算产品进度；普通 UI 必须按 Original↔Nex 成对证据逐 surface 验收。
+> MIG-01.8A Corpus B intake 仅新增仓库外 raw backup 结构指纹/脱敏安全门，不新增或修改 UI row；Corpus B 仍缺失，Owner retest 与 release 继续禁止。
 
 ## 状态定义
 

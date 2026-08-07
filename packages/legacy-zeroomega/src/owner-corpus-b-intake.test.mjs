@@ -35,7 +35,9 @@ describe('owner Corpus B intake', () => {
     const changed = structuredClone(data);
     changed['+inner switch'].profileType = 'FixedProfile';
 
-    expect(() => verifyAgainstManifest(changed, manifest)).toThrow(/structural fingerprint changed/u);
+    expect(() => verifyAgainstManifest(changed, manifest)).toThrow(
+      /structural fingerprint changed/u,
+    );
   });
 
   it('rejects usable credentials and non-reserved endpoints', async () => {

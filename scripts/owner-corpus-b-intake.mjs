@@ -57,12 +57,17 @@ function profileIndex(data) {
 }
 
 function ref(value, index) {
-  return typeof value === 'string' ? (index.get(value) ?? '<missing-reference>') : '<invalid-reference>';
+  return typeof value === 'string'
+    ? (index.get(value) ?? '<missing-reference>')
+    : '<invalid-reference>';
 }
 
 function patternShape(value) {
   if (typeof value !== 'string') return '<non-string>';
-  return value.replace(/[A-Za-z0-9\u0080-\uFFFF]+/gu, 'x').replace(/x+/gu, 'x').slice(0, 512);
+  return value
+    .replace(/[A-Za-z0-9\u0080-\uFFFF]+/gu, 'x')
+    .replace(/x+/gu, 'x')
+    .slice(0, 512);
 }
 
 function ruleListShape(value) {
@@ -115,7 +120,9 @@ function shapeValue(value, key, index, parent) {
 export function buildStructuralShape(data) {
   const index = profileIndex(data);
   const topLevel = {};
-  for (const key of Object.keys(data).filter((item) => !item.startsWith('+')).sort()) {
+  for (const key of Object.keys(data)
+    .filter((item) => !item.startsWith('+'))
+    .sort()) {
     if (key === '-startupProfileName') topLevel[key] = ref(data[key], index);
     else if (key === '-quickSwitchProfiles') {
       topLevel[key] = Array.isArray(data[key])
@@ -153,7 +160,9 @@ export function metricsFor(data) {
     sensitiveHeaderCount: 0,
     startupPresent: typeof data['-startupProfileName'] === 'string',
     quickSwitchEnabled: data['-enableQuickSwitch'] === true,
-    quickSwitchRoutes: Array.isArray(data['-quickSwitchProfiles']) ? data['-quickSwitchProfiles'].length : 0,
+    quickSwitchRoutes: Array.isArray(data['-quickSwitchProfiles'])
+      ? data['-quickSwitchProfiles'].length
+      : 0,
   };
   const walk = (value, key = '') => {
     if (Array.isArray(value)) {
@@ -167,25 +176,32 @@ export function metricsFor(data) {
       if (typeof value.color === 'string') metrics.coloredProfiles += 1;
       if (/RuleListProfile$/u.test(value.profileType)) {
         metrics.ruleListProfiles += 1;
-        if (typeof value.ruleList === 'string') metrics.ruleListLines += value.ruleList.split(/\r?\n/u).length;
+        if (typeof value.ruleList === 'string')
+          metrics.ruleListLines += value.ruleList.split(/\r?\n/u).length;
       }
       if (value.profileType === 'PacProfile') {
         metrics.pacProfiles += 1;
-        if (typeof value.pacScript === 'string') metrics.pacScriptLines += value.pacScript.split(/\r?\n/u).length;
+        if (typeof value.pacScript === 'string')
+          metrics.pacScriptLines += value.pacScript.split(/\r?\n/u).length;
       }
-      if (/^(SwitchProfile|VirtualProfile)$/u.test(value.profileType) && Array.isArray(value.rules)) {
+      if (
+        /^(SwitchProfile|VirtualProfile)$/u.test(value.profileType) &&
+        Array.isArray(value.rules)
+      ) {
         metrics.switchRuleCount += value.rules.length;
       }
     }
     if (typeof value.conditionType === 'string') {
-      metrics.conditionTypes[value.conditionType] = (metrics.conditionTypes[value.conditionType] ?? 0) + 1;
+      metrics.conditionTypes[value.conditionType] =
+        (metrics.conditionTypes[value.conditionType] ?? 0) + 1;
     }
     if (key === 'auth') metrics.credentialSlots += Object.keys(value).length;
     for (const [child, item] of Object.entries(value)) {
       if (child === 'headers' && Array.isArray(item)) {
         metrics.headerCount += item.length;
         metrics.sensitiveHeaderCount += item.filter(
-          (header) => object(header) && typeof header.name === 'string' && SENSITIVE_HEADER.test(header.name),
+          (header) =>
+            object(header) && typeof header.name === 'string' && SENSITIVE_HEADER.test(header.name),
         ).length;
       }
       walk(item, child);
@@ -215,7 +231,13 @@ function safeIpv4(host) {
 
 function safeHost(host) {
   const value = host.toLowerCase().replace(/^\[|\]$/gu, '');
-  if (value === 'localhost' || value === '::1' || value === '2001:db8::' || value.startsWith('2001:db8:')) return true;
+  if (
+    value === 'localhost' ||
+    value === '::1' ||
+    value === '2001:db8::' ||
+    value.startsWith('2001:db8:')
+  )
+    return true;
   if (safeIpv4(value)) return true;
   return (
     ['example.com', 'example.net', 'example.org'].includes(value) ||
@@ -228,16 +250,22 @@ function networkTokens(source) {
   const tokens = new Set();
   for (const match of value.matchAll(/\bhttps?:\/\/([^/\s"'<>]+)/giu)) {
     const authority = match[1].replace(/^.*@/u, '');
-    const host = authority.startsWith('[') ? authority.slice(1, authority.indexOf(']')) : authority.split(':')[0];
+    const host = authority.startsWith('[')
+      ? authority.slice(1, authority.indexOf(']'))
+      : authority.split(':')[0];
     if (host) tokens.add(host);
   }
   for (const match of value.matchAll(/\b(?:\d{1,3}\.){3}\d{1,3}\b/gu)) tokens.add(match[0]);
-  for (const match of value.matchAll(/(?:\*\.)?(?:[A-Za-z0-9-]+\.)+(?:[A-Za-z]{2,63}|invalid|test|localhost)\b/gu)) {
+  for (const match of value.matchAll(
+    /(?:\*\.)?(?:[A-Za-z0-9-]+\.)+(?:[A-Za-z]{2,63}|invalid|test|localhost)\b/gu,
+  )) {
     tokens.add(match[0].replace(/^\*\./u, ''));
   }
-  for (const match of value.matchAll(/\b(?:PROXY|HTTPS|SOCKS5?|SOCKS)\s+([^\s;:'"]+)/giu)) tokens.add(match[1]);
+  for (const match of value.matchAll(/\b(?:PROXY|HTTPS|SOCKS5?|SOCKS)\s+([^\s;:'"]+)/giu))
+    tokens.add(match[1]);
   for (const match of value.matchAll(/\|\|([A-Za-z0-9.-]+)/gu)) tokens.add(match[1]);
-  for (const match of value.matchAll(/\bdnsDomainIs\([^,]+,\s*["']([^"']+)["']/giu)) tokens.add(match[1].replace(/^\./u, ''));
+  for (const match of value.matchAll(/\bdnsDomainIs\([^,]+,\s*["']([^"']+)["']/giu))
+    tokens.add(match[1].replace(/^\./u, ''));
   return [...tokens];
 }
 
@@ -247,8 +275,14 @@ export function assertSanitizedSafety(data) {
     if (Array.isArray(value)) {
       if (key === 'headers') {
         for (const header of value) {
-          if (!object(header) || typeof header.name !== 'string' || typeof header.value !== 'string') problems.add('invalid header shape');
-          else if (SENSITIVE_HEADER.test(header.name) && header.value !== REDACTED) problems.add('unredacted sensitive header');
+          if (
+            !object(header) ||
+            typeof header.name !== 'string' ||
+            typeof header.value !== 'string'
+          )
+            problems.add('invalid header shape');
+          else if (SENSITIVE_HEADER.test(header.name) && header.value !== REDACTED)
+            problems.add('unredacted sensitive header');
         }
       }
       for (const item of value) walk(item, key, parent);
@@ -258,25 +292,30 @@ export function assertSanitizedSafety(data) {
       if (key === 'auth') {
         for (const credentials of Object.values(value)) {
           if (!object(credentials)) problems.add('invalid auth shape');
-          else for (const field of ['username', 'password']) {
-            if (field in credentials && credentials[field] !== REDACTED) problems.add('unredacted proxy credential');
-          }
+          else
+            for (const field of ['username', 'password']) {
+              if (field in credentials && credentials[field] !== REDACTED)
+                problems.add('unredacted proxy credential');
+            }
         }
       }
       for (const [child, item] of Object.entries(value)) walk(item, child, value);
       return;
     }
     if (typeof value !== 'string') return;
-    if (SECRET_KEY.test(key) && value !== '' && value !== REDACTED) problems.add('unredacted secret-like field');
+    if (SECRET_KEY.test(key) && value !== '' && value !== REDACTED)
+      problems.add('unredacted secret-like field');
     if (key === 'pattern' || key === 'ruleList' || key === 'pacScript' || NETWORK_KEY.test(key)) {
-      for (const token of networkTokens(value)) if (!safeHost(token)) problems.add('non-reserved network identifier');
+      for (const token of networkTokens(value))
+        if (!safeHost(token)) problems.add('non-reserved network identifier');
     }
     if (
       key === 'pattern' &&
       /^(HostWildcardCondition|BypassCondition)$/u.test(parent?.conditionType ?? '') &&
       /^(?:\*\.)?[A-Za-z0-9-]+$/u.test(value) &&
       !safeHost(value.replace(/^\*\./u, ''))
-    ) problems.add('non-reserved network identifier');
+    )
+      problems.add('non-reserved network identifier');
     if (NETWORK_KEY.test(key)) {
       let host = value;
       try {
@@ -316,7 +355,8 @@ export function verifyAgainstManifest(data, manifest) {
     fail('manifest: invalid or unsafe manifest');
   }
   const current = buildManifest(data, manifest.sourceBytes);
-  if (current.structureSha256 !== manifest.structureSha256) fail('sanitized candidate rejected: structural fingerprint changed');
+  if (current.structureSha256 !== manifest.structureSha256)
+    fail('sanitized candidate rejected: structural fingerprint changed');
   assert.deepEqual(current.metrics, manifest.metrics, 'sanitized candidate metrics changed');
   assertSanitizedSafety(data);
   return current.metrics;
@@ -326,13 +366,19 @@ export async function inspectCommand(rawPath, manifestPath) {
   if (!rawPath || !manifestPath) fail('usage: inspect <raw-owner.bak> <structure-manifest.json>');
   if (isInsideRepository(rawPath)) fail('raw owner backup must stay outside the repository');
   const source = await readFile(resolve(rawPath), 'utf8');
-  const manifest = buildManifest(parseBackup(source, 'raw owner backup'), Buffer.byteLength(source));
+  const manifest = buildManifest(
+    parseBackup(source, 'raw owner backup'),
+    Buffer.byteLength(source),
+  );
   await writeFile(resolve(manifestPath), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
-  console.log(`Corpus B raw structure captured without raw values: ${manifest.metrics.profileCount} profiles.`);
+  console.log(
+    `Corpus B raw structure captured without raw values: ${manifest.metrics.profileCount} profiles.`,
+  );
 }
 
 export async function verifyCommand(sanitizedPath, manifestPath) {
-  if (!sanitizedPath || !manifestPath) fail('usage: verify <sanitized-owner.bak> <structure-manifest.json>');
+  if (!sanitizedPath || !manifestPath)
+    fail('usage: verify <sanitized-owner.bak> <structure-manifest.json>');
   const [source, manifestSource] = await Promise.all([
     readFile(resolve(sanitizedPath), 'utf8'),
     readFile(resolve(manifestPath), 'utf8'),
@@ -344,16 +390,23 @@ export async function verifyCommand(sanitizedPath, manifestPath) {
     fail('manifest: invalid JSON');
   }
   const metrics = verifyAgainstManifest(parseBackup(source, 'sanitized owner backup'), manifest);
-  console.log(`Corpus B sanitized candidate passed structure and safety intake: ${metrics.profileCount} profiles.`);
+  console.log(
+    `Corpus B sanitized candidate passed structure and safety intake: ${metrics.profileCount} profiles.`,
+  );
 }
 
-const isMain = typeof process.argv[1] === 'string' && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain =
+  typeof process.argv[1] === 'string' &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const [command, first, second] = process.argv.slice(2);
   try {
     if (command === 'inspect') await inspectCommand(first, second);
     else if (command === 'verify') await verifyCommand(first, second);
-    else fail('usage: owner-corpus-b-intake.mjs <inspect raw.bak manifest.json | verify sanitized.bak manifest.json>');
+    else
+      fail(
+        'usage: owner-corpus-b-intake.mjs <inspect raw.bak manifest.json | verify sanitized.bak manifest.json>',
+      );
   } catch (error) {
     console.error(error instanceof Error ? error.message : 'Corpus B intake failed');
     process.exitCode = 1;
