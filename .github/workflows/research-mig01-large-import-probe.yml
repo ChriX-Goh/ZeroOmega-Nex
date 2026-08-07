@@ -37,7 +37,7 @@ jobs:
             createDefaultProfileSpec,
             createProfileWorkflowState,
             MemoryProfileWorkflowRepository,
-          } from '@zeroomega-nex/profile-workflow';
+          } from '../../profile-workflow/src/index.js';
           import { importZeroOmegaBackup } from './index.js';
 
           const backupUrl = new URL(
@@ -81,10 +81,7 @@ jobs:
               if (accepted.status !== 'accepted') {
                 throw new Error(`accept failed: ${JSON.stringify(accepted)}`);
               }
-              const acceptedStateBytes = Buffer.byteLength(
-                JSON.stringify(accepted.state),
-                'utf8',
-              );
+              const acceptedStateBytes = Buffer.byteLength(JSON.stringify(accepted.state), 'utf8');
 
               const applyStarted = performance.now();
               const applied = await applyProfileWorkflow(
@@ -108,10 +105,7 @@ jobs:
               if (applied.status !== 'applied') {
                 throw new Error(`fake apply failed: ${JSON.stringify(applied)}`);
               }
-              const appliedStateBytes = Buffer.byteLength(
-                JSON.stringify(applied.state),
-                'utf8',
-              );
+              const appliedStateBytes = Buffer.byteLength(JSON.stringify(applied.state), 'utf8');
 
               console.log(
                 'LARGE_TRANSACTION_PROBE=' +
