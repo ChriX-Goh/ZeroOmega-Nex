@@ -162,11 +162,11 @@ describe('owner Corpus B intake CLI', () => {
   it('rejects a non-documentation IPv6 target while preserving PAC syntax shape', async () => {
     const { data, rawPath, candidatePath, manifestPath } = await prepare();
     const pac = object(data['+PAC 中文']);
-    pac.pacScript = `${text(pac.pacScript)}\nreturn "PROXY [2001:db8::1234]:8080";`;
+    pac.pacScript = `${text(pac.pacScript)}\nreturn "PROXY [2001:db8:1::1234]:8080";`;
     await writeCandidate(rawPath, data);
     await inspect(rawPath, manifestPath);
 
-    pac.pacScript = text(pac.pacScript).replace('2001:db8::1234', 'fd00::1234');
+    pac.pacScript = text(pac.pacScript).replace('2001:db8:1::1234', 'fd00:abcd:1::1234');
     sanitizePacUrl(data);
     await writeCandidate(candidatePath, data);
 
