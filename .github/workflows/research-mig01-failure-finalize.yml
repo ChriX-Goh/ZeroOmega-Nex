@@ -70,3 +70,5 @@ jobs:
           git diff --cached --check
           git commit -m 'docs: reconcile MIG-01.6 failure evidence'
           git push origin HEAD:research/mig01-failure-preservation
+
+# Rerun after freezing the exporter's exact missing-startup-reference code.
