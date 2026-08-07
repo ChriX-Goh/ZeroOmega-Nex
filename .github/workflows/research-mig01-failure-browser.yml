@@ -1,0 +1,103 @@
+name: Research MIG-01 Failure Browser
+
+on:
+  push:
+    branches:
+      - research/mig01-failure-preservation
+    paths:
+      - '.github/workflows/research-mig01-failure-browser.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-failure-preservation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/research-patch-mig01-failure-preservation.mjs
+      - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build Chromium extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+          ZEROOMEGA_RULE_SOURCE_E2E: '1'
+        run: pnpm build:chromium
+      - name: Run Chromium failure-preservation chain
+        run: pnpm test:e2e:chromium-original-large-migration
+      - name: Upload patched Chromium script
+        uses: actions/upload-artifact@v4
+        with:
+          name: mig01-failure-chromium-script
+          path: scripts/e2e-chromium-original-large-migration.mjs
+
+  firefox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-failure-preservation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/research-patch-mig01-failure-preservation.mjs
+      - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
+      - name: Show Firefox version
+        run: firefox --version
+      - name: Build Firefox extension
+        env:
+          WXT_ICON_RENDERER_E2E: '1'
+        run: pnpm build:firefox
+      - name: Run Firefox failure-preservation chain
+        run: pnpm test:e2e:firefox-original-large-migration
+      - name: Upload patched Firefox script
+        uses: actions/upload-artifact@v4
+        with:
+          name: mig01-failure-firefox-script
+          path: scripts/e2e-firefox-original-large-migration.mjs
+
+  commit-tested-scripts:
+    needs: [chromium, firefox]
+    if: ${{ needs.chromium.result == 'success' && needs.firefox.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mig01-failure-preservation
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/research-patch-mig01-failure-preservation.mjs
+      - run: pnpm exec prettier --write scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
+      - name: Commit dual-browser-tested scripts
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/e2e-chromium-original-large-migration.mjs scripts/e2e-firefox-original-large-migration.mjs
+          git diff --cached --check
+          git commit -m 'test: prove negative import and interrupted Apply preservation'
+          git push origin HEAD:research/mig01-failure-preservation
