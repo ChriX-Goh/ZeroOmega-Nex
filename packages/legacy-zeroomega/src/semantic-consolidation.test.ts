@@ -23,7 +23,7 @@ async function fixture(name: string): Promise<string> {
   return readFile(new URL(name, FIXTURE_ROOT), 'utf8');
 }
 
-function importOrThrow(source: string, revisionId = BASE_CONTEXT.revisionId) {
+function importOrThrow(source: string, revisionId: string = BASE_CONTEXT.revisionId) {
   const result = importZeroOmegaBackup(source, { ...BASE_CONTEXT, revisionId });
   if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
   return result;
