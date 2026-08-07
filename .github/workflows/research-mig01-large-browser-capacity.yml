@@ -57,4 +57,4 @@ jobs:
       - name: Run Firefox original large persistent migration
         run: pnpm test:e2e:firefox-original-large-migration
 
-# Full activation-safe capacity chain. The earlier stale-candidate direct probe was diagnostic only.
+# Final research pass: semantic re-import is analysis-only and must leave active persistent state unchanged.
