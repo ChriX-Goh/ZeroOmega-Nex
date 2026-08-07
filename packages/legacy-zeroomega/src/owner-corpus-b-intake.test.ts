@@ -1,4 +1,3 @@
-// @ts-nocheck -- Vitest CLI integration coverage uses Node built-ins; this package's production tsconfig intentionally omits Node types.
 import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
