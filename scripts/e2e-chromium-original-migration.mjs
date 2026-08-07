@@ -401,6 +401,18 @@ try {
       const sendMessage = chrome.runtime.sendMessage.bind(chrome.runtime);
       globalThis.__zeroOmegaComplexImportCandidate = undefined;
       globalThis.__zeroOmegaComplexImportTrace = [];
+      globalThis.__zeroOmegaComplexStorageTrace = [];
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        const state = changes['zeroomega-nex/profile-workflow/v1/state']?.newValue;
+        if (areaName !== 'local' || !state) return;
+        globalThis.__zeroOmegaComplexStorageTrace.push({
+          generation: state.generation,
+          pendingPhase: state.pendingApply?.phase,
+          routes: structuredClone(state.applied?.settings?.quickSwitch?.routes),
+          draftRoutes: structuredClone(state.draft?.settings?.quickSwitch?.routes),
+          pacUpdates: structuredClone(state.ruleSourceUpdates),
+        });
+      });
       chrome.runtime.sendMessage = async (message) => {
         if (message?.action === 'accept-import') {
           globalThis.__zeroOmegaComplexImportCandidate = structuredClone(message.candidate);
@@ -438,6 +450,8 @@ try {
     );
     const importTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexImportTrace);
     console.log(`[Original migration import trace] ${JSON.stringify(importTrace)}`);
+    const storageTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexStorageTrace);
+    console.log(`[Original migration storage trace] ${JSON.stringify(storageTrace)}`);
   }
 
   const imported = await assertImportedState(options);
