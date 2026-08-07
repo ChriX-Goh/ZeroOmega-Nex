@@ -9,12 +9,16 @@ const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000013';
 
 const options = new firefox.Options()
-  .addArguments('-headless', '--remote-allow-system-access')
+  .addArguments('-headless')
   .setPreference('intl.accept_languages', 'en-US')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
-const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+const driver = await new Builder()
+  .forBrowser(Browser.FIREFOX)
+  .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+  .setFirefoxOptions(options)
+  .build();
 
 async function bidiCommand(method, params) {
   const capabilities = await driver.getCapabilities();

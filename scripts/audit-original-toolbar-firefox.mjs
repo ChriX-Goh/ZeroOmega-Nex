@@ -34,7 +34,7 @@ if (!address || typeof address === 'string')
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
 const options = new firefox.Options()
-  .addArguments('-headless', '--remote-allow-system-access')
+  .addArguments('-headless')
   .setPreference('intl.accept_languages', 'zh-CN')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
@@ -89,7 +89,11 @@ async function bidiCommand(method, params) {
 }
 
 try {
-  driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+  driver = await new Builder()
+    .forBrowser(Browser.FIREFOX)
+    .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+    .setFirefoxOptions(options)
+    .build();
 
   const installResult = await bidiCommand('webExtension.install', {
     extensionData: { type: 'path', path: extensionPath },

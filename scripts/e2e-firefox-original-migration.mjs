@@ -62,7 +62,7 @@ async function closeServer(server) {
 
 function firefoxOptions() {
   return new firefox.Options()
-    .addArguments('-headless', '--remote-allow-system-access', '-profile', profileDir)
+    .addArguments('-headless', '-profile', profileDir)
     .enableBidi()
     .setPreference('intl.accept_languages', 'zh-TW')
     .setPreference('intl.locale.requested', 'zh-TW')
@@ -88,7 +88,11 @@ function firefoxOptions() {
 }
 
 async function launch() {
-  return new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(firefoxOptions()).build();
+  return new Builder()
+    .forBrowser(Browser.FIREFOX)
+    .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+    .setFirefoxOptions(firefoxOptions())
+    .build();
 }
 
 async function bidiCommand(driver, method, params) {

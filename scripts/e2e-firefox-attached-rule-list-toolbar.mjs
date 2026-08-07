@@ -35,14 +35,18 @@ const directRuleListId = 'profile-attached-direct-rule-list';
 const directSourceId = 'source-attached-direct-rule-list';
 
 const options = new firefox.Options()
-  .addArguments('-headless', '--remote-allow-system-access')
+  .addArguments('-headless')
   .setPreference('intl.accept_languages', 'zh-TW')
   .enableBidi()
   .setPreference('extensions.webextOptionalPermissionPrompts', false)
   .setPreference('network.dns.disableIPv6', true)
   .setPreference('network.dns.localDomains', 'attached-fixed.test,attached-direct.test')
   .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
-const driver = await new Builder().forBrowser(Browser.FIREFOX).setFirefoxOptions(options).build();
+const driver = await new Builder()
+  .forBrowser(Browser.FIREFOX)
+  .setFirefoxService(new firefox.ServiceBuilder().addArguments('--allow-system-access'))
+  .setFirefoxOptions(options)
+  .build();
 
 async function bidiCommand(method, params) {
   const capabilities = await driver.getCapabilities();
