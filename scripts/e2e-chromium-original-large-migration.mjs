@@ -363,12 +363,12 @@ async function analyzeRejectedBackupWithoutMutation(options, path) {
   await options.getByLabel('原版备份文件').setInputFiles(path);
   const review = options.locator('[data-legacy-import-review]');
   await review.waitFor({ state: 'visible', timeout: 20_000 });
+  await review.getByRole('alert').waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(
     await review.locator('[data-legacy-import-and-use]').count(),
     0,
     'Rejected legacy backup unexpectedly exposed Import & Use',
   );
-  await review.getByRole('alert').waitFor({ state: 'visible', timeout: 20_000 });
   const rejectedCount = Number(
     await review.locator('[data-legacy-status="rejected"] strong').innerText(),
   );

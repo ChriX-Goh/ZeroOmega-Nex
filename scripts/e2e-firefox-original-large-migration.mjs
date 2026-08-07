@@ -512,17 +512,17 @@ async function analyzeRejectedBackupWithoutMutation(driver, path) {
     20_000,
   );
   await driver.wait(until.elementIsVisible(review), 20_000);
+  const alert = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-review] [role="alert"]')),
+    20_000,
+  );
+  await driver.wait(until.elementIsVisible(alert), 20_000);
   assert.equal(
     (await driver.findElements(By.css('[data-legacy-import-review] [data-legacy-import-and-use]')))
       .length,
     0,
     'Rejected legacy backup unexpectedly exposed Import & Use in Firefox',
   );
-  const alert = await driver.wait(
-    until.elementLocated(By.css('[data-legacy-import-review] [role="alert"]')),
-    20_000,
-  );
-  await driver.wait(until.elementIsVisible(alert), 20_000);
   const rejectedText = await driver
     .findElement(By.css('[data-legacy-import-review] [data-legacy-status="rejected"] strong'))
     .getText();
