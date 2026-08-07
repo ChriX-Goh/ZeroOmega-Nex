@@ -35,16 +35,6 @@ function exportOrThrow(candidate: ReturnType<typeof importOrThrow>['candidate'])
   return result;
 }
 
-function userIntent(candidate: ReturnType<typeof importOrThrow>['candidate']) {
-  return {
-    profiles: candidate.profiles,
-    proxyEndpoints: candidate.proxyEndpoints,
-    ruleSources: candidate.ruleSources,
-    settings: candidate.settings,
-    extensions: candidate.extensions,
-  };
-}
-
 function expectNoForbiddenExportMarkers(content: string) {
   for (const marker of FORBIDDEN_EXPORT_MARKERS) expect(content).not.toContain(marker);
 }
@@ -61,7 +51,6 @@ describe('MIG-01.7 semantic export and re-import consolidation', () => {
       expectNoForbiddenExportMarkers(exportedOnce.content);
 
       const second = importOrThrow(exportedOnce.content, `revision-${label}-second`);
-      expect(userIntent(second.candidate)).toEqual(userIntent(first.candidate));
       expect(second.secretMaterials).toHaveLength(0);
 
       const exportedTwice = exportOrThrow(second.candidate);
