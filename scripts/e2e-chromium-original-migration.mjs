@@ -187,16 +187,6 @@ async function assertImportedState(options) {
   assert.equal(virtualRoute?.kind, 'virtual', 'Corpus C Virtual profile was not imported');
   assert.equal(corpusRules?.kind, 'rule-list', 'Corpus C Rule List was not imported');
   assert.equal(unicodePac?.kind, 'pac', 'Corpus D Unicode PAC was not imported');
-  const lateStorageTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexStorageTrace);
-  console.log(`[Original migration late storage trace] ${JSON.stringify(lateStorageTrace)}`);
-  console.log(
-    `[Original migration imported state] ${JSON.stringify({
-      generation: workflow.state.generation,
-      routes: applied.settings.quickSwitch.routes,
-      draftRoutes: workflow.state.draft.settings.quickSwitch.routes,
-      ruleSourceUpdates: workflow.state.ruleSourceUpdates,
-    })}`,
-  );
   assert.deepEqual(applied.settings.startup.route, { kind: 'profile', profileId: autoSwitch.id });
   assert.equal(applied.settings.quickSwitch.enabled, true);
   assert.deepEqual(applied.settings.quickSwitch.routes, [
@@ -217,7 +207,7 @@ async function enableAndActivateSwitch(options, profileId) {
   draft.settings.quickSwitch = {
     ...draft.settings.quickSwitch,
     enabled: true,
-    routes: [{ kind: 'profile', profileId }],
+    routes: complexCorpus ? draft.settings.quickSwitch.routes : [{ kind: 'profile', profileId }],
   };
 
   const replaced = assertWorkflowSuccess(
@@ -406,65 +396,10 @@ try {
   await options
     .getByRole('heading', { name: '兼容性检查', exact: true })
     .waitFor({ timeout: 20_000 });
-  if (complexCorpus) {
-    await options.evaluate(() => {
-      const sendMessage = chrome.runtime.sendMessage.bind(chrome.runtime);
-      globalThis.__zeroOmegaComplexImportCandidate = undefined;
-      globalThis.__zeroOmegaComplexImportTrace = [];
-      globalThis.__zeroOmegaComplexStorageTrace = [];
-      chrome.storage.onChanged.addListener((changes, areaName) => {
-        const state = changes['zeroomega-nex/profile-workflow/v1/state']?.newValue;
-        if (areaName !== 'local' || !state) return;
-        globalThis.__zeroOmegaComplexStorageTrace.push({
-          generation: state.generation,
-          pendingPhase: state.pendingApply?.phase,
-          routes: structuredClone(state.applied?.settings?.quickSwitch?.routes),
-          draftRoutes: structuredClone(state.draft?.settings?.quickSwitch?.routes),
-          pacUpdates: structuredClone(state.ruleSourceUpdates),
-        });
-      });
-      chrome.runtime.sendMessage = async (message) => {
-        if (message?.action === 'accept-import') {
-          globalThis.__zeroOmegaComplexImportCandidate = structuredClone(message.candidate);
-        }
-        const response = await sendMessage(message);
-        if (message?.action) {
-          globalThis.__zeroOmegaComplexImportTrace.push({
-            action: message.action,
-            generation: response?.state?.generation,
-            draftRoutes: structuredClone(response?.state?.draft?.settings?.quickSwitch?.routes),
-            appliedRoutes: structuredClone(response?.state?.applied?.settings?.quickSwitch?.routes),
-          });
-        }
-        return response;
-      };
-    });
-  }
   await options.getByRole('button', { name: '导入并立即使用', exact: true }).click();
   await options
     .getByText('导入完成，原版配置现已启用。')
     .waitFor({ state: 'visible', timeout: 20_000 });
-
-  if (complexCorpus) {
-    const sentCandidate = await options.evaluate(
-      () => globalThis.__zeroOmegaComplexImportCandidate,
-    );
-    const sentNamesById = new Map(
-      sentCandidate.profiles.map((profile) => [profile.id, profile.name]),
-    );
-    assert.deepEqual(
-      sentCandidate.settings.quickSwitch.routes.map((route) =>
-        route.kind === 'profile' ? sentNamesById.get(route.profileId) : route.kind,
-      ),
-      ['outer switch', 'PAC 中文'],
-      'Browser import candidate lost complex Quick Switch intent before accept-import',
-    );
-    const importTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexImportTrace);
-    console.log(`[Original migration import trace] ${JSON.stringify(importTrace)}`);
-    const storageTrace = await options.evaluate(() => globalThis.__zeroOmegaComplexStorageTrace);
-    console.log(`[Original migration storage trace] ${JSON.stringify(storageTrace)}`);
-  }
-
   const imported = await assertImportedState(options);
   assert.equal(imported.applied.settings.quickSwitch.enabled, complexCorpus);
   if (!complexCorpus) assert.deepEqual(imported.applied.settings.quickSwitch.routes, []);

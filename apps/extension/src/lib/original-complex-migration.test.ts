@@ -2,6 +2,13 @@ import { readFile } from 'node:fs/promises';
 
 import { exportZeroOmegaBackup, importZeroOmegaBackup } from '@zeroomega-nex/legacy-zeroomega';
 import type { ProfileSpec } from '@zeroomega-nex/profile-spec';
+import {
+  acceptProfileWorkflowImport,
+  applyProfileWorkflow,
+  createProfileWorkflowState,
+  MemoryProfileWorkflowRepository,
+  type ProfileWorkflowActivationDriver,
+} from '@zeroomega-nex/profile-workflow';
 import { describe, expect, it } from 'vitest';
 
 type OriginalOptions = Record<string, unknown>;
@@ -68,6 +75,14 @@ describe('MIG-01 original complex corpus migration', () => {
       ]),
     );
     expect(imported.candidate.settings.quickSwitch.enabled).toBe(true);
+    const profileNameById = new Map(
+      imported.candidate.profiles.map((profile) => [profile.id, profile.name]),
+    );
+    expect(
+      imported.candidate.settings.quickSwitch.routes.map((route) =>
+        route.kind === 'profile' ? profileNameById.get(route.profileId) : route.kind,
+      ),
+    ).toEqual(['outer switch', 'PAC 中文']);
     expect(imported.candidate.settings.startup.route).toMatchObject({ kind: 'profile' });
 
     const exported = exportZeroOmegaBackup(imported.candidate, {
@@ -92,5 +107,48 @@ describe('MIG-01 original complex corpus migration', () => {
       throw new Error(JSON.stringify(reimported.report, null, 2));
     }
     expect(userIntent(reimported.candidate)).toEqual(userIntent(imported.candidate));
+  });
+
+  it('preserves complex Quick Switch routes through accept and Apply', async () => {
+    const source = await readFile(ORIGINAL_COMPLEX_URL, 'utf8');
+    const imported = importZeroOmegaBackup(source, importContext);
+    if (!imported.ok) throw new Error(JSON.stringify(imported.report, null, 2));
+
+    const initial = structuredClone(imported.candidate);
+    initial.settings.quickSwitch.routes = [];
+    const initialState = createProfileWorkflowState(initial);
+    const repository = new MemoryProfileWorkflowRepository(initialState);
+    const accepted = await acceptProfileWorkflowImport(
+      repository,
+      initialState,
+      imported.candidate,
+      imported.secretMaterials,
+    );
+    expect(accepted.status).toBe('accepted');
+    if (accepted.status !== 'accepted') throw new Error(accepted.message);
+
+    const activated: ProfileSpec[] = [];
+    const driver: ProfileWorkflowActivationDriver = {
+      async activate(candidate) {
+        activated.push(structuredClone(candidate));
+        return { snapshotId: 'snapshot-mig-01-original-complex' };
+      },
+      async rollback() {},
+    };
+    const applied = await applyProfileWorkflow(repository, driver, {
+      applyId: 'apply-mig-01-original-complex',
+      revisionId: 'revision-mig-01-original-complex-applied',
+      startedAt: '2026-08-07T02:21:00.000Z',
+      completedAt: '2026-08-07T02:21:01.000Z',
+      deviceId: 'device-mig-01',
+    });
+    expect(applied.status).toBe('applied');
+    if (applied.status !== 'applied') throw new Error(applied.message);
+    expect(activated[0]?.settings.quickSwitch.routes).toEqual(
+      imported.candidate.settings.quickSwitch.routes,
+    );
+    expect(applied.state.applied.settings.quickSwitch.routes).toEqual(
+      imported.candidate.settings.quickSwitch.routes,
+    );
   });
 });

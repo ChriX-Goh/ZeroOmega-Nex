@@ -282,7 +282,7 @@ async function enableAndActivateSwitch(driver, profileId) {
   draft.settings.quickSwitch = {
     ...draft.settings.quickSwitch,
     enabled: true,
-    routes: [{ kind: 'profile', profileId }],
+    routes: complexCorpus ? draft.settings.quickSwitch.routes : [{ kind: 'profile', profileId }],
   };
 
   const replaced = assertWorkflowSuccess(
@@ -558,7 +558,3 @@ try {
   if (driver) await driver.quit();
   await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
   await Promise.all([
-    rm(profileDir, { recursive: true, force: true }),
-    rm(downloadDir, { recursive: true, force: true }),
-  ]);
-}
