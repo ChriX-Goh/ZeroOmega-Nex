@@ -187,6 +187,14 @@ async function assertImportedState(options) {
   assert.equal(virtualRoute?.kind, 'virtual', 'Corpus C Virtual profile was not imported');
   assert.equal(corpusRules?.kind, 'rule-list', 'Corpus C Rule List was not imported');
   assert.equal(unicodePac?.kind, 'pac', 'Corpus D Unicode PAC was not imported');
+  console.log(
+    `[Original migration imported state] ${JSON.stringify({
+      generation: workflow.state.generation,
+      routes: applied.settings.quickSwitch.routes,
+      draftRoutes: workflow.state.draft.settings.quickSwitch.routes,
+      ruleSourceUpdates: workflow.state.ruleSourceUpdates,
+    })}`,
+  );
   assert.deepEqual(applied.settings.startup.route, { kind: 'profile', profileId: autoSwitch.id });
   assert.equal(applied.settings.quickSwitch.enabled, true);
   assert.deepEqual(applied.settings.quickSwitch.routes, [
