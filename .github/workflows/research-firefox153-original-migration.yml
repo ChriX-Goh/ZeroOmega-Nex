@@ -1,0 +1,74 @@
+name: Research Firefox 153 original migration
+
+on:
+  push:
+    branches:
+      - 'feat/m8-profile-workflow'
+    paths:
+      - '.github/workflows/research-firefox153-original-migration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  firefox153-original-migration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install official Firefox 153.0.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE='153.0.3'
+          ARCHIVE="firefox-${RELEASE}.tar.xz"
+          BASE="https://archive.mozilla.org/pub/firefox/releases/${RELEASE}"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/$ARCHIVE" \
+            "$BASE/linux-x86_64/en-US/$ARCHIVE"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/SHA512SUMS" \
+            "$BASE/SHA512SUMS"
+          EXPECTED="$(grep "linux-x86_64/en-US/$ARCHIVE" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
+          test -n "$EXPECTED"
+          printf '%s  %s\n' "$EXPECTED" "$RUNNER_TEMP/$ARCHIVE" | sha512sum --check --strict
+          mkdir -p "$RUNNER_TEMP/firefox153"
+          tar -xJf "$RUNNER_TEMP/$ARCHIVE" -C "$RUNNER_TEMP/firefox153"
+          sudo ln -sfn "$RUNNER_TEMP/firefox153/firefox/firefox" /usr/bin/firefox
+          firefox --version | tee "$RUNNER_TEMP/firefox-version.txt"
+          grep -F 'Mozilla Firefox 153.0.3' "$RUNNER_TEMP/firefox-version.txt"
+
+      - name: Build Firefox extension
+        run: pnpm build:firefox
+
+      - name: Run original migration on Firefox 153.0.3
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:e2e:firefox-original-migration 2>&1 | tee firefox153-original-migration.log
+          grep -F '"geckodriverSystemAccess":true' firefox153-original-migration.log
+          grep -F 'Firefox original Corpus A import, route, restart, and semantic export passed.' firefox153-original-migration.log
+          grep -F 'Firefox original Corpus C/D import, route, restart, and semantic export passed.' firefox153-original-migration.log
+
+      - name: Upload research evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox153-original-migration-evidence
+          path: firefox153-original-migration.log
+          if-no-files-found: warn
