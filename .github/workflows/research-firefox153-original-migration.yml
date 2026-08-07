@@ -41,10 +41,8 @@ jobs:
           LOCALE='zh-TW'
           ARCHIVE="firefox-${RELEASE}.tar.xz"
           BASE="https://archive.mozilla.org/pub/firefox/releases/${RELEASE}"
-          curl --fail --location --retry 3 --output "$RUNNER_TEMP/$ARCHIVE" \
-            "$BASE/linux-x86_64/$LOCALE/$ARCHIVE"
-          curl --fail --location --retry 3 --output "$RUNNER_TEMP/SHA512SUMS" \
-            "$BASE/SHA512SUMS"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/$ARCHIVE" "$BASE/linux-x86_64/$LOCALE/$ARCHIVE"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/SHA512SUMS" "$BASE/SHA512SUMS"
           EXPECTED="$(grep "linux-x86_64/$LOCALE/$ARCHIVE" "$RUNNER_TEMP/SHA512SUMS" | awk '{print $1}')"
           test -n "$EXPECTED"
           printf '%s  %s\n' "$EXPECTED" "$RUNNER_TEMP/$ARCHIVE" | sha512sum --check --strict
@@ -57,26 +55,18 @@ jobs:
       - name: Build Firefox extension
         run: pnpm build:firefox
 
-      - name: Inject read-only Firefox 153 diagnostics
+      - name: Use WebDriver Classic for extension navigation
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('scripts/e2e-firefox-original-migration.mjs')
           text = path.read_text()
-          needle = "  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
-          diagnostic = """  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);
-  console.log(JSON.stringify({
-    firefoxOptionsDiagnostic: true,
-    marionetteContext: await driver.getContext(),
-    currentUrl: await driver.getCurrentUrl(),
-    title: await driver.getTitle(),
-    pageSource: (await driver.getPageSource()).slice(0, 4000),
-  }));
-"""
-          if text.count(needle) != 1:
-              raise SystemExit('Expected one Firefox options URL wait site')
-          path.write_text(text.replace(needle, diagnostic))
+          start = text.index("  const result = await bidiCommand(driver, 'browsingContext.navigate', {")
+          end = text.index("  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);", start)
+          end += len("  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n")
+          replacement = "  await driver.get(url);\n  const expectedUrl = `${url}#/about`;\n  await driver.wait(async () => (await driver.getCurrentUrl()) === expectedUrl, 20_000);\n"
+          path.write_text(text[:start] + replacement + text[end:])
           PY
 
       - name: Run original migration on Firefox 153.0.3
