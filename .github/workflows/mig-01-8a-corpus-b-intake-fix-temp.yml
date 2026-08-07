@@ -1,0 +1,71 @@
+name: MIG-01.8A temporary Corpus B intake fix
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+    paths:
+      - .github/workflows/mig-01-8a-corpus-b-intake-fix-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Format intake and synchronize parity boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec prettier --write scripts/owner-corpus-b-intake.mjs packages/legacy-zeroomega/src/owner-corpus-b-intake.test.mjs
+          python - <<'PY'
+          from pathlib import Path
+
+          kg = Path('docs/ORIGINAL_KNOWLEDGE_GRAPH.md')
+          text = kg.read_text()
+          marker = '> 状态：Milestone 8 的强制事实基线。任何 Options、Popup、情景模式、导入导出、语言或默认值改动，都必须同时更新本文与 [`UI_AUDIT_MATRIX.md`](./UI_AUDIT_MATRIX.md)。\n'
+          note = '> MIG-01.8A：新增 owner Corpus B 的仓库外 raw `.bak` 结构指纹与脱敏候选 fail-closed intake；它不改变原版 UI、导入入口、导入语义或普通用户工作流，也不提供 Corpus B 本身。\n'
+          if marker not in text:
+              raise SystemExit('original KG status marker not found')
+          if note not in text:
+              text = text.replace(marker, marker + note, 1)
+          kg.write_text(text)
+
+          matrix = Path('docs/UI_AUDIT_MATRIX.md')
+          text = matrix.read_text()
+          marker = '> 表内工程能力行数不得直接换算产品进度；普通 UI 必须按 Original↔Nex 成对证据逐 surface 验收。\n'
+          note = '> MIG-01.8A Corpus B intake 仅新增仓库外 raw backup 结构指纹/脱敏安全门，不新增或修改 UI row；Corpus B 仍缺失，Owner retest 与 release 继续禁止。\n'
+          if marker not in text:
+              raise SystemExit('UI matrix status marker not found')
+          if note not in text:
+              text = text.replace(marker, marker + note, 1)
+          matrix.write_text(text)
+          PY
+          pnpm exec prettier --write docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md
+          git diff --check
+          pnpm verify
+      - name: Commit verified fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/owner-corpus-b-intake.mjs packages/legacy-zeroomega/src/owner-corpus-b-intake.test.mjs docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md
+          git diff --cached --quiet && { echo 'fix produced no diff'; exit 1; }
+          git commit -m 'test: verify Corpus B intake readiness [skip ci]'
+          git push origin HEAD:feat/m8-profile-workflow
