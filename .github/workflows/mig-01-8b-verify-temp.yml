@@ -1,0 +1,48 @@
+name: MIG-01.8B temporary focused verifier
+
+on:
+  push:
+    branches:
+      - feat/m8-profile-workflow
+
+permissions:
+  contents: write
+
+jobs:
+  verify-format-and-clean:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m8-profile-workflow
+          fetch-depth: 2
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply locked formatter
+        run: |
+          pnpm exec prettier --write scripts/owner-corpus-b-preflight.test.ts
+          pnpm exec prettier --check scripts/owner-corpus-b-preflight.test.ts scripts/owner-corpus-b-preflight.mjs scripts/owner-corpus-b-preflight-core.ts scripts/owner-corpus-b-preflight.runner.mjs scripts/owner-corpus-b-preflight.vitest.config.ts vitest.config.ts
+          git diff --check
+      - name: Run focused Corpus B preflight tests
+        run: pnpm exec vitest run scripts/owner-corpus-b-preflight.test.ts --reporter=verbose
+      - name: Run full repository verification
+        run: pnpm run verify
+      - name: Remove temporary workflow and commit
+        run: |
+          git rm .github/workflows/mig-01-8b-verify-temp.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/owner-corpus-b-preflight.test.ts
+          git commit -m 'test: verify fail-closed Corpus B preflight'
+          git push origin HEAD:feat/m8-profile-workflow
