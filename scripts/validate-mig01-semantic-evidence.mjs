@@ -93,4 +93,6 @@ for (const corpus of ['A', 'C/D', 'large']) {
     );
   }
 }
-console.log('MIG-01.7 canonical semantic evidence is cross-browser equivalent and secret-leak clean.');
+console.log(
+  'MIG-01.7 canonical semantic evidence is cross-browser equivalent and secret-leak clean.',
+);

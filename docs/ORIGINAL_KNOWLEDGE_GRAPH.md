@@ -749,7 +749,6 @@ Head `e0ec31bd88ce4ff2d40937daee0b63def45fb2e8`：CI `30615270403`、Browser E2E
 - blocking 原版 `.bak` 兼容性分析不得写入 workflow storage，也不得改变已经确认的浏览器代理；Chromium/Firefox 已在 large 原版迁移链后用 missing-reference 负向备份实跑验证。
 - 该检查点属于 `CONTRACT-EXACT` 的失败恢复/原子性，不新增原版普通 UI 概念，也不改变 Popup/Options 的视觉验收状态。
 
-
 ## MIG-01.7 semantic-export evidence note
 
 - Pinned original v3.5.0 `Profiles` uses `revision` as its attached-cache tag and `Options` may compare profile revisions during revision-checked updates; Nex therefore preserves compatible `revision` values rather than deleting them for deterministic hashes.

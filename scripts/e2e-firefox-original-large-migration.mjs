@@ -8,10 +8,7 @@ import { resolve } from 'node:path';
 import { Browser, Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
-import {
-  appendMig01Evidence,
-  semanticSha256,
-} from './mig01-semantic-evidence.mjs';
+import { appendMig01Evidence, semanticSha256 } from './mig01-semantic-evidence.mjs';
 
 import { firefoxService } from './firefox-service.mjs';
 

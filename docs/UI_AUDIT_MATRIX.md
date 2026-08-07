@@ -245,7 +245,6 @@ preserve the dirty Draft, clear `pendingApply` only after successful rollback, a
 `recovery` failure result. The auditable layer-by-layer matrix is
 `docs/MIG_01_FAILURE_PRESERVATION_MATRIX.md`.
 
-
 ### MIG-01.7 semantic-export consolidation
 
 The existing Import / Export journey now carries permanent evidence for A/C/D/large ordinary export, review-only re-import without persistent mutation, canonical cross-browser semantic equivalence, and a password/sensitive-header-value leak sentinel across review UI, command response, workflow persistence, ordinary export, and sanitized re-import review. This is migration evidence on the existing Options surface, not a new UI scope or status increase.

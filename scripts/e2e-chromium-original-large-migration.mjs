@@ -7,10 +7,7 @@ import { resolve } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
-import {
-  appendMig01Evidence,
-  semanticSha256,
-} from './mig01-semantic-evidence.mjs';
+import { appendMig01Evidence, semanticSha256 } from './mig01-semantic-evidence.mjs';
 
 const extensionPath = resolve('dist/chrome-mv3');
 const originalBackupPath = resolve(
