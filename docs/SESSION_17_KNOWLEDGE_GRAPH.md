@@ -63,8 +63,8 @@ MIG-01.6 did not begin from zero. Existing repository evidence already covered:
 - browser installation failure rolls authentication preparation back;
 - ordinary semantic export strips secret-backed credentials and sensitive headers.
 
-The missing high-severity workflow boundary was restart recovery for a *persisted workflow
-`pendingApply`*.
+The missing high-severity workflow boundary was restart recovery for a _persisted workflow
+`pendingApply`_.
 
 ## 4. Defect discovered: stale workflow pending Apply
 
