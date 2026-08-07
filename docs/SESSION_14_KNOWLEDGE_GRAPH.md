@@ -166,10 +166,12 @@ This closes `MIG-01.3B` / the Corpus A dual-browser packaged slice. It does not 
 Required positive corpus still missing or incomplete:
 
 - Corpus B: a sanitized owner daily-use backup. No repository evidence currently supplies it;
-- Corpus C: original-runtime-produced nested Switch, Virtual, attached Rule List, default-result and
-  reference behavior;
-- Corpus D: original-runtime-produced PAC URL/body, update/cache state, bypass, supported proxy-auth
-  metadata, Unicode, valid duplicate names and safe unknown fields;
+- Corpus C now has an original-runtime-produced fixture covering nested Switch -> Virtual -> Switch,
+  Fixed proxy, original Rule List, Quick Switch/startup state and reference behavior. Its packaged
+  Chromium/Firefox positive journey is exercised together with Corpus D-partial;
+- Corpus D is partial: the same original-runtime fixture covers Unicode PacProfile names plus PAC
+  URL/body and cache/update-shaped data, but the broader D matrix (including supported proxy-auth
+  metadata, valid duplicate names and safe unknown fields) is not yet complete;
 - large real exports for storage and persistent-restart capacity.
 
 Compatibility/reliability debt still open:
@@ -185,6 +187,45 @@ Compatibility/reliability debt still open:
 
 These gaps keep release state `NO-GO` and owner retest prohibited.
 
+### MIG-01.5 Corpus C/D evidence added in Session 14
+
+The complex fixture in `fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak` was produced
+by the actual pinned `zero-peak/ZeroOmega@v3.5.0` runtime. Provenance records original-runtime
+Actions run `31140177004`, job `92748222921`, artifact `8979514864`, source commit
+`05cbb30a2204cc3bdf3bb2e65765a70644a022d7`, and backup SHA-256
+`92aec2d8932b808cc8654787ca907aa935d6dda44b018b079be8e5c7cc7397f4`.
+
+The first real importer -> export -> re-import semantic failure was not a PAC or Quick Switch
+failure. The original Virtual profile explicitly contained `rules: []`, while the importer only
+preserved non-empty Virtual rules. Commit `5ffe270371c41ab6f0d5a7615ea606d103a2d79c` preserves
+field presence for an original array, including the contractual empty array. Original Rule List
+`pacScript` remains intentionally excluded from semantic comparison because it is classified as a
+generated artifact, not source data. CI run `31141670644` passed after this production fix.
+
+The apparent packaged Quick Switch loss was isolated to the migration test helper: the helper
+rewrote the imported complex settings to the Corpus A one-route test state before restart. Pure
+import and real accept -> Apply regressions proved both original routes survived. The packaged C/D
+journeys therefore activate the already-enabled imported complex state without rewriting it, keep
+that state through restart, then activate the imported PAC and validate real routing before semantic
+export. No production Quick Switch workaround was added.
+
+Exact packaged Corpus C/D evidence checkpoint
+`731c105d8c627a5c8e916ba0ff97adf107c15cd4`:
+
+- Browser E2E run `31143806960`: success;
+- Chromium job `92759027010`: success, with `Chromium original Corpus C/D import, route, restart,
+and semantic export passed.`;
+- Firefox job `92759026952`: success, with `Firefox original Corpus C/D import, route, restart, and
+semantic export passed.`;
+- Chromium native Inspect job `92759026987`: success;
+- Firefox policy-owned Popup job `92759026998`: success;
+- CI `31143807015`, Parity Documentation `31143807007`, Milestone 8 Visual Evidence `31143806972`,
+  Original Nex UI Evidence `31143806983`, and Original Toolbar Evidence `31143807002`: success.
+
+This closes the repository-controlled positive packaged slice for Corpus C/D-partial. It does not
+make partial Corpus D complete, supply externally blocked Corpus B, close `MIG-01`, change audited
+product completion, or authorize owner retest/release.
+
 ## 10. Exact next implementation target
 
 Continue the existing contract at `MIG-01.5` — run Corpus B-D and close mapping, storage,
@@ -193,11 +234,11 @@ activation and browser gaps.
 Corpus B is externally blocked until a sanitized owner representative export exists. That blocker
 must not stall repository-controlled progress. The immediate executable work is therefore:
 
-1. inspect the pinned original-runtime fixture-generation path;
-2. produce provenance-bound Corpus C/D fixtures where the original runtime can generate them;
-3. build/extend the source-field preservation matrix from those real outputs;
-4. drive the first generated Corpus C/D case through importer -> activation -> route/restart ->
-   semantic export and fix the first actual blocking layer;
+1. extend the source-field preservation matrix with the remaining Corpus D field classes;
+2. generate provenance-bound original-runtime cases for the still-missing D shapes where feasible;
+3. drive those cases through importer -> activation -> route/restart -> semantic export;
+4. close the packaged parser/mapping/storage/compile/install/confirm/restart/export failure matrix
+   without weakening state-preservation or secret-scan requirements;
 5. keep Corpus B explicitly blocked rather than fabricating owner data.
 
 Do not switch to Popup or Options refinement between these steps.
@@ -225,6 +266,7 @@ Current audited state remains:
 - PR state: Draft;
 - owner retest: prohibited;
 - active parent batch: `MIG-01`;
-- phase: official/default dual-browser journey green; Corpus B-D next.
+- phase: official/default and original-runtime Corpus C/D-partial packaged journeys green; Corpus B
+  externally blocked and remaining D/failure matrix next.
 
-Next work starts from `MIG-01.5` corpus expansion and field/failure evidence, not from UI microstates.
+Next work stays in `MIG-01.5` on remaining Corpus D field/failure evidence, not UI microstates.
