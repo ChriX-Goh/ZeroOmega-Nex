@@ -294,6 +294,8 @@ graph TD
 - schemaVersion 1 与 2；v1 `auto_detect` 升级为 WPAD PacProfile。
 - 恢复是完整 reset，不是只抽取少量 Nex 字段后声称成功。
 - 恢复后根据启动情景模式应用。
+- 原版公共 `Options.addProfile()` / `renameProfile()` 不允许占用已有 Profile 名称；键名与 `profile.name` 不一致的影子定义不属于可由公共运行时创建的稳定状态。
+- `-quickSwitchProfiles` 在 Options 初始化时按实际 Profile identity 清理：首个有效名称保留，后续重复名称、空名称和不存在的名称移除；因此稳定原版导出不保留重复 Quick Switch 引用。
 - 单情景模式 PAC/规则列表导出。
 
 ### 尚待范围决定

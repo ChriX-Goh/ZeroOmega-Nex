@@ -25,7 +25,9 @@ const importContext = {
 function quickSwitchNames(spec: ProfileSpec): string[] {
   const profileNameById = new Map(spec.profiles.map((profile) => [profile.id, profile.name]));
   return spec.settings.quickSwitch.routes.map((route) =>
-    route.kind === 'profile' ? (profileNameById.get(route.profileId) ?? route.profileId) : route.kind,
+    route.kind === 'profile'
+      ? (profileNameById.get(route.profileId) ?? route.profileId)
+      : route.kind,
   );
 }
 

@@ -4,11 +4,7 @@ import {
   type LegacyDecodeLimits,
 } from './decode.js';
 import { importZeroOmegaBackup as importZeroOmegaBackupCore } from './import.js';
-import type {
-  LegacyImportContext,
-  LegacyImportItem,
-  LegacyImportResult,
-} from './contracts.js';
+import type { LegacyImportContext, LegacyImportItem, LegacyImportResult } from './contracts.js';
 
 interface DuplicateQuickSwitchReference {
   readonly index: number;

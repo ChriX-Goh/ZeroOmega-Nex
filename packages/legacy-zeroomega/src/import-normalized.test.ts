@@ -23,7 +23,9 @@ function quickSwitchNames(
     result.candidate.profiles.map((profile) => [profile.id, profile.name]),
   );
   return result.candidate.settings.quickSwitch.routes.map((route) =>
-    route.kind === 'profile' ? (profileNameById.get(route.profileId) ?? route.profileId) : route.kind,
+    route.kind === 'profile'
+      ? (profileNameById.get(route.profileId) ?? route.profileId)
+      : route.kind,
   );
 }
 
