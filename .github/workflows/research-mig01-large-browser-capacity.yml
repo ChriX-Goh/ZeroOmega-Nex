@@ -57,4 +57,4 @@ jobs:
       - name: Run Firefox original large persistent migration
         run: pnpm test:e2e:firefox-original-large-migration
 
-# Final research pass: semantic re-import is analysis-only and must leave active persistent state unchanged.
+# Exact attribution pass: restart persistence and re-import analysis mutation are measured against separate baselines.
