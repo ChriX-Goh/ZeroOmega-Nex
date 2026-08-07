@@ -94,9 +94,12 @@ export async function recoverInterruptedProfileWorkflowApply(
   }
 
   const pending = initial?.pendingApply;
-  if (!initial || !pending) return { status: 'nothing-pending', ...(initial ? { state: initial } : {}) };
+  if (!initial || !pending) {
+    return { status: 'nothing-pending', ...(initial ? { state: initial } : {}) };
+  }
 
-  const successMessage = 'interrupted Apply restored the previous confirmed configuration on restart';
+  const successMessage =
+    'interrupted Apply restored the previous confirmed configuration on restart';
   try {
     await driver.rollback(initial.applied, initial.applied.settings.startup.route);
   } catch (error) {
@@ -113,11 +116,13 @@ export async function recoverInterruptedProfileWorkflowApply(
           rollbackSucceeded: false,
         };
       }
+      const conflicted = await repository.read();
       return {
         status: 'conflict',
-        state: await repository.read(),
+        ...(conflicted ? { state: conflicted } : {}),
         applyId: pending.applyId,
-        message: 'workflow state changed while interrupted Apply recovery recorded rollback failure',
+        message:
+          'workflow state changed while interrupted Apply recovery recorded rollback failure',
       };
     } catch (storageError) {
       return {
@@ -140,9 +145,10 @@ export async function recoverInterruptedProfileWorkflowApply(
         applyId: pending.applyId,
       };
     }
+    const conflicted = await repository.read();
     return {
       status: 'conflict',
-      state: await repository.read(),
+      ...(conflicted ? { state: conflicted } : {}),
       applyId: pending.applyId,
       message: 'workflow state changed after the previous confirmed configuration was restored',
     };
