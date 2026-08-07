@@ -7,14 +7,21 @@
     "omega-target/src/storage.coffee",
     "omega-pac/src/profiles.coffee"
   ],
-  "generationMethod": "Deterministic Nex scale seed -> original v3.5.0 Options.initWithOptions -> stable Options.getAll -> JSON.stringify, matching original IoCtrl export serialization",
-  "sourceSeed": {
+  "generationMethod": "Deterministic Nex scale seed -> replace 64 target-dependent UrlWildcardCondition entries with exact HostWildcardCondition capacity entries -> original v3.5.0 Options.initWithOptions -> stable Options.getAll -> JSON.stringify, matching original IoCtrl export serialization",
+  "baseSeed": {
     "path": "fixtures/zeroomega-v2/large-representative.json",
-    "nexCommit": "d819dfc93c12b841b3ccffa59e00a89e42efd7a3",
+    "nexCommit": "77dc2216b549b758d10310946eef74c1c8520149",
     "gitBlob": "862d140d569be120949d58c7907cba514b9c02b6",
     "sha256": "62705deda6bd29a6f1dd529d73252f2855e14719a261d2c1749d00534c43701c",
     "bytes": 308038,
     "role": "scale/structure seed only; not Corpus B owner data"
+  },
+  "activationSafeTransformation": {
+    "rewrittenUrlWildcardConditions": 64,
+    "replacementConditionType": "HostWildcardCondition",
+    "reason": "Capacity/restart evidence must isolate storage and activation scale from the separately classified target-dependent URL wildcard semantics.",
+    "transformedSeedSha256": "41b59affa4fa80dce3cb18a540a62a62ae72bc752e3901b503127b13039cd91d",
+    "transformedSeedBytes": 222514
   },
   "dimensions": {
     "profiles": 36,
@@ -22,11 +29,12 @@
     "switchProfiles": 8,
     "switchRules": 1024,
     "ruleListProfiles": 4,
-    "ruleListEntries": 1024
+    "ruleListEntries": 1024,
+    "urlWildcardConditions": 0
   },
   "stableBackup": {
-    "sha256": "042c35492aaeb3b023bf3dc4eba607586df934bcc6827d141e903e84efc85f78",
-    "bytes": 222757,
+    "sha256": "e0aacb5a7b1173942ddb8880036e0dc67bebacea454d35b6f70d587beffc4d51",
+    "bytes": 222565,
     "schemaVersion": 2,
     "startupProfileName": "switch-00",
     "quickSwitchProfiles": [
@@ -39,5 +47,5 @@
       "direct"
     ]
   },
-  "capacityPurpose": "Repository-controlled MIG-01.5 storage/restart scale evidence; does not substitute for Corpus B."
+  "capacityPurpose": "Repository-controlled MIG-01.5 storage/activation/restart capacity evidence; does not substitute for Corpus B and does not alter target-dependent compatibility classification."
 }
