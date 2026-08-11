@@ -11,6 +11,11 @@
   "scripts": {
     "dev": "pnpm --filter @zeroomega-nex/extension dev",
     "dev:firefox": "pnpm --filter @zeroomega-nex/extension dev:firefox",
+    "firefox:setup": "node scripts/firefox-toolchain.mjs setup",
+    "dev:firefox:managed": "node scripts/firefox-toolchain.mjs dev-managed",
+    "install:firefox:dev": "node scripts/firefox-toolchain.mjs install-dev",
+    "test:e2e:firefox:m1": "node scripts/firefox-toolchain.mjs test-m1",
+    "package:firefox": "node scripts/firefox-toolchain.mjs package",
     "build": "pnpm build:chromium && pnpm build:firefox",
     "build:chromium": "pnpm --filter @zeroomega-nex/extension build:chromium",
     "build:firefox": "pnpm --filter @zeroomega-nex/extension build:firefox",
