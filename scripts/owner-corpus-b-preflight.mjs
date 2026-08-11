@@ -12,7 +12,7 @@ import {
 } from './owner-corpus-b-intake.mjs';
 
 const rootDir = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const runnerConfig = resolve(rootDir, 'scripts/owner-corpus-b-preflight.vitest.config.ts');
+const runnerConfig = 'scripts/owner-corpus-b-preflight.vitest.config.ts';
 
 class CorpusBPreflightError extends Error {}
 
@@ -44,8 +44,13 @@ async function readManifest(path) {
 }
 
 async function runImporterPreflight(candidatePath, manifestPath, reportPath) {
-  const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-  const child = spawn(pnpm, ['exec', 'vitest', 'run', '--config', runnerConfig], {
+  const pnpmArgs = ['exec', 'vitest', 'run', '--config', runnerConfig];
+  const pnpmScript =
+    process.platform === 'win32'
+      ? (process.env.npm_execpath ?? process.env.NPM_EXECPATH)
+      : undefined;
+  const pnpm = pnpmScript ? process.execPath : process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  const child = spawn(pnpm, pnpmScript ? [pnpmScript, ...pnpmArgs] : pnpmArgs, {
     cwd: rootDir,
     env: {
       ...process.env,
@@ -53,6 +58,7 @@ async function runImporterPreflight(candidatePath, manifestPath, reportPath) {
       ZEROOMEGA_CORPUS_B_PREFLIGHT_MANIFEST: manifestPath,
       ZEROOMEGA_CORPUS_B_PREFLIGHT_REPORT: reportPath,
     },
+    shell: process.platform === 'win32' && !pnpmScript,
     stdio: ['ignore', 'ignore', 'ignore'],
   });
 
