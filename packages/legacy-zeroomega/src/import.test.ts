@@ -48,6 +48,20 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.report.summary.rejected).toBe(0);
   });
 
+  it('uses the original true default when refresh-on-profile-change is omitted', async () => {
+    const source = JSON.parse(await fixture('original-default-v3.5.0.bak')) as Record<
+      string,
+      unknown
+    >;
+    delete source['-refreshOnProfileChange'];
+
+    const result = importZeroOmegaBackup(JSON.stringify(source), context);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+
+    expect(result.candidate.settings.quickSwitch.refreshOnChange).toBe(true);
+  });
+
   it('imports the Virtual cross-reference browser fixture without rejected entries', async () => {
     const result = importZeroOmegaBackup(
       await fixture('virtual-reference-migration.json'),

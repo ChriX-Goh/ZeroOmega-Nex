@@ -1376,7 +1376,7 @@ function mapSettings(
       quickSwitch: {
         enabled: legacyBoolean(options['-enableQuickSwitch'], false),
         routes: quickRoutes,
-        refreshOnChange: legacyBoolean(options['-refreshOnProfileChange'], false),
+        refreshOnChange: legacyBoolean(options['-refreshOnProfileChange'], true),
       },
       interface: {
         confirmDeletion: legacyBoolean(options['-confirmDeletion'], true),
