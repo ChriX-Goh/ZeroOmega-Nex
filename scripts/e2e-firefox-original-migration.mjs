@@ -501,6 +501,7 @@ async function importOriginalBackup(driver) {
   const importExportButton = await driver.findElement(
     By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
+  await driver.wait(until.elementIsEnabled(importExportButton), 20_000);
   await importExportButton.click();
   const importSource = await driver.wait(
     until.elementLocated(By.css('[data-legacy-import-source]')),
