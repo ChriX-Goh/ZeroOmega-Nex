@@ -513,6 +513,7 @@ async function importOriginalBackup(driver) {
     until.elementLocated(By.css('[data-legacy-import-and-use]')),
     20_000,
   );
+  await driver.wait(until.elementIsEnabled(importButton), 20_000);
   await importButton.click();
   const success = await driver.wait(
     until.elementLocated(
