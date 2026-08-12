@@ -502,6 +502,11 @@ async function importOriginalBackup(driver) {
     By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
   await importExportButton.click();
+  const importSource = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-source]')),
+    20_000,
+  );
+  await driver.wait(until.elementIsVisible(importSource), 20_000);
   const fileInput = await driver.wait(until.elementLocated(By.css('input[type="file"]')), 20_000);
   await fileInput.sendKeys(originalBackupPath);
   const compatibilityHeading = await driver.wait(
