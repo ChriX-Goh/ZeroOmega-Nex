@@ -1,0 +1,321 @@
+name: Firefox M1 Windows
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  firefox-m1:
+    runs-on: windows-2025
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact head and clean checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = '${{ github.event.pull_request.head.sha }}'
+          $actual = (git rev-parse HEAD).Trim()
+          if ($expected -ne $actual) {
+            Write-Error "Expected PR head $expected but checked out $actual"
+            exit 1
+          }
+          $status = git status --porcelain
+          if ($status) {
+            Write-Output $status
+            Write-Error 'Checkout is not clean'
+            exit 1
+          }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm 11.4.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Assert fixed Node and pnpm versions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $nodeVersion = (& node --version).Trim()
+          $pnpmVersion = (& pnpm --version).Trim()
+          if ($nodeVersion -notmatch '^v24\.[0-9]+\.[0-9]+$') {
+            Write-Error "Expected Node major 24, got $nodeVersion"
+            exit 1
+          }
+          if ($pnpmVersion -ne '11.4.0') {
+            Write-Error "Expected pnpm 11.4.0, got $pnpmVersion"
+            exit 1
+          }
+          Write-Output "Node $nodeVersion and pnpm $pnpmVersion satisfy the fixed toolchain gate"
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & pnpm install --frozen-lockfile *> pnpm-install.log
+          $exitCode = $LASTEXITCODE
+          Get-Content -LiteralPath pnpm-install.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Create exact-head evidence directory
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = '${{ github.event.pull_request.head.sha }}'
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          @(
+            "exactHead=$head"
+            "os=$([System.Environment]::OSVersion.VersionString)"
+            "powershell=$($PSVersionTable.PSVersion)"
+            "node=$(& node --version)"
+            "pnpm=$(& pnpm --version)"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'run-metadata.txt') -Encoding UTF8
+          $manifestSource = Join-Path $env:GITHUB_WORKSPACE 'scripts\firefox-toolchain-manifest.json'
+          $manifestDestination = Join-Path $artifactRoot 'firefox-toolchain-manifest.json'
+          Copy-Item -LiteralPath $manifestSource -Destination $manifestDestination -Force
+          $manifestHash = (Get-FileHash -LiteralPath $manifestDestination -Algorithm SHA256).Hash.ToLowerInvariant()
+          [ordered]@{
+            exactHead = $head
+            manifest = 'firefox-toolchain-manifest.json'
+            manifestSha256 = $manifestHash
+          } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $artifactRoot 'manifest-binding.json') -Encoding UTF8
+
+      - name: Set up fixed Firefox toolchain
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & pnpm firefox:setup *> firefox-setup.log
+          $exitCode = $LASTEXITCODE
+          Get-Content -LiteralPath firefox-setup.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Record fixed Firefox versions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = '${{ github.event.pull_request.head.sha }}'
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $state = Get-Content -LiteralPath '.cache/firefox-m1/toolchain-state.json' -Raw | ConvertFrom-Json
+          $firefoxBinary = Join-Path $env:GITHUB_WORKSPACE '.cache/firefox-m1/firefox/core/firefox.exe'
+          $geckodriverBinary = Join-Path $env:GITHUB_WORKSPACE '.cache/firefox-m1/geckodriver/geckodriver.exe'
+          @(
+            "manifestFirefox=$($state.manifest.firefox.version)"
+            "manifestGeckodriver=$($state.manifest.geckodriver.version)"
+            "firefoxBinary=$firefoxBinary"
+            "geckodriverBinary=$geckodriverBinary"
+            "firefoxVersion=$(& $firefoxBinary --version)"
+            "geckodriverVersion=$(& $geckodriverBinary --version | Select-Object -First 1)"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'toolchain-versions.txt') -Encoding UTF8
+
+      - name: Run Firefox M1
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = '${{ github.event.pull_request.head.sha }}'
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $mozCrashRoot = Join-Path $artifactRoot 'moz-crash'
+          New-Item -ItemType Directory -Path $mozCrashRoot -Force | Out-Null
+          $env:ZEROOMEGA_FIREFOX_GECKODRIVER_TRACE = '1'
+          $env:ZEROOMEGA_EXACT_HEAD = $head
+          $env:ZEROOMEGA_FIREFOX_GECKODRIVER_LOG = Join-Path $artifactRoot 'geckodriver.log'
+          $env:MOZ_CRASHREPORTER_DATA_DIRECTORY = $mozCrashRoot
+          $env:MOZ_LOG = 'Marionette:5'
+          $env:MOZ_LOG_FILE = Join-Path $artifactRoot 'marionette.log'
+          @(
+            "ZEROOMEGA_EXACT_HEAD=$env:ZEROOMEGA_EXACT_HEAD"
+            "ZEROOMEGA_FIREFOX_GECKODRIVER_LOG=$env:ZEROOMEGA_FIREFOX_GECKODRIVER_LOG"
+            "MOZ_CRASHREPORTER_DATA_DIRECTORY=$env:MOZ_CRASHREPORTER_DATA_DIRECTORY"
+            "MOZ_LOG=$env:MOZ_LOG"
+            "MOZ_LOG_FILE=$env:MOZ_LOG_FILE"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt') -Encoding UTF8
+          & pnpm test:e2e:firefox:m1 *> firefox-m1.log
+          $exitCode = $LASTEXITCODE
+          Get-Content -LiteralPath firefox-m1.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Collect Firefox M1 diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = '${{ github.event.pull_request.head.sha }}'
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          $warningPath = Join-Path $artifactRoot 'diagnostic-warnings.log'
+          Set-Content -LiteralPath $warningPath -Value "exactHead=$head" -Encoding UTF8
+          function Warn-Diagnostic([string] $message) {
+            Write-Warning $message
+            Add-Content -LiteralPath $warningPath -Value "WARN: $message" -Encoding UTF8
+          }
+          function Copy-DiagnosticTree([string] $source, [string] $destination, [string] $label) {
+            if (-not (Test-Path -LiteralPath $source -PathType Container)) {
+              Warn-Diagnostic "$label is absent: $source"
+              return $false
+            }
+            try {
+              New-Item -ItemType Directory -Path $destination -Force | Out-Null
+              Copy-Item -LiteralPath $source -Destination $destination -Recurse -Force -ErrorAction Stop
+              return $true
+            } catch {
+              Warn-Diagnostic "Unable to collect $label from ${source}: $($_.Exception.Message)"
+              return $false
+            }
+          }
+          foreach ($file in @('pnpm-install.log', 'firefox-setup.log', 'firefox-m1.log')) {
+            if (Test-Path -LiteralPath $file) {
+              Copy-Item -LiteralPath $file -Destination (Join-Path $artifactRoot $file) -Force
+            } else {
+              Warn-Diagnostic "Expected workflow log is absent: $file"
+            }
+          }
+          if (Test-Path -LiteralPath '.cache/firefox-m1/reports') {
+            Copy-Item -LiteralPath '.cache/firefox-m1/reports' -Destination (Join-Path $artifactRoot 'reports') -Recurse -Force
+          } else {
+            Warn-Diagnostic 'Firefox M1 report directory is absent: .cache/firefox-m1/reports'
+          }
+          if (Test-Path -LiteralPath '.cache/firefox-m1/toolchain-state.json') {
+            Copy-Item -LiteralPath '.cache/firefox-m1/toolchain-state.json' -Destination (Join-Path $artifactRoot 'toolchain-state.json') -Force
+          } else {
+            Warn-Diagnostic 'Firefox toolchain state is absent: .cache/firefox-m1/toolchain-state.json'
+          }
+          $crashRoot = Join-Path $artifactRoot 'moz-crash'
+          New-Item -ItemType Directory -Path $crashRoot -Force | Out-Null
+          if (-not (Test-Path -LiteralPath $crashRoot -PathType Container)) {
+            Warn-Diagnostic "Custom MOZ_CRASHREPORTER_DATA_DIRECTORY is absent: $crashRoot"
+          }
+          Get-ChildItem -LiteralPath $crashRoot -Recurse -File -ErrorAction SilentlyContinue |
+            Select-Object FullName, Length, LastWriteTime |
+            ConvertTo-Json -Depth 3 |
+            Set-Content -LiteralPath (Join-Path $artifactRoot 'moz-crash-inventory.json') -Encoding UTF8
+
+          $profileRoots = @()
+          $persistentProfileRoot = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\profiles'
+          if (Test-Path -LiteralPath $persistentProfileRoot -PathType Container) {
+            $profileRoots += Get-ChildItem -LiteralPath $persistentProfileRoot -Directory -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          } else {
+            Warn-Diagnostic "Persistent Firefox profile root is absent: $persistentProfileRoot"
+          }
+          foreach ($tempBase in @($env:RUNNER_TEMP, $env:TEMP)) {
+            if ($tempBase -and (Test-Path -LiteralPath $tempBase -PathType Container)) {
+              $profileRoots += Get-ChildItem -LiteralPath $tempBase -Directory -Filter 'zeroomega-nex-firefox-*' -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+            }
+          }
+          $profileRoots = @($profileRoots | Sort-Object -Unique)
+          if ($profileRoots.Count -eq 0) {
+            Warn-Diagnostic 'No Firefox profile directories were found for crash collection'
+          }
+          foreach ($profileRoot in $profileRoots) {
+            $profileName = Split-Path -Leaf $profileRoot
+            $profileDestination = Join-Path (Join-Path $artifactRoot 'profiles') $profileName
+            foreach ($relativePath in @('crashes', 'minidumps')) {
+              Copy-DiagnosticTree (Join-Path $profileRoot $relativePath) (Join-Path $profileDestination $relativePath) "profile $profileName/$relativePath"
+            }
+          }
+
+          $firefoxInstallRoot = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\firefox'
+          $firefoxInstallDestination = Join-Path $artifactRoot 'firefox-install'
+          if (Test-Path -LiteralPath $firefoxInstallRoot -PathType Container) {
+            try {
+              Copy-Item -LiteralPath $firefoxInstallRoot -Destination $firefoxInstallDestination -Recurse -Force -ErrorAction Stop
+            } catch {
+              Warn-Diagnostic "Unable to collect Firefox installation directory: $($_.Exception.Message)"
+            }
+            Get-ChildItem -LiteralPath $firefoxInstallRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
+              Select-Object @{Name='relativePath'; Expression={ $_.FullName.Substring($firefoxInstallRoot.Length).TrimStart('\') }}, Length, LastWriteTime |
+              ConvertTo-Json -Depth 3 |
+              Set-Content -LiteralPath (Join-Path $artifactRoot 'firefox-install-inventory.json') -Encoding UTF8
+          } else {
+            Warn-Diagnostic "Firefox installation directory is absent: $firefoxInstallRoot"
+          }
+
+          $commonCrashRoots = @()
+          foreach ($base in @($env:APPDATA, $env:LOCALAPPDATA, $env:PROGRAMDATA)) {
+            if ($base) {
+              $commonCrashRoots += Join-Path $base 'Mozilla\Firefox\Crash Reports'
+            }
+          }
+          $commonCrashRoots += @(
+            (Join-Path $firefoxInstallRoot 'Crash Reports'),
+            (Join-Path $firefoxInstallRoot 'crashes'),
+            (Join-Path $firefoxInstallRoot 'minidumps')
+          )
+          $commonCrashDestination = Join-Path $artifactRoot 'common-crash-reports'
+          $crashIndex = 0
+          foreach ($commonCrashRoot in ($commonCrashRoots | Sort-Object -Unique)) {
+            $crashLabel = '{0:D2}-{1}' -f $crashIndex, (Split-Path -Leaf $commonCrashRoot)
+            Copy-DiagnosticTree $commonCrashRoot (Join-Path $commonCrashDestination $crashLabel) "common Firefox crash directory $commonCrashRoot"
+            $crashIndex++
+          }
+
+          foreach ($log in @('geckodriver.log', 'marionette.log')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $artifactRoot $log) -PathType Leaf)) {
+              Warn-Diagnostic "Independent Firefox diagnostic log is absent: $log"
+            }
+          }
+          if (Test-Path -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt')) {
+            Get-Content -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt') | Add-Content -LiteralPath $warningPath -Encoding UTF8
+          } else {
+            Warn-Diagnostic 'Logging environment record is absent'
+          }
+
+      - name: Scan collected diagnostics for migration secret sentinels
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = '${{ github.event.pull_request.head.sha }}'
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          $scanListPath = Join-Path $artifactRoot 'secret-sentinel-inputs.json'
+          $textExtensions = @('.log', '.json', '.txt', '.xml', '.md', '.yml', '.yaml')
+          $scanFiles = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
+            Where-Object { $textExtensions -contains $_.Extension.ToLowerInvariant() } |
+            Select-Object -ExpandProperty FullName)
+          if ($scanFiles.Count -eq 0) {
+            Write-Error 'No collected text diagnostics were available for the migration secret-sentinel gate'
+            exit 1
+          }
+          $scanFiles | ConvertTo-Json | Set-Content -LiteralPath $scanListPath -Encoding UTF8
+          $sentinelCheck = @'
+          import { readFile } from 'node:fs/promises';
+          import { assertNoMigrationSecretSentinels } from './scripts/migration-secret-sentinels.mjs';
+          const files = JSON.parse(await readFile(process.argv[1], 'utf8'));
+          for (const file of files) {
+            assertNoMigrationSecretSentinels(await readFile(file, 'utf8'), file);
+          }
+          console.log(`scanned migration diagnostics: ${files.length}`);
+          '@
+          & node --input-type=module -e $sentinelCheck $scanListPath
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) {
+            Write-Error "Migration secret-sentinel gate failed with exit $exitCode"
+            exit $exitCode
+          }
+
+      - name: Upload Firefox M1 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-m1-${{ github.event.pull_request.head.sha }}-e2e-diagnostics
+          path: artifacts/firefox-m1/${{ github.event.pull_request.head.sha }}
+          if-no-files-found: error

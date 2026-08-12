@@ -1,6 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { createReadStream, createWriteStream } from 'node:fs';
+import { createReadStream, createWriteStream, openSync } from 'node:fs';
 import {
   access,
   cp,
@@ -31,9 +31,82 @@ const FIREFOX_ROOT = resolve(CACHE_ROOT, 'firefox');
 const GECKODRIVER_ROOT = resolve(CACHE_ROOT, 'geckodriver');
 const PROFILE_ROOT = resolve(CACHE_ROOT, 'profiles');
 const STATE_PATH = resolve(CACHE_ROOT, 'toolchain-state.json');
+const M1_REPORT_PATH = resolve(CACHE_ROOT, 'reports', 'firefox-m1-report.json');
 const FIREFOX_BUILD_ROOT = resolve(PRODUCT_ROOT, 'dist', 'firefox-mv3');
 const PACKAGE_ROOT = resolve(PRODUCT_ROOT, 'browser-builds', 'firefox-m1');
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
+const FIREFOX_MIGRATION_STEPS = [
+  {
+    label: 'Corpus A',
+    script: 'scripts/e2e-firefox-original-migration.mjs',
+    backup: 'fixtures/zeroomega-v2/original-default-v3.5.0.bak',
+    provenance: 'fixtures/zeroomega-v2/original-default-v3.5.0.provenance.json',
+  },
+  {
+    label: 'Corpus C/D',
+    script: 'scripts/e2e-firefox-original-migration.mjs',
+    corpus: 'complex',
+    backup: 'fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.bak',
+    provenance: 'fixtures/zeroomega-v2/original-complex-corpus-cd-v3.5.0.provenance.json',
+  },
+  {
+    label: 'large representative',
+    script: 'scripts/e2e-firefox-original-large-migration.mjs',
+    backup: 'fixtures/zeroomega-v2/original-large-representative-v3.5.0.bak',
+    provenance: 'fixtures/zeroomega-v2/original-large-representative-v3.5.0.provenance.json',
+  },
+];
+const FIREFOX_M1_FAILURE_COVERAGE = [
+  {
+    id: 'blocked-import-analysis',
+    expected: 'covered',
+    evidence: 'large Firefox E2E analyzeRejectedBackupWithoutMutation',
+  },
+  {
+    id: 'pendingApply-restart',
+    expected: 'covered',
+    evidence: 'large Firefox E2E injectInterruptedApply and restart recovery',
+  },
+  {
+    id: 'export-purity',
+    expected: 'covered',
+    evidence: 'large Firefox E2E semantic export and re-export secret gate',
+  },
+  {
+    id: 'post-activation-rollback',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E fault injection is not present',
+  },
+  {
+    id: 'rollback-persistence-failure',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E fault injection is not present',
+  },
+  {
+    id: 'rollback-required',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E fault injection is not present',
+  },
+  {
+    id: 'install-failure-rollback',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E install failure injection is not present',
+  },
+  {
+    id: 'confirm-failure-rollback',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E confirm failure injection is not present',
+  },
+  {
+    id: 'activation-failure',
+    expected: 'not-covered',
+    evidence: 'Firefox E2E activation failure injection is not present',
+  },
+];
+let m1BrowserRun = false;
+let m1JourneyComplete = false;
+let m1CompletedMigrations = [];
+let m1CommandActive = false;
 
 function relativeLabel(filePath) {
   return relative(PRODUCT_ROOT, filePath).split(sep).join('/') || '.';
@@ -93,6 +166,37 @@ export function validateToolchainManifest(manifest) {
 
 export async function loadToolchainManifest() {
   return validateToolchainManifest(await readJson(TOOLCHAIN_MANIFEST_PATH));
+}
+
+export function validateMigrationBackupHash(provenance, actualHash, label = 'migration') {
+  const declaredHash = provenance?.backupSha256 ?? provenance?.stableBackup?.sha256;
+  if (typeof declaredHash !== 'string' || !SHA256_PATTERN.test(declaredHash.toLowerCase())) {
+    throw new Error(`${label} provenance backup SHA-256 is missing or malformed`);
+  }
+  if (typeof actualHash !== 'string' || !SHA256_PATTERN.test(actualHash.toLowerCase())) {
+    throw new Error(`${label} fixture SHA-256 is missing or malformed`);
+  }
+  if (declaredHash.toLowerCase() !== actualHash.toLowerCase()) {
+    throw new Error(`${label} fixture does not match its provenance hash`);
+  }
+  return declaredHash;
+}
+
+export function resolveM1CoverageStatus(expected, browserJourneyComplete) {
+  if (browserJourneyComplete !== true) return 'unverified';
+  if (expected === 'covered' || expected === 'not-covered') return expected;
+  throw new Error(`unknown Firefox M1 coverage expectation: ${expected}`);
+}
+
+export function canDeclareM1JourneySuccess(journeyComplete, coverageRows) {
+  if (journeyComplete !== true || !Array.isArray(coverageRows) || coverageRows.length === 0) {
+    return false;
+  }
+  const statuses = coverageRows.map((row) => row.status);
+  return (
+    statuses.every((status) => status === 'covered') &&
+    !statuses.some((status) => status === 'not-covered' || status === 'unverified')
+  );
 }
 
 function commandOutput(command, args) {
@@ -305,6 +409,83 @@ function runPnpm(args, environment) {
   }
 }
 
+async function assertProvenanceBoundMigrationStep(step) {
+  const scriptPath = resolve(PRODUCT_ROOT, step.script);
+  const backupPath = resolve(PRODUCT_ROOT, step.backup);
+  const provenancePath = resolve(PRODUCT_ROOT, step.provenance);
+  for (const [kind, path] of [
+    ['migration script', scriptPath],
+    ['fixture', backupPath],
+    ['provenance', provenancePath],
+  ]) {
+    if (!(await exists(path))) throw new Error(`${step.label} ${kind} is missing`);
+  }
+
+  const provenance = await readJson(provenancePath);
+  const version = provenance.originalVersion ?? provenance.sourceTag;
+  if (version !== 'v3.5.0') {
+    throw new Error(`${step.label} provenance is not pinned to ZeroOmega v3.5.0`);
+  }
+  validateMigrationBackupHash(provenance, await sha256File(backupPath), step.label);
+  return scriptPath;
+}
+
+async function writeM1Report(failure) {
+  const failurePreservation = FIREFOX_M1_FAILURE_COVERAGE.map((row) => ({
+    id: row.id,
+    expected: row.expected,
+    status: resolveM1CoverageStatus(row.expected, m1JourneyComplete),
+    evidence: row.evidence,
+    releaseState: m1JourneyComplete && row.expected === 'covered' ? 'EVIDENCED' : 'NO-GO',
+  }));
+  const journeySuccess = canDeclareM1JourneySuccess(m1JourneyComplete, failurePreservation);
+  const report = {
+    schemaVersion: 1,
+    command: 'test:e2e:firefox:m1',
+    browser: 'firefox',
+    exactHead: process.env.ZEROOMEGA_EXACT_HEAD ?? null,
+    browserRun: m1BrowserRun,
+    journey: 'real original migration and semantic round trip',
+    journeyComplete: m1JourneyComplete,
+    journeyStatus: journeySuccess ? 'success' : m1JourneyComplete ? 'NO-GO' : 'unverified',
+    migrations: m1CompletedMigrations,
+    failurePreservation,
+    releaseState: journeySuccess ? 'GO-FOR-OWNER' : 'NO-GO',
+    ...(failure ? { failure: failure instanceof Error ? failure.message : String(failure) } : {}),
+  };
+  await mkdir(dirname(M1_REPORT_PATH), { recursive: true });
+  await writeJson(M1_REPORT_PATH, report);
+  console.log(JSON.stringify(report));
+  return report;
+}
+
+async function runFirefoxMigrationStep(toolchain, step) {
+  const scriptPath = await assertProvenanceBoundMigrationStep(step);
+  const environment = {
+    ...process.env,
+    FIREFOX_BIN: toolchain.firefox.binaryPath,
+    GECKODRIVER_BIN: toolchain.geckodriver.binaryPath,
+  };
+  if (step.corpus) environment.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS = step.corpus;
+  else delete environment.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS;
+
+  console.log(`Firefox M1 migration step starting: ${step.label}`);
+  const result = spawnSync(process.execPath, [scriptPath], {
+    cwd: PRODUCT_ROOT,
+    env: environment,
+    stdio: 'inherit',
+    windowsHide: false,
+  });
+  if (result.error) throw new Error(`Firefox ${step.label} migration failed to start`);
+  if (result.status !== 0) {
+    throw new Error(
+      `Firefox ${step.label} migration failed with exit ${result.status ?? 'unknown'}`,
+    );
+  }
+  console.log(`Firefox M1 migration step passed: ${step.label}`);
+  return step.label;
+}
+
 async function buildCurrentFirefox(toolchain) {
   runPnpm(['build:firefox'], {
     FIREFOX_BIN: toolchain.firefox.binaryPath,
@@ -338,10 +519,21 @@ async function createFirefoxDriver(toolchain, profilePath, headless) {
     .addArguments('-no-remote', '-profile', profilePath);
   if (headless) options.addArguments('-headless');
 
+  const service = firefoxService();
+  if (process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_TRACE === '1') {
+    service.enableVerboseLogging(true);
+    const logPath = process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_LOG;
+    if (logPath) {
+      const logFile = openSync(logPath, 'a');
+      service.setStdio(['ignore', logFile, logFile]);
+    } else {
+      service.setStdio('inherit');
+    }
+  }
   return new Builder()
     .forBrowser('firefox')
     .setFirefoxOptions(options)
-    .setFirefoxService(firefoxService())
+    .setFirefoxService(service)
     .build();
 }
 
@@ -423,6 +615,11 @@ async function runInstallDev() {
 }
 
 async function runM1Test() {
+  m1CommandActive = true;
+  m1BrowserRun = false;
+  m1JourneyComplete = false;
+  m1CompletedMigrations = [];
+  await writeM1Report();
   const toolchain = await setupToolchain();
   const extensionManifest = await buildCurrentFirefox(toolchain);
   await runFirefoxSession({
@@ -433,6 +630,21 @@ async function runM1Test() {
     temporary: true,
     holdOpen: false,
   });
+  m1BrowserRun = true;
+  for (const step of FIREFOX_MIGRATION_STEPS) {
+    m1CompletedMigrations.push(await runFirefoxMigrationStep(toolchain, step));
+  }
+  m1JourneyComplete = true;
+  const report = await writeM1Report();
+  if (!canDeclareM1JourneySuccess(report.journeyComplete, report.failurePreservation)) {
+    const unresolved = report.failurePreservation
+      .filter(({ status }) => status !== 'covered')
+      .map(({ id, status }) => `${id}:${status}`)
+      .join(', ');
+    throw new Error(
+      `Firefox M1 failure-preservation coverage is unresolved (${unresolved}); release state is NO-GO`,
+    );
+  }
 }
 
 async function listFiles(directory, prefix = '') {
@@ -656,7 +868,16 @@ async function main() {
 
 const currentScript = process.argv[1] ? resolve(process.argv[1]) : '';
 if (currentScript === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
+  main().catch(async (error) => {
+    if (process.argv[2] === 'test-m1' && m1CommandActive) {
+      try {
+        await writeM1Report(error);
+      } catch (reportError) {
+        console.error(
+          `Firefox M1 report failed: ${reportError instanceof Error ? reportError.message : String(reportError)}`,
+        );
+      }
+    }
     console.error(
       `Firefox M1 command failed: ${error instanceof Error ? error.message : String(error)}`,
     );

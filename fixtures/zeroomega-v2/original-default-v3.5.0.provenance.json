@@ -3,6 +3,7 @@
   "sourceCaptureRun": 30181773502,
   "sourceArtifactId": 8625759489,
   "sourceArtifactSha256": "8403e963325a5d4fcac10fd2f3c8dac246cb720afb24f322c827d5cf8ebfdd19",
+  "backupSha256": "34F88783F863CDF0D29BC15B64F187D50E25F89AD21525271A57582D40686EAD",
   "sourceModule": "original-source/omega-target-src/default_options.coffee",
   "generation": "Executed with coffee-script 1.12.7, then serialized with JSON.stringify exactly as original IoCtrl.exportOptions."
 }

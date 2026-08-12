@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { openSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -63,7 +64,7 @@ async function closeServer(server) {
 }
 
 function firefoxOptions() {
-  return new firefox.Options()
+  const options = new firefox.Options()
     .addArguments('-headless', '-profile', profileDir)
     .enableBidi()
     .setPreference('intl.accept_languages', 'zh-TW')
@@ -87,12 +88,29 @@ function firefoxOptions() {
       'application/json,text/json,application/octet-stream',
     )
     .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
+  if (process.env.FIREFOX_BIN) options.setBinary(process.env.FIREFOX_BIN);
+  return options;
+}
+
+function firefoxServiceForE2e() {
+  const service = firefoxService();
+  if (process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_TRACE === '1') {
+    service.enableVerboseLogging(true);
+    const logPath = process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_LOG;
+    if (logPath) {
+      const logFile = openSync(logPath, 'a');
+      service.setStdio(['ignore', logFile, logFile]);
+    } else {
+      service.setStdio('inherit');
+    }
+  }
+  return service;
 }
 
 async function launch() {
   return new Builder()
     .forBrowser(Browser.FIREFOX)
-    .setFirefoxService(firefoxService())
+    .setFirefoxService(firefoxServiceForE2e())
     .setFirefoxOptions(firefoxOptions())
     .build();
 }

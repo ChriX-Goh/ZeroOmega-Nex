@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { openSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -79,7 +80,7 @@ async function quitDriver(driver) {
 }
 
 function firefoxOptions() {
-  return new firefox.Options()
+  const options = new firefox.Options()
     .addArguments('-headless', '-profile', profileDir)
     .enableBidi()
     .setPreference('intl.accept_languages', 'zh-TW')
@@ -101,12 +102,29 @@ function firefoxOptions() {
       'application/json,text/json,application/octet-stream',
     )
     .setPreference('extensions.webextensions.uuids', JSON.stringify({ [addonId]: extensionUuid }));
+  if (process.env.FIREFOX_BIN) options.setBinary(process.env.FIREFOX_BIN);
+  return options;
+}
+
+function firefoxServiceForE2e() {
+  const service = firefoxService();
+  if (process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_TRACE === '1') {
+    service.enableVerboseLogging(true);
+    const logPath = process.env.ZEROOMEGA_FIREFOX_GECKODRIVER_LOG;
+    if (logPath) {
+      const logFile = openSync(logPath, 'a');
+      service.setStdio(['ignore', logFile, logFile]);
+    } else {
+      service.setStdio('inherit');
+    }
+  }
+  return service;
 }
 
 async function launch() {
   return new Builder()
     .forBrowser(Browser.FIREFOX)
-    .setFirefoxService(firefoxService())
+    .setFirefoxService(firefoxServiceForE2e())
     .setFirefoxOptions(firefoxOptions())
     .build();
 }
@@ -413,7 +431,7 @@ async function waitForDownloadedExport(previousFiles) {
   assert.fail(`Firefox original large migration export did not appear in ${downloadDir}`);
 }
 
-async function exportOriginalSemantics(driver, originalOptions) {
+async function exportOriginalSemantics(driver, originalOptions, { writeReimport = false } = {}) {
   const importExportButton = await driver.findElement(
     By.xpath("//button[.//*[@data-options-nav-icon='import']]"),
   );
@@ -432,7 +450,7 @@ async function exportOriginalSemantics(driver, originalOptions) {
     /passwordSecretRef|secretRef|not-a-real-secret/u,
     'Firefox original large migration export leaked secret references',
   );
-  await writeFile(reimportPath, exportedContent);
+  if (writeReimport) await writeFile(reimportPath, exportedContent);
   return {
     bytes: Buffer.byteLength(exportedContent, 'utf8'),
     sha256: createHash('sha256').update(exportedContent).digest('hex'),
@@ -460,6 +478,23 @@ async function reimportForReview(driver, path) {
     true,
     'Firefox semantic re-import was not accepted for use',
   );
+}
+
+async function useReviewedImport(driver, previousGeneration) {
+  const importButton = await driver.wait(
+    until.elementLocated(By.css('[data-legacy-import-and-use]')),
+    60_000,
+  );
+  assert.equal(
+    await importButton.isEnabled(),
+    true,
+    'Firefox semantic re-import was not accepted for use',
+  );
+  await importButton.click();
+  await driver.wait(async () => {
+    const response = await sendWorkflowCommand(driver, { action: 'get' });
+    return response?.ok === true && response.state.generation > previousGeneration;
+  }, 60_000);
 }
 
 async function importAndUse(driver, path, previousGeneration) {
@@ -652,19 +687,23 @@ try {
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-restart');
 
-  const exported = await exportOriginalSemantics(driver, originalOptions);
+  const exported = await exportOriginalSemantics(driver, originalOptions, { writeReimport: true });
   const beforeReimport = await assertLargeState(
     driver,
     'after semantic export / before re-import analysis',
   );
   await reimportForReview(driver, reimportPath);
-  const reimported = await assertLargeState(driver, 'after semantic re-import analysis');
+  const afterReimportAnalysis = await assertLargeState(driver, 'after semantic re-import analysis');
+  assert.equal(afterReimportAnalysis.switchId, beforeReimport.switchId);
+  assert.deepEqual(afterReimportAnalysis.metrics, beforeReimport.metrics);
+  await useReviewedImport(driver, beforeReimport.workflow.state.generation);
+  const reimported = await assertLargeState(driver, 'after semantic re-import Import & Use');
   assert.equal(reimported.switchId, beforeReimport.switchId);
-  assert.deepEqual(reimported.metrics, beforeReimport.metrics);
+  const reexported = await exportOriginalSemantics(driver, originalOptions);
   await waitForActiveSwitch(
     driver,
     beforeReimport.switchId,
-    'Semantic re-import analysis changed the confirmed Firefox PAC route',
+    'Semantic re-import Import & Use changed the confirmed Firefox PAC route',
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-reimport-analysis');
 
@@ -702,9 +741,11 @@ try {
           afterImport: imported.metrics,
           afterRestart: restored.metrics,
           afterExportBeforeReimport: beforeReimport.metrics,
-          afterReimportAnalysis: reimported.metrics,
+          afterReimportAnalysis: afterReimportAnalysis.metrics,
+          afterReimportUse: reimported.metrics,
         },
         semanticExport: exported,
+        semanticReExport: reexported,
         failurePreservation: {
           rejectedImport,
           interruptedApply: {
