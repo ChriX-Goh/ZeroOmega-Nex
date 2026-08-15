@@ -32,6 +32,11 @@ const GECKODRIVER_ROOT = resolve(CACHE_ROOT, 'geckodriver');
 const PROFILE_ROOT = resolve(CACHE_ROOT, 'profiles');
 const STATE_PATH = resolve(CACHE_ROOT, 'toolchain-state.json');
 const M1_REPORT_PATH = resolve(CACHE_ROOT, 'reports', 'firefox-m1-report.json');
+const FAILURE_PLAN_PATH = resolve(
+  PRODUCT_ROOT,
+  'fixtures/zeroomega-v2/firefox-m1-failure-plan.v1.json',
+);
+const FAILURE_REPORT_PATH = resolve(CACHE_ROOT, 'reports', 'firefox-m1-failure-evidence.json');
 const FIREFOX_BUILD_ROOT = resolve(PRODUCT_ROOT, 'dist', 'firefox-mv3');
 const PACKAGE_ROOT = resolve(PRODUCT_ROOT, 'browser-builds', 'firefox-m1');
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
@@ -74,39 +79,41 @@ const FIREFOX_M1_FAILURE_COVERAGE = [
   },
   {
     id: 'post-activation-rollback',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E fault injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
   {
     id: 'rollback-persistence-failure',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E fault injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
   {
     id: 'rollback-required',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E fault injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
   {
     id: 'install-failure-rollback',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E install failure injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
   {
     id: 'confirm-failure-rollback',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E confirm failure injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
   {
     id: 'activation-failure',
-    expected: 'not-covered',
-    evidence: 'Firefox E2E activation failure injection is not present',
+    expected: 'covered',
+    evidence: 'Firefox E2E dynamic FailurePlan evidence is required',
   },
 ];
 let m1BrowserRun = false;
 let m1JourneyComplete = false;
 let m1CompletedMigrations = [];
 let m1CommandActive = false;
+let m1FailureEvidenceComplete = false;
+let m1FailureEvidence = undefined;
 
 function relativeLabel(filePath) {
   return relative(PRODUCT_ROOT, filePath).split(sep).join('/') || '.';
@@ -123,6 +130,39 @@ async function exists(filePath) {
 
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, 'utf8'));
+}
+
+export async function loadFirefoxM1FailurePlan() {
+  const plan = await readJson(FAILURE_PLAN_PATH);
+  if (plan?.schemaVersion !== 1 || plan?.exactHead !== '$ZEROOMEGA_EXACT_HEAD') {
+    throw new Error('Firefox M1 failure plan schema or exactHead is invalid');
+  }
+  if (
+    plan.context?.browser !== 'firefox' ||
+    plan.context?.harness !== 'large-migration' ||
+    plan.context?.mode !== 'test-only'
+  ) {
+    throw new Error('Firefox M1 failure plan is not scoped to the test-only Firefox harness');
+  }
+  const expectedIds = FIREFOX_M1_FAILURE_COVERAGE.slice(3)
+    .map(({ id }) => id)
+    .sort();
+  const actualIds = Array.isArray(plan.scenarios) ? plan.scenarios.map(({ id }) => id).sort() : [];
+  if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+    throw new Error('Firefox M1 failure plan scenarios do not match the six required scenarios');
+  }
+  for (const scenario of plan.scenarios) {
+    if (
+      (scenario.operation !== 'apply' && scenario.operation !== 'restart-recovery') ||
+      !Array.isArray(scenario.faultStages) ||
+      scenario.faultStages.length === 0 ||
+      typeof scenario.failureReason !== 'string' ||
+      scenario.failureReason.length === 0
+    ) {
+      throw new Error(`Firefox M1 failure plan scenario is malformed: ${scenario.id}`);
+    }
+  }
+  return plan;
 }
 
 async function writeJson(filePath, value) {
@@ -434,9 +474,23 @@ async function writeM1Report(failure) {
   const failurePreservation = FIREFOX_M1_FAILURE_COVERAGE.map((row) => ({
     id: row.id,
     expected: row.expected,
-    status: resolveM1CoverageStatus(row.expected, m1JourneyComplete),
-    evidence: row.evidence,
-    releaseState: m1JourneyComplete && row.expected === 'covered' ? 'EVIDENCED' : 'NO-GO',
+    status: resolveM1CoverageStatus(
+      row.expected,
+      m1JourneyComplete &&
+        (row.id.startsWith('blocked-') ||
+          row.id.startsWith('pendingApply-') ||
+          row.id === 'export-purity' ||
+          m1FailureEvidenceComplete),
+    ),
+    evidence: m1FailureEvidence?.[row.id] ?? row.evidence,
+    releaseState:
+      m1JourneyComplete &&
+      (row.id.startsWith('blocked-') ||
+        row.id.startsWith('pendingApply-') ||
+        row.id === 'export-purity' ||
+        m1FailureEvidenceComplete)
+        ? 'EVIDENCED'
+        : 'NO-GO',
   }));
   const journeySuccess = canDeclareM1JourneySuccess(m1JourneyComplete, failurePreservation);
   const report = {
@@ -450,6 +504,7 @@ async function writeM1Report(failure) {
     journeyStatus: journeySuccess ? 'success' : m1JourneyComplete ? 'NO-GO' : 'unverified',
     migrations: m1CompletedMigrations,
     failurePreservation,
+    ...(m1FailureEvidence === undefined ? {} : { failureEvidence: m1FailureEvidence }),
     releaseState: journeySuccess ? 'GO-FOR-OWNER' : 'NO-GO',
     ...(failure ? { failure: failure instanceof Error ? failure.message : String(failure) } : {}),
   };
@@ -461,10 +516,14 @@ async function writeM1Report(failure) {
 
 async function runFirefoxMigrationStep(toolchain, step) {
   const scriptPath = await assertProvenanceBoundMigrationStep(step);
+  const toolchainManifestSha256 = await sha256File(TOOLCHAIN_MANIFEST_PATH);
   const environment = {
     ...process.env,
     FIREFOX_BIN: toolchain.firefox.binaryPath,
     GECKODRIVER_BIN: toolchain.geckodriver.binaryPath,
+    ZEROOMEGA_FAILURE_PLAN_PATH: FAILURE_PLAN_PATH,
+    ZEROOMEGA_FAILURE_REPORT_PATH: FAILURE_REPORT_PATH,
+    ZEROOMEGA_FIREFOX_TOOLCHAIN_MANIFEST_SHA256: toolchainManifestSha256,
   };
   if (step.corpus) environment.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS = step.corpus;
   else delete environment.ZEROOMEGA_ORIGINAL_MIGRATION_CORPUS;
@@ -486,10 +545,16 @@ async function runFirefoxMigrationStep(toolchain, step) {
   return step.label;
 }
 
-async function buildCurrentFirefox(toolchain) {
+async function buildCurrentFirefox(toolchain, { failurePlan = false } = {}) {
   runPnpm(['build:firefox'], {
     FIREFOX_BIN: toolchain.firefox.binaryPath,
     GECKODRIVER_BIN: toolchain.geckodriver.binaryPath,
+    ...(failurePlan
+      ? {
+          WXT_FIREFOX_M1_FAILURE_PLAN: '1',
+          WXT_FIREFOX_M1_FAILURE_PLAN_EXPECTED_HEAD: gitOutput(['rev-parse', 'HEAD']),
+        }
+      : {}),
   });
   const manifestPath = resolve(FIREFOX_BUILD_ROOT, 'manifest.json');
   if (!(await exists(manifestPath))) {
@@ -615,13 +680,25 @@ async function runInstallDev() {
 }
 
 async function runM1Test() {
+  process.env.ZEROOMEGA_EXACT_HEAD ??= gitOutput(['rev-parse', 'HEAD']);
+  process.env.ZEROOMEGA_FAILURE_PLAN_EXPECTED_HEAD ??= process.env.ZEROOMEGA_EXACT_HEAD;
   m1CommandActive = true;
   m1BrowserRun = false;
   m1JourneyComplete = false;
   m1CompletedMigrations = [];
+  m1FailureEvidenceComplete = false;
+  m1FailureEvidence = undefined;
   await writeM1Report();
+  await loadFirefoxM1FailurePlan();
+  const expectedIdentity = {
+    runId: process.env.GITHUB_RUN_ID ?? null,
+    jobId: process.env.GITHUB_JOB ?? null,
+    artifactId: process.env.ZEROOMEGA_ARTIFACT_ID ?? null,
+    manifestSha256: await sha256File(TOOLCHAIN_MANIFEST_PATH),
+    reportPath: FAILURE_REPORT_PATH,
+  };
   const toolchain = await setupToolchain();
-  const extensionManifest = await buildCurrentFirefox(toolchain);
+  const extensionManifest = await buildCurrentFirefox(toolchain, { failurePlan: true });
   await runFirefoxSession({
     toolchain,
     extensionManifest,
@@ -633,6 +710,31 @@ async function runM1Test() {
   m1BrowserRun = true;
   for (const step of FIREFOX_MIGRATION_STEPS) {
     m1CompletedMigrations.push(await runFirefoxMigrationStep(toolchain, step));
+  }
+  if (await exists(FAILURE_REPORT_PATH)) {
+    const evidence = await readJson(FAILURE_REPORT_PATH);
+    const expectedHead = process.env.ZEROOMEGA_EXACT_HEAD ?? gitOutput(['rev-parse', 'HEAD']);
+    if (
+      evidence.exactHead !== expectedHead ||
+      evidence.status !== 'passed' ||
+      JSON.stringify(evidence.identity) !== JSON.stringify(expectedIdentity) ||
+      Object.values(expectedIdentity).some((value) => value === null)
+    ) {
+      throw new Error('Firefox M1 failure evidence identity is not bound to the exact Head');
+    }
+    const requiredIds = FIREFOX_M1_FAILURE_COVERAGE.slice(3)
+      .map(({ id }) => id)
+      .sort();
+    const actualIds = Array.isArray(evidence.scenarios)
+      ? evidence.scenarios.map(({ id }) => id).sort()
+      : [];
+    if (JSON.stringify(actualIds) !== JSON.stringify(requiredIds)) {
+      throw new Error('Firefox M1 failure evidence does not contain all six scenarios');
+    }
+    m1FailureEvidenceComplete = true;
+    m1FailureEvidence = Object.fromEntries(
+      evidence.scenarios.map(({ id, evidence: scenarioEvidence }) => [id, scenarioEvidence]),
+    );
   }
   m1JourneyComplete = true;
   const report = await writeM1Report();

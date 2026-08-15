@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "exactHead": "$ZEROOMEGA_EXACT_HEAD",
+  "context": {
+    "browser": "firefox",
+    "harness": "large-migration",
+    "mode": "test-only"
+  },
+  "scenarios": [
+    {
+      "id": "post-activation-rollback",
+      "operation": "apply",
+      "faultStages": ["commit"],
+      "failureReason": "M1 injected post-activation commit failure"
+    },
+    {
+      "id": "rollback-persistence-failure",
+      "operation": "apply",
+      "faultStages": ["commit", "rollback-persistence"],
+      "failureReason": "M1 injected rollback persistence failure"
+    },
+    {
+      "id": "rollback-required",
+      "operation": "apply",
+      "faultStages": ["commit", "rollback"],
+      "failureReason": "M1 injected rollback-required failure"
+    },
+    {
+      "id": "install-failure-rollback",
+      "operation": "apply",
+      "faultStages": ["install"],
+      "failureReason": "M1 injected PAC install failure"
+    },
+    {
+      "id": "confirm-failure-rollback",
+      "operation": "apply",
+      "faultStages": ["confirm"],
+      "failureReason": "M1 injected PAC confirm failure"
+    },
+    {
+      "id": "activation-failure",
+      "operation": "apply",
+      "faultStages": ["activation"],
+      "failureReason": "M1 injected activation failure"
+    }
+  ]
+}

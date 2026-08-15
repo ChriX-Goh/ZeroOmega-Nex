@@ -59,6 +59,226 @@ export interface ProfileWorkflowPacActivationOptions {
   readonly now?: () => Date;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
   readonly temporarySnapshotNonce?: () => string;
+  readonly failurePlan?: FirefoxM1FailurePlanController;
+}
+
+export const FIREFOX_M1_FAILURE_PLAN_CHANNEL = 'zeroomega-nex/firefox-m1-failure-plan/v1' as const;
+export const FIREFOX_M1_FAILURE_PLAN_SCHEMA_VERSION = 1 as const;
+
+export type FirefoxM1FailureScenarioId =
+  | 'post-activation-rollback'
+  | 'rollback-persistence-failure'
+  | 'rollback-required'
+  | 'install-failure-rollback'
+  | 'confirm-failure-rollback'
+  | 'activation-failure';
+
+export type FirefoxM1FailureStage =
+  | 'activation'
+  | 'install'
+  | 'confirm'
+  | 'commit'
+  | 'rollback-persistence'
+  | 'rollback'
+  | 'recovery';
+
+export interface FirefoxM1FailurePlanScenario {
+  readonly id: FirefoxM1FailureScenarioId;
+  readonly operation: 'apply' | 'restart-recovery';
+  readonly faultStages: readonly FirefoxM1FailureStage[];
+  readonly failureReason: string;
+}
+
+export interface FirefoxM1FailurePlanDocument {
+  readonly schemaVersion: typeof FIREFOX_M1_FAILURE_PLAN_SCHEMA_VERSION;
+  readonly exactHead: string;
+  readonly context: {
+    readonly browser: 'firefox';
+    readonly harness: 'large-migration';
+    readonly mode: 'test-only';
+  };
+  readonly scenarios: readonly FirefoxM1FailurePlanScenario[];
+}
+
+export interface FirefoxM1FailurePlanEvidence {
+  readonly scenario: FirefoxM1FailureScenarioId;
+  readonly stage: FirefoxM1FailureStage;
+  readonly reason: string;
+  readonly occurredAt: string;
+  readonly detail?: Readonly<Record<string, unknown>>;
+}
+
+export interface FirefoxM1FailurePlanControllerOptions {
+  readonly enabled: boolean;
+  readonly expectedHead?: string;
+}
+
+function isFailureStage(value: unknown): value is FirefoxM1FailureStage {
+  return (
+    value === 'activation' ||
+    value === 'install' ||
+    value === 'confirm' ||
+    value === 'commit' ||
+    value === 'rollback-persistence' ||
+    value === 'rollback' ||
+    value === 'recovery'
+  );
+}
+
+function isFailureScenarioId(value: unknown): value is FirefoxM1FailureScenarioId {
+  return (
+    value === 'post-activation-rollback' ||
+    value === 'rollback-persistence-failure' ||
+    value === 'rollback-required' ||
+    value === 'install-failure-rollback' ||
+    value === 'confirm-failure-rollback' ||
+    value === 'activation-failure'
+  );
+}
+
+function recordValue(value: unknown, label: string): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${label} must be an object`);
+  }
+  return value as Record<string, unknown>;
+}
+
+export class FirefoxM1FailurePlanController {
+  readonly #enabled: boolean;
+  readonly #expectedHead: string | undefined;
+  #scenario: FirefoxM1FailurePlanScenario | undefined;
+  #usedStages = new Set<FirefoxM1FailureStage>();
+  #evidence: FirefoxM1FailurePlanEvidence[] = [];
+
+  constructor(options: FirefoxM1FailurePlanControllerOptions) {
+    this.#enabled = options.enabled;
+    this.#expectedHead = options.expectedHead;
+  }
+
+  configure(
+    value: unknown,
+    scenarioId: unknown,
+    context: unknown,
+    requestExactHead?: unknown,
+  ): { readonly ok: true; readonly scenario: FirefoxM1FailureScenarioId } {
+    if (!this.#enabled) throw new Error('Firefox M1 failure plan is disabled');
+    if (typeof this.#expectedHead !== 'string' || requestExactHead !== this.#expectedHead) {
+      throw new Error('Firefox M1 failure plan request exact Head is missing or mismatched');
+    }
+    const document = recordValue(value, 'failure plan');
+    if (document.schemaVersion !== FIREFOX_M1_FAILURE_PLAN_SCHEMA_VERSION) {
+      throw new Error('Firefox M1 failure plan schema version is unsupported');
+    }
+    if (
+      typeof document.exactHead !== 'string' ||
+      (document.exactHead !== '$ZEROOMEGA_EXACT_HEAD' && document.exactHead !== this.#expectedHead)
+    ) {
+      throw new Error('Firefox M1 failure plan exact Head does not match the test context');
+    }
+    const planContext = recordValue(document.context, 'failure plan context');
+    if (
+      planContext.browser !== 'firefox' ||
+      planContext.harness !== 'large-migration' ||
+      planContext.mode !== 'test-only'
+    ) {
+      throw new Error(
+        'Firefox M1 failure plan context is not the explicit test-only Firefox context',
+      );
+    }
+    const requestedContext = recordValue(context, 'failure plan request context');
+    if (
+      requestedContext.browser !== planContext.browser ||
+      requestedContext.harness !== planContext.harness ||
+      requestedContext.mode !== planContext.mode
+    ) {
+      throw new Error('Firefox M1 failure plan request context does not match the plan');
+    }
+    if (!isFailureScenarioId(scenarioId)) {
+      throw new Error(`unknown Firefox M1 failure scenario: ${String(scenarioId)}`);
+    }
+    if (!Array.isArray(document.scenarios)) {
+      throw new Error('Firefox M1 failure plan scenarios must be an array');
+    }
+    const scenario = document.scenarios.find((candidate) => {
+      if (candidate === null || typeof candidate !== 'object') return false;
+      return (candidate as { id?: unknown }).id === scenarioId;
+    }) as FirefoxM1FailurePlanScenario | undefined;
+    if (!scenario || !isFailureScenarioId(scenario.id)) {
+      throw new Error(`Firefox M1 failure scenario is missing: ${scenarioId}`);
+    }
+    if (scenario.operation !== 'apply' && scenario.operation !== 'restart-recovery') {
+      throw new Error(`Firefox M1 failure scenario operation is invalid: ${scenario.id}`);
+    }
+    if (
+      scenario.faultStages.length === 0 ||
+      scenario.faultStages.some((stage) => !isFailureStage(stage))
+    ) {
+      throw new Error(`Firefox M1 failure scenario has invalid fault stages: ${scenario.id}`);
+    }
+    if (typeof scenario.failureReason !== 'string' || scenario.failureReason.length === 0) {
+      throw new Error(`Firefox M1 failure scenario has no failure reason: ${scenario.id}`);
+    }
+    this.#scenario = scenario;
+    this.#usedStages = new Set();
+    this.#evidence = [];
+    return { ok: true, scenario: scenario.id };
+  }
+
+  consume(stage: FirefoxM1FailureStage, detail?: Readonly<Record<string, unknown>>): boolean {
+    if (!this.#scenario || !this.#scenario.faultStages.includes(stage)) return false;
+    if (this.#usedStages.has(stage)) return false;
+    this.#usedStages.add(stage);
+    this.#evidence.push({
+      scenario: this.#scenario.id,
+      stage,
+      reason: this.#scenario.failureReason,
+      occurredAt: new Date().toISOString(),
+      ...(detail === undefined ? {} : { detail }),
+    });
+    return true;
+  }
+
+  report(): {
+    readonly scenario?: FirefoxM1FailureScenarioId;
+    readonly evidence: readonly FirefoxM1FailurePlanEvidence[];
+  } {
+    return {
+      ...(this.#scenario === undefined ? {} : { scenario: this.#scenario.id }),
+      evidence: this.#evidence.map((entry) => structuredClone(entry)),
+    };
+  }
+}
+
+function createFirefoxM1FailurePlanDriver(
+  driver: BrowserProxyDriver,
+  controller: FirefoxM1FailurePlanController,
+): BrowserProxyDriver {
+  return {
+    family: driver.family,
+    getCapabilities: () => driver.getCapabilities(),
+    readState: () => driver.readState(),
+    async installPac(snapshot) {
+      if (controller.consume('install', { snapshotId: snapshot.snapshotId })) {
+        throw new Error('Firefox M1 injected PAC install failure');
+      }
+      await driver.installPac(snapshot);
+    },
+    async confirmPac(snapshot) {
+      if (controller.consume('confirm', { snapshotId: snapshot.snapshotId })) {
+        const capabilities = await driver.getCapabilities();
+        return {
+          confirmed: false,
+          controlLevel: capabilities.controlLevel,
+          reason: 'Firefox M1 injected PAC confirmation failure',
+        };
+      }
+      return driver.confirmPac(snapshot);
+    },
+    setDirect: () => driver.setDirect(),
+    setSystem: () => driver.setSystem(),
+    restoreState: (state) => driver.restoreState(state),
+    clearControl: () => driver.clearControl(),
+  };
 }
 
 function targetFor(driver: BrowserProxyDriver): PacTarget {
@@ -338,12 +558,14 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
   readonly #now: () => Date;
   readonly #authentication: ProfileWorkflowAuthenticationCoordinator | undefined;
   readonly #temporarySnapshotNonce: () => string;
+  readonly #failurePlan: FirefoxM1FailurePlanController | undefined;
 
   constructor(options: ProfileWorkflowPacActivationOptions = {}) {
     this.#createRuntime = options.createRuntime ?? currentBrowserProxyRuntime;
     this.#now = options.now ?? (() => new Date());
     this.#authentication = options.authentication;
     this.#temporarySnapshotNonce = options.temporarySnapshotNonce ?? (() => crypto.randomUUID());
+    this.#failurePlan = options.failurePlan;
   }
 
   async activate(
@@ -354,6 +576,9 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
   }
 
   async rollback(previousApplied: ProfileSpec, startRoute?: ProfileRouteTarget): Promise<void> {
+    if (this.#failurePlan?.consume('rollback', { revisionId: previousApplied.revision.id })) {
+      throw new Error('Firefox M1 injected rollback failure');
+    }
     await this.#activateSpec(previousApplied, startRoute ?? previousApplied.settings.startup.route);
   }
 
@@ -399,6 +624,9 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
     spec: ProfileSpec,
     startRoute?: ProfileRouteTarget,
   ): Promise<ProfileWorkflowActivationResult> {
+    if (this.#failurePlan?.consume('activation', { revisionId: spec.revision.id })) {
+      throw new Error('Firefox M1 injected activation failure');
+    }
     const route: ProfileRouteTarget = startRoute ??
       spec.settings.startup.route ?? { kind: 'direct' };
     const rawScript = rawPacScript(spec, route);
@@ -428,18 +656,16 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
     let runtime: ProfileWorkflowProxyRuntime | undefined;
     try {
       runtime = this.#createRuntime();
+      const driver = this.#failurePlan
+        ? createFirefoxM1FailurePlanDriver(runtime.driver, this.#failurePlan)
+        : runtime.driver;
       const startedAt = this.#now().toISOString();
       let result: ProfileWorkflowActivationResult;
       if (route.kind === 'direct' || route.kind === 'system') {
-        const activated = await activateBuiltInMode(
-          runtime.repository,
-          runtime.driver,
-          route.kind,
-          {
-            startedAt,
-            failedAt: this.#now().toISOString(),
-          },
-        );
+        const activated = await activateBuiltInMode(runtime.repository, driver, route.kind, {
+          startedAt,
+          failedAt: this.#now().toISOString(),
+        });
         if (!activated.ok) {
           throw new Error(
             `browser proxy activation failed at ${activated.stage}: ${activated.message}`,
@@ -490,7 +716,7 @@ export class BrowserProfileWorkflowActivationDriver implements ProfileWorkflowAc
           snapshot = raw.snapshot;
         }
 
-        const activated = await activatePacSnapshot(runtime.repository, runtime.driver, snapshot, {
+        const activated = await activatePacSnapshot(runtime.repository, driver, snapshot, {
           startedAt,
           failedAt: this.#now().toISOString(),
         });

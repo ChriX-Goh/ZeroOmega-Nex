@@ -20,6 +20,8 @@ import {
   type ProfileWorkflowImportService,
   type ProfileWorkflowInitializer,
   type ProfileWorkflowPacSourceUpdateService,
+  type ProfileWorkflowRepository,
+  type ProfileWorkflowRevisionRepository,
   type ProfileWorkflowRuleSourceDownloader,
   type ProfileWorkflowRuleSourceUpdateService,
   type ProfileWorkflowStorageArea,
@@ -31,6 +33,7 @@ import { registerRuleSourceScheduler, type RuleSourceSchedulerApi } from './rule
 import { normalizeExtensionDeviceId } from './extension-device-id';
 import {
   BrowserProfileWorkflowActivationDriver,
+  FirefoxM1FailurePlanController,
   type ProfileWorkflowAuthenticationCoordinator,
 } from './profile-workflow-activation';
 import { BrowserSnapshotRollbackService } from './snapshot-rollback-runtime';
@@ -71,11 +74,46 @@ export interface ProfileWorkflowActivationEvent {
 export interface ProfileWorkflowRuntimeOptions {
   readonly activationDriver?: ProfileWorkflowActivationDriver;
   readonly authentication?: ProfileWorkflowAuthenticationCoordinator;
+  readonly failurePlan?: FirefoxM1FailurePlanController;
   readonly ruleSourceDownloader?: ProfileWorkflowRuleSourceDownloader;
   readonly onActivationSucceeded?: (event: ProfileWorkflowActivationEvent) => Promise<void> | void;
   readonly completeInitialization?: (
     response: ProfileWorkflowCommandResponse,
   ) => Promise<void> | void;
+}
+
+function createFailurePlanRepository(
+  repository: BrowserStorageProfileWorkflowRepository,
+  controller: FirefoxM1FailurePlanController,
+): ProfileWorkflowRepository & ProfileWorkflowRevisionRepository {
+  return {
+    read: () => repository.read(),
+    async compareAndSwap(expectedGeneration, next) {
+      const lastApply = next.lastApply;
+      const stage =
+        lastApply?.status === 'succeeded' && next.pendingApply === undefined
+          ? 'commit'
+          : lastApply?.status === 'failed' && lastApply.stage === 'commit'
+            ? 'rollback-persistence'
+            : lastApply?.status === 'failed' && lastApply.stage === 'recovery'
+              ? 'recovery'
+              : undefined;
+      if (
+        stage !== undefined &&
+        controller.consume(stage, {
+          generation: next.generation,
+          ...(lastApply === undefined
+            ? {}
+            : { applyStage: lastApply.status === 'failed' ? lastApply.stage : lastApply.status }),
+        })
+      ) {
+        return false;
+      }
+      return repository.compareAndSwap(expectedGeneration, next);
+    },
+    getRevision: (revisionId) => repository.getRevision(revisionId),
+    listRevisions: () => repository.listRevisions(),
+  };
 }
 
 export interface RegisteredProfileWorkflowRuntime {
@@ -176,7 +214,7 @@ function createRuleSourceUpdateService(
 }
 
 function createHistoryService(
-  repository: BrowserStorageProfileWorkflowRepository,
+  repository: ProfileWorkflowRevisionRepository,
 ): ProfileWorkflowHistoryService {
   return {
     async listSnapshots() {
@@ -195,12 +233,18 @@ export function registerProfileWorkflowRuntime(
   api: ProfileWorkflowRuntimeApi,
   options: ProfileWorkflowRuntimeOptions = {},
 ): RegisteredProfileWorkflowRuntime {
-  const repository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
+  const baseRepository = new BrowserStorageProfileWorkflowRepository(api.storage.local);
+  const repository = options.failurePlan
+    ? createFailurePlanRepository(baseRepository, options.failurePlan)
+    : baseRepository;
   const deviceId = normalizeExtensionDeviceId(api.runtime.id);
   const initializer = new RuntimeInitializer(deviceId);
   const applyService = createApplyService(
     deviceId,
-    options.activationDriver ?? new BrowserProfileWorkflowActivationDriver(),
+    options.activationDriver ??
+      new BrowserProfileWorkflowActivationDriver(
+        options.failurePlan === undefined ? {} : { failurePlan: options.failurePlan },
+      ),
   );
   const importService = createImportService(api);
   const historyService = createHistoryService(repository);

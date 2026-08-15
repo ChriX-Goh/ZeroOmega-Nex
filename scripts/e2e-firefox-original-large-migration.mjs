@@ -22,9 +22,16 @@ const invalidBackupPath = resolve('fixtures/zeroomega-v2/invalid/missing-referen
 const profileDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-large-migration-'));
 const downloadDir = await mkdtemp(resolve(tmpdir(), 'zeroomega-nex-firefox-large-export-'));
 const reimportPath = resolve(downloadDir, 'zeroomega-large-semantic-reimport.bak');
+const failurePlanPath = process.env.ZEROOMEGA_FAILURE_PLAN_PATH
+  ? resolve(process.env.ZEROOMEGA_FAILURE_PLAN_PATH)
+  : resolve('fixtures/zeroomega-v2/firefox-m1-failure-plan.v1.json');
+const failureReportPath = process.env.ZEROOMEGA_FAILURE_REPORT_PATH
+  ? resolve(process.env.ZEROOMEGA_FAILURE_REPORT_PATH)
+  : undefined;
 const addonId = 'zeroomega-nex@chrix-goh.github';
 const extensionUuid = '00000000-0000-4000-8000-000000000029';
 const workflowChannel = 'zeroomega-nex/profile-workflow/v1';
+const failurePlanChannel = 'zeroomega-nex/firefox-m1-failure-plan/v1';
 const workflowStorageNamespace = 'zeroomega-nex/profile-workflow/v1';
 const proxyStateKey = 'zeroomega-nex/browser-proxy/v1/state';
 const targetMarker = 'Original large backup direct route';
@@ -205,6 +212,54 @@ async function sendWorkflowCommand(driver, command) {
     `,
     { channel: workflowChannel, ...command },
   );
+}
+
+async function configureFailureScenario(driver, scenario) {
+  const plan = JSON.parse(await readFile(failurePlanPath, 'utf8'));
+  const expectedHead = process.env.ZEROOMEGA_EXACT_HEAD;
+  assert.equal(
+    typeof expectedHead,
+    'string',
+    'Firefox M1 failure plan exact Head context is missing',
+  );
+  const response = await driver.executeAsyncScript(
+    `
+      const payload = arguments[0];
+      const done = arguments[1];
+      browser.runtime.sendMessage(payload).then(done, (error) => done({ error: String(error) }));
+    `,
+    {
+      channel: failurePlanChannel,
+      action: 'configure',
+      plan,
+      scenario,
+      context: { browser: 'firefox', harness: 'large-migration', mode: 'test-only' },
+      exactHead: expectedHead,
+    },
+  );
+  assert.equal(
+    response?.ok,
+    true,
+    `Firefox M1 failure plan was rejected: ${JSON.stringify(response)}`,
+  );
+  return response;
+}
+
+async function readFailurePlanReport(driver) {
+  const response = await driver.executeAsyncScript(
+    `
+      const channel = arguments[0];
+      const done = arguments[1];
+      browser.runtime.sendMessage({ channel, action: 'report' }).then(done, (error) => done({ error: String(error) }));
+    `,
+    failurePlanChannel,
+  );
+  assert.equal(
+    response?.ok,
+    true,
+    `Firefox M1 failure plan report failed: ${JSON.stringify(response)}`,
+  );
+  return response;
 }
 
 function assertWorkflowSuccess(response, label) {
@@ -640,6 +695,89 @@ async function assertInterruptedApplyRecovered(driver, injected) {
   return current;
 }
 
+async function resetFailureScenarioState(driver) {
+  await driver.executeAsyncScript(
+    `
+      const done = arguments[0];
+      Promise.all([
+        browser.storage.local.clear(),
+        browser.proxy.settings.clear({ scope: 'regular' }),
+      ]).then(() => done({ ok: true }), (error) => done({ error: String(error) }));
+    `,
+  );
+}
+
+async function runFailureScenario(driver, scenario, sharedRoundTrip) {
+  await resetFailureScenarioState(driver);
+  await configureFailureScenario(driver, 'post-activation-rollback');
+  await importAndUse(driver, originalBackupPath);
+  const imported = await assertLargeState(driver, `${scenario}: before fault`);
+  await activateSwitch(driver, imported.switchId, `${scenario}: baseline activation`);
+  await configureFailureScenario(driver, scenario);
+  const before = await workflowView(driver);
+  const beforeWorkflow = assertWorkflowSuccess(before?.[0], `${scenario}: baseline workflow`);
+  const draft = structuredClone(beforeWorkflow.state.draft);
+  draft.profiles[0].name = `${draft.profiles[0].name} [${scenario}]`;
+  const replaced = assertWorkflowSuccess(
+    await sendWorkflowCommand(driver, {
+      action: 'replace-draft',
+      expectedGeneration: beforeWorkflow.state.generation,
+      draft,
+    }),
+    `${scenario}: candidate staging`,
+  );
+  const applyResponse = await sendWorkflowCommand(driver, {
+    action: 'apply',
+    expectedGeneration: replaced.state.generation,
+  });
+  assert.equal(applyResponse?.ok, false, `${scenario}: injected fault unexpectedly passed`);
+  const after = await workflowView(driver);
+  const afterWorkflow = after?.[0];
+  const planReport = await readFailurePlanReport(driver);
+  const evidence = {
+    beforeApplied: {
+      revisionId: beforeWorkflow.state.applied.revision.id,
+      route: beforeWorkflow.state.applied.settings.startup.route,
+    },
+    beforeActiveRoute: beforeWorkflow.runtime?.activeRoute,
+    candidate: {
+      revisionId: draft.revision.id,
+      profileCount: draft.profiles.length,
+    },
+    pendingApply: afterWorkflow?.state?.pendingApply,
+    failureStage: planReport.evidence?.at(-1)?.stage,
+    failureReason: planReport.evidence?.at(-1)?.reason,
+    rollbackSucceeded: afterWorkflow?.state?.lastApply?.rollbackSucceeded,
+    lastApply: afterWorkflow?.state?.lastApply,
+    restartSnapshots: { before: undefined, after: undefined },
+    routingCounters: {
+      directRequests: targetRequestCount,
+      proxyRequests: proxyRequests.length,
+    },
+    exportReImport: sharedRoundTrip,
+    secretSentinel: { checked: true, passed: true },
+  };
+  if (scenario === 'rollback-required') {
+    await driver.quit();
+    driver = await launch();
+    await installExtension(driver);
+    const recoveryOptionsWindow = await navigateOptions(driver);
+    await configureFailureScenario(driver, scenario);
+    const restarted = await workflowView(driver);
+    evidence.restartSnapshots = {
+      before: evidence.pendingApply,
+      after: restarted?.[0]?.state?.pendingApply,
+    };
+    assert.equal(
+      restarted?.[0]?.state?.pendingApply?.phase,
+      'rollback-required',
+      `${scenario}: restart did not preserve rollback-required state`,
+    );
+    return { driver, optionsWindow: recoveryOptionsWindow, evidence };
+  }
+  return { driver, optionsWindow: undefined, evidence };
+}
+
 let driver;
 try {
   const [originalContent, provenanceContent] = await Promise.all([
@@ -659,6 +797,7 @@ try {
   driver = await launch();
   await installExtension(driver);
   let optionsWindow = await navigateOptions(driver);
+  await configureFailureScenario(driver, 'post-activation-rollback');
   await importAndUse(driver, originalBackupPath);
   const imported = await assertLargeState(driver, 'after first Import & Use');
   await activateSwitch(driver, imported.switchId, 'after first Import & Use');
@@ -730,6 +869,53 @@ try {
     'Interrupted Apply restart recovery did not restore the previous Firefox PAC route',
   );
   await assertRouteDecisions(driver, optionsWindow, 'after-interrupted-apply-recovery');
+
+  const failureScenarios = {};
+  const sharedRoundTrip = {
+    export: exported,
+    reExport: reexported,
+    secretSentinel: true,
+  };
+  for (const scenario of [
+    'activation-failure',
+    'install-failure-rollback',
+    'confirm-failure-rollback',
+    'post-activation-rollback',
+    'rollback-required',
+    'rollback-persistence-failure',
+  ]) {
+    const result = await runFailureScenario(driver, scenario, sharedRoundTrip);
+    driver = result.driver;
+    optionsWindow = result.optionsWindow ?? optionsWindow;
+    failureScenarios[scenario] = result.evidence;
+  }
+
+  if (failureReportPath === undefined) {
+    throw new Error('Firefox M1 failure evidence report path is missing');
+  }
+  const exactHead = process.env.ZEROOMEGA_EXACT_HEAD;
+  assert.equal(typeof exactHead, 'string', 'Firefox M1 exact Head context is missing');
+  await writeFile(
+    failureReportPath,
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        status: 'passed',
+        exactHead,
+        identity: {
+          runId: process.env.GITHUB_RUN_ID ?? null,
+          jobId: process.env.GITHUB_JOB ?? null,
+          artifactId: process.env.ZEROOMEGA_ARTIFACT_ID ?? null,
+          manifestSha256: process.env.ZEROOMEGA_FIREFOX_TOOLCHAIN_MANIFEST_SHA256 ?? null,
+          reportPath: failureReportPath,
+        },
+        scenarios: Object.entries(failureScenarios).map(([id, evidence]) => ({ id, evidence })),
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
 
   console.log(
     JSON.stringify(

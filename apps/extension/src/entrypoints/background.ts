@@ -25,7 +25,11 @@ import {
   type RegisteredOriginalToolbarRuntime,
 } from '../lib/original-toolbar-runtime';
 import type { OriginalToolbarEvent } from '../lib/original-toolbar-tab-coordinator';
-import { BrowserProfileWorkflowActivationDriver } from '../lib/profile-workflow-activation';
+import {
+  FIREFOX_M1_FAILURE_PLAN_CHANNEL,
+  BrowserProfileWorkflowActivationDriver,
+  FirefoxM1FailurePlanController,
+} from '../lib/profile-workflow-activation';
 import {
   currentProfileWorkflowRuntimeApi,
   registerProfileWorkflowRuntime,
@@ -64,6 +68,8 @@ let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
 let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
 let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
 let requestDiagnosticsRuntime: RegisteredRequestDiagnosticsRuntime | undefined;
+let failurePlanController: FirefoxM1FailurePlanController | undefined;
+let failurePlanListener: ((message: unknown) => unknown) | undefined;
 
 async function restoreProxyRuntime(
   manager: ProxyAuthenticationRuntimeManager,
@@ -125,6 +131,10 @@ export default defineBackground(() => {
   originalToolbarRendererE2eRuntime?.dispose();
   originalToolbarRuntime?.dispose();
   requestDiagnosticsRuntime?.dispose();
+  if (failurePlanListener) {
+    browser.runtime.onMessage.removeListener(failurePlanListener);
+    failurePlanListener = undefined;
+  }
   proxyOwnershipRuntime?.dispose();
   popupTemporaryRuleRuntime?.dispose();
   profileWorkflowRuntime?.dispose();
@@ -132,8 +142,50 @@ export default defineBackground(() => {
 
   const authentication = new ProxyAuthenticationRuntimeManager(currentProxyAuthenticationApi());
   authenticationManager = authentication;
+  failurePlanController =
+    import.meta.env.WXT_FIREFOX_M1_FAILURE_PLAN === '1'
+      ? new FirefoxM1FailurePlanController({
+          enabled: true,
+          expectedHead: import.meta.env.WXT_FIREFOX_M1_FAILURE_PLAN_EXPECTED_HEAD,
+        })
+      : undefined;
+  if (failurePlanController) {
+    failurePlanListener = (message: unknown) => {
+      if (
+        message === null ||
+        typeof message !== 'object' ||
+        (message as { channel?: unknown }).channel !== FIREFOX_M1_FAILURE_PLAN_CHANNEL
+      ) {
+        return undefined;
+      }
+      const input = message as {
+        action?: unknown;
+        plan?: unknown;
+        scenario?: unknown;
+        context?: unknown;
+      };
+      try {
+        if (input.action === 'configure') {
+          const configured = failurePlanController!.configure(
+            input.plan,
+            input.scenario,
+            input.context,
+            (message as { exactHead?: unknown }).exactHead,
+          );
+          void profileWorkflowRuntime?.initialize();
+          return configured;
+        }
+        if (input.action === 'report') return { ok: true, ...failurePlanController!.report() };
+        return { ok: false, error: 'unsupported Firefox M1 failure-plan action' };
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    };
+    browser.runtime.onMessage.addListener(failurePlanListener);
+  }
   const baseActivationDriver = new BrowserProfileWorkflowActivationDriver({
     authentication,
+    ...(failurePlanController === undefined ? {} : { failurePlan: failurePlanController }),
   });
   const temporaryRuleApi = currentPopupTemporaryRuleRuntimeApi();
   const temporaryRuleCoordinator = createPopupTemporaryRuleCoordinator(
@@ -195,6 +247,7 @@ export default defineBackground(() => {
   const workflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
     activationDriver,
     authentication,
+    ...(failurePlanController === undefined ? {} : { failurePlan: failurePlanController }),
     onActivationSucceeded: () => refreshToolbar('profile activation'),
     completeInitialization: async (response) => {
       if (!response.ok) {
@@ -256,7 +309,9 @@ export default defineBackground(() => {
     action: toolbarRuntime.inspectAction,
   });
 
-  void workflowRuntime.initialize().catch((error: unknown) => {
-    console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
-  });
+  if (failurePlanController === undefined) {
+    void workflowRuntime.initialize().catch((error: unknown) => {
+      console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
+    });
+  }
 });
