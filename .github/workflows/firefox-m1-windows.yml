@@ -18,7 +18,7 @@ permissions:
 jobs:
   firefox-m1:
     env:
-      ZEROOMEGA_TARGET_HEAD: ${{ github.event_name == 'workflow_dispatch' && inputs.exact_head || github.event.pull_request.head.sha }}
+      ZEROOMEGA_CHECKOUT_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.exact_head || github.event.pull_request.head.sha }}
     runs-on: windows-2025
     timeout-minutes: 35
 
@@ -27,7 +27,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_CHECKOUT_REF
           if ($head -notmatch '^[0-9a-fA-F]{40}$') {
             Write-Error "Target head must be a 40-hex SHA, got $head"
             exit 1
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout exact target head
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.ZEROOMEGA_TARGET_HEAD }}
+          ref: ${{ env.ZEROOMEGA_CHECKOUT_REF }}
           fetch-depth: 1
           persist-credentials: false
 
@@ -44,7 +44,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $expected = $env:ZEROOMEGA_TARGET_HEAD
+          $expected = $env:ZEROOMEGA_CHECKOUT_REF
           if ($expected -notmatch '^[0-9a-fA-F]{40}$') {
             Write-Error "Target head must be a 40-hex SHA, got $expected"
             exit 1
@@ -60,6 +60,8 @@ jobs:
             Write-Error 'Checkout is not clean'
             exit 1
           }
+          "ZEROOMEGA_EXACT_HEAD=$actual" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_EXACT_HEAD=$actual" | Set-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'exact-head.env') -Encoding UTF8
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -102,7 +104,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
           @(
@@ -135,7 +137,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           $state = Get-Content -LiteralPath '.cache/firefox-m1/toolchain-state.json' -Raw | ConvertFrom-Json
           $firefoxBinary = Join-Path $env:GITHUB_WORKSPACE '.cache/firefox-m1/firefox/core/firefox.exe'
@@ -153,7 +155,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Continue'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           $mozCrashRoot = Join-Path $artifactRoot 'moz-crash'
           New-Item -ItemType Directory -Path $mozCrashRoot -Force | Out-Null
@@ -180,7 +182,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Continue'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
           $warningPath = Join-Path $artifactRoot 'diagnostic-warnings.log'
@@ -305,7 +307,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Continue'
-          $head = $env:ZEROOMEGA_TARGET_HEAD
+          $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
           $scanListPath = Join-Path $artifactRoot 'secret-sentinel-inputs.json'
@@ -334,10 +336,37 @@ jobs:
             exit $exitCode
           }
 
+      - name: Validate exact-head diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $errors = @()
+          if ($head -notmatch '^[0-9a-fA-F]{40}$') { $errors += 'ZEROOMEGA_EXACT_HEAD is missing or invalid' }
+          $files = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Force -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) { $errors += 'diagnostic artifact directory is empty' }
+          foreach ($file in $files) {
+            try { $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop } catch { $errors += "unable to read $($file.FullName)"; continue }
+            foreach ($match in [regex]::Matches($text, '(?i)\bexactHead\s*[=:]\s*([0-9a-f]{40})')) {
+              if ($match.Groups[1].Value.ToLowerInvariant() -ne $head.ToLowerInvariant()) { $errors += "exactHead mismatch in $($file.FullName)" }
+            }
+            if ($file.Extension -eq '.json') {
+              try {
+                $json = $text | ConvertFrom-Json -ErrorAction Stop
+                if ($null -ne $json.exactHead -and $json.exactHead -ne $head) { $errors += "JSON exactHead mismatch in $($file.FullName)" }
+              } catch { $errors += "invalid JSON diagnostic: $($file.FullName)" }
+            }
+          }
+          $validation = [ordered]@{ exactHead = $head; valid = ($errors.Count -eq 0); errors = $errors }
+          $validation | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-validation.json') -Encoding UTF8
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+
       - name: Upload Firefox M1 diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: firefox-m1-${{ env.ZEROOMEGA_TARGET_HEAD }}-e2e-diagnostics
-          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_TARGET_HEAD }}
+          name: firefox-m1-${{ env.ZEROOMEGA_EXACT_HEAD }}-e2e-diagnostics
+          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}
           if-no-files-found: error

@@ -680,7 +680,14 @@ async function runInstallDev() {
 }
 
 async function runM1Test() {
-  process.env.ZEROOMEGA_EXACT_HEAD ??= gitOutput(['rev-parse', 'HEAD']);
+  const actualHead = gitOutput(['rev-parse', 'HEAD']);
+  const suppliedExactHead = process.env.ZEROOMEGA_EXACT_HEAD;
+  if (typeof suppliedExactHead !== 'string' || suppliedExactHead !== actualHead) {
+    throw new Error(
+      `Firefox M1 exact Head mismatch: supplied ${suppliedExactHead ?? 'missing'}, actual ${actualHead}`,
+    );
+  }
+  process.env.ZEROOMEGA_EXACT_HEAD = actualHead;
   process.env.ZEROOMEGA_FAILURE_PLAN_EXPECTED_HEAD ??= process.env.ZEROOMEGA_EXACT_HEAD;
   m1CommandActive = true;
   m1BrowserRun = false;
