@@ -63,6 +63,64 @@ async function closeServer(server) {
   await new Promise((resolveClose) => server.close(resolveClose));
 }
 
+export async function cleanupWithPrimaryError(primaryError, cleanupTasks) {
+  const cleanupErrors = [];
+  for (const [label, task] of cleanupTasks) {
+    try {
+      await task();
+    } catch (error) {
+      cleanupErrors.push({ label, error });
+    }
+  }
+  if (cleanupErrors.length > 0 && primaryError) {
+    for (const { label, error } of cleanupErrors) {
+      console.error(`Secondary migration cleanup failure at ${label}:`, error);
+    }
+    return cleanupErrors;
+  }
+  if (cleanupErrors.length > 0) {
+    throw new AggregateError(
+      cleanupErrors.map(({ error }) => error),
+      'Migration cleanup failed',
+    );
+  }
+  return cleanupErrors;
+}
+
+if (process.env.ZEROOMEGA_MIGRATION_CLEANUP_SELF_TEST === '1') {
+  const primaryFailure = new Error('primary migration failure');
+  const combined = await cleanupWithPrimaryError(primaryFailure, [
+    [
+      'driver.quit',
+      async () => {
+        throw new Error('quit failure');
+      },
+    ],
+  ]);
+  assert.equal(combined.length, 1);
+
+  await assert.rejects(
+    cleanupWithPrimaryError(undefined, [
+      [
+        'driver.quit',
+        async () => {
+          throw new Error('quit-only failure');
+        },
+      ],
+    ]),
+    AggregateError,
+  );
+
+  const normal = await cleanupWithPrimaryError(undefined, [['driver.quit', async () => undefined]]);
+  assert.deepEqual(normal, []);
+  await Promise.all([
+    rm(profileDir, { recursive: true, force: true }),
+    rm(downloadDir, { recursive: true, force: true }),
+  ]);
+  console.log('migration cleanup error-preservation self-test passed');
+  process.exit(0);
+}
+
 function firefoxOptions() {
   const options = new firefox.Options()
     .addArguments('-headless', '-profile', profileDir)
@@ -531,6 +589,7 @@ async function importOriginalBackup(driver) {
 }
 
 let driver;
+let primaryError;
 try {
   const originalContent = await readFile(originalBackupPath, 'utf8');
   const originalOptions = JSON.parse(originalContent);
@@ -594,11 +653,20 @@ try {
   console.log(
     `Firefox original ${complexCorpus ? 'Corpus C/D' : 'Corpus A'} import, route, restart, and semantic export passed.`,
   );
+} catch (error) {
+  primaryError = error;
+  throw error;
 } finally {
-  if (driver) await driver.quit();
-  await Promise.all([closeServer(targetServer), closeServer(proxyServer)]);
-  await Promise.all([
-    rm(profileDir, { recursive: true, force: true }),
-    rm(downloadDir, { recursive: true, force: true }),
+  await cleanupWithPrimaryError(primaryError, [
+    [
+      'driver.quit',
+      async () => {
+        if (driver) await driver.quit();
+      },
+    ],
+    ['target server close', () => closeServer(targetServer)],
+    ['proxy server close', () => closeServer(proxyServer)],
+    ['profile cleanup', () => rm(profileDir, { recursive: true, force: true })],
+    ['download cleanup', () => rm(downloadDir, { recursive: true, force: true })],
   ]);
 }
