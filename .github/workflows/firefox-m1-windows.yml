@@ -258,19 +258,21 @@ jobs:
 
           $firefoxInstallRoot = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\firefox'
           $firefoxInstallDestination = Join-Path $artifactRoot 'firefox-install'
+          $inventoryFiles = @()
           if (Test-Path -LiteralPath $firefoxInstallRoot -PathType Container) {
             try {
               Copy-Item -LiteralPath $firefoxInstallRoot -Destination $firefoxInstallDestination -Recurse -Force -ErrorAction Stop
             } catch {
               Warn-Diagnostic "Unable to collect Firefox installation directory: $($_.Exception.Message)"
             }
-            Get-ChildItem -LiteralPath $firefoxInstallRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
-              Select-Object @{Name='relativePath'; Expression={ $_.FullName.Substring($firefoxInstallRoot.Length).TrimStart('\') }}, Length, LastWriteTime |
-              ConvertTo-Json -Depth 3 |
-              Set-Content -LiteralPath (Join-Path $artifactRoot 'firefox-install-inventory.json') -Encoding UTF8
+            $inventoryFiles = @(Get-ChildItem -LiteralPath $firefoxInstallRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
+              Select-Object @{Name='relativePath'; Expression={ $_.FullName.Substring($firefoxInstallRoot.Length).TrimStart('\') }}, Length, LastWriteTime)
           } else {
             Warn-Diagnostic "Firefox installation directory is absent: $firefoxInstallRoot"
           }
+          [ordered]@{ exactHead = $head; files = $inventoryFiles } |
+            ConvertTo-Json -Depth 3 |
+            Set-Content -LiteralPath (Join-Path $artifactRoot 'firefox-install-inventory.json') -Encoding UTF8
 
           $commonCrashRoots = @()
           foreach ($base in @($env:APPDATA, $env:LOCALAPPDATA, $env:PROGRAMDATA)) {
@@ -344,20 +346,48 @@ jobs:
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           $errors = @()
+          $textExtensions = @('.log', '.json', '.txt', '.xml', '.md', '.yml', '.yaml')
+          $requiredFiles = @(
+            (Join-Path $artifactRoot 'run-metadata.txt'),
+            (Join-Path $artifactRoot 'manifest-binding.json'),
+            (Join-Path $artifactRoot 'firefox-install-inventory.json'),
+            (Join-Path $artifactRoot 'reports\firefox-m1-report.json'),
+            (Join-Path $artifactRoot 'reports\firefox-m1-failure-evidence.json')
+          )
           if ($head -notmatch '^[0-9a-fA-F]{40}$') { $errors += 'ZEROOMEGA_EXACT_HEAD is missing or invalid' }
           $files = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Force -ErrorAction SilentlyContinue)
           if ($files.Count -eq 0) { $errors += 'diagnostic artifact directory is empty' }
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+              $errors += "required provenance file is absent: $requiredFile"
+            }
+          }
           foreach ($file in $files) {
+            if ($textExtensions -notcontains $file.Extension.ToLowerInvariant()) { continue }
             try { $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop } catch { $errors += "unable to read $($file.FullName)"; continue }
-            foreach ($match in [regex]::Matches($text, '(?i)\bexactHead\s*[=:]\s*([0-9a-f]{40})')) {
+            if ([string]::IsNullOrEmpty($text)) { continue }
+            foreach ($match in [regex]::Matches([string]$text, '(?i)\bexactHead\s*[=:]\s*([0-9a-f]{40})')) {
               if ($match.Groups[1].Value.ToLowerInvariant() -ne $head.ToLowerInvariant()) { $errors += "exactHead mismatch in $($file.FullName)" }
             }
-            if ($file.Extension -eq '.json') {
+            if ($file.Extension.ToLowerInvariant() -eq '.json') {
               try {
                 $json = $text | ConvertFrom-Json -ErrorAction Stop
                 if ($null -ne $json.exactHead -and $json.exactHead -ne $head) { $errors += "JSON exactHead mismatch in $($file.FullName)" }
               } catch { $errors += "invalid JSON diagnostic: $($file.FullName)" }
             }
+          }
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) { continue }
+            try {
+              $requiredText = Get-Content -LiteralPath $requiredFile -Raw -ErrorAction Stop
+              if ([string]::IsNullOrEmpty($requiredText)) { $errors += "required provenance file is empty: $requiredFile"; continue }
+              if ($requiredFile.EndsWith('.json')) {
+                $requiredJson = $requiredText | ConvertFrom-Json -ErrorAction Stop
+                if ($null -eq $requiredJson.exactHead -or $requiredJson.exactHead -ne $head) { $errors += "required provenance exactHead mismatch: $requiredFile" }
+              } elseif ($requiredFile.EndsWith('.txt')) {
+                if ($requiredText -notmatch "(?m)^exactHead=$([regex]::Escape($head))\s*$") { $errors += "required provenance exactHead mismatch: $requiredFile" }
+              }
+            } catch { $errors += "invalid required provenance file: $requiredFile" }
           }
           $validation = [ordered]@{ exactHead = $head; valid = ($errors.Count -eq 0); errors = $errors }
           $validation | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-validation.json') -Encoding UTF8
