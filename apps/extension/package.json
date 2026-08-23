@@ -8,12 +8,18 @@
     "dev:firefox": "wxt -b firefox",
     "build:chromium": "wxt build",
     "build:firefox": "wxt build -b firefox",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
     "@zeroomega-nex/browser-adapters": "workspace:*",
-    "@zeroomega-nex/core-contracts": "workspace:*"
+    "@zeroomega-nex/core-contracts": "workspace:*",
+    "@zeroomega-nex/legacy-zeroomega": "workspace:*",
+    "@zeroomega-nex/pac-compiler": "workspace:*",
+    "@zeroomega-nex/profile-spec": "workspace:*",
+    "@zeroomega-nex/profile-workflow": "workspace:*",
+    "tldts": "7.4.9",
+    "@zeroomega-nex/reference-interpreter": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.2.0",

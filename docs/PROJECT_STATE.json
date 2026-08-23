@@ -1,0 +1,81 @@
+{
+  "$schema": "./PROJECT_STATE.schema.json",
+  "project": "ZeroOmega Nex",
+  "branch": "feat/m8-profile-workflow",
+  "pull_request": 11,
+  "dynamic_sources": {
+    "exact_head": "GitHub pull request head SHA",
+    "checks": "GitHub checks for exact_head",
+    "mergeability": "GitHub pull request metadata"
+  },
+  "product_identity": "ZeroOmega user-contract-compatible modern successor rewrite",
+  "compatibility_classes": [
+    "CONTRACT-EXACT",
+    "UX-COMPATIBLE",
+    "MODERNIZED",
+    "LEGACY-DEFECT-REJECTED"
+  ],
+  "progress": {
+    "legacy_model_anchor": 47.9,
+    "product_completion": 45.15,
+    "reported_rounded": 45,
+    "delta_from_legacy_anchor": -2.75,
+    "evidence_confidence_band": {
+      "lower": 43,
+      "upper": 50
+    },
+    "reconciliation": "docs/GOV_01_PROGRESS_RECONCILIATION.md",
+    "release_state": "NO-GO"
+  },
+  "owner": {
+    "latest_result": "FAIL",
+    "browser": "Firefox",
+    "date": "2026-08-02",
+    "retest_authorized": false
+  },
+  "completed_batches": [
+    {
+      "id": "GOV-01",
+      "name": "Governance and compatibility-class convergence",
+      "product_progress_delta": 0,
+      "closure": "docs/GOV_01_PROGRESS_RECONCILIATION.md"
+    }
+  ],
+  "active_batch": {
+    "id": "MIG-01",
+    "name": "Real original-export golden path",
+    "type": "product",
+    "phase": "MIG_01_8D_CHECKOUT_CONTAINMENT_HARDENED_BLOCKED_REAL_OWNER_BAK",
+    "parent_journey": "real original migration and semantic round trip",
+    "contract": "docs/MIG_01_BATCH_CONTRACT.md",
+    "product_wip_limit": 1,
+    "scope_frozen": true
+  },
+  "next_batch": {
+    "id": "UX-POPUP-01",
+    "name": "Consolidated Toolbar and Popup daily-use journey"
+  },
+  "authorized_sequence": [
+    "GOV-01",
+    "MIG-01",
+    "UX-POPUP-01",
+    "UX-OPTIONS-01",
+    "SEM-01",
+    "REL-01",
+    "FINAL-01"
+  ],
+  "prohibitions": [
+    "merge",
+    "release",
+    "release candidate claim",
+    "owner micro-slice retest",
+    "unrelated redesign",
+    "popup or options beautification outside MIG-01 blockers",
+    "broad diagnostics expansion",
+    "scheduling or history expansion",
+    "backup or remote sync expansion",
+    "new profile families",
+    "speculative Rust/WASM expansion",
+    "native engine expansion"
+  ]
+}

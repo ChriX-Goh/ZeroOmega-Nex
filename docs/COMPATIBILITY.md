@@ -1,180 +1,175 @@
 # ZeroOmega Compatibility Contract
 
-## 1. Scope
+`docs/PRODUCT_CONSTITUTION.md` is the highest-authority product contract. This document defines how migration, semantic compatibility, user-task compatibility, modernization, and intentional defect rejection are measured.
 
-The first migration target is ZeroOmega export data using `schemaVersion: 2`. Compatibility is evaluated at three levels:
+## 1. Compatibility model
 
-1. **Structural:** the file can be parsed and represented.
-2. **Semantic:** profile references and rule meanings are preserved.
-3. **Behavioral:** representative URLs resolve to the same effective route.
+Every required item is classified before implementation:
 
-Successful parsing alone is not sufficient.
+- `CONTRACT-EXACT` — data, meaning, route decisions, persistence, restart, failure recovery, rollback, export, and security boundaries.
+- `UX-COMPATIBLE` — ordinary user tasks, mental model, terminology, entry points, defaults, information hierarchy, and resulting state.
+- `MODERNIZED` — internal architecture and bounded user-facing improvements that preserve the contract.
+- `LEGACY-DEFECT-REJECTED` — confirmed defects and obsolete implementation accidents that must not be inherited by default.
 
-## 2. Preservation requirements
+Compatibility is not satisfied by successful parsing, similar screenshots, Nex-only fixtures, or equal happy-path output alone.
 
-When present and valid, the importer preserves:
+## 2. Direct migration
 
-- Profile display name.
-- Profile color.
-- User-visible profile order.
-- Profile type.
-- Rule order and notes.
-- Default and matched profile references.
-- Fixed proxy protocol, host, port, and per-scheme mapping.
-- Bypass list and local-host intent.
-- PAC URL and PAC body where supported.
-- Rule-list URL, format, update metadata, and profile targets.
-- Startup profile.
-- Quick-switch profile order.
-- Refresh-on-switch and related representable preferences.
-- Unknown safe fields as namespaced opaque import metadata when needed for lossless export or diagnostics.
+The primary migration target is ZeroOmega v3.5.0 `schemaVersion: 2` export data.
 
-References in the new model use stable IDs, but display names remain unchanged.
+Supported exports must complete:
 
-## 3. Initial profile matrix
+`real original export -> direct import -> validation -> atomic activation -> real route decisions -> browser restart -> semantic re-export`
 
-| Legacy profile             | Import target                     | Initial release expectation                                            |
-| -------------------------- | --------------------------------- | ---------------------------------------------------------------------- |
-| `DirectProfile`            | Built-in direct route             | Full                                                                   |
-| `SystemProfile`            | Browser/system control mode       | Full, platform-specific behavior reported                              |
-| `FixedProfile`             | Fixed proxy policy                | Full for supported HTTP/HTTPS/SOCKS mappings and bypass rules          |
-| `SwitchProfile`            | Ordered decision profile          | Full for supported conditions and references                           |
-| `VirtualProfile`           | Ordered decision profile          | Import and normalize; verify actual legacy use through fixtures        |
-| `RuleListProfile`          | Rule source plus decision profile | Full for recognized formats and supported rule semantics               |
-| `SwitchyRuleListProfile`   | Rule source plus decision profile | Supported through format adapter                                       |
-| `AutoProxyRuleListProfile` | Rule source plus decision profile | Supported through format adapter with explicit unsupported-rule report |
-| `PacProfile`               | PAC source/profile                | Preserve and execute subject to browser capability and security checks |
-| `AutoDetectProfile`        | Auto-detect/PAC source            | Capability-dependent and explicitly reported                           |
+Ordinary successful import must not require manual profile reconstruction, reinterpretation, or a mandatory migration wizard.
 
-## 4. Condition matrix
+When present and valid, Nex preserves:
 
-Each legacy condition receives one of four statuses:
+- profile display names, colors, user-visible order, type, and identity;
+- references, rule order, notes, defaults, matches, attached Rule Lists, and nested graphs;
+- Fixed proxy protocol, host, port, per-scheme mapping, bypass, and authentication boundaries;
+- PAC URL/body, last valid executable content, update and cache meaning where representable;
+- Rule List source, format, target profiles, update and cache meaning where representable;
+- startup profile, Quick Switch order, refresh-on-switch, and related settings;
+- temporary/site-rule meaning and lifecycle where supported;
+- safe unknown fields as namespaced opaque legacy metadata where needed for preservation.
 
-- `exact`: equivalent semantics on all targeted browsers.
-- `target-dependent`: exact only on specified browsers/backends.
-- `downgraded`: safely transformed with a visible semantic change.
-- `unsupported`: preserved in import report but cannot be activated.
+Every field is mapped, preserved, explicitly target-limited, explicitly downgraded, or rejected with a precise reason. Silent loss and silent reinterpretation are prohibited.
 
-Initial candidates:
+## 3. Profile and condition semantics
 
-| Condition family     | Expected handling                                                |
-| -------------------- | ---------------------------------------------------------------- |
-| Exact host           | Exact through indexed model/PAC                                  |
-| Host wildcard/suffix | Exact after normalization and differential tests                 |
-| URL wildcard         | Target-dependent where HTTPS path visibility differs             |
-| Host regex           | Exact if accepted by safe regular-expression policy and backend  |
-| URL regex            | Target-dependent; never force global listener                    |
-| Bypass/local host    | Exact where browser semantics permit; normalized explicitly      |
-| IPv4/IPv6/CIDR       | Backend capability-tested                                        |
-| Scheme/port          | Exact when representable in PAC/backend                          |
-| Time/day conditions  | Deferred until legacy semantics and browser execution are proven |
+The TypeScript reference interpreter remains the semantic oracle until a replacement is proven through differential tests.
 
-The final matrix must be generated from actual ZeroOmega condition definitions and fixture tests, not assumptions.
+Required profile families include Direct, System, Fixed, Switch, Virtual, Rule List, Switchy Rule List, AutoProxy Rule List, PAC, and AutoDetect where current browser capability permits.
 
-## 5. Import transaction
+Required condition families include exact host, domain/wildcard, URL wildcard, host/URL regex, bypass/local host, IPv4/IPv6/CIDR, scheme/port, Rule List formats, PAC results, nested references, defaults, and target-specific conditions proven in scope.
+
+Each semantic item has one status:
+
+- `exact`;
+- `target-dependent`;
+- `downgraded`;
+- `unsupported`;
+- `unknown`.
+
+Unknown and unsupported items fail closed and cannot silently replace a working active state.
+
+## 4. User-task compatibility
+
+Toolbar, Popup, Options, dialogs, Apply/Discard, profile CRUD, site rules, and temporary rules are evaluated as complete tasks rather than collections of incidental DOM facts.
+
+A `UX-COMPATIBLE` task passes when:
+
+- an experienced original user can complete it without instructions or material relearning;
+- core terminology, entry point, default meaning, necessary action order, destructive consequences, and result remain familiar;
+- ordinary UI does not expose internal Draft, compiler, snapshot, graph, capability, migration-transaction, or delivery concepts;
+- Toolbar, Popup, Options, and persisted state do not contradict one another;
+- errors and blocked states are truthful and recoverable.
+
+The following are not default compatibility requirements:
+
+- identical DOM hierarchy;
+- every CSS value or pixel;
+- identical animation or focus timing;
+- identical click-versus-blur implementation;
+- reproduction of inaccessible or framework-accidental behavior.
+
+Geometry and visual evidence remain required where they affect information hierarchy, recognition, overflow, hit targets, accessibility, or task completion.
+
+## 5. Modernization and defect rejection
+
+A `MODERNIZED` change is accepted when it preserves all affected `CONTRACT-EXACT` and `UX-COMPATIBLE` requirements and has evidence proportionate to risk.
+
+Examples include:
+
+- compile-time rather than request-time policy work;
+- browser-native PAC execution;
+- atomic activation and rollback;
+- strict TypeScript boundaries;
+- responsive layout;
+- keyboard and focus improvements;
+- accessibility corrections;
+- clearer errors and loading feedback;
+- bounded diagnostics and privacy improvements.
+
+A `LEGACY-DEFECT-REJECTED` decision records:
+
+- original behavior;
+- evidence that it is defective, unsafe, obsolete, or accidental;
+- corrected behavior;
+- affected real data or user automation;
+- any narrow compatibility adapter retained.
+
+The existence of an original behavior is not sufficient proof that it belongs in the product contract.
+
+## 6. Difference decisions
+
+A `DR-xxxx` record is required when:
+
+- a `CONTRACT-EXACT` result changes;
+- a material `UX-COMPATIBLE` task changes;
+- a browser or platform limit forces a visible or semantic difference;
+- real user data cannot be represented or activated exactly.
+
+The record includes original evidence, target evidence, practical impact, minimum-difference design, migration effect, browser verification, and owner decision where material.
+
+Low-risk modernization and confirmed defect correction use proportionate ADR or audit evidence; they do not require proving an irreducible browser limitation.
+
+## 7. Import and activation transaction
 
 1. Read source as untrusted data.
-2. Enforce size and nesting limits.
-3. Parse JSON/base64 legacy representation.
-4. Validate schema shape.
-5. Enumerate profiles and assign stable IDs.
-6. Resolve name-based references.
-7. Detect missing references and cycles.
-8. Convert supported fields.
-9. Preserve safe unknown fields.
-10. Generate migration report.
-11. Build candidate ProfileSpec revision.
-12. Compile and run differential vectors.
-13. Require explicit activation; never overwrite active state during import.
+2. Enforce size, nesting, graph-depth, and resource limits.
+3. Parse supported JSON/base64 legacy representations.
+4. Validate schema shape and enumerate profiles and settings.
+5. Assign stable internal IDs while preserving user-visible identity and order.
+6. Resolve references and detect missing references, cycles, unsupported graphs, and target limits.
+7. Convert supported fields, isolate secrets, and preserve safe opaque fields.
+8. Produce deterministic semantic and compatibility reports.
+9. Build an inactive candidate revision.
+10. Compile and run required differential and safety checks.
+11. Atomically activate according to the original startup/current-state contract.
+12. Confirm browser installation and observable state.
+13. On any failure, leave or restore the previous confirmed state and report the exact reason.
 
-## 6. Migration report
+Internal candidate and snapshot stages are safety mechanisms, not mandatory ordinary-user workflow.
 
-Every import produces machine-readable and user-readable results:
+## 8. Evidence strategy
 
-```text
-Imported profiles: N
-Exact profiles: N
-Target-dependent profiles: N
-Downgraded rules: N
-Unsupported rules: N
-Missing references: N
-Warnings: N
-```
+### Real corpus
 
-Each item includes:
+Maintain sanitized, provenance-bound evidence for:
 
-- Legacy profile and rule identity.
-- Original value.
-- New representation.
-- Compatibility status.
-- Affected browser/backend.
-- Recommended user action.
+- official/default ZeroOmega v3.5.0 exports;
+- an owner representative daily-use export;
+- nested Switch/Virtual/Rule List configurations;
+- PAC URL/body, cache/update, bypass, and authentication metadata;
+- duplicate names, Unicode, IDN, IPv4/IPv6, large configurations, and safe unknown fields;
+- malformed, cyclic, missing-reference, oversized, unsupported, and hostile cases.
 
-## 7. Differential compatibility testing
+Synthetic fixtures supplement this corpus but cannot replace it for migration claims.
 
-### Fixture corpus
+### Semantic vectors
 
-Maintain sanitized fixtures for:
+Each vector records input configuration and browser state, input URL or user action, expected profile path/result, expected effective route, expected persisted state, and expected warning or failure behavior.
 
-- Minimal profile of every type.
-- Nested SwitchProfiles.
-- Multiple rule-list formats.
-- Duplicate names and unusual Unicode names.
-- Missing references.
-- Circular references.
-- IPv4/IPv6 and bypass edge cases.
-- SOCKS and authentication metadata.
-- PAC URL and embedded PAC.
-- Large real-world configurations.
+Run applicable vectors against the original evidence, reference interpreter, generated PAC, Chromium adapter, Firefox adapter, and real extension package.
 
-### Decision vectors
+### UX task vectors
 
-Each fixture includes URL inputs and expected effective result:
+Each task vector records start state, user goal, essential actions, expected visible state, persisted effect, failure behavior, and any permitted modernization.
 
-```text
-input URL
-expected profile path
-expected final route
-expected warnings
-```
+Micro-states remain regression tests inside the parent task unless they carry independent data, security, or recovery risk.
 
-Run vectors against:
+## 9. Completion gate
 
-1. Legacy/reference evaluator.
-2. New reference interpreter.
-3. Generated PAC in a PAC test harness.
-4. Firefox adapter integration.
-5. Chromium adapter integration.
-6. Future native backend.
+A compatibility item closes only with evidence appropriate to its class.
 
-## 8. Export policy
+`CONTRACT-EXACT` closure requires explicit mapping, deterministic tests, applicable real data/browsers, and precise failure behavior.
 
-ZeroOmega Nex exports its own versioned ProfileSpec by default.
+`UX-COMPATIBLE` closure requires original task anchors, successful representative journeys, consistent state, and bounded visual evidence where material.
 
-A legacy-export feature may be added only when:
+`MODERNIZED` closure requires proof of the claimed improvement and regression protection for affected contracts.
 
-- Mapping is lossless for the selected configuration.
-- Unsupported Nex-only features are identified before export.
-- The export does not claim compatibility it cannot guarantee.
+`LEGACY-DEFECT-REJECTED` closure requires defect evidence, corrected behavior, and compatibility-impact analysis.
 
-## 9. UI compatibility
-
-The goal is workflow familiarity, not copied implementation:
-
-- Familiar profile list and colors.
-- Familiar profile editor categories.
-- Similar popup profile switching.
-- Clear Apply/Revert workflow.
-- Rule ordering remains visible and controllable.
-- New migration, compile, capability, and rollback information is integrated without burying the familiar controls.
-
-## 10. Compatibility completion gate
-
-Compatibility milestone is not complete until:
-
-- The profile/condition inventory is derived from source and fixtures.
-- Every item has an explicit status.
-- Supported items pass behavioral vectors.
-- Unsupported items are visible before activation.
-- Import never modifies active configuration on failure.
-- A representative user export can be imported and activated without manually rebuilding profiles.
+Representative real original exports must import directly and become immediately usable before migration compatibility can be claimed. Complete Chromium and Firefox journeys must pass on one exact final candidate before release.

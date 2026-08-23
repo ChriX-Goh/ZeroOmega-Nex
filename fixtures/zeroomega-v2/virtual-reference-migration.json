@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "-enableQuickSwitch": true,
+  "-refreshOnProfileChange": false,
+  "-startupProfileName": "Target Proxy",
+  "-quickSwitchProfiles": ["Target Proxy", "Unrelated Proxy", "Existing Alias", "direct"],
+  "-revertProxyChanges": true,
+  "-confirmDeletion": true,
+  "-showInspectMenu": true,
+  "-addConditionsToBottom": false,
+  "-showResultProfileOnActionBadgeText": false,
+  "-showExternalProfile": true,
+  "-downloadInterval": 1440,
+  "+Target Proxy": {
+    "name": "Target Proxy",
+    "profileType": "FixedProfile",
+    "color": "#64b5f6",
+    "revision": "virtual-target",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "target.proxy.invalid",
+      "port": 8080
+    },
+    "bypassList": []
+  },
+  "+Unrelated Proxy": {
+    "name": "Unrelated Proxy",
+    "profileType": "FixedProfile",
+    "color": "#e57373",
+    "revision": "virtual-unrelated",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "unrelated.proxy.invalid",
+      "port": 8081
+    },
+    "bypassList": []
+  },
+  "+Route Matrix": {
+    "name": "Route Matrix",
+    "profileType": "SwitchProfile",
+    "color": "#8bc34a",
+    "revision": "virtual-switch",
+    "defaultProfileName": "Target Proxy",
+    "rules": [
+      {
+        "condition": {
+          "conditionType": "HostWildcardCondition",
+          "pattern": "*.virtual-migration.invalid"
+        },
+        "profileName": "Target Proxy",
+        "note": "Virtual migration rule"
+      }
+    ]
+  },
+  "+Rule Matrix": {
+    "name": "Rule Matrix",
+    "profileType": "RuleListProfile",
+    "color": "#ffee99",
+    "revision": "virtual-rule-list",
+    "format": "Switchy",
+    "matchProfileName": "Target Proxy",
+    "defaultProfileName": "Target Proxy",
+    "ruleList": "[SwitchyOmega Conditions]\n@with result\n\n*.virtual-migration.invalid +Target Proxy\n* +Target Proxy\n"
+  },
+  "+PAC Matrix": {
+    "name": "PAC Matrix",
+    "profileType": "PacProfile",
+    "color": "#ffb74d",
+    "revision": "virtual-pac",
+    "pacScript": "function FindProxyForURL(url, host) { return 'DIRECT'; }\n",
+    "fallbackProfileName": "Target Proxy"
+  },
+  "+Auto Matrix": {
+    "name": "Auto Matrix",
+    "profileType": "AutoDetectProfile",
+    "color": "#4db6ac",
+    "revision": "virtual-auto",
+    "pacUrl": "http://wpad/wpad.dat",
+    "pacScript": "function FindProxyForURL(url, host) { return 'DIRECT'; }\n",
+    "fallbackProfileName": "Target Proxy"
+  },
+  "+Existing Alias": {
+    "name": "Existing Alias",
+    "profileType": "VirtualProfile",
+    "color": "#9575cd",
+    "revision": "virtual-existing-alias",
+    "defaultProfileName": "Target Proxy"
+  }
+}

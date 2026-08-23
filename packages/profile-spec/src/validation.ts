@@ -1,7 +1,6 @@
-import Ajv2020 from 'ajv/dist/2020.js';
 import type { ErrorObject } from 'ajv';
 
-import { profileSpecJsonSchema } from './schema.js';
+import generatedValidateStructure from './profile-spec-validator.generated.js';
 
 import type {
   Condition,
@@ -27,14 +26,17 @@ export interface ProfileSpecValidationResult {
   value?: ProfileSpec;
 }
 
-const ajv = new Ajv2020({
-  allErrors: true,
-  allowUnionTypes: true,
-  strict: true,
-  validateFormats: false,
-});
+export type ProfileSpecValidationMode = 'strict' | 'draft';
 
-const validateStructure = ajv.compile<ProfileSpec>(profileSpecJsonSchema);
+export interface ProfileSpecValidationOptions {
+  readonly mode?: ProfileSpecValidationMode;
+}
+
+type ProfileSpecStructureValidator = ((input: unknown) => input is ProfileSpec) & {
+  errors?: readonly ErrorObject[] | null;
+};
+
+const validateStructure = generatedValidateStructure as unknown as ProfileSpecStructureValidator;
 
 const SENSITIVE_HEADER_NAME =
   /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|x-auth-token)$/i;
@@ -135,6 +137,7 @@ function validateUrl(
   path: string,
   allowedProtocols: readonly string[],
   issues: ValidationIssue[],
+  severity: ValidationSeverity = 'error',
 ): void {
   try {
     const parsed = new URL(value);
@@ -144,15 +147,21 @@ function validateUrl(
           'source.unsupported-protocol',
           path,
           `protocol ${parsed.protocol} is not allowed; expected ${allowedProtocols.join(', ')}`,
+          severity,
         ),
       );
     }
   } catch {
-    issues.push(issue('source.invalid-url', path, 'must be an absolute URL'));
+    issues.push(issue('source.invalid-url', path, 'must be an absolute URL', severity));
   }
 }
 
-function validateCondition(condition: Condition, path: string, issues: ValidationIssue[]): void {
+function validateCondition(
+  condition: Condition,
+  path: string,
+  issues: ValidationIssue[],
+  severity: ValidationSeverity,
+): void {
   switch (condition.kind) {
     case 'true':
     case 'false':
@@ -160,7 +169,9 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'url-regex':
     case 'host-regex':
       if (!condition.pattern) {
-        issues.push(issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty'));
+        issues.push(
+          issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty', severity),
+        );
         return;
       }
       try {
@@ -171,6 +182,7 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
             'condition.invalid-regex',
             `${path}/pattern`,
             error instanceof Error ? error.message : 'invalid regular expression',
+            severity,
           ),
         );
       }
@@ -180,14 +192,21 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'bypass':
     case 'keyword':
       if (!condition.pattern) {
-        issues.push(issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty'));
+        issues.push(
+          issue('condition.empty-pattern', `${path}/pattern`, 'must not be empty', severity),
+        );
       }
       return;
     case 'ip': {
       const version = ipv4(condition.address) ? 4 : ipv6(condition.address) ? 6 : 0;
       if (version === 0) {
         issues.push(
-          issue('condition.invalid-ip', `${path}/address`, 'must be an unbracketed IPv4 or IPv6'),
+          issue(
+            'condition.invalid-ip',
+            `${path}/address`,
+            'must be an unbracketed IPv4 or IPv6',
+            severity,
+          ),
         );
         return;
       }
@@ -198,6 +217,7 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
             'condition.invalid-prefix',
             `${path}/prefixLength`,
             `must be between 0 and ${maxPrefix} for IPv${version}`,
+            severity,
           ),
         );
       }
@@ -206,13 +226,20 @@ function validateCondition(condition: Condition, path: string, issues: Validatio
     case 'host-levels':
       if (condition.min > condition.max) {
         issues.push(
-          issue('condition.invalid-range', path, 'host-level minimum must not exceed maximum'),
+          issue(
+            'condition.invalid-range',
+            path,
+            'host-level minimum must not exceed maximum',
+            severity,
+          ),
         );
       }
       return;
     case 'weekday':
       if (new Set(condition.days).size !== condition.days.length) {
-        issues.push(issue('condition.duplicate-weekday', `${path}/days`, 'days must be unique'));
+        issues.push(
+          issue('condition.duplicate-weekday', `${path}/days`, 'days must be unique', severity),
+        );
       }
       return;
     case 'time':
@@ -235,6 +262,8 @@ function profileRoutes(profile: UserProfile): ProfileRouteTarget[] {
     case 'pac':
     case 'auto-detect':
       return profile.fallbackRoute ? [profile.fallbackRoute] : [];
+    case 'virtual':
+      return [profile.targetRoute];
   }
 }
 
@@ -297,16 +326,28 @@ function validateHeaders(
   headers: readonly RuleSourceHeader[] | undefined,
   path: string,
   issues: ValidationIssue[],
+  severity: ValidationSeverity = 'error',
 ): void {
   const headerNames = new Set<string>();
   headers?.forEach((header, headerIndex) => {
     const normalizedName = header.name.trim().toLowerCase();
+    if (!normalizedName) {
+      issues.push(
+        issue(
+          'source.empty-header-name',
+          `${path}/${headerIndex}/name`,
+          'header name is required',
+          severity,
+        ),
+      );
+    }
     if (headerNames.has(normalizedName)) {
       issues.push(
         issue(
           'source.duplicate-header',
           `${path}/${headerIndex}/name`,
           `header "${header.name}" is duplicated`,
+          severity,
         ),
       );
     }
@@ -412,7 +453,10 @@ function validateCycles(spec: ProfileSpec, issues: ValidationIssue[]): void {
   }
 }
 
-export function validateProfileSpec(input: unknown): ProfileSpecValidationResult {
+export function validateProfileSpec(
+  input: unknown,
+  options: ProfileSpecValidationOptions = {},
+): ProfileSpecValidationResult {
   if (!validateStructure(input)) {
     return {
       valid: false,
@@ -422,9 +466,12 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
   const spec = input;
   const issues: ValidationIssue[] = [];
+  const conditionSeverity: ValidationSeverity = options.mode === 'draft' ? 'warning' : 'error';
   const profileIds = new Set(spec.profiles.map((profile) => profile.id));
+  const profileById = new Map(spec.profiles.map((profile) => [profile.id, profile]));
   const endpointIds = new Set(spec.proxyEndpoints.map((endpoint) => endpoint.id));
   const sourceIds = new Set(spec.ruleSources.map((source) => source.id));
+  const attachedRuleListOwnerById = new Map<string, string>();
 
   validateIsoTimestamp(spec.revision.createdAt, '/revision/createdAt', issues);
   addUniqueIssues(spec.profiles, '/profiles', 'profile.duplicate-id', issues);
@@ -453,15 +500,6 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
     if (profile.kind === 'fixed') {
       const references = Object.entries(profile.proxyByScheme);
-      if (references.length === 0) {
-        issues.push(
-          issue(
-            'profile.fixed-without-endpoint',
-            `/profiles/${profileIndex}/proxyByScheme`,
-            'fixed profile must reference at least one proxy endpoint',
-          ),
-        );
-      }
       for (const [scheme, endpointId] of references) {
         if (!endpointIds.has(endpointId)) {
           issues.push(
@@ -504,8 +542,52 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
           rule.condition,
           `/profiles/${profileIndex}/rules/${ruleIndex}/condition`,
           issues,
+          conditionSeverity,
         );
       });
+
+      if (profile.attachedRuleListProfileId !== undefined) {
+        const attachedId = profile.attachedRuleListProfileId;
+        const attached = profileById.get(attachedId);
+        if (!attached) {
+          issues.push(
+            issue(
+              'profile.missing-attached-rule-list',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List profile "${attachedId}" does not exist`,
+            ),
+          );
+        } else if (attached.kind !== 'rule-list') {
+          issues.push(
+            issue(
+              'profile.invalid-attached-rule-list-type',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached profile "${attachedId}" must be a Rule List profile`,
+            ),
+          );
+        } else if (attached.name !== `__ruleListOf_${profile.name}`) {
+          issues.push(
+            issue(
+              'profile.invalid-attached-rule-list-name',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List name must be "__ruleListOf_${profile.name}"`,
+            ),
+          );
+        }
+
+        const previousOwner = attachedRuleListOwnerById.get(attachedId);
+        if (previousOwner !== undefined && previousOwner !== profile.id) {
+          issues.push(
+            issue(
+              'profile.shared-attached-rule-list',
+              `/profiles/${profileIndex}/attachedRuleListProfileId`,
+              `attached Rule List profile "${attachedId}" is already owned by "${previousOwner}"`,
+            ),
+          );
+        } else {
+          attachedRuleListOwnerById.set(attachedId, profile.id);
+        }
+      }
     }
 
     if (profile.kind === 'rule-list' && !sourceIds.has(profile.sourceId)) {
@@ -532,7 +614,12 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
     }
 
     if (profile.kind === 'pac') {
-      validateHeaders(profile.headers, `/profiles/${profileIndex}/headers`, issues);
+      validateHeaders(
+        profile.headers,
+        `/profiles/${profileIndex}/headers`,
+        issues,
+        conditionSeverity,
+      );
       if (profile.source.kind === 'url') {
         validateUrl(
           profile.source.url,
@@ -567,11 +654,40 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
         `/ruleSources/${sourceIndex}/location/url`,
         ['http:', 'https:', 'file:'],
         issues,
+        conditionSeverity,
       );
     }
 
-    validateHeaders(source.headers, `/ruleSources/${sourceIndex}/headers`, issues);
+    validateHeaders(
+      source.headers,
+      `/ruleSources/${sourceIndex}/headers`,
+      issues,
+      conditionSeverity,
+    );
   });
+
+  for (const [attachedId, ownerId] of attachedRuleListOwnerById) {
+    for (const profile of spec.profiles) {
+      const referencedByOwnerDefault =
+        profile.id === ownerId &&
+        profile.kind === 'switch' &&
+        routeProfileId(profile.defaultRoute) === attachedId;
+      const references = profileRoutes(profile).filter(
+        (route) => routeProfileId(route) === attachedId,
+      ).length;
+      const allowedReferences = referencedByOwnerDefault ? 1 : 0;
+      if (references > allowedReferences) {
+        const profileIndex = spec.profiles.findIndex((candidate) => candidate.id === profile.id);
+        issues.push(
+          issue(
+            'profile.external-attached-rule-list-reference',
+            `/profiles/${profileIndex}`,
+            `attached Rule List profile "${attachedId}" may only be referenced by its owner Switch default route`,
+          ),
+        );
+      }
+    }
+  }
 
   spec.settings.quickSwitch.routes.forEach((route, routeIndex) => {
     const profileId = routeProfileId(route);
@@ -581,6 +697,14 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
           'profile.missing-quick-switch-reference',
           `/settings/quickSwitch/routes/${routeIndex}`,
           `quick-switch profile "${profileId}" does not exist`,
+        ),
+      );
+    } else if (profileId && attachedRuleListOwnerById.has(profileId)) {
+      issues.push(
+        issue(
+          'profile.attached-rule-list-in-quick-switch',
+          `/settings/quickSwitch/routes/${routeIndex}`,
+          'attached Rule List profiles are hidden implementation profiles and cannot appear in Quick Switch',
         ),
       );
     }
@@ -595,6 +719,14 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
         `startup profile "${startupProfileId}" does not exist`,
       ),
     );
+  } else if (startupProfileId && attachedRuleListOwnerById.has(startupProfileId)) {
+    issues.push(
+      issue(
+        'profile.attached-rule-list-as-startup',
+        '/settings/startup/route',
+        'attached Rule List profiles cannot be selected as the startup profile',
+      ),
+    );
   }
 
   validateSync(spec, issues);
@@ -603,4 +735,8 @@ export function validateProfileSpec(input: unknown): ProfileSpecValidationResult
 
   const valid = issues.every((entry) => entry.severity !== 'error');
   return valid ? { valid, issues, value: spec } : { valid, issues };
+}
+
+export function validateProfileSpecDraft(input: unknown): ProfileSpecValidationResult {
+  return validateProfileSpec(input, { mode: 'draft' });
 }

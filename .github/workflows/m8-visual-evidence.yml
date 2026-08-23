@@ -1,0 +1,58 @@
+name: Milestone 8 Visual Evidence
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact Head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Chromium extension
+        run: pnpm build:chromium
+
+      - name: Capture visual evidence
+        shell: bash
+        env:
+          ZEROOMEGA_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -o pipefail
+          pnpm evidence:visual 2>&1 | tee m8-visual-evidence.log
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-visual-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            artifacts/m8-visual-evidence
+            m8-visual-evidence.log
+          if-no-files-found: error
+          retention-days: 30

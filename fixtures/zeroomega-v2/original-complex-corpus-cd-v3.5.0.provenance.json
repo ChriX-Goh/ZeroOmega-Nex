@@ -1,0 +1,51 @@
+{
+  "sourceRepository": "zero-peak/ZeroOmega",
+  "sourceTag": "v3.5.0",
+  "sourceCommit": "05cbb30a2204cc3bdf3bb2e65765a70644a022d7",
+  "runtimeModules": [
+    "omega-target/src/default_options.coffee",
+    "omega-pac/src/profiles.coffee",
+    "omega-pac/src/rule_list.coffee",
+    "omega-pac/src/conditions.coffee"
+  ],
+  "generationMethod": "Original v3.5.0 default options plus omega-pac Profiles.create/update/analyze/compile; serialized with JSON.stringify like original IoCtrl export",
+  "nodeVersion": "v18.20.8",
+  "coffeeScriptVersion": "1.12.7",
+  "backupSha256": "f0190ba86c95767b97f6eccdf76d9bd10a80bcdaecddfaa35f7708f9190ae092",
+  "referenceClosure": {
+    "+outer switch": "outer switch",
+    "+direct": "direct",
+    "+virtual route": "virtual route",
+    "+inner switch": "inner switch",
+    "+corpus proxy": "corpus proxy",
+    "+corpus rules": "corpus rules"
+  },
+  "corpus": ["C", "D-partial"],
+  "safeUnknownMetadataProof": {
+    "profile": "+corpus rules",
+    "key": "x-benign-metadata",
+    "value": {
+      "label": "opaque-round-trip",
+      "ordinal": 7,
+      "tags": ["alpha", "中文"],
+      "nested": {
+        "note": "preserve exactly"
+      }
+    },
+    "checkpoints": [
+      "Profiles.create",
+      "Profiles.update",
+      "Profiles.analyze",
+      "Profiles.compile",
+      "pre-export options",
+      "JSON.stringify export"
+    ]
+  },
+  "generationEvidence": {
+    "workflowRunId": 31148550308,
+    "workflowJobId": 92773166550,
+    "artifactId": 8982414439,
+    "artifactDigest": "sha256:047a6fd9d2d8e1d25d8e996115c591ce75d9d2bc6d8fa0b86b64e7e42c0c5a45",
+    "researchCommit": "5de3c6d09c9b0c7198de07ed714126d161b2c6de"
+  }
+}

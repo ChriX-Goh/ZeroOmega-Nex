@@ -4,6 +4,7 @@ import {
   PROFILE_SPEC_SCHEMA_VERSION,
   profileSpecJsonSchema,
   validateProfileSpec,
+  validateProfileSpecDraft,
   type ProfileSpec,
   type SwitchRule,
 } from './index.js';
@@ -210,6 +211,70 @@ describe('ProfileSpec v1', () => {
     expect(result.issues).toEqual([]);
   });
 
+  it('accepts a hidden Rule List owned by one Switch default route', () => {
+    const value = validSpec();
+    const owner = value.profiles.find((profile) => profile.id === 'profile-switch');
+    if (!owner || owner.kind !== 'switch') throw new Error('switch fixture mismatch');
+    owner.attachedRuleListProfileId = 'profile-rules';
+    owner.defaultRoute = { kind: 'profile', profileId: 'profile-rules' };
+    const attached = value.profiles.find((profile) => profile.id === 'profile-rules');
+    if (!attached) throw new Error('rule-list fixture mismatch');
+    attached.name = `__ruleListOf_${owner.name}`;
+
+    const result = validateProfileSpec(value);
+    expect(result.valid).toBe(true);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('rejects shared, exposed, or incorrectly typed attached Rule List profiles', () => {
+    const value = validSpec();
+    const owner = value.profiles.find((profile) => profile.id === 'profile-switch');
+    if (!owner || owner.kind !== 'switch') throw new Error('switch fixture mismatch');
+    owner.attachedRuleListProfileId = 'profile-fixed';
+    expect(issueCodes(value)).toContain('profile.invalid-attached-rule-list-type');
+
+    owner.attachedRuleListProfileId = 'profile-rules';
+    owner.defaultRoute = { kind: 'profile', profileId: 'profile-rules' };
+    const attached = value.profiles.find((profile) => profile.id === 'profile-rules');
+    if (!attached) throw new Error('rule-list fixture mismatch');
+    attached.name = `__ruleListOf_${owner.name}`;
+    value.profiles.push({
+      id: 'profile-switch-2',
+      name: 'Second Switch',
+      kind: 'switch',
+      rules: [],
+      defaultRoute: { kind: 'direct' },
+      attachedRuleListProfileId: 'profile-rules',
+    });
+    value.settings.quickSwitch.routes.push({ kind: 'profile', profileId: 'profile-rules' });
+    const codes = issueCodes(value);
+    expect(codes).toContain('profile.shared-attached-rule-list');
+    expect(codes).toContain('profile.attached-rule-list-in-quick-switch');
+  });
+
+  it('accepts downloaded content alongside a Rule List URL', () => {
+    const value = validSpec();
+    const source = value.ruleSources[0]!;
+    source.location = {
+      kind: 'url',
+      url: 'https://example.com/rules.txt',
+      content: '[AutoProxy 0.2.9]\n||example.com',
+    };
+    expect(validateProfileSpec(value).valid).toBe(true);
+  });
+
+  it('permits an empty request-header row only while editing a Draft', () => {
+    const value = validSpec();
+    value.ruleSources[0]!.headers = [{ name: '', value: { kind: 'literal', value: '' } }];
+
+    const draft = validateProfileSpecDraft(value);
+    expect(draft.valid).toBe(true);
+    expect(draft.issues).toContainEqual(
+      expect.objectContaining({ code: 'source.empty-header-name', severity: 'warning' }),
+    );
+    expect(validateProfileSpec(value).valid).toBe(false);
+  });
+
   it('reports structural schema violations before semantic validation', () => {
     const value = validSpec() as unknown as Record<string, unknown>;
     delete value.settings;
@@ -228,6 +293,54 @@ describe('ProfileSpec v1', () => {
     const codes = issueCodes(value);
     expect(codes).toContain('profile.duplicate-id');
     expect(codes).toContain('profile.duplicate-name');
+  });
+
+  it('accepts a blank fixed profile before proxy endpoints are configured', () => {
+    const value = validSpec();
+    const fixed = value.profiles[0]!;
+    if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+    fixed.proxyByScheme = {};
+
+    const result = validateProfileSpec(value);
+    expect(result.valid).toBe(true);
+    expect(result.issues).toEqual([]);
+  });
+
+  it('keeps incomplete Switch text conditions as draft warnings but rejects them strictly', () => {
+    const value = validSpec();
+    const profile = value.profiles[1]!;
+    if (profile.kind !== 'switch') throw new Error('fixture mismatch');
+    const wildcard = profile.rules.find((rule) => rule.id === 'rule-host-wildcard');
+    if (!wildcard || wildcard.condition.kind !== 'host-wildcard') {
+      throw new Error('condition fixture mismatch');
+    }
+    wildcard.condition.pattern = '';
+
+    const strict = validateProfileSpec(value);
+    expect(strict.valid).toBe(false);
+    expect(strict.issues).toContainEqual(
+      expect.objectContaining({ code: 'condition.empty-pattern', severity: 'error' }),
+    );
+
+    const draft = validateProfileSpecDraft(value);
+    expect(draft.valid).toBe(true);
+    expect(draft.value).toBe(value);
+    expect(draft.issues).toContainEqual(
+      expect.objectContaining({ code: 'condition.empty-pattern', severity: 'warning' }),
+    );
+  });
+
+  it('does not relax structural or reference errors in draft validation', () => {
+    const value = validSpec();
+    const fixed = value.profiles[0]!;
+    if (fixed.kind !== 'fixed') throw new Error('fixture mismatch');
+    fixed.proxyByScheme.fallback = 'missing-endpoint';
+
+    const result = validateProfileSpecDraft(value);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ code: 'endpoint.missing-reference', severity: 'error' }),
+    );
   });
 
   it('rejects missing endpoint and profile references', () => {

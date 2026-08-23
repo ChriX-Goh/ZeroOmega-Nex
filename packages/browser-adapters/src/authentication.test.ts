@@ -57,6 +57,87 @@ describe('bounded proxy authentication handler', () => {
     });
   });
 
+  it('uses one PAC all-proxy credential only when no exact endpoint binding matches', async () => {
+    const handler = new ProxyAuthenticationHandler(
+      {
+        getBindings: async () => [
+          {
+            scope: 'all-proxies',
+            profileId: 'pac-all',
+            username: 'pac-user',
+            passwordSecretRef: 'secret-pac-all',
+          },
+          {
+            endpointId: 'exact-proxy',
+            protocol: 'http',
+            host: 'exact.example.invalid',
+            port: 8080,
+            username: 'exact-user',
+            passwordSecretRef: 'secret-exact',
+          },
+        ],
+      },
+      {
+        getSecret: async (ref) =>
+          ref === 'secret-pac-all'
+            ? 'pac-password'
+            : ref === 'secret-exact'
+              ? 'exact-password'
+              : undefined,
+      },
+    );
+
+    await expect(
+      handler.handle({
+        isProxy: true,
+        requestId: 'pac-wildcard',
+        scheme: 'basic',
+        challenger: { host: 'other.example.invalid', port: 3128 },
+        proxyInfo: { host: 'other.example.invalid', port: 3128, type: 'http' },
+      }),
+    ).resolves.toEqual({ authCredentials: { username: 'pac-user', password: 'pac-password' } });
+
+    await expect(
+      handler.handle({
+        isProxy: true,
+        requestId: 'pac-exact',
+        scheme: 'basic',
+        challenger: { host: 'exact.example.invalid', port: 8080 },
+        proxyInfo: { host: 'exact.example.invalid', port: 8080, type: 'http' },
+      }),
+    ).resolves.toEqual({ authCredentials: { username: 'exact-user', password: 'exact-password' } });
+  });
+
+  it('does not answer ambiguous PAC all-proxy credentials', async () => {
+    const handler = new ProxyAuthenticationHandler(
+      {
+        getBindings: async () => [
+          {
+            scope: 'all-proxies',
+            profileId: 'pac-one',
+            username: 'one',
+            passwordSecretRef: 'secret-one',
+          },
+          {
+            scope: 'all-proxies',
+            profileId: 'pac-two',
+            username: 'two',
+            passwordSecretRef: 'secret-two',
+          },
+        ],
+      },
+      { getSecret: async () => 'password' },
+    );
+    await expect(
+      handler.handle({
+        isProxy: true,
+        requestId: 'pac-ambiguous',
+        scheme: 'basic',
+        challenger: { host: 'proxy.example.invalid', port: 8080 },
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   it('ignores ordinary website authentication and unsupported schemes', async () => {
     const handler = new ProxyAuthenticationHandler(
       new BindingProvider([binding]),

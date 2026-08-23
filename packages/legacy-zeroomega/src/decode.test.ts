@@ -48,10 +48,80 @@ describe('ZeroOmega backup decoder', () => {
   it('rejects malformed and unsupported inputs precisely', () => {
     expect(decodeZeroOmegaBackup('{').ok).toBe(false);
     expect(decodeZeroOmegaBackup('not base64').ok).toBe(false);
-    const wrong = decodeZeroOmegaBackup({ schemaVersion: 1 });
+    const wrong = decodeZeroOmegaBackup({ schemaVersion: 3 });
     expect(wrong.ok).toBe(false);
     if (wrong.ok) throw new Error('expected failure');
     expect(wrong.issues[0]!.code).toBe('decode.unsupported-schema');
+  });
+
+  it('upgrades schema 1 exactly without mutating object input', () => {
+    const input = {
+      schemaVersion: 1,
+      '+switch': {
+        name: 'switch',
+        profileType: 'SwitchProfile',
+        defaultProfileName: 'direct',
+        rules: [
+          {
+            condition: { conditionType: 'TrueCondition' },
+            profileName: 'auto_detect',
+          },
+        ],
+        syncOptions: 'disabled',
+        syncError: 'legacy runtime state',
+      },
+    };
+    const original = structuredClone(input);
+    const result = decodeZeroOmegaBackup(input);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected schema-v1 decode');
+    expect(input).toEqual(original);
+    expect(result.value.sourceSchemaVersion).toBe(1);
+    expect(result.value.options.schemaVersion).toBe(2);
+    expect(result.value.options['+auto_detect']).toEqual({
+      name: 'auto_detect',
+      profileType: 'PacProfile',
+      pacUrl: 'http://wpad/wpad.dat',
+      color: '#00cccc',
+    });
+    expect(result.value.options['+switch']).not.toHaveProperty('syncOptions');
+    expect(result.value.options['+switch']).not.toHaveProperty('syncError');
+    expect(result.value.upgrades.map((notice) => notice.code)).toEqual([
+      'schema.v1-auto-detect-wpad-created',
+      'schema.v1-upgraded',
+      'profile.disabled-sync-state-removed',
+    ]);
+  });
+
+  it('detects schema-v1 auto_detect references in modern Switchy Rule Lists only when referenced', () => {
+    const referenced = decodeZeroOmegaBackup({
+      schemaVersion: 1,
+      '+rules': {
+        name: 'rules',
+        profileType: 'RuleListProfile',
+        format: 'Switchy',
+        matchProfileName: 'direct',
+        defaultProfileName: 'direct',
+        ruleList:
+          '[SwitchyOmega Conditions]\n@with result\n\n*.wpad.example +auto_detect\n* +direct\n',
+      },
+    });
+    expect(referenced.ok).toBe(true);
+    if (!referenced.ok) throw new Error('expected referenced schema-v1 decode');
+    expect(referenced.value.options['+auto_detect']).toBeDefined();
+
+    const unused = decodeZeroOmegaBackup({
+      schemaVersion: 1,
+      '+proxy': {
+        name: 'proxy',
+        profileType: 'FixedProfile',
+        fallbackProxy: { scheme: 'http', host: '127.0.0.1', port: 7890 },
+      },
+    });
+    expect(unused.ok).toBe(true);
+    if (!unused.ok) throw new Error('expected unused schema-v1 decode');
+    expect(unused.value.options['+auto_detect']).toBeUndefined();
+    expect(unused.value.upgrades.map((notice) => notice.code)).toEqual(['schema.v1-upgraded']);
   });
 
   it('enforces byte, depth, profile, and rule limits', () => {

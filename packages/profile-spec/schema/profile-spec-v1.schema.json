@@ -505,6 +505,9 @@
             },
             "defaultRoute": {
               "$ref": "#/$defs/routeTarget"
+            },
+            "attachedRuleListProfileId": {
+              "$ref": "#/$defs/identifier"
             }
           }
         },
@@ -602,6 +605,9 @@
                     "url": {
                       "type": "string",
                       "minLength": 1
+                    },
+                    "script": {
+                      "type": "string"
                     }
                   }
                 }
@@ -614,6 +620,19 @@
               "type": "array",
               "items": {
                 "$ref": "#/$defs/ruleSourceHeader"
+              }
+            },
+            "credential": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["passwordSecretRef"],
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "passwordSecretRef": {
+                  "$ref": "#/$defs/identifier"
+                }
               }
             }
           }
@@ -647,6 +666,39 @@
               "const": "auto-detect"
             },
             "fallbackRoute": {
+              "$ref": "#/$defs/routeTarget"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "name", "kind", "targetRoute"],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/identifier"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "color": {
+              "$ref": "#/$defs/color"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "legacy": {
+              "$ref": "#/$defs/legacy"
+            },
+            "extensions": {
+              "$ref": "#/$defs/extensions"
+            },
+            "kind": {
+              "const": "virtual"
+            },
+            "targetRoute": {
               "$ref": "#/$defs/routeTarget"
             }
           }
@@ -767,8 +819,10 @@
                   "const": "url"
                 },
                 "url": {
-                  "type": "string",
-                  "minLength": 1
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
                 }
               }
             }
@@ -872,6 +926,9 @@
             "showInspectMenu": {
               "type": "boolean"
             },
+            "monitorWebRequests": {
+              "type": "boolean"
+            },
             "addConditionsToBottom": {
               "type": "boolean"
             },
@@ -923,8 +980,7 @@
       "required": ["name", "value"],
       "properties": {
         "name": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "value": {
           "$ref": "#/$defs/headerValue"

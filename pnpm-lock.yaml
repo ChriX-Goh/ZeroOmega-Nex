@@ -10,6 +10,9 @@ importers:
       '@eslint/js':
         specifier: 10.0.1
         version: 10.0.1(eslint@10.4.0(jiti@2.7.0))
+      '@playwright/test':
+        specifier: 1.61.1
+        version: 1.61.1
       eslint:
         specifier: 10.4.0
         version: 10.4.0(jiti@2.7.0)
@@ -19,6 +22,9 @@ importers:
       prettier-plugin-svelte:
         specifier: 4.1.1
         version: 4.1.1(prettier@3.8.3)(svelte@5.53.7(@typescript-eslint/types@8.59.3))
+      selenium-webdriver:
+        specifier: 4.46.0
+        version: 4.46.0
       svelte:
         specifier: 5.53.7
         version: 5.53.7(@typescript-eslint/types@8.59.3)
@@ -40,6 +46,24 @@ importers:
       '@zeroomega-nex/core-contracts':
         specifier: workspace:*
         version: link:../../packages/core-contracts
+      '@zeroomega-nex/legacy-zeroomega':
+        specifier: workspace:*
+        version: link:../../packages/legacy-zeroomega
+      '@zeroomega-nex/pac-compiler':
+        specifier: workspace:*
+        version: link:../../packages/pac-compiler
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../../packages/profile-spec
+      '@zeroomega-nex/profile-workflow':
+        specifier: workspace:*
+        version: link:../../packages/profile-workflow
+      '@zeroomega-nex/reference-interpreter':
+        specifier: workspace:*
+        version: link:../../packages/reference-interpreter
+      tldts:
+        specifier: 7.4.9
+        version: 7.4.9
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.2.0
@@ -121,6 +145,16 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/profile-workflow:
+    dependencies:
+      '@zeroomega-nex/profile-spec':
+        specifier: workspace:*
+        version: link:../profile-spec
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/reference-interpreter:
     dependencies:
       '@zeroomega-nex/profile-spec':
@@ -196,6 +230,12 @@ packages:
         integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==,
       }
     engines: { node: '>=6.9.0' }
+
+  '@bazel/runfiles@6.5.0':
+    resolution:
+      {
+        integrity: sha512-RzahvqTkfpY2jsDxo8YItPX+/iZ6hbiikw1YhE0bA9EKBR5Og8Pa6FHn9PO9M0zaXRVsr0GFQLKbB/0rzy9SzA==,
+      }
 
   '@devicefarmer/adbkit-logcat@2.1.3':
     resolution:
@@ -614,6 +654,14 @@ packages:
       {
         integrity: sha512-r9gHphtCs+1M7J0pw6Sn/hh/Wpa/iQrOOkrNAlVLF/gHq+/CJmHIWKKUUhdWjcD6CIa8idarspCsASiXCXvFUw==,
       }
+
+  '@playwright/test@1.61.1':
+    resolution:
+      {
+        integrity: sha512-8nKv6+0RJSL9FE4jYOEGXnPeM/Hg12qZpmqzZjRh3qM0Y7c3z1mrOTfFLids72RDQYVh9WpLEfR5WdpNX4fkig==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
 
   '@pnpm/config.env-replace@1.1.0':
     resolution:
@@ -2010,6 +2058,14 @@ packages:
       }
     engines: { node: '>=14.14' }
 
+  fsevents@2.3.2:
+    resolution:
+      {
+        integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==,
+      }
+    engines: { node: ^8.16.0 || ^10.6.0 || >=11.0.0 }
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution:
       {
@@ -3015,6 +3071,22 @@ packages:
         integrity: sha512-y+ichcgc2LrADuhLNAx8DFjVfgz91pRxfZdI3UDhxHvcVEZsenLO+7XaU5vOp0u/7V/wZ+plyuQxtrDlZJ+yeg==,
       }
 
+  playwright-core@1.61.1:
+    resolution:
+      {
+        integrity: sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
+
+  playwright@1.61.1:
+    resolution:
+      {
+        integrity: sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
+
   postcss@8.5.22:
     resolution:
       {
@@ -3254,6 +3326,13 @@ packages:
       {
         integrity: sha512-6FtHJEvt+pVMIB9IBY+IcCJ6Z5f1iQnytgyfKMhDKgmzYG+TeH/wx1y3l27rshSbLiSanrR9ffZDrEsmjlQF2g==,
       }
+
+  selenium-webdriver@4.46.0:
+    resolution:
+      {
+        integrity: sha512-UlTkgnx9y+bf3QxFsrgUyMqC2oy1Yf+qcOs7xIC/XfsUPv/ow7Sicx6SJ7AeOn2/Z+xF1M8SLqyn983wipI82w==,
+      }
+    engines: { node: '>= 20.0.0' }
 
   semver@7.8.5:
     resolution:
@@ -3536,10 +3615,30 @@ packages:
       }
     engines: { node: '>=14.0.0' }
 
+  tldts-core@7.4.9:
+    resolution:
+      {
+        integrity: sha512-DxKfPBI52p2msTEu7MPhdpdDTBhhVQg1a/8PjQckeyAvO13eMYElX545grIp6nnTGIMZlRvFZPvFhvI/WIz2Vg==,
+      }
+
+  tldts@7.4.9:
+    resolution:
+      {
+        integrity: sha512-3kZ8wQQ/k5DrChD4X4FVvr2D7E5uoRgAqkPyLpSCGUvqOvqu+JEdr3mwMUaVWb+vMHZaKhF5fp2PBigKsui7hA==,
+      }
+    hasBin: true
+
   tmp@0.2.5:
     resolution:
       {
         integrity: sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==,
+      }
+    engines: { node: '>=14.14' }
+
+  tmp@0.2.7:
+    resolution:
+      {
+        integrity: sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==,
       }
     engines: { node: '>=14.14' }
 
@@ -3917,6 +4016,21 @@ packages:
       }
     engines: { node: '>=18' }
 
+  ws@8.21.1:
+    resolution:
+      {
+        integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==,
+      }
+    engines: { node: '>=10.0.0' }
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   wsl-utils@0.3.1:
     resolution:
       {
@@ -4037,6 +4151,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@bazel/runfiles@6.5.0': {}
 
   '@devicefarmer/adbkit-logcat@2.1.3': {}
 
@@ -4225,6 +4341,10 @@ snapshots:
     optional: true
 
   '@oxc-project/types@0.139.0': {}
+
+  '@playwright/test@1.61.1':
+    dependencies:
+      playwright: 1.61.1
 
   '@pnpm/config.env-replace@1.1.0': {}
 
@@ -5016,6 +5136,9 @@ snapshots:
       jsonfile: 6.2.1
       universalify: 2.0.1
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -5532,6 +5655,14 @@ snapshots:
       exsolve: 1.1.0
       pathe: 2.0.3
 
+  playwright-core@1.61.1: {}
+
+  playwright@1.61.1:
+    dependencies:
+      playwright-core: 1.61.1
+    optionalDependencies:
+      fsevents: 2.3.2
+
   postcss@8.5.22:
     dependencies:
       nanoid: 3.3.16
@@ -5669,6 +5800,16 @@ snapshots:
   sax@1.6.0: {}
 
   scule@1.3.0: {}
+
+  selenium-webdriver@4.46.0:
+    dependencies:
+      '@bazel/runfiles': 6.5.0
+      jszip: 3.10.1
+      tmp: 0.2.7
+      ws: 8.21.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   semver@7.8.5: {}
 
@@ -5830,7 +5971,15 @@ snapshots:
 
   tinyrainbow@3.1.0: {}
 
+  tldts-core@7.4.9: {}
+
+  tldts@7.4.9:
+    dependencies:
+      tldts-core: 7.4.9
+
   tmp@0.2.5: {}
+
+  tmp@0.2.7: {}
 
   ts-api-utils@2.5.0(typescript@5.9.3):
     dependencies:
@@ -6084,6 +6233,8 @@ snapshots:
       ansi-styles: 6.2.3
       string-width: 7.2.0
       strip-ansi: 7.2.0
+
+  ws@8.21.1: {}
 
   wsl-utils@0.3.1:
     dependencies:

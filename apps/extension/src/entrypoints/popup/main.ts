@@ -1,6 +1,10 @@
 import { mount } from 'svelte';
+
+import { localizeDocument } from '../../lib/i18n';
 import App from './App.svelte';
 import './style.css';
+import './original-compat.css';
+import './session-13-compat.css';
 
 const target = document.getElementById('app');
 if (!target) {
@@ -8,3 +12,4 @@ if (!target) {
 }
 
 mount(App, { target });
+localizeDocument();

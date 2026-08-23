@@ -1,0 +1,424 @@
+/*
+ * Original ZeroOmega v3.5.0 compatibility shell.
+ * Authority: paired official v3.5.0 and Nex screenshots/text from Original Nex UI Evidence.
+ * Engineering state and delivery concepts belong in code/docs, not ordinary UI.
+ */
+.side-brand {
+  padding: 18px 30px 22px;
+}
+
+.side-brand button {
+  color: #337ab7;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.side-navigation {
+  padding: 0 30px 24px;
+}
+
+.nav-group h2 {
+  margin: 18px 0 10px;
+  color: #999;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.nav-group > button,
+.about-navigation {
+  min-height: 36px;
+  padding: 7px 14px;
+  color: #337ab7;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.nav-group > button:hover,
+.about-navigation:hover,
+.nav-group > button.active,
+.about-navigation.active {
+  color: #23527c;
+  background: transparent;
+}
+
+.nav-group.actions > button {
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.nav-group.actions > button.discard {
+  color: #777;
+  border-color: transparent;
+}
+
+.about-navigation {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.editor {
+  padding: 20px 26px 48px;
+}
+
+.editor-heading {
+  margin-bottom: 26px;
+  border-bottom: 1px solid #eee;
+}
+
+.editor-heading h1 {
+  margin: 0 0 18px;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.editor-heading > div > p,
+.profile-title p {
+  display: none;
+}
+
+.original-about-page {
+  max-width: 920px;
+}
+
+.about-product {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.about-mark {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+}
+
+.about-product h2,
+.about-product p,
+.about-license p,
+.about-notices p {
+  margin: 0 0 6px;
+}
+
+.about-product h2 {
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.about-actions {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.about-actions a,
+.about-actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  text-decoration: none;
+}
+
+.about-actions .report-issues {
+  border-color: #46b8da;
+  background: #5bc0de;
+  color: #fff;
+}
+
+.about-actions .danger {
+  border-color: #d43f3a;
+  background: #d9534f;
+  color: #fff;
+}
+
+.about-notices {
+  margin-top: 18px;
+}
+
+.about-license {
+  margin-top: 90px;
+}
+
+/* Paired official Options geometry — desktop baseline. */
+.about-navigation {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  .app-shell {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .side-brand {
+    padding: 18px 0 10px 30px;
+  }
+
+  .side-navigation {
+    padding: 0 0 24px 30px;
+  }
+
+  .nav-group h2 {
+    margin: 10px 0 8px;
+    padding: 7px 0 5px;
+  }
+
+  .nav-group > button {
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 36px;
+    padding: 7px 14px;
+  }
+
+  .nav-group > button > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profiles-nav {
+    flex: 0 0 auto;
+  }
+
+  .actions {
+    margin-top: 0;
+  }
+
+  .editor {
+    padding: 18px 25px 48px;
+  }
+
+  .editor-heading {
+    margin-bottom: 22px;
+    padding-bottom: 8px;
+  }
+
+  .editor-heading h1 {
+    margin: 0 0 6px;
+  }
+
+  .original-about-page {
+    max-width: none;
+  }
+
+  .about-product {
+    margin: 16px 0 22px;
+  }
+
+  .about-license {
+    margin-top: 118px;
+  }
+}
+
+/* Official About semantics and link geometry. */
+.about-actions a,
+.about-actions button {
+  gap: 5px;
+}
+
+.about-notices p {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+}
+
+.about-notices .text-warning {
+  color: #8a6d3b;
+}
+
+.about-notices .text-success {
+  color: #3c763d;
+}
+
+.about-notices .text-info {
+  color: #31708f;
+}
+
+.about-notices a,
+.about-license a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+.about-notices a:hover,
+.about-notices a:focus-visible,
+.about-license a:hover,
+.about-license a:focus-visible {
+  text-decoration: underline;
+}
+
+/* Computed Original ↔ Nex metrics — Options light baseline. */
+.app-shell {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+:root[data-theme='light'] .sidebar {
+  background: #fff;
+  border-right: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 761px) {
+  .side-brand {
+    padding: 20px 0 0 30px;
+  }
+
+  .side-brand button {
+    width: 210px;
+    color: #5c6166;
+    font-size: 23.8px;
+    font-weight: 700;
+    line-height: 26.18px;
+  }
+
+  .side-navigation {
+    padding: 0 0 24px 30px;
+  }
+
+  .nav-group {
+    padding: 0;
+    border-top: 0;
+  }
+
+  .nav-group:first-child {
+    padding-top: 35.6875px;
+  }
+
+  .nav-group + .nav-group {
+    margin-top: 2px;
+    padding-top: 9px;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .nav-group h2 {
+    width: 240px;
+    height: 26px;
+    margin: 0 0 2px -15px;
+    padding: 3px 15px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 20px;
+  }
+
+  .nav-group > button {
+    width: 210px;
+    min-height: 0;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  .nav-group > button + button {
+    margin-top: 2px;
+  }
+
+  .nav-group.actions > button {
+    background: #fff;
+    font-weight: 400;
+  }
+
+  .nav-group.actions > button.discard {
+    color: #777;
+    background: transparent;
+    border: 0;
+  }
+
+  .editor {
+    padding-top: 20px;
+  }
+
+  .original-about-page .editor-heading {
+    margin-bottom: 37px;
+  }
+
+  .original-about-page .editor-heading h1 {
+    margin: 0;
+    font-weight: 500;
+    line-height: 33px;
+  }
+
+  .about-product {
+    margin: 14px 0;
+  }
+
+  .about-product p {
+    margin: 0 0 4px;
+  }
+
+  .about-notices p {
+    margin-bottom: 10px;
+  }
+
+  .about-license {
+    margin-top: 98px;
+  }
+}
+
+/* Computed Options residual correction. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .sidebar {
+    background: #fff;
+    border-right: 0;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 761px) {
+  .side-brand button {
+    color: #337ab7;
+  }
+
+  .editor {
+    padding-right: 30px;
+  }
+
+  .about-actions a,
+  .about-actions button {
+    gap: 4px;
+  }
+
+  .about-notices {
+    margin-top: 8.421875px;
+  }
+
+  .about-notices p {
+    line-height: 20px;
+  }
+
+  .about-license {
+    line-height: 20px;
+  }
+
+  .about-license p {
+    margin: 0;
+  }
+}
+
+/* Final computed Options vertical residual. */
+@media (min-width: 761px) {
+  .about-actions {
+    margin-bottom: 6.421875px;
+  }
+
+  .about-actions > * {
+    line-height: 20px;
+  }
+
+  .about-notices {
+    margin-top: 6.421875px;
+  }
+}

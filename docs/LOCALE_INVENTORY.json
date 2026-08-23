@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 2,
+  "description": "Machine-generated inventory of literal-English candidates remaining in Svelte templates. Each entry is explicitly classified; typed uiText/uiMessage calls are excluded.",
+  "typedBatchFiles": [
+    "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+    "apps/extension/src/entrypoints/options/ProfileDeletionDialog.svelte",
+    "apps/extension/src/entrypoints/options/ProfileReplacementDialog.svelte",
+    "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/AdvancedProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+    "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/PacProfileEditor.svelte",
+    "apps/extension/src/entrypoints/options/SnapshotHistoryPanel.svelte",
+    "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+    "apps/extension/src/entrypoints/options/ThemePanel.svelte",
+    "apps/extension/src/entrypoints/options/VirtualProfileEditor.svelte",
+    "apps/extension/src/entrypoints/popup/App.svelte",
+    "apps/extension/src/entrypoints/temp-rules/App.svelte",
+    "apps/extension/src/entrypoints/network/App.svelte"
+  ],
+  "candidateCount": 40,
+  "untranslatedUserVisibleCount": 0,
+  "classificationSummary": {
+    "example-placeholder": 1,
+    "format-name": 4,
+    "keyboard-key": 4,
+    "original-legal-text": 12,
+    "original-product-name": 2,
+    "scanner-code-fragment": 2,
+    "source-token": 13,
+    "stable-technical-code": 1,
+    "standard-technical-term": 1
+  },
+  "candidates": [
+    {
+      "path": "apps/extension/src/entrypoints/network/App.svelte",
+      "kind": "expression-literal",
+      "text": "ERR_TIMEOUT",
+      "classification": "stable-technical-code"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "addConditionsToBottom",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "confirmDeletion",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "exportLegacyRuleList",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "monitorWebRequests",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "refreshOnChange",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showAdvancedConditions",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showExternalProfile",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showInspectMenu",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "expression-literal",
+      "text": "showResultProfileOnActionBadgeText",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Copyright 2012-2017",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Copyright 2024-2025",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "free software",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "GNU General Public License",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "licensed under",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "open source project and other",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "open source software",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "The SwitchyOmega Authors",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "The ZeroOmega Authors",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Version 3 or later.",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "Zero Omega",
+      "classification": "original-product-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega",
+      "classification": "original-product-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega is",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/App.svelte",
+      "kind": "text",
+      "text": "ZeroOmega is made possible by the",
+      "classification": "original-legal-text"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "AutoProxy",
+      "classification": "format-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "Switchy",
+      "classification": "format-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/AttachedRuleListConfig.svelte",
+      "kind": "text",
+      "text": "URL",
+      "classification": "standard-technical-term"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/FixedProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "example.com",
+      "classification": "example-placeholder"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "; errorMessage =",
+      "classification": "scanner-code-fragment"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/LegacyImportPanel.svelte",
+      "kind": "expression-literal",
+      "text": "; result = undefined; analyzedGeneration = undefined; acceptedMessage =",
+      "classification": "scanner-code-fragment"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Enter",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/NewProfileDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Escape",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Enter",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/ProfileRenameDialog.svelte",
+      "kind": "expression-literal",
+      "text": "Escape",
+      "classification": "keyboard-key"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "defaultRoute",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "matchRoute",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "AutoProxy",
+      "classification": "format-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/RuleListProfileEditor.svelte",
+      "kind": "text",
+      "text": "Switchy",
+      "classification": "format-name"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "endHour",
+      "classification": "source-token"
+    },
+    {
+      "path": "apps/extension/src/entrypoints/options/SwitchProfileEditor.svelte",
+      "kind": "expression-literal",
+      "text": "startHour",
+      "classification": "source-token"
+    }
+  ]
+}

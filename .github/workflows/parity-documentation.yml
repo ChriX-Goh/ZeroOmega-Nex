@@ -1,0 +1,45 @@
+name: Parity Documentation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+
+      - name: Validate canonical parity documents
+        run: node scripts/validate-parity-docs.mjs
+
+      - name: Require both documents for parity-sensitive commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+          printf '%s\n' "$changed"
+
+          if ! printf '%s\n' "$changed" | grep -Eq '^(apps/extension/src/entrypoints/(options|popup)/|apps/extension/src/lib/i18n|apps/extension/public/_locales/|packages/legacy-zeroomega/|packages/profile-workflow/src/(defaults|profile-operations)|packages/profile-spec/)'; then
+            echo 'Latest commit has no parity-sensitive product changes.'
+            exit 0
+          fi
+
+          for required in docs/ORIGINAL_KNOWLEDGE_GRAPH.md docs/UI_AUDIT_MATRIX.md; do
+            if ! printf '%s\n' "$changed" | grep -Fxq "$required"; then
+              echo "Parity-sensitive commit must also update $required" >&2
+              exit 1
+            fi
+          done
+
+          echo 'Parity-sensitive commit updated both canonical documents.'

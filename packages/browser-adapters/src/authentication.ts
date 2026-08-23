@@ -1,11 +1,28 @@
-export interface ProxyAuthenticationBinding {
-  readonly endpointId: string;
-  readonly protocol: 'http' | 'https';
-  readonly host: string;
-  readonly port: number;
-  readonly username: string;
-  readonly passwordSecretRef: string;
-}
+export type ProxyAuthenticationBinding =
+  | {
+      readonly scope?: 'endpoint';
+      readonly endpointId: string;
+      readonly protocol: 'http' | 'https';
+      readonly host: string;
+      readonly port: number;
+      readonly username: string;
+      readonly passwordSecretRef: string;
+    }
+  | {
+      readonly scope: 'all-proxies';
+      readonly profileId: string;
+      readonly username: string;
+      readonly passwordSecretRef: string;
+    };
+
+type EndpointProxyAuthenticationBinding = Extract<
+  ProxyAuthenticationBinding,
+  { readonly endpointId: string }
+>;
+type AllProxyAuthenticationBinding = Extract<
+  ProxyAuthenticationBinding,
+  { readonly scope: 'all-proxies' }
+>;
 
 export interface ProxyAuthenticationBindingProvider {
   getBindings(): Promise<readonly ProxyAuthenticationBinding[]>;
@@ -54,7 +71,7 @@ function normalizeProxyHost(host: string): string {
 }
 
 function protocolMatches(
-  binding: ProxyAuthenticationBinding,
+  binding: EndpointProxyAuthenticationBinding,
   proxyInfo: ProxyAuthenticationProxyInfo | undefined,
 ): boolean {
   if (proxyInfo?.type === undefined || proxyInfo.type === 'unknown') return true;
@@ -102,12 +119,20 @@ export class ProxyAuthenticationHandler {
 
     const endpoint = challengeEndpoint(challenge);
     const host = normalizeProxyHost(endpoint.host);
-    const bindings = (await this.#bindings.getBindings()).filter(
-      (binding) =>
+    const available = await this.#bindings.getBindings();
+    const exact = available.filter(
+      (binding): binding is EndpointProxyAuthenticationBinding =>
+        binding.scope !== 'all-proxies' &&
         normalizeProxyHost(binding.host) === host &&
         binding.port === endpoint.port &&
         protocolMatches(binding, challenge.proxyInfo),
     );
+    const bindings: readonly ProxyAuthenticationBinding[] =
+      exact.length > 0
+        ? exact
+        : available.filter(
+            (binding): binding is AllProxyAuthenticationBinding => binding.scope === 'all-proxies',
+          );
     if (bindings.length !== 1) return undefined;
 
     const binding = bindings[0]!;

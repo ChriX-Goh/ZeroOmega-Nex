@@ -1,0 +1,272 @@
+/* Session 13: Original v3.5.0 expanded current-site Popup states. */
+
+/* The original Add-condition route replaces the profile menu. */
+html:has(.popup-shell > .condition-form),
+body:has(.popup-shell > .condition-form) {
+  width: 400px;
+  min-width: 400px;
+  background: #fff;
+}
+
+.popup-shell:has(> .condition-form) {
+  width: 400px;
+  min-width: 400px;
+  overflow: visible;
+  background: #fff;
+}
+
+.popup-shell:has(> .condition-form) > .profile-list,
+.popup-shell:has(> .condition-form) > .inspect-target,
+.popup-shell:has(> .condition-form) > .request-diagnostics-summary,
+.popup-shell:has(> .condition-form) > .popup-footer {
+  display: none !important;
+}
+
+.popup-shell > .condition-form {
+  display: grid;
+  min-width: 360px;
+  margin: 10px;
+  padding: 0;
+  gap: 15px;
+  border: 0;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.popup-shell > .condition-form h2 {
+  margin: 0;
+  padding: 0 0 10px;
+  border-bottom: 1px solid #e5e5e5;
+  color: #333;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 23px;
+}
+
+.popup-shell > .condition-form .condition-domain {
+  display: none;
+}
+
+.popup-shell > .condition-form label {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.popup-shell > .condition-form input,
+.popup-shell > .condition-form select {
+  display: block;
+  width: 100%;
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #555;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 8%);
+}
+
+.popup-shell > .condition-form .scope-button {
+  justify-self: end;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: transparent;
+  font-size: 0;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.popup-shell > .condition-form .scope-button::before {
+  content: '⇄';
+  color: #333;
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.popup-shell > .condition-form .condition-actions {
+  display: block;
+  min-height: 34px;
+}
+
+.popup-shell > .condition-form .condition-actions button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.popup-shell > .condition-form .condition-actions button[type='submit'] {
+  float: right;
+  border-color: #2e6da4;
+  background: #337ab7;
+  color: #fff;
+}
+
+.popup-shell > .condition-form .condition-actions button:hover:not(:disabled) {
+  border-color: #adadad;
+  background: #e6e6e6;
+}
+
+.popup-shell > .condition-form .condition-actions button[type='submit']:hover:not(:disabled) {
+  border-color: #204d74;
+  background: #286090;
+}
+
+/* Original temporary-rule dropdown contains result profiles only. */
+[data-popup-manage-temporary-rules],
+.original-temporary-rule-menu-divider {
+  display: none !important;
+}
+
+.original-temporary-rule-menu {
+  position: static;
+  margin: 0 5px !important;
+  padding: 5px 0;
+  float: none;
+  border: 1px solid rgb(0 0 0 / 15%);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+}
+
+.original-temporary-rule-menu li > button {
+  min-height: 26px;
+  padding: 3px 20px;
+  color: #337ab7;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.original-temporary-rule-menu li > button.active {
+  background: #337ab7;
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='dark'] .popup-shell:has(> .condition-form),
+  :root[data-theme='dark'] .popup-shell > .condition-form,
+  :root[data-theme='dark'] .popup-shell > .condition-form input,
+  :root[data-theme='dark'] .popup-shell > .condition-form select,
+  :root[data-theme='dark'] .popup-shell > .condition-form .scope-button,
+  :root[data-theme='dark'] .popup-shell > .condition-form .condition-actions button,
+  :root[data-theme='dark'] .original-temporary-rule-menu {
+    background: var(--popup-bg);
+    color: var(--popup-text);
+  }
+
+  :root[data-theme='dark'] .popup-shell > .condition-form h2,
+  :root[data-theme='dark'] .popup-shell > .condition-form label,
+  :root[data-theme='dark'] .popup-shell > .condition-form .scope-button::before {
+    color: var(--popup-text);
+  }
+}
+
+/* Original external profile is a normal row between built-ins and user profiles. */
+.external-profile-row {
+  min-height: 40px;
+  border: 0;
+}
+
+.external-profile-button,
+.external-profile-form {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.external-profile-form input {
+  min-width: 0;
+  flex: 1;
+  height: 26px;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.external-profile-error {
+  position: absolute;
+  z-index: 2;
+  margin: 34px 8px 0 32px;
+  padding: 2px 6px;
+  border: 1px solid #d9534f;
+  border-radius: 3px;
+  background: #fff;
+  color: #a94442;
+  font-size: 12px;
+}
+
+.proxy-not-controllable {
+  min-width: 360px;
+  margin: 10px;
+  color: #333;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.proxy-control-message {
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.proxy-control-details {
+  margin: 0 0 15px;
+}
+
+.proxy-control-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.proxy-control-actions button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+}
+
+.proxy-control-actions button.primary {
+  border-color: #2e6da4;
+  background: #337ab7;
+  color: #fff;
+}

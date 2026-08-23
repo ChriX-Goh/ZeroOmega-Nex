@@ -4,6 +4,9 @@ node_modules/
 .output/
 dist/
 coverage/
+.cache/
+browser-builds/
+browser-builds.tar.gz
 *.log
 .DS_Store
 .env
