@@ -198,7 +198,41 @@ jobs:
           path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}/runtime-binding
           if-no-files-found: error
 
+      - name: Record runtime binding diagnostic
+        if: always()
+        shell: pwsh
+        env:
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: ${{ steps.upload-runtime-binding.outputs.artifact-digest }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $idFormat = if ($artifactId -match '^\d+$' -and $artifactId -ne '0') { 'decimal-nonzero' } else { 'missing-or-invalid' }
+          $digestFormat = if ($artifactDigest -match '^sha256:[0-9a-fA-F]{64}$' -and $artifactDigest -notmatch '^sha256:0{64}$') { 'sha256-64hex' } else { 'missing-or-invalid' }
+          $manifestSha256 = $null
+          $manifestBindingPath = Join-Path $artifactRoot 'manifest-binding.json'
+          if (Test-Path -LiteralPath $manifestBindingPath -PathType Leaf) {
+            try { $manifestSha256 = ((Get-Content -LiteralPath $manifestBindingPath -Raw -ErrorAction Stop) | ConvertFrom-Json -ErrorAction Stop).manifestSha256 } catch { }
+          }
+          $primaryFailureCode = if ($idFormat -eq 'missing-or-invalid' -or $digestFormat -eq 'missing-or-invalid') { 'RUNTIME_BINDING_IDENTITY_INVALID' } else { $null }
+          [ordered]@{
+            schemaVersion = 2
+            sourceStep = 'upload-runtime-binding'
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            manifestSha256 = $manifestSha256
+            artifactId = [ordered]@{ value = $artifactId; type = 'string'; format = $idFormat }
+            artifactDigest = [ordered]@{ value = $artifactDigest; type = 'string'; format = $digestFormat }
+            primaryFailureCode = $primaryFailureCode
+          } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'runtime-binding-diagnostic.json') -Encoding UTF8
+
       - name: Bind runtime artifact identity
+        if: always()
         shell: pwsh
         env:
           ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
@@ -208,11 +242,22 @@ jobs:
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
           $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
-          if ($artifactId -notmatch '^\d+$' -or $artifactId -eq '0') { throw 'runtime binding artifact-id is missing, placeholder, or invalid' }
-          if ($artifactDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $artifactDigest -match '^sha256:0{64}$') { throw 'runtime binding artifact-digest is missing, placeholder, or invalid' }
+          $identityInvalid = $artifactId -notmatch '^\d+$' -or $artifactId -eq '0' -or $artifactDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $artifactDigest -match '^sha256:0{64}$'
+          if ($identityInvalid) {
+            $primaryFailureCode = 'RUNTIME_BINDING_IDENTITY_INVALID'
+            "ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE=$primaryFailureCode" | Add-Content -LiteralPath $env:GITHUB_ENV
+            "ZEROOMEGA_RUNTIME_BINDING_BLOCKED_BY=runtime-binding" | Add-Content -LiteralPath $env:GITHUB_ENV
+            throw $primaryFailureCode
+          }
           $bindingPath = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head\runtime-binding\runtime-binding.json"
           $binding = Get-Content -LiteralPath $bindingPath -Raw | ConvertFrom-Json
-          if ($binding.schemaVersion -ne 2 -or $binding.artifactKind -ne 'firefox-m1-runtime-binding' -or $binding.exactHead -cne $head -or $binding.runId -ne $env:GITHUB_RUN_ID -or $binding.jobId -ne $env:GITHUB_JOB -or $binding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $binding.manifestSha256 -notmatch '^[0-9a-f]{64}$') { throw 'runtime binding artifact content is stale or mismatched' }
+          $primaryFailureCode = $null
+          if ($binding.schemaVersion -ne 2 -or $binding.artifactKind -ne 'firefox-m1-runtime-binding' -or $binding.exactHead -cne $head -or $binding.runId -ne $env:GITHUB_RUN_ID -or $binding.jobId -ne $env:GITHUB_JOB -or $binding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $binding.manifestSha256 -notmatch '^[0-9a-f]{64}$') { $primaryFailureCode = 'RUNTIME_BINDING_CONTENT_MISMATCH' }
+          if ($primaryFailureCode) {
+            "ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE=$primaryFailureCode" | Add-Content -LiteralPath $env:GITHUB_ENV
+            "ZEROOMEGA_RUNTIME_BINDING_BLOCKED_BY=runtime-binding" | Add-Content -LiteralPath $env:GITHUB_ENV
+            throw $primaryFailureCode
+          }
           "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
           "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
           "ZEROOMEGA_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
@@ -611,6 +656,8 @@ jobs:
           $runtimeDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
           $diagnosticsId = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID
           $diagnosticsDigest = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST
+          $runtimePrimaryFailureCode = [string]$env:ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE
+          $blockedBy = if ($runtimePrimaryFailureCode) { 'runtime-binding' } else { $null }
           $errors = @()
           if ($runtimeId -notmatch '^\d+$' -or $runtimeId -eq '0') { $errors += 'runtime binding artifact-id is missing or invalid' }
           if ($diagnosticsId -notmatch '^\d+$' -or $diagnosticsId -eq '0') { $errors += 'diagnostics artifact-id is missing or invalid' }
@@ -644,6 +691,8 @@ jobs:
             manifestSha256 = if ($manifestSha256) { $manifestSha256.ToLowerInvariant() } else { $null }
             runtimeBindingArtifact = [ordered]@{ id = $runtimeId; digest = $runtimeDigest.ToLowerInvariant() }
             diagnosticsArtifact = [ordered]@{ id = $diagnosticsId; digest = $diagnosticsDigest.ToLowerInvariant() }
+            blockedBy = $blockedBy
+            primaryFailureCode = $runtimePrimaryFailureCode
             errors = $errors
           } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-provenance.json') -Encoding UTF8
           if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
