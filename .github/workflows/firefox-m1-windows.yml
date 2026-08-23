@@ -153,6 +153,71 @@ jobs:
             "geckodriverVersion=$(& $geckodriverBinary --version | Select-Object -First 1)"
           ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'toolchain-versions.txt') -Encoding UTF8
 
+      - name: Create runtime binding artifact
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $bindingRoot = Join-Path $artifactRoot 'runtime-binding'
+          New-Item -ItemType Directory -Path $bindingRoot -Force | Out-Null
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE 'scripts\firefox-toolchain-manifest.json'
+          $manifestSha256 = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          $toolchainStatePath = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\toolchain-state.json'
+          if (-not (Test-Path -LiteralPath $toolchainStatePath -PathType Leaf)) { throw 'Firefox toolchain state is missing before runtime binding upload' }
+          Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $bindingRoot 'firefox-toolchain-manifest.json') -Force
+          Copy-Item -LiteralPath $toolchainStatePath -Destination (Join-Path $bindingRoot 'toolchain-state.json') -Force
+          [ordered]@{
+            schemaVersion = 2
+            artifactKind = 'firefox-m1-runtime-binding'
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            manifestSha256 = $manifestSha256
+            source = [ordered]@{
+              repository = $env:GITHUB_REPOSITORY
+              workflow = $env:GITHUB_WORKFLOW
+              event = $env:GITHUB_EVENT_NAME
+              ref = $env:GITHUB_REF
+              sha = $env:GITHUB_SHA
+            }
+            toolchain = [ordered]@{
+              manifest = 'firefox-toolchain-manifest.json'
+              state = 'toolchain-state.json'
+              node = (& node --version).Trim()
+              pnpm = (& pnpm --version).Trim()
+            }
+          } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $bindingRoot 'runtime-binding.json') -Encoding UTF8
+
+      - name: Upload runtime binding artifact
+        uses: actions/upload-artifact@v4
+        id: upload-runtime-binding
+        with:
+          name: firefox-m1-${{ env.ZEROOMEGA_EXACT_HEAD }}-runtime-binding
+          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}/runtime-binding
+          if-no-files-found: error
+
+      - name: Bind runtime artifact identity
+        shell: pwsh
+        env:
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: ${{ steps.upload-runtime-binding.outputs.artifact-digest }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          if ($artifactId -notmatch '^\d+$' -or $artifactId -eq '0') { throw 'runtime binding artifact-id is missing, placeholder, or invalid' }
+          if ($artifactDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $artifactDigest -match '^sha256:0{64}$') { throw 'runtime binding artifact-digest is missing, placeholder, or invalid' }
+          $bindingPath = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head\runtime-binding\runtime-binding.json"
+          $binding = Get-Content -LiteralPath $bindingPath -Raw | ConvertFrom-Json
+          if ($binding.schemaVersion -ne 2 -or $binding.artifactKind -ne 'firefox-m1-runtime-binding' -or $binding.exactHead -cne $head -or $binding.runId -ne $env:GITHUB_RUN_ID -or $binding.jobId -ne $env:GITHUB_JOB -or $binding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $binding.manifestSha256 -notmatch '^[0-9a-f]{64}$') { throw 'runtime binding artifact content is stale or mismatched' }
+          "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
+
       - name: Run Firefox M1
         shell: pwsh
         run: |
@@ -408,6 +473,7 @@ jobs:
             (Join-Path $artifactRoot 'run-metadata.txt'),
             (Join-Path $artifactRoot 'manifest-binding.json'),
             (Join-Path $artifactRoot 'firefox-toolchain-manifest.json'),
+            (Join-Path $artifactRoot 'runtime-binding\runtime-binding.json'),
             (Join-Path $artifactRoot 'firefox-install-inventory.json'),
             (Join-Path $artifactRoot 'reports\firefox-m1-report.json'),
             (Join-Path $artifactRoot 'step12-result.json')
@@ -473,6 +539,9 @@ jobs:
                 if ($requiredName -eq 'step12-result.json') {
                   if ($requiredJson.stage -ne 'step12-run-firefox-m1' -or $requiredJson.command -ne 'pnpm test:e2e:firefox:m1' -or [string]::IsNullOrEmpty($requiredJson.runId) -or [string]::IsNullOrEmpty($requiredJson.jobId) -or [string]::IsNullOrEmpty($requiredJson.runAttempt) -or $null -eq $requiredJson.exitCode) { Add-ValidatorError 'invalid-step12-result' $requiredName 'step12 result provenance envelope is missing or invalid' }
                 }
+                if ($requiredName -eq 'runtime-binding.json') {
+                  if ($requiredJson.schemaVersion -ne 2 -or $requiredJson.artifactKind -ne 'firefox-m1-runtime-binding' -or $requiredJson.exactHead -cne $head -or $requiredJson.runId -ne $env:GITHUB_RUN_ID -or $requiredJson.jobId -ne $env:GITHUB_JOB -or $requiredJson.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $requiredJson.manifestSha256 -notmatch '^[0-9a-f]{64}$' -or $null -eq $requiredJson.source -or $null -eq $requiredJson.toolchain) { Add-ValidatorError 'invalid-runtime-binding' $requiredName 'runtime binding provenance is missing or mismatched' }
+                }
               } elseif ($requiredFile.EndsWith('.txt', [System.StringComparison]::OrdinalIgnoreCase)) {
                 if ($requiredText -notmatch '(?m)^schemaVersion=1\s*$') { Add-ValidatorError 'missing-schema' (Split-Path -Leaf $requiredFile) 'required metadata schemaVersion is missing' }
                 if ($requiredText -notmatch "(?m)^exactHead=$([regex]::Escape($head))\s*$") { Add-ValidatorError 'head-mismatch' (Split-Path -Leaf $requiredFile) 'required metadata exactHead differs from target SHA' }
@@ -532,19 +601,22 @@ jobs:
         if: always()
         shell: pwsh
         env:
-          ZEROOMEGA_ARTIFACT_ID: ${{ steps.upload-diagnostics.outputs.artifact-id }}
-          ZEROOMEGA_ARTIFACT_DIGEST: ${{ steps.upload-diagnostics.outputs.artifact-digest }}
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID: ${{ steps.upload-diagnostics.outputs.artifact-id }}
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST: ${{ steps.upload-diagnostics.outputs.artifact-digest }}
         run: |
           $ErrorActionPreference = 'Continue'
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
-          $artifactName = "firefox-m1-$head-e2e-diagnostics"
-          $artifactId = [string]$env:ZEROOMEGA_ARTIFACT_ID
-          $artifactDigest = [string]$env:ZEROOMEGA_ARTIFACT_DIGEST
+          $runtimeId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $runtimeDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $diagnosticsId = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID
+          $diagnosticsDigest = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST
           $errors = @()
-          if ($artifactId -notmatch '^\d+$') { $errors += 'artifact-id is missing or invalid' }
-          if ($artifactDigest -notmatch '^(sha256:)?[0-9a-fA-F]{64}$') { $errors += 'artifact-digest is missing or invalid' }
-          $normalizedDigest = if ($artifactDigest -match '^sha256:') { $artifactDigest.ToLowerInvariant() } else { "sha256:$($artifactDigest.ToLowerInvariant())" }
+          if ($runtimeId -notmatch '^\d+$' -or $runtimeId -eq '0') { $errors += 'runtime binding artifact-id is missing or invalid' }
+          if ($diagnosticsId -notmatch '^\d+$' -or $diagnosticsId -eq '0') { $errors += 'diagnostics artifact-id is missing or invalid' }
+          if ($runtimeId -eq $diagnosticsId) { $errors += 'runtime and diagnostics artifact IDs must differ' }
+          if ($runtimeDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $runtimeDigest -match '^sha256:0{64}$') { $errors += 'runtime binding artifact-digest is missing or invalid' }
+          if ($diagnosticsDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $diagnosticsDigest -match '^sha256:0{64}$') { $errors += 'diagnostics artifact-digest is missing or invalid' }
           $manifestBindingPath = Join-Path $artifactRoot 'manifest-binding.json'
           $manifestSha256 = $null
           if (Test-Path -LiteralPath $manifestBindingPath -PathType Leaf) {
@@ -553,16 +625,25 @@ jobs:
             $errors += 'manifest-binding.json is absent'
           }
           if ($manifestSha256 -notmatch '^[0-9a-fA-F]{64}$') { $errors += 'manifestSha256 is missing or invalid' }
+          $runtimeBindingPath = Join-Path $artifactRoot 'runtime-binding\runtime-binding.json'
+          if (-not (Test-Path -LiteralPath $runtimeBindingPath -PathType Leaf)) {
+            $errors += 'runtime-binding.json is absent'
+          } else {
+            try {
+              $runtimeBinding = Get-Content -LiteralPath $runtimeBindingPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+              if ($runtimeBinding.schemaVersion -ne 2 -or $runtimeBinding.exactHead -cne $head -or $runtimeBinding.runId -ne $env:GITHUB_RUN_ID -or $runtimeBinding.jobId -ne $env:GITHUB_JOB -or $runtimeBinding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $runtimeBinding.manifestSha256 -cne $manifestSha256.ToLowerInvariant()) { $errors += 'runtime-binding.json is stale or mismatched' }
+            } catch { $errors += 'runtime-binding.json is not valid JSON' }
+          }
           [ordered]@{
-            schemaVersion = 1
+            schemaVersion = 2
+            artifactKind = 'firefox-m1-provenance-companion'
             exactHead = $head
             runId = $env:GITHUB_RUN_ID
             jobId = $env:GITHUB_JOB
             runAttempt = $env:GITHUB_RUN_ATTEMPT
-            artifactName = $artifactName
-            artifactId = $artifactId
-            artifactDigest = $normalizedDigest
             manifestSha256 = if ($manifestSha256) { $manifestSha256.ToLowerInvariant() } else { $null }
+            runtimeBindingArtifact = [ordered]@{ id = $runtimeId; digest = $runtimeDigest.ToLowerInvariant() }
+            diagnosticsArtifact = [ordered]@{ id = $diagnosticsId; digest = $diagnosticsDigest.ToLowerInvariant() }
             errors = $errors
           } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-provenance.json') -Encoding UTF8
           if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
