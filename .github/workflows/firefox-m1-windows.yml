@@ -1,0 +1,706 @@
+name: Firefox M1 Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      exact_head:
+        description: Exact 40-hex commit SHA to test
+        required: true
+        type: string
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  firefox-m1:
+    env:
+      ZEROOMEGA_CHECKOUT_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.exact_head || github.event.pull_request.head.sha }}
+    runs-on: windows-2025
+    timeout-minutes: 35
+
+    steps:
+      - name: Validate exact target head input
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_CHECKOUT_REF
+          if ($head -notmatch '^[0-9a-fA-F]{40}$') {
+            Write-Error "Target head must be a 40-hex SHA, got $head"
+            exit 1
+          }
+
+      - name: Checkout exact target head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ZEROOMEGA_CHECKOUT_REF }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact head and clean checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = $env:ZEROOMEGA_CHECKOUT_REF
+          if ($expected -notmatch '^[0-9a-fA-F]{40}$') {
+            Write-Error "Target head must be a 40-hex SHA, got $expected"
+            exit 1
+          }
+          $actual = (git rev-parse HEAD).Trim()
+          if ($expected -ne $actual) {
+            Write-Error "Expected target head $expected but checked out $actual"
+            exit 1
+          }
+          $status = git status --porcelain
+          if ($status) {
+            Write-Output $status
+            Write-Error 'Checkout is not clean'
+            exit 1
+          }
+          "ZEROOMEGA_EXACT_HEAD=$actual" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_EXACT_HEAD=$actual" | Set-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'exact-head.env') -Encoding UTF8
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Activate pnpm 11.4.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
+
+      - name: Assert fixed Node and pnpm versions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $nodeVersion = (& node --version).Trim()
+          $pnpmVersion = (& pnpm --version).Trim()
+          if ($nodeVersion -notmatch '^v24\.[0-9]+\.[0-9]+$') {
+            Write-Error "Expected Node major 24, got $nodeVersion"
+            exit 1
+          }
+          if ($pnpmVersion -ne '11.4.0') {
+            Write-Error "Expected pnpm 11.4.0, got $pnpmVersion"
+            exit 1
+          }
+          Write-Output "Node $nodeVersion and pnpm $pnpmVersion satisfy the fixed toolchain gate"
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & pnpm install --frozen-lockfile *> pnpm-install.log
+          $exitCode = $LASTEXITCODE
+          Get-Content -LiteralPath pnpm-install.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Create exact-head evidence directory
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          @(
+            "schemaVersion=1"
+            "exactHead=$head"
+            "os=$([System.Environment]::OSVersion.VersionString)"
+            "powershell=$($PSVersionTable.PSVersion)"
+            "node=$(& node --version)"
+            "pnpm=$(& pnpm --version)"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'run-metadata.txt') -Encoding UTF8
+          $manifestSource = Join-Path $env:GITHUB_WORKSPACE 'scripts\firefox-toolchain-manifest.json'
+          $manifestDestination = Join-Path $artifactRoot 'firefox-toolchain-manifest.json'
+          Copy-Item -LiteralPath $manifestSource -Destination $manifestDestination -Force
+          $manifestHash = (Get-FileHash -LiteralPath $manifestDestination -Algorithm SHA256).Hash.ToLowerInvariant()
+          [ordered]@{
+            schemaVersion = 1
+            exactHead = $head
+            manifest = 'firefox-toolchain-manifest.json'
+            manifestSha256 = $manifestHash
+          } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $artifactRoot 'manifest-binding.json') -Encoding UTF8
+
+      - name: Set up fixed Firefox toolchain
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          & pnpm firefox:setup *> firefox-setup.log
+          $exitCode = $LASTEXITCODE
+          Get-Content -LiteralPath firefox-setup.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Record fixed Firefox versions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $state = Get-Content -LiteralPath '.cache/firefox-m1/toolchain-state.json' -Raw | ConvertFrom-Json
+          $firefoxBinary = Join-Path $env:GITHUB_WORKSPACE '.cache/firefox-m1/firefox/core/firefox.exe'
+          $geckodriverBinary = Join-Path $env:GITHUB_WORKSPACE '.cache/firefox-m1/geckodriver/geckodriver.exe'
+          @(
+            "manifestFirefox=$($state.manifest.firefox.version)"
+            "manifestGeckodriver=$($state.manifest.geckodriver.version)"
+            "firefoxBinary=$firefoxBinary"
+            "geckodriverBinary=$geckodriverBinary"
+            "firefoxVersion=$(& $firefoxBinary --version)"
+            "geckodriverVersion=$(& $geckodriverBinary --version | Select-Object -First 1)"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'toolchain-versions.txt') -Encoding UTF8
+
+      - name: Create runtime binding artifact
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $bindingRoot = Join-Path $artifactRoot 'runtime-binding'
+          New-Item -ItemType Directory -Path $bindingRoot -Force | Out-Null
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE 'scripts\firefox-toolchain-manifest.json'
+          $manifestSha256 = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          $toolchainStatePath = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\toolchain-state.json'
+          if (-not (Test-Path -LiteralPath $toolchainStatePath -PathType Leaf)) { throw 'Firefox toolchain state is missing before runtime binding upload' }
+          Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $bindingRoot 'firefox-toolchain-manifest.json') -Force
+          Copy-Item -LiteralPath $toolchainStatePath -Destination (Join-Path $bindingRoot 'toolchain-state.json') -Force
+          [ordered]@{
+            schemaVersion = 2
+            artifactKind = 'firefox-m1-runtime-binding'
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            manifestSha256 = $manifestSha256
+            source = [ordered]@{
+              repository = $env:GITHUB_REPOSITORY
+              workflow = $env:GITHUB_WORKFLOW
+              event = $env:GITHUB_EVENT_NAME
+              ref = $env:GITHUB_REF
+              sha = $env:GITHUB_SHA
+            }
+            toolchain = [ordered]@{
+              manifest = 'firefox-toolchain-manifest.json'
+              state = 'toolchain-state.json'
+              node = (& node --version).Trim()
+              pnpm = (& pnpm --version).Trim()
+            }
+          } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $bindingRoot 'runtime-binding.json') -Encoding UTF8
+
+      - name: Upload runtime binding artifact
+        uses: actions/upload-artifact@v4
+        id: upload-runtime-binding
+        with:
+          name: firefox-m1-${{ env.ZEROOMEGA_EXACT_HEAD }}-runtime-binding
+          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}/runtime-binding
+          if-no-files-found: error
+
+      - name: Record runtime binding diagnostic
+        if: always()
+        shell: pwsh
+        env:
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: ${{ steps.upload-runtime-binding.outputs.artifact-digest }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $idFormat = if ($artifactId -match '^\d+$' -and $artifactId -ne '0') { 'decimal-nonzero' } else { 'missing-or-invalid' }
+          $digestFormat = if ($artifactDigest -match '^sha256:[0-9a-fA-F]{64}$' -and $artifactDigest -notmatch '^sha256:0{64}$') { 'sha256-64hex' } else { 'missing-or-invalid' }
+          $manifestSha256 = $null
+          $manifestBindingPath = Join-Path $artifactRoot 'manifest-binding.json'
+          if (Test-Path -LiteralPath $manifestBindingPath -PathType Leaf) {
+            try { $manifestSha256 = ((Get-Content -LiteralPath $manifestBindingPath -Raw -ErrorAction Stop) | ConvertFrom-Json -ErrorAction Stop).manifestSha256 } catch { }
+          }
+          $primaryFailureCode = if ($idFormat -eq 'missing-or-invalid' -or $digestFormat -eq 'missing-or-invalid') { 'RUNTIME_BINDING_IDENTITY_INVALID' } else { $null }
+          [ordered]@{
+            schemaVersion = 2
+            sourceStep = 'upload-runtime-binding'
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            manifestSha256 = $manifestSha256
+            artifactId = [ordered]@{ value = $artifactId; type = 'string'; format = $idFormat }
+            artifactDigest = [ordered]@{ value = $artifactDigest; type = 'string'; format = $digestFormat }
+            primaryFailureCode = $primaryFailureCode
+          } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'runtime-binding-diagnostic.json') -Encoding UTF8
+
+      - name: Bind runtime artifact identity
+        if: always()
+        shell: pwsh
+        env:
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: ${{ steps.upload-runtime-binding.outputs.artifact-digest }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $identityInvalid = $artifactId -notmatch '^\d+$' -or $artifactId -eq '0' -or $artifactDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $artifactDigest -match '^sha256:0{64}$'
+          if ($identityInvalid) {
+            $primaryFailureCode = 'RUNTIME_BINDING_IDENTITY_INVALID'
+            "ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE=$primaryFailureCode" | Add-Content -LiteralPath $env:GITHUB_ENV
+            "ZEROOMEGA_RUNTIME_BINDING_BLOCKED_BY=runtime-binding" | Add-Content -LiteralPath $env:GITHUB_ENV
+            throw $primaryFailureCode
+          }
+          $bindingPath = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head\runtime-binding\runtime-binding.json"
+          $binding = Get-Content -LiteralPath $bindingPath -Raw | ConvertFrom-Json
+          $primaryFailureCode = $null
+          if ($binding.schemaVersion -ne 2 -or $binding.artifactKind -ne 'firefox-m1-runtime-binding' -or $binding.exactHead -cne $head -or $binding.runId -ne $env:GITHUB_RUN_ID -or $binding.jobId -ne $env:GITHUB_JOB -or $binding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $binding.manifestSha256 -notmatch '^[0-9a-f]{64}$') { $primaryFailureCode = 'RUNTIME_BINDING_CONTENT_MISMATCH' }
+          if ($primaryFailureCode) {
+            "ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE=$primaryFailureCode" | Add-Content -LiteralPath $env:GITHUB_ENV
+            "ZEROOMEGA_RUNTIME_BINDING_BLOCKED_BY=runtime-binding" | Add-Content -LiteralPath $env:GITHUB_ENV
+            throw $primaryFailureCode
+          }
+          "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
+
+      - name: Run Firefox M1
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $startedAt = [DateTime]::UtcNow.ToString('o')
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $mozCrashRoot = Join-Path $artifactRoot 'moz-crash'
+          New-Item -ItemType Directory -Path $mozCrashRoot -Force | Out-Null
+          $env:ZEROOMEGA_FIREFOX_GECKODRIVER_TRACE = '1'
+          $env:ZEROOMEGA_EXACT_HEAD = $head
+          $env:ZEROOMEGA_FIREFOX_GECKODRIVER_LOG = Join-Path $artifactRoot 'geckodriver.log'
+          $env:MOZ_CRASHREPORTER_DATA_DIRECTORY = $mozCrashRoot
+          $env:MOZ_LOG = 'Marionette:5'
+          $env:MOZ_LOG_FILE = Join-Path $artifactRoot 'marionette.log'
+          @(
+            "ZEROOMEGA_EXACT_HEAD=$env:ZEROOMEGA_EXACT_HEAD"
+            "ZEROOMEGA_FIREFOX_GECKODRIVER_LOG=$env:ZEROOMEGA_FIREFOX_GECKODRIVER_LOG"
+            "MOZ_CRASHREPORTER_DATA_DIRECTORY=$env:MOZ_CRASHREPORTER_DATA_DIRECTORY"
+            "MOZ_LOG=$env:MOZ_LOG"
+            "MOZ_LOG_FILE=$env:MOZ_LOG_FILE"
+          ) | Set-Content -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt') -Encoding UTF8
+          & pnpm test:e2e:firefox:m1 *> firefox-m1.log
+          $exitCode = $LASTEXITCODE
+          $completedAt = [DateTime]::UtcNow.ToString('o')
+          $outcome = if ($exitCode -eq 0) { 'passed' } else { 'failed' }
+          $firstFailure = $null
+          if ($exitCode -ne 0) {
+            $firstFailure = [ordered]@{
+              stage = 'step12-run-firefox-m1'
+              command = 'pnpm test:e2e:firefox:m1'
+              exitCode = $exitCode
+              exactHead = $head
+              log = 'firefox-m1.log'
+              observedAt = $completedAt
+            }
+          }
+          [ordered]@{
+            schemaVersion = 1
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            stage = 'step12-run-firefox-m1'
+            command = 'pnpm test:e2e:firefox:m1'
+            startedAt = $startedAt
+            completedAt = $completedAt
+            exitCode = $exitCode
+            outcome = $outcome
+            firstFailure = $firstFailure
+            diagnostics = [ordered]@{
+              log = 'firefox-m1.log'
+              geckodriverLog = 'geckodriver.log'
+              marionetteLog = 'marionette.log'
+            }
+          } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'step12-result.json') -Encoding UTF8
+          Get-Content -LiteralPath firefox-m1.log
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Collect Firefox M1 diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          $warningPath = Join-Path $artifactRoot 'diagnostic-warnings.log'
+          Set-Content -LiteralPath $warningPath -Value "exactHead=$head" -Encoding UTF8
+          function Warn-Diagnostic([string] $message) {
+            Write-Warning $message
+            Add-Content -LiteralPath $warningPath -Value "WARN: $message" -Encoding UTF8
+          }
+          function Copy-DiagnosticTree([string] $source, [string] $destination, [string] $label) {
+            if (-not (Test-Path -LiteralPath $source -PathType Container)) {
+              Warn-Diagnostic "$label is absent: $source"
+              return $false
+            }
+            try {
+              New-Item -ItemType Directory -Path $destination -Force | Out-Null
+              Copy-Item -LiteralPath $source -Destination $destination -Recurse -Force -ErrorAction Stop
+              return $true
+            } catch {
+              Warn-Diagnostic "Unable to collect $label from ${source}: $($_.Exception.Message)"
+              return $false
+            }
+          }
+          foreach ($file in @('pnpm-install.log', 'firefox-setup.log', 'firefox-m1.log')) {
+            if (Test-Path -LiteralPath $file) {
+              Copy-Item -LiteralPath $file -Destination (Join-Path $artifactRoot $file) -Force
+            } else {
+              Warn-Diagnostic "Expected workflow log is absent: $file"
+            }
+          }
+          if (Test-Path -LiteralPath '.cache/firefox-m1/reports') {
+            Copy-Item -LiteralPath '.cache/firefox-m1/reports' -Destination (Join-Path $artifactRoot 'reports') -Recurse -Force
+          } else {
+            Warn-Diagnostic 'Firefox M1 report directory is absent: .cache/firefox-m1/reports'
+          }
+          if (Test-Path -LiteralPath '.cache/firefox-m1/toolchain-state.json') {
+            Copy-Item -LiteralPath '.cache/firefox-m1/toolchain-state.json' -Destination (Join-Path $artifactRoot 'toolchain-state.json') -Force
+          } else {
+            Warn-Diagnostic 'Firefox toolchain state is absent: .cache/firefox-m1/toolchain-state.json'
+          }
+          $crashRoot = Join-Path $artifactRoot 'moz-crash'
+          New-Item -ItemType Directory -Path $crashRoot -Force | Out-Null
+          if (-not (Test-Path -LiteralPath $crashRoot -PathType Container)) {
+            Warn-Diagnostic "Custom MOZ_CRASHREPORTER_DATA_DIRECTORY is absent: $crashRoot"
+          }
+          Get-ChildItem -LiteralPath $crashRoot -Recurse -File -ErrorAction SilentlyContinue |
+            Select-Object FullName, Length, LastWriteTime |
+            ConvertTo-Json -Depth 3 |
+            Set-Content -LiteralPath (Join-Path $artifactRoot 'moz-crash-inventory.json') -Encoding UTF8
+
+          $profileRoots = @()
+          $persistentProfileRoot = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\profiles'
+          if (Test-Path -LiteralPath $persistentProfileRoot -PathType Container) {
+            $profileRoots += Get-ChildItem -LiteralPath $persistentProfileRoot -Directory -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          } else {
+            Warn-Diagnostic "Persistent Firefox profile root is absent: $persistentProfileRoot"
+          }
+          foreach ($tempBase in @($env:RUNNER_TEMP, $env:TEMP)) {
+            if ($tempBase -and (Test-Path -LiteralPath $tempBase -PathType Container)) {
+              $profileRoots += Get-ChildItem -LiteralPath $tempBase -Directory -Filter 'zeroomega-nex-firefox-*' -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+            }
+          }
+          $profileRoots = @($profileRoots | Sort-Object -Unique)
+          if ($profileRoots.Count -eq 0) {
+            Warn-Diagnostic 'No Firefox profile directories were found for crash collection'
+          }
+          foreach ($profileRoot in $profileRoots) {
+            $profileName = Split-Path -Leaf $profileRoot
+            $profileDestination = Join-Path (Join-Path $artifactRoot 'profiles') $profileName
+            foreach ($relativePath in @('crashes', 'minidumps')) {
+              Copy-DiagnosticTree (Join-Path $profileRoot $relativePath) (Join-Path $profileDestination $relativePath) "profile $profileName/$relativePath"
+            }
+          }
+
+          $firefoxInstallRoot = Join-Path $env:GITHUB_WORKSPACE '.cache\firefox-m1\firefox'
+          $firefoxInstallDestination = Join-Path $artifactRoot 'firefox-install'
+          $inventoryFiles = @()
+          if (Test-Path -LiteralPath $firefoxInstallRoot -PathType Container) {
+            try {
+              Copy-Item -LiteralPath $firefoxInstallRoot -Destination $firefoxInstallDestination -Recurse -Force -ErrorAction Stop
+            } catch {
+              Warn-Diagnostic "Unable to collect Firefox installation directory: $($_.Exception.Message)"
+            }
+            $inventoryFiles = @(Get-ChildItem -LiteralPath $firefoxInstallRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
+              ForEach-Object {
+                [ordered]@{
+                  relativePath = $_.FullName.Substring($firefoxInstallRoot.Length).TrimStart('\').Replace('\', '/')
+                  length = $_.Length
+                  lastWriteTimeUtc = $_.LastWriteTimeUtc.ToString('o')
+                }
+              })
+          } else {
+            Warn-Diagnostic "Firefox installation directory is absent: $firefoxInstallRoot"
+          }
+          [ordered]@{
+            schemaVersion = 1
+            exactHead = $head
+            sourceRoot = '.cache/firefox-m1/firefox'
+            generatedAt = [DateTime]::UtcNow.ToString('o')
+            fileCount = $inventoryFiles.Count
+            files = $inventoryFiles
+          } |
+            ConvertTo-Json -Depth 3 |
+            Set-Content -LiteralPath (Join-Path $artifactRoot 'firefox-install-inventory.json') -Encoding UTF8
+
+          $commonCrashRoots = @()
+          foreach ($base in @($env:APPDATA, $env:LOCALAPPDATA, $env:PROGRAMDATA)) {
+            if ($base) {
+              $commonCrashRoots += Join-Path $base 'Mozilla\Firefox\Crash Reports'
+            }
+          }
+          $commonCrashRoots += @(
+            (Join-Path $firefoxInstallRoot 'Crash Reports'),
+            (Join-Path $firefoxInstallRoot 'crashes'),
+            (Join-Path $firefoxInstallRoot 'minidumps')
+          )
+          $commonCrashDestination = Join-Path $artifactRoot 'common-crash-reports'
+          $crashIndex = 0
+          foreach ($commonCrashRoot in ($commonCrashRoots | Sort-Object -Unique)) {
+            $crashLabel = '{0:D2}-{1}' -f $crashIndex, (Split-Path -Leaf $commonCrashRoot)
+            Copy-DiagnosticTree $commonCrashRoot (Join-Path $commonCrashDestination $crashLabel) "common Firefox crash directory $commonCrashRoot"
+            $crashIndex++
+          }
+
+          foreach ($log in @('geckodriver.log', 'marionette.log')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $artifactRoot $log) -PathType Leaf)) {
+              Warn-Diagnostic "Independent Firefox diagnostic log is absent: $log"
+            }
+          }
+          if (Test-Path -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt')) {
+            Get-Content -LiteralPath (Join-Path $artifactRoot 'logging-environment.txt') | Add-Content -LiteralPath $warningPath -Encoding UTF8
+          } else {
+            Warn-Diagnostic 'Logging environment record is absent'
+          }
+
+      - name: Scan collected diagnostics for migration secret sentinels
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+          $scanListPath = Join-Path $artifactRoot 'secret-sentinel-inputs.json'
+          $textExtensions = @('.log', '.json', '.txt', '.xml', '.md', '.yml', '.yaml')
+          $scanFiles = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Force -ErrorAction SilentlyContinue |
+            Where-Object { $textExtensions -contains $_.Extension.ToLowerInvariant() } |
+            Select-Object -ExpandProperty FullName)
+          if ($scanFiles.Count -eq 0) {
+            Write-Error 'No collected text diagnostics were available for the migration secret-sentinel gate'
+            exit 1
+          }
+          $scanFiles | ConvertTo-Json | Set-Content -LiteralPath $scanListPath -Encoding UTF8
+          $sentinelCheck = @'
+          import { readFile } from 'node:fs/promises';
+          import { assertNoMigrationSecretSentinels } from './scripts/migration-secret-sentinels.mjs';
+          const files = JSON.parse(await readFile(process.argv[1], 'utf8'));
+          for (const file of files) {
+            assertNoMigrationSecretSentinels(await readFile(file, 'utf8'), file);
+          }
+          console.log(`scanned migration diagnostics: ${files.length}`);
+          '@
+          & node --input-type=module -e $sentinelCheck $scanListPath
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) {
+            Write-Error "Migration secret-sentinel gate failed with exit $exitCode"
+            exit $exitCode
+          }
+
+      - name: Validate exact-head diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $validatorErrors = @()
+          $primaryFailure = $null
+          $textScanned = @()
+          $emptyFiles = @()
+          $binaryExcluded = @()
+          $selfExcluded = @()
+          function Add-ValidatorError([string] $code, [string] $path, [string] $message) {
+            $script:validatorErrors += [ordered]@{ code = $code; path = $path; message = $message }
+          }
+          $textExtensions = @('.log', '.json', '.txt', '.xml', '.md', '.yml', '.yaml')
+          $binaryExtensions = @('.7z', '.bmp', '.db', '.dmp', '.dll', '.exe', '.gif', '.gz', '.ico', '.jpeg', '.jpg', '.pdb', '.png', '.sqlite', '.tar', '.zip')
+          $requiredFiles = @(
+            (Join-Path $artifactRoot 'run-metadata.txt'),
+            (Join-Path $artifactRoot 'manifest-binding.json'),
+            (Join-Path $artifactRoot 'firefox-toolchain-manifest.json'),
+            (Join-Path $artifactRoot 'runtime-binding\runtime-binding.json'),
+            (Join-Path $artifactRoot 'firefox-install-inventory.json'),
+            (Join-Path $artifactRoot 'reports\firefox-m1-report.json'),
+            (Join-Path $artifactRoot 'step12-result.json')
+          )
+          if ($head -notmatch '^[0-9a-f]{40}$') { Add-ValidatorError 'invalid-target-head' 'ZEROOMEGA_EXACT_HEAD' 'target SHA must be canonical lowercase 40-hex' }
+          $files = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Force -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) { Add-ValidatorError 'empty-artifact' $artifactRoot 'diagnostic artifact directory is empty' }
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+              Add-ValidatorError 'missing-required-provenance' $requiredFile 'required provenance file is absent'
+            }
+          }
+          foreach ($file in $files) {
+            $relative = $file.FullName.Substring($artifactRoot.Length).TrimStart('\').Replace('\', '/')
+            if (@('artifact-validation.json', 'artifact-provenance.json') -contains $relative) { $selfExcluded += $relative; continue }
+            $extension = $file.Extension.ToLowerInvariant()
+            if ($binaryExtensions -contains $extension) { $binaryExcluded += $relative; continue }
+            if ($textExtensions -notcontains $extension) { continue }
+            try { $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop } catch { Add-ValidatorError 'unreadable-text' $relative 'unable to read text diagnostic'; continue }
+            if ([string]::IsNullOrEmpty($text)) { $emptyFiles += $relative; continue }
+            $textScanned += $relative
+            foreach ($match in [regex]::Matches([string]$text, '(?i)\bexactHead\s*[=:]\s*([0-9a-f]{40})')) {
+              if ($match.Groups[1].Value.ToLowerInvariant() -ne $head.ToLowerInvariant()) { Add-ValidatorError 'head-mismatch' $relative 'text exactHead differs from target SHA' }
+            }
+            if ($extension -eq '.json') {
+              try {
+                $json = $text | ConvertFrom-Json -ErrorAction Stop
+                if ($null -ne $json.exactHead -and $json.exactHead.ToLowerInvariant() -ne $head.ToLowerInvariant()) { Add-ValidatorError 'head-mismatch' $relative 'JSON exactHead differs from target SHA' }
+              } catch { Add-ValidatorError 'invalid-json' $relative 'text diagnostic is invalid JSON' }
+            }
+          }
+          $step12Json = $null
+          $reportJson = $null
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) { continue }
+            try {
+              $requiredText = Get-Content -LiteralPath $requiredFile -Raw -ErrorAction Stop
+              if ([string]::IsNullOrEmpty($requiredText)) { Add-ValidatorError 'empty-required-provenance' $requiredFile 'required provenance file is empty'; continue }
+              if ($requiredFile.EndsWith('.json', [System.StringComparison]::OrdinalIgnoreCase)) {
+                $requiredJson = $requiredText | ConvertFrom-Json -ErrorAction Stop
+                $requiredName = Split-Path -Leaf $requiredFile
+                if ($null -eq $requiredJson.schemaVersion -or $requiredJson.schemaVersion -ne 1) { Add-ValidatorError 'missing-schema' $requiredName 'required JSON schemaVersion must be 1' }
+                if ($requiredName -ne 'firefox-toolchain-manifest.json' -and ($null -eq $requiredJson.exactHead -or $requiredJson.exactHead.ToLowerInvariant() -ne $head.ToLowerInvariant())) { Add-ValidatorError 'head-mismatch' $requiredName 'required JSON exactHead differs from target SHA' }
+                if ($requiredName -eq 'step12-result.json') { $step12Json = $requiredJson }
+                if ($requiredName -eq 'firefox-m1-report.json') { $reportJson = $requiredJson }
+                if ($requiredName -eq 'firefox-toolchain-manifest.json') {
+                  if ($requiredJson.platform -ne 'win64' -or $null -eq $requiredJson.firefox -or $null -eq $requiredJson.geckodriver -or [string]::IsNullOrEmpty($requiredJson.firefox.version) -or [string]::IsNullOrEmpty($requiredJson.geckodriver.version) -or $requiredJson.firefox.sha256 -notmatch '^[0-9a-f]{64}$' -or $requiredJson.geckodriver.sha256 -notmatch '^[0-9a-f]{64}$') { Add-ValidatorError 'invalid-toolchain-manifest' $requiredName 'Firefox/geckodriver manifest provenance is missing or invalid' }
+                }
+                if ($requiredFile.EndsWith('manifest-binding.json', [System.StringComparison]::OrdinalIgnoreCase)) {
+                  if ($requiredJson.manifest -ne 'firefox-toolchain-manifest.json' -or $requiredJson.manifestSha256 -notmatch '^[0-9a-f]{64}$') { Add-ValidatorError 'invalid-manifest-binding' $requiredName 'manifest binding is missing or invalid' }
+                  $manifestPath = Join-Path $artifactRoot 'firefox-toolchain-manifest.json'
+                  if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+                    $actualManifestSha256 = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+                    if ($requiredJson.manifestSha256.ToLowerInvariant() -ne $actualManifestSha256) { Add-ValidatorError 'manifest-mismatch' $requiredName 'manifest binding hash differs from collected manifest' }
+                  }
+                }
+                if ($requiredName -eq 'firefox-install-inventory.json') {
+                  if ($requiredJson.exactHead -notmatch '^[0-9a-f]{40}$' -or $requiredJson.sourceRoot -ne '.cache/firefox-m1/firefox' -or [string]::IsNullOrEmpty($requiredJson.generatedAt) -or ($requiredJson.fileCount -isnot [int] -and $requiredJson.fileCount -isnot [long]) -or $null -eq $requiredJson.files -or $requiredJson.fileCount -ne @($requiredJson.files).Count) { Add-ValidatorError 'invalid-install-inventory' $requiredName 'installation inventory envelope is missing or invalid' }
+                  foreach ($entry in @($requiredJson.files)) {
+                    if ([string]::IsNullOrEmpty($entry.relativePath) -or $entry.relativePath -match '\\' -or ($entry.length -isnot [int] -and $entry.length -isnot [long]) -or [string]::IsNullOrEmpty($entry.lastWriteTimeUtc)) { Add-ValidatorError 'invalid-install-inventory-entry' $requiredName 'installation inventory entry is missing normalized provenance fields' }
+                  }
+                }
+                if ($requiredName -eq 'step12-result.json') {
+                  if ($requiredJson.stage -ne 'step12-run-firefox-m1' -or $requiredJson.command -ne 'pnpm test:e2e:firefox:m1' -or [string]::IsNullOrEmpty($requiredJson.runId) -or [string]::IsNullOrEmpty($requiredJson.jobId) -or [string]::IsNullOrEmpty($requiredJson.runAttempt) -or $null -eq $requiredJson.exitCode) { Add-ValidatorError 'invalid-step12-result' $requiredName 'step12 result provenance envelope is missing or invalid' }
+                }
+                if ($requiredName -eq 'runtime-binding.json') {
+                  if ($requiredJson.schemaVersion -ne 2 -or $requiredJson.artifactKind -ne 'firefox-m1-runtime-binding' -or $requiredJson.exactHead -cne $head -or $requiredJson.runId -ne $env:GITHUB_RUN_ID -or $requiredJson.jobId -ne $env:GITHUB_JOB -or $requiredJson.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $requiredJson.manifestSha256 -notmatch '^[0-9a-f]{64}$' -or $null -eq $requiredJson.source -or $null -eq $requiredJson.toolchain) { Add-ValidatorError 'invalid-runtime-binding' $requiredName 'runtime binding provenance is missing or mismatched' }
+                }
+              } elseif ($requiredFile.EndsWith('.txt', [System.StringComparison]::OrdinalIgnoreCase)) {
+                if ($requiredText -notmatch '(?m)^schemaVersion=1\s*$') { Add-ValidatorError 'missing-schema' (Split-Path -Leaf $requiredFile) 'required metadata schemaVersion is missing' }
+                if ($requiredText -notmatch "(?m)^exactHead=$([regex]::Escape($head))\s*$") { Add-ValidatorError 'head-mismatch' (Split-Path -Leaf $requiredFile) 'required metadata exactHead differs from target SHA' }
+              }
+            } catch { Add-ValidatorError 'invalid-required-provenance' (Split-Path -Leaf $requiredFile) 'required provenance file could not be parsed' }
+          }
+          if ($null -ne $step12Json) {
+            if ($step12Json.exitCode -ne 0) {
+              if ($null -eq $step12Json.firstFailure -or $step12Json.firstFailure.stage -ne 'step12-run-firefox-m1' -or $step12Json.firstFailure.exactHead.ToLowerInvariant() -ne $head.ToLowerInvariant()) {
+                Add-ValidatorError 'missing-first-failure' 'step12-result.json' 'non-zero step12 result lacks an exact-head-bound firstFailure'
+              } else {
+                $primaryFailure = $step12Json.firstFailure
+              }
+            } elseif ($null -ne $step12Json.firstFailure) {
+              Add-ValidatorError 'unexpected-first-failure' 'step12-result.json' 'successful step12 result contains firstFailure'
+            }
+          }
+          $journeyComplete = $false
+          if ($null -ne $reportJson) { $journeyComplete = ($reportJson.journeyComplete -eq $true -or $reportJson.journeyStatus -eq 'passed') }
+          $failureEvidencePath = Join-Path $artifactRoot 'reports\firefox-m1-failure-evidence.json'
+          if ($journeyComplete) {
+            if (-not (Test-Path -LiteralPath $failureEvidencePath -PathType Leaf)) {
+              Add-ValidatorError 'missing-complete-journey-evidence' 'reports/firefox-m1-failure-evidence.json' 'failure evidence is required only after a complete journey'
+            } else {
+              try {
+                $failureEvidence = Get-Content -LiteralPath $failureEvidencePath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+                if ($failureEvidence.exactHead.ToLowerInvariant() -ne $head.ToLowerInvariant()) { Add-ValidatorError 'head-mismatch' 'reports/firefox-m1-failure-evidence.json' 'failure evidence exactHead differs from target SHA' }
+              } catch { Add-ValidatorError 'invalid-conditional-evidence' 'reports/firefox-m1-failure-evidence.json' 'conditional failure evidence is invalid JSON' }
+            }
+          }
+          $validation = [ordered]@{
+            schemaVersion = 1
+            exactHead = $head
+            valid = ($validatorErrors.Count -eq 0)
+            firstFailure = $primaryFailure
+            validatorErrors = $validatorErrors
+            diagnostics = [ordered]@{
+              textScanned = $textScanned
+              emptyFiles = $emptyFiles
+              binaryExcluded = $binaryExcluded
+              selfExcluded = $selfExcluded
+            }
+          }
+          $validation | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-validation.json') -Encoding UTF8
+          if ($validatorErrors.Count -gt 0) { $validatorErrors | ForEach-Object { Write-Error ("$($_.code): $($_.path): $($_.message)") }; exit 1 }
+
+      - name: Upload Firefox M1 diagnostics
+        if: always()
+        id: upload-diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-m1-${{ env.ZEROOMEGA_EXACT_HEAD }}-e2e-diagnostics
+          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}
+          if-no-files-found: error
+
+      - name: Record Firefox M1 artifact provenance
+        if: always()
+        shell: pwsh
+        env:
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID: ${{ steps.upload-diagnostics.outputs.artifact-id }}
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST: ${{ steps.upload-diagnostics.outputs.artifact-digest }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $head = $env:ZEROOMEGA_EXACT_HEAD
+          $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
+          $runtimeId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
+          $runtimeDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $diagnosticsId = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID
+          $diagnosticsDigest = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST
+          $runtimePrimaryFailureCode = [string]$env:ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE
+          $blockedBy = if ($runtimePrimaryFailureCode) { 'runtime-binding' } else { $null }
+          $errors = @()
+          if ($runtimeId -notmatch '^\d+$' -or $runtimeId -eq '0') { $errors += 'runtime binding artifact-id is missing or invalid' }
+          if ($diagnosticsId -notmatch '^\d+$' -or $diagnosticsId -eq '0') { $errors += 'diagnostics artifact-id is missing or invalid' }
+          if ($runtimeId -eq $diagnosticsId) { $errors += 'runtime and diagnostics artifact IDs must differ' }
+          if ($runtimeDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $runtimeDigest -match '^sha256:0{64}$') { $errors += 'runtime binding artifact-digest is missing or invalid' }
+          if ($diagnosticsDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $diagnosticsDigest -match '^sha256:0{64}$') { $errors += 'diagnostics artifact-digest is missing or invalid' }
+          $manifestBindingPath = Join-Path $artifactRoot 'manifest-binding.json'
+          $manifestSha256 = $null
+          if (Test-Path -LiteralPath $manifestBindingPath -PathType Leaf) {
+            try { $manifestSha256 = ((Get-Content -LiteralPath $manifestBindingPath -Raw -ErrorAction Stop) | ConvertFrom-Json -ErrorAction Stop).manifestSha256 } catch { $errors += 'manifest-binding.json is not valid JSON' }
+          } else {
+            $errors += 'manifest-binding.json is absent'
+          }
+          if ($manifestSha256 -notmatch '^[0-9a-fA-F]{64}$') { $errors += 'manifestSha256 is missing or invalid' }
+          $runtimeBindingPath = Join-Path $artifactRoot 'runtime-binding\runtime-binding.json'
+          if (-not (Test-Path -LiteralPath $runtimeBindingPath -PathType Leaf)) {
+            $errors += 'runtime-binding.json is absent'
+          } else {
+            try {
+              $runtimeBinding = Get-Content -LiteralPath $runtimeBindingPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+              if ($runtimeBinding.schemaVersion -ne 2 -or $runtimeBinding.exactHead -cne $head -or $runtimeBinding.runId -ne $env:GITHUB_RUN_ID -or $runtimeBinding.jobId -ne $env:GITHUB_JOB -or $runtimeBinding.runAttempt -ne $env:GITHUB_RUN_ATTEMPT -or $runtimeBinding.manifestSha256 -cne $manifestSha256.ToLowerInvariant()) { $errors += 'runtime-binding.json is stale or mismatched' }
+            } catch { $errors += 'runtime-binding.json is not valid JSON' }
+          }
+          [ordered]@{
+            schemaVersion = 2
+            artifactKind = 'firefox-m1-provenance-companion'
+            exactHead = $head
+            runId = $env:GITHUB_RUN_ID
+            jobId = $env:GITHUB_JOB
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            manifestSha256 = if ($manifestSha256) { $manifestSha256.ToLowerInvariant() } else { $null }
+            runtimeBindingArtifact = [ordered]@{ id = $runtimeId; digest = $runtimeDigest.ToLowerInvariant() }
+            diagnosticsArtifact = [ordered]@{ id = $diagnosticsId; digest = $diagnosticsDigest.ToLowerInvariant() }
+            blockedBy = $blockedBy
+            primaryFailureCode = $runtimePrimaryFailureCode
+            errors = $errors
+          } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'artifact-provenance.json') -Encoding UTF8
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+
+      - name: Upload Firefox M1 artifact provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-m1-${{ env.ZEROOMEGA_EXACT_HEAD }}-provenance
+          path: artifacts/firefox-m1/${{ env.ZEROOMEGA_EXACT_HEAD }}/artifact-provenance.json
+          if-no-files-found: error
