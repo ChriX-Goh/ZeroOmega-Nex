@@ -1,0 +1,201 @@
+/* Original ZeroOmega v3.5.0 popup geometry. */
+.popup-shell {
+  min-width: 320px;
+  background: #fff;
+}
+
+.profile-list {
+  padding: 6px 4px 0;
+}
+
+.profile-row > button,
+.external-profile-button {
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #337ab7;
+  background: #fff;
+}
+
+.profile-row > button:hover,
+.external-profile-button:hover {
+  background: #f5f5f5;
+}
+
+.profile-row > button.active {
+  border-color: #111;
+  background: #337ab7;
+  color: #111;
+}
+
+.current-mark {
+  display: none;
+}
+
+.profile-divider {
+  margin: 4px 0;
+  border-top: 1px solid #ddd;
+}
+
+.popup-footer {
+  display: block;
+  padding: 4px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+}
+
+.settings-button {
+  width: 100%;
+  min-height: 36px;
+  justify-content: flex-start;
+  padding: 6px 8px;
+  color: #337ab7;
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+}
+
+.settings-button:hover {
+  background: #f5f5f5;
+}
+
+/* Computed Original v3.5.0 default Popup list geometry. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .popup-shell {
+    width: 430px;
+    min-width: 430px;
+    margin: 10px 5px 5px;
+    overflow: visible;
+    background: transparent;
+    color: #000;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  :root:not([data-theme='dark']) .profile-list {
+    padding: 0;
+  }
+
+  :root:not([data-theme='dark']) .profile-row {
+    margin: 0 0 2px;
+    border-left: 0;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .profile-row:has(> button.active) {
+    border-left: 0;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button {
+    display: block;
+    width: 100%;
+    height: 31px;
+    min-height: 0;
+    padding: 5px 25px 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #337ab7;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: left;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button:hover:not(:disabled) {
+    background: #f5f5f5;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-row > button.active {
+    background: #337ab7;
+    color: #000;
+    box-shadow: inset 0 0 0 2px #111;
+  }
+
+  :root:not([data-theme='dark']) .profile-list .profile-type-icon {
+    --profile-icon-size: 14px !important;
+    display: inline-grid;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+
+  :root:not([data-theme='dark']) .profile-name {
+    display: inline;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  :root:not([data-theme='dark']) .current-mark {
+    display: none;
+  }
+
+  :root:not([data-theme='dark']) .profile-divider {
+    height: 1px;
+    margin: 0 0 2px;
+    border: 0;
+    background: #e5e5e5;
+  }
+
+  :root:not([data-theme='dark']) .popup-footer {
+    display: block;
+    min-height: 0;
+    padding: 2px 0 0;
+    border-top: 2px solid #e5e5e5;
+    background: transparent;
+  }
+
+  :root:not([data-theme='dark']) .settings-button {
+    display: block;
+    width: 100%;
+    height: 31px;
+    min-height: 0;
+    padding: 5px 25px 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #337ab7;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: left;
+  }
+
+  :root:not([data-theme='dark']) .settings-button svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+
+  :root:not([data-theme='dark']) .settings-button span {
+    display: inline;
+  }
+}
+
+/* Original active outline and 14px glyph baseline. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .profile-list .profile-row > button.active {
+    box-shadow: none;
+    outline: 1px auto #101010;
+    outline-offset: 1px;
+  }
+}
+
+/* Popup icon contract residual correction. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) [data-original-popup-icon-position='trailing'] {
+    margin-left: 0;
+  }
+
+  :root:not([data-theme='dark']) .settings-button > [data-original-popup-icon-position='options'] {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    line-height: 14px;
+    vertical-align: -1px;
+  }
+}

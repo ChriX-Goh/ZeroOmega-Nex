@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { basename, join, relative } from 'node:path';
+import { basename, extname, join, relative } from 'node:path';
 
 const repositoryRoot = new URL('../', import.meta.url);
 const outputRoot = new URL('../dist/', import.meta.url);
@@ -50,7 +50,12 @@ for (const file of manifestFiles) {
     : [];
   const gecko = manifest.browser_specific_settings?.gecko;
 
-  assertExactSet(permissions, ['proxy', 'storage'], 'required permissions', file);
+  assertExactSet(
+    permissions,
+    ['proxy', 'storage', 'alarms', 'activeTab', 'contextMenus', 'tabs', 'webNavigation'],
+    'required permissions',
+    file,
+  );
   assertExactSet(
     optionalPermissions,
     gecko ? ['webRequest', 'webRequestBlocking'] : ['webRequest', 'webRequestAuthProvider'],
@@ -78,8 +83,36 @@ for (const file of manifestFiles) {
   ) {
     throw new Error(`${relative(repositoryRoot.pathname, file)} must not request <all_urls>.`);
   }
-  if (!manifest.action?.default_popup) {
-    throw new Error(`${relative(repositoryRoot.pathname, file)} is missing the popup entrypoint.`);
+  const expectedPopup = gecko ? 'popup/index.html' : 'popup-iframe.html';
+  if (manifest.action?.default_popup !== expectedPopup) {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} has invalid Action popup: ${manifest.action?.default_popup ?? '(missing)'}`,
+    );
+  }
+  if (manifest.action?.default_title !== '__MSG_manifest_icon_default_title__') {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} has invalid Action default title: ${manifest.action?.default_title ?? '(missing)'}`,
+    );
+  }
+  const actionIcons = manifest.action?.default_icon ?? {};
+  assertExactSet(Object.keys(actionIcons), ['16', '19', '24', '32'], 'Action icon sizes', file);
+  for (const [size, iconPath] of Object.entries(actionIcons)) {
+    if (iconPath !== `icon/original-action-${size}.png`) {
+      throw new Error(
+        `${relative(repositoryRoot.pathname, file)} has invalid Action icon ${size}: ${iconPath}`,
+      );
+    }
+  }
+  const executeAction = manifest.commands?._execute_browser_action;
+  if (executeAction?.suggested_key?.default !== 'Alt+Shift+O') {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} has invalid Action shortcut: ${executeAction?.suggested_key?.default ?? '(missing)'}`,
+    );
+  }
+  if (executeAction?.description !== 'Toggle the proxy setting') {
+    throw new Error(
+      `${relative(repositoryRoot.pathname, file)} has invalid Action shortcut description.`,
+    );
   }
   if (!manifest.options_ui?.page) {
     throw new Error(
@@ -93,6 +126,28 @@ for (const file of manifestFiles) {
   }
 
   console.log(
-    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage required, auth optional, no global host access.`,
+    `${relative(repositoryRoot.pathname, file)} passed: MV${manifest.manifest_version}, proxy/storage/alarms/activeTab/contextMenus/tabs/webNavigation required, auth optional, no global host access.`,
   );
 }
+
+const javascriptFiles = files.filter((file) => extname(file) === '.js');
+const cspViolations = [];
+for (const file of javascriptFiles) {
+  const source = await readFile(file, 'utf8');
+  if (/\bFunction\s*\(/u.test(source) || /\bnew\s+Function\s*\(/u.test(source)) {
+    cspViolations.push(
+      `${relative(repositoryRoot.pathname, file)} contains dynamic Function construction`,
+    );
+  }
+  if (source.includes('Error compiling schema, function code:')) {
+    cspViolations.push(
+      `${relative(repositoryRoot.pathname, file)} contains the Ajv runtime schema compiler`,
+    );
+  }
+}
+if (cspViolations.length > 0) {
+  throw new Error(
+    `Built extension violates MV3 script CSP:\n${cspViolations.map((entry) => `- ${entry}`).join('\n')}`,
+  );
+}
+console.log(`CSP audit passed for ${javascriptFiles.length} built JavaScript files.`);

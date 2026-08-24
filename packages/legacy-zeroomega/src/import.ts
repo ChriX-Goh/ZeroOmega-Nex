@@ -18,6 +18,7 @@ import {
   type SwitchProfile,
   type SwitchRule,
   type UserProfile,
+  type VirtualProfile,
   type Weekday,
 } from '@zeroomega-nex/profile-spec';
 
@@ -56,6 +57,7 @@ const COMMON_PROFILE_FIELDS = new Set([
   'builtin',
   'syncOptions',
   'syncError',
+  'enabled',
 ]);
 
 const GENERATED_FIELDS = new Set(['ruleList', 'pacScript', 'lastUpdate', 'sha256']);
@@ -254,6 +256,7 @@ function profileBase(
     id: descriptor.id,
     name: descriptor.name,
     ...profileColor(descriptor.raw),
+    ...(typeof descriptor.raw.enabled === 'boolean' ? { enabled: descriptor.raw.enabled } : {}),
     legacy: legacyMetadata(descriptor.raw, descriptor.profileType, fields),
   };
 }
@@ -465,6 +468,10 @@ function mapFixedProfile(descriptor: ProfileDescriptor, state: ImportState): Fix
       bypass.push({
         id: legacyStableId('bypass', descriptor.name, String(index), pattern),
         pattern,
+        ...(isRecord(entry) && typeof entry.note === 'string' ? { note: entry.note } : {}),
+        ...(isRecord(entry) && typeof entry.enabled === 'boolean'
+          ? { enabled: entry.enabled }
+          : {}),
       });
       state.report.add(
         bypassNeedsCapabilityReview(pattern) ? 'target-dependent' : 'exact',
@@ -520,9 +527,9 @@ function invalidCondition(
   };
 }
 
-function validRegex(pattern: string): boolean {
+function validRegex(pattern: string, flags = ''): boolean {
   try {
-    new RegExp(pattern);
+    new RegExp(pattern, flags);
     return true;
   } catch {
     return false;
@@ -571,7 +578,8 @@ function mapCondition(
       };
     case 'UrlRegexCondition':
     case 'HostRegexCondition': {
-      if (!validRegex(pattern)) {
+      const flags = stringValue(raw.flags) ?? '';
+      if (!validRegex(pattern, flags)) {
         return {
           condition: { kind: 'false', annotation: `Invalid legacy regex: ${pattern}` },
           enabled: false,
@@ -583,7 +591,11 @@ function mapCondition(
       }
       const url = raw.conditionType === 'UrlRegexCondition';
       return {
-        condition: { kind: url ? 'url-regex' : 'host-regex', pattern },
+        condition: {
+          kind: url ? 'url-regex' : 'host-regex',
+          pattern,
+          ...(flags ? { flags } : {}),
+        },
         status: url || containsNonAscii(pattern) ? 'target-dependent' : 'exact',
         code: url ? 'condition.url-regex' : 'condition.host-regex',
         message: url
@@ -751,14 +763,15 @@ function mapSwitchProfile(descriptor: ProfileDescriptor, state: ImportState): Sw
       const mapping = mapCondition(entry.condition, `${sourcePath}/condition`, state.report);
       state.report.add(mapping.status, mapping.code, `${sourcePath}/condition`, mapping.message);
       const route = routeForName(entry.profileName, `${sourcePath}/profileName`, state);
-      const known = new Set(['condition', 'profileName', 'note']);
+      const known = new Set(['condition', 'profileName', 'note', 'enabled']);
       const fields = safeUnknownFields(entry, known, sourcePath, state.report);
+      const enabled = typeof entry.enabled === 'boolean' ? entry.enabled : mapping.enabled;
       rules.push({
         id: legacyStableId('rule', descriptor.name, String(index)),
         condition: mapping.condition,
         route,
         ...(typeof entry.note === 'string' ? { note: entry.note } : {}),
-        ...(mapping.enabled === undefined ? {} : { enabled: mapping.enabled }),
+        ...(enabled === undefined ? {} : { enabled }),
         ...(fields === undefined ? {} : { legacy: { source: 'zeroomega-v3.5.0', fields } }),
       });
     });
@@ -908,7 +921,12 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
   const cachedContent = stringValue(raw.ruleList) ?? '';
   let location: RuleSource['location'];
   if (sourceUrl) {
-    location = { kind: 'url', url: sourceUrl };
+    const content = decodeMaybeBase64RuleList(cachedContent, format);
+    location = {
+      kind: 'url',
+      url: sourceUrl,
+      ...(raw.ruleList === undefined ? {} : { content }),
+    };
     state.report.add(
       'exact',
       'rule-source.url-mapped',
@@ -917,10 +935,14 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
     );
     if (raw.ruleList !== undefined) {
       state.report.add(
-        'ignored-generated',
-        'rule-source.cache-omitted',
+        'exact',
+        content === cachedContent
+          ? 'rule-source.downloaded-cache-preserved'
+          : 'rule-source.downloaded-cache-base64-decoded',
         `${descriptor.path}/ruleList`,
-        'Downloaded rule-list cache was omitted and will be refreshed.',
+        content === cachedContent
+          ? 'Downloaded rule-list content was preserved for offline use.'
+          : 'Downloaded base64 AutoProxy content was decoded and preserved for offline use.',
       );
     }
   } else {
@@ -938,13 +960,15 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
 
   const sourceId = legacyStableId('source', descriptor.name);
   const headerMapping = mapHeaders(raw.headers, `${descriptor.path}/headers`, state);
+  const sourceInterval = finiteInteger(raw.updateIntervalMinutes);
   state.ruleSources.push({
     id: sourceId,
     name: `${descriptor.name} rules`,
     format,
     location,
     ...headerMapping,
-    updateIntervalMinutes: state.downloadInterval,
+    updateIntervalMinutes:
+      sourceInterval !== undefined && sourceInterval >= 1 ? sourceInterval : state.downloadInterval,
   });
 
   const known = new Set([
@@ -955,6 +979,7 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
     'matchProfileName',
     'defaultProfileName',
     'headers',
+    'updateIntervalMinutes',
     'lastUpdate',
     'sha256',
     'pacScript',
@@ -999,11 +1024,29 @@ function mapRuleListProfile(descriptor: ProfileDescriptor, state: ImportState): 
 
 function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacProfile {
   const raw = descriptor.raw;
+  const auth = isRecord(raw.auth) ? raw.auth : undefined;
+  if (auth) {
+    for (const slot of Object.keys(auth)) {
+      if (slot !== 'all') {
+        state.report.add(
+          'rejected',
+          'secret.unknown-pac-auth-slot',
+          `${descriptor.path}/auth/${slot}`,
+          'PAC authentication supports only the legacy auth.all credential.',
+        );
+      }
+    }
+  }
+  const credential = extractProxyCredential(auth, 'all', 'http', descriptor.path, state);
   const pacUrl = stringValue(raw.pacUrl);
   const pacScript = stringValue(raw.pacScript);
   let source: PacProfile['source'];
   if (pacUrl) {
-    source = { kind: 'url', url: pacUrl };
+    source = {
+      kind: 'url',
+      url: pacUrl,
+      ...(pacScript === undefined ? {} : { script: pacScript }),
+    };
     state.report.add(
       'exact',
       'pac.url-mapped',
@@ -1012,10 +1055,10 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     );
     if (pacScript !== undefined) {
       state.report.add(
-        'ignored-generated',
-        'pac.cache-omitted',
+        'exact',
+        'pac.downloaded-cache-preserved',
         `${descriptor.path}/pacScript`,
-        'Downloaded PAC cache was omitted and will be refreshed.',
+        'Downloaded PAC script was preserved for offline use and review.',
       );
     }
   } else if (pacScript) {
@@ -1057,6 +1100,8 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     'pacUrl',
     'pacScript',
     'headers',
+    'auth',
+    'fallbackProfileName',
     'lastUpdate',
     'sha256',
   ]);
@@ -1066,6 +1111,16 @@ function mapPacProfile(descriptor: ProfileDescriptor, state: ImportState): PacPr
     kind: 'pac',
     source,
     ...headerMapping,
+    ...(credential === undefined ? {} : { credential }),
+    ...(typeof raw.fallbackProfileName === 'string'
+      ? {
+          fallbackRoute: routeForName(
+            raw.fallbackProfileName,
+            `${descriptor.path}/fallbackProfileName`,
+            state,
+          ),
+        }
+      : {}),
   };
 }
 
@@ -1090,9 +1145,69 @@ function mapAutoDetectProfile(
       );
     }
   }
-  const known = new Set([...COMMON_PROFILE_FIELDS, 'pacUrl', 'pacScript', 'lastUpdate', 'sha256']);
+  const known = new Set([
+    ...COMMON_PROFILE_FIELDS,
+    'pacUrl',
+    'pacScript',
+    'lastUpdate',
+    'sha256',
+    'fallbackProfileName',
+  ]);
   const fields = safeUnknownFields(raw, known, descriptor.path, state.report);
-  return { ...profileBase(descriptor, fields), kind: 'auto-detect' };
+  const fallbackName = stringValue(raw.fallbackProfileName);
+  if (fallbackName !== undefined) {
+    state.report.add(
+      'preserved',
+      'auto-detect.fallback-nex-extension',
+      `${descriptor.path}/fallbackProfileName`,
+      'Auto-detect fallback route was restored as a Nex extension field.',
+    );
+  }
+  return {
+    ...profileBase(descriptor, fields),
+    kind: 'auto-detect',
+    ...(fallbackName === undefined
+      ? {}
+      : {
+          fallbackRoute: routeForName(
+            fallbackName,
+            `${descriptor.path}/fallbackProfileName`,
+            state,
+          ),
+        }),
+  };
+}
+
+function mapVirtualProfile(descriptor: ProfileDescriptor, state: ImportState): VirtualProfile {
+  const raw = descriptor.raw;
+  const rules = Array.isArray(raw.rules) ? raw.rules : [];
+  if (rules.length > 0) {
+    state.report.add(
+      'downgraded',
+      'profile.virtual-rules-preserved',
+      `${descriptor.path}/rules`,
+      'VirtualProfile rules are non-canonical and were preserved as legacy metadata.',
+    );
+  } else {
+    state.report.add(
+      'exact',
+      'profile.virtual-mapped',
+      descriptor.path,
+      'VirtualProfile target was mapped as a stable alias.',
+    );
+  }
+  const known = new Set([...COMMON_PROFILE_FIELDS, 'defaultProfileName', 'rules']);
+  const fields = safeUnknownFields(raw, known, descriptor.path, state.report) ?? {};
+  if (rules.length > 0 && isJsonValue(rules)) fields.rules = rules;
+  return {
+    ...profileBase(descriptor, Object.keys(fields).length === 0 ? undefined : fields),
+    kind: 'virtual',
+    targetRoute: routeForName(
+      raw.defaultProfileName,
+      `${descriptor.path}/defaultProfileName`,
+      state,
+    ),
+  };
 }
 
 function mapProfile(descriptor: ProfileDescriptor, state: ImportState): UserProfile | undefined {
@@ -1100,16 +1215,9 @@ function mapProfile(descriptor: ProfileDescriptor, state: ImportState): UserProf
     case 'FixedProfile':
       return mapFixedProfile(descriptor, state);
     case 'SwitchProfile':
-    case 'VirtualProfile':
-      if (descriptor.profileType === 'VirtualProfile') {
-        state.report.add(
-          'preserved',
-          'profile.virtual-alias',
-          descriptor.path,
-          'VirtualProfile origin was preserved while mapping to a switch profile.',
-        );
-      }
       return mapSwitchProfile(descriptor, state);
+    case 'VirtualProfile':
+      return mapVirtualProfile(descriptor, state);
     case 'RuleListProfile':
     case 'SwitchyRuleListProfile':
     case 'AutoProxyRuleListProfile':
@@ -1201,9 +1309,17 @@ function mapSettings(
 
   const startupName = options['-startupProfileName'];
   const startupRoute =
-    startupName === undefined
+    startupName === undefined || startupName === ''
       ? undefined
       : routeForName(startupName, '/-startupProfileName', state);
+  if (startupName === '') {
+    state.report.add(
+      'exact',
+      'settings.startup-empty',
+      '/-startupProfileName',
+      'Empty original startup profile means no automatic startup switch.',
+    );
+  }
   const builtInProfiles = mapBuiltInAppearance(options, state.report);
   const extensions: Record<string, JsonValue> = {};
   if (typeof options['-customCss'] === 'string') {
@@ -1217,10 +1333,10 @@ function mapSettings(
   }
   if (options['-monitorWebRequests'] !== undefined) {
     state.report.add(
-      'downgraded',
-      'settings.monitor-disabled',
+      'exact',
+      'settings.monitor-web-requests-mapped',
       '/-monitorWebRequests',
-      'Permanent request monitoring was not imported; diagnostics remain opt-in and bounded.',
+      'The request-monitoring preference was mapped; browser permission remains an explicit user grant.',
     );
   }
 
@@ -1265,6 +1381,7 @@ function mapSettings(
       interface: {
         confirmDeletion: legacyBoolean(options['-confirmDeletion'], true),
         showInspectMenu: legacyBoolean(options['-showInspectMenu'], true),
+        monitorWebRequests: legacyBoolean(options['-monitorWebRequests'], true),
         addConditionsToBottom: legacyBoolean(options['-addConditionsToBottom'], false),
         showResultProfileOnActionBadgeText: legacyBoolean(
           options['-showResultProfileOnActionBadgeText'],
@@ -1394,6 +1511,9 @@ export function importZeroOmegaBackup(
   }
 
   const report = new LegacyImportReportBuilder(decoded.value.encoding);
+  decoded.value.upgrades.forEach((notice) => {
+    report.add(notice.status, notice.code, notice.path, notice.message);
+  });
   if (decoded.value.stats.profileCount === 0) {
     report.add(
       'rejected',
@@ -1420,6 +1540,21 @@ export function importZeroOmegaBackup(
       continue;
     const profile = mapProfile(descriptor, state);
     if (profile) profiles.push(profile);
+  }
+
+  const profileByName = new Map(profiles.map((profile) => [profile.name, profile]));
+  for (const profile of profiles) {
+    if (profile.kind !== 'switch') continue;
+    const attachedName = `__ruleListOf_${profile.name}`;
+    const attached = profileByName.get(attachedName);
+    if (!attached || attached.kind !== 'rule-list') continue;
+    profile.attachedRuleListProfileId = attached.id;
+    state.report.add(
+      'exact',
+      'profile.attached-rule-list-linked',
+      `/+${profile.name}/defaultProfileName`,
+      `Hidden Rule List "${attachedName}" was linked to its parent Switch profile.`,
+    );
   }
 
   const settingsResult = mapSettings(decoded.value.options, state);

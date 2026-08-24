@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "-startupProfileName": "switch",
+  "+proxy": {
+    "name": "proxy",
+    "profileType": "FixedProfile",
+    "color": "#99ccee",
+    "fallbackProxy": {
+      "scheme": "http",
+      "host": "127.0.0.1",
+      "port": 7890
+    }
+  },
+  "+switch": {
+    "name": "switch",
+    "profileType": "SwitchProfile",
+    "color": "#4488cc",
+    "defaultProfileName": "proxy",
+    "rules": [
+      {
+        "condition": {
+          "conditionType": "HostWildcardCondition",
+          "pattern": "*.wpad.example"
+        },
+        "profileName": "auto_detect"
+      }
+    ],
+    "syncOptions": "disabled",
+    "syncError": "legacy-disabled-state"
+  }
+}

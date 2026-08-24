@@ -3,6 +3,7 @@ import type {
   LegacyDecodeIssue,
   LegacyDecodeResult,
   LegacyInputEncoding,
+  LegacyUpgradeNotice,
 } from './contracts.js';
 
 export interface LegacyDecodeLimits {
@@ -31,6 +32,115 @@ function failure(code: string, message: string, path = '/'): LegacyDecodeResult 
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function switchLikeReferencesAutoDetect(profile: Record<string, unknown>): boolean {
+  if (profile.defaultProfileName === 'auto_detect') return true;
+  return (
+    Array.isArray(profile.rules) &&
+    profile.rules.some((rule) => isRecord(rule) && rule.profileName === 'auto_detect')
+  );
+}
+
+function switchyRuleListReferencesAutoDetect(content: string): boolean {
+  let withResult = false;
+  for (const rawLine of content.split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line || line === '[SwitchyOmega Conditions]') continue;
+    if (line === '@with result') {
+      withResult = true;
+      continue;
+    }
+    if (!withResult || line.startsWith('@') || line.startsWith('!')) continue;
+    const result = /\s+\+([^\s]+)$/u.exec(line);
+    if (result?.[1] === 'auto_detect') return true;
+  }
+  return false;
+}
+
+function ruleListReferencesAutoDetect(profile: Record<string, unknown>): boolean {
+  if (profile.matchProfileName === 'auto_detect' || profile.defaultProfileName === 'auto_detect') {
+    return true;
+  }
+  if (typeof profile.ruleList !== 'string') return false;
+  const profileType = profile.profileType;
+  const format = typeof profile.format === 'string' ? profile.format.toLowerCase() : undefined;
+  const switchy =
+    profileType === 'SwitchyRuleListProfile' ||
+    (profileType === 'RuleListProfile' && (format === undefined || format === 'switchy'));
+  return switchy && switchyRuleListReferencesAutoDetect(profile.ruleList);
+}
+
+function profileReferencesAutoDetect(profile: Record<string, unknown>): boolean {
+  switch (profile.profileType) {
+    case 'SwitchProfile':
+    case 'VirtualProfile':
+      return switchLikeReferencesAutoDetect(profile);
+    case 'RuleListProfile':
+    case 'SwitchyRuleListProfile':
+    case 'AutoProxyRuleListProfile':
+      return ruleListReferencesAutoDetect(profile);
+    default:
+      return false;
+  }
+}
+
+function upgradeOptions(
+  input: Record<string, unknown>,
+  sourceSchemaVersion: 1 | 2,
+): { options: Record<string, unknown>; upgrades: LegacyUpgradeNotice[] } | LegacyDecodeResult {
+  let options: Record<string, unknown>;
+  try {
+    options = structuredClone(input);
+  } catch {
+    return failure(
+      'decode.non-cloneable-object',
+      'object input must contain cloneable JSON values',
+    );
+  }
+
+  const upgrades: LegacyUpgradeNotice[] = [];
+  if (sourceSchemaVersion === 1) {
+    const autoDetectUsed = Object.entries(options).some(
+      ([key, value]) =>
+        key.startsWith('+') && isRecord(value) && profileReferencesAutoDetect(value),
+    );
+    if (autoDetectUsed) {
+      options['+auto_detect'] = {
+        name: 'auto_detect',
+        profileType: 'PacProfile',
+        pacUrl: 'http://wpad/wpad.dat',
+        color: '#00cccc',
+      };
+      upgrades.push({
+        status: 'exact',
+        code: 'schema.v1-auto-detect-wpad-created',
+        path: '/+auto_detect',
+        message: 'Referenced schema-v1 auto_detect was upgraded to the original WPAD PAC profile.',
+      });
+    }
+    options.schemaVersion = 2;
+    upgrades.push({
+      status: 'exact',
+      code: 'schema.v1-upgraded',
+      path: '/schemaVersion',
+      message: 'ZeroOmega schemaVersion 1 was upgraded to schemaVersion 2.',
+    });
+  }
+
+  for (const [key, value] of Object.entries(options)) {
+    if (!key.startsWith('+') || !isRecord(value) || value.syncOptions !== 'disabled') continue;
+    delete value.syncOptions;
+    delete value.syncError;
+    upgrades.push({
+      status: 'ignored-runtime',
+      code: 'profile.disabled-sync-state-removed',
+      path: `/${key}/syncOptions`,
+      message: 'Legacy disabled per-profile sync state was removed during the original upgrade.',
+    });
+  }
+
+  return { options, upgrades };
 }
 
 function decodeBase64(value: string, limits: LegacyDecodeLimits): string | undefined {
@@ -218,26 +328,29 @@ export function decodeZeroOmegaBackup(
   if (!isRecord(parsed)) {
     return failure('decode.root-not-object', 'ZeroOmega backup root must be a JSON object');
   }
-  if (parsed.schemaVersion !== 2) {
+  const sourceSchemaVersion = parsed.schemaVersion;
+  if (sourceSchemaVersion !== 1 && sourceSchemaVersion !== 2) {
     return failure(
       'decode.unsupported-schema',
-      'expected ZeroOmega schemaVersion 2',
+      'expected ZeroOmega schemaVersion 1 or 2',
       '/schemaVersion',
     );
   }
 
-  const resources = inspectResources(parsed, limits);
-  if ('ok' in resources) {
-    return resources;
-  }
-  const counts = countProfilesAndRules(parsed, limits);
-  if ('ok' in counts) {
-    return counts;
-  }
+  const rawResources = inspectResources(parsed, limits);
+  if ('ok' in rawResources) return rawResources;
+  const upgraded = upgradeOptions(parsed, sourceSchemaVersion);
+  if ('ok' in upgraded) return upgraded;
+  const resources = inspectResources(upgraded.options, limits);
+  if ('ok' in resources) return resources;
+  const counts = countProfilesAndRules(upgraded.options, limits);
+  if ('ok' in counts) return counts;
 
   const value: LegacyDecodedBackup = {
     encoding,
-    options: parsed,
+    sourceSchemaVersion,
+    options: upgraded.options,
+    upgrades: upgraded.upgrades,
     stats: {
       byteLength: byteLength || resources.stringBytes,
       nodeCount: resources.nodeCount,

@@ -83,6 +83,7 @@ export interface SwitchProfile extends ProfileBase {
   kind: 'switch';
   rules: SwitchRule[];
   defaultRoute: ProfileRouteTarget;
+  attachedRuleListProfileId?: Identifier;
 }
 
 export type RuleListFormat = 'autoproxy' | 'switchy';
@@ -102,7 +103,9 @@ export interface RuleSourceHeader {
   value: LiteralHeaderValue | SecretHeaderValue;
 }
 
-export type RuleSourceLocation = { kind: 'inline'; content: string } | { kind: 'url'; url: string };
+export type RuleSourceLocation =
+  | { kind: 'inline'; content: string }
+  | { kind: 'url'; url: string; content?: string };
 
 export interface RuleSource {
   id: Identifier;
@@ -121,13 +124,16 @@ export interface RuleListProfile extends ProfileBase {
   defaultRoute: ProfileRouteTarget;
 }
 
-export type PacSource = { kind: 'inline'; script: string } | { kind: 'url'; url: string };
+export type PacSource =
+  | { kind: 'inline'; script: string }
+  | { kind: 'url'; url: string; script?: string };
 
 export interface PacProfile extends ProfileBase {
   kind: 'pac';
   source: PacSource;
   headers?: RuleSourceHeader[];
   fallbackRoute?: ProfileRouteTarget;
+  credential?: ProxyCredentialReference;
 }
 
 export interface AutoDetectProfile extends ProfileBase {
@@ -135,12 +141,18 @@ export interface AutoDetectProfile extends ProfileBase {
   fallbackRoute?: ProfileRouteTarget;
 }
 
+export interface VirtualProfile extends ProfileBase {
+  kind: 'virtual';
+  targetRoute: ProfileRouteTarget;
+}
+
 export type UserProfile =
   | FixedProfile
   | SwitchProfile
   | RuleListProfile
   | PacProfile
-  | AutoDetectProfile;
+  | AutoDetectProfile
+  | VirtualProfile;
 
 export interface TrueCondition {
   kind: 'true';
@@ -244,6 +256,7 @@ export interface QuickSwitchSettings {
 export interface InterfaceSettings {
   confirmDeletion: boolean;
   showInspectMenu: boolean;
+  monitorWebRequests?: boolean;
   addConditionsToBottom: boolean;
   showResultProfileOnActionBadgeText: boolean;
   showExternalProfile: boolean;

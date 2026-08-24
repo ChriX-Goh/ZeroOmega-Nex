@@ -5,10 +5,12 @@ import {
   PROFILE_SPEC_SCHEMA_VERSION,
   canonicalProfileSpecValue,
   cloneProfileSpec,
+  cloneProfileSpecDraft,
   createProfileSpecRevision,
   migrateProfileSpec,
   parseProfileSpec,
   serializeProfileSpec,
+  serializeProfileSpecDraft,
   type ProfileSpec,
   type ProfileSpecMigration,
 } from './index.js';
@@ -184,6 +186,21 @@ describe('ProfileSpec serialization and lifecycle', () => {
     const first = cloned.profiles[0]!;
     first.name = 'Changed clone';
     expect(original.profiles[0]!.name).toBe('Second');
+  });
+
+  it('clones and serializes structurally valid drafts without weakening strict APIs', () => {
+    const draft = validSpec();
+    const profile = draft.profiles[1]!;
+    if (profile.kind !== 'switch') throw new Error('fixture mismatch');
+    const condition = profile.rules[0]!.condition;
+    if (condition.kind !== 'host-wildcard') throw new Error('condition fixture mismatch');
+    condition.pattern = '';
+
+    const cloned = cloneProfileSpecDraft(draft);
+    expect(cloned).toEqual(draft);
+    expect(JSON.parse(serializeProfileSpecDraft(draft))).toEqual(draft);
+    expect(() => cloneProfileSpec(draft)).toThrow(InvalidProfileSpecError);
+    expect(() => serializeProfileSpec(draft)).toThrow(InvalidProfileSpecError);
   });
 
   it('creates an immutable child revision and validates the edited result', () => {

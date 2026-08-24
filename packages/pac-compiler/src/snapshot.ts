@@ -26,6 +26,7 @@ export interface PacSnapshotContext {
 
 export interface PacSnapshotVerification {
   readonly passed: true;
+  readonly mode?: 'differential' | 'reference-safety' | 'structural';
   readonly vectorCount: number;
   readonly matchedCount: number;
 }
@@ -135,6 +136,7 @@ export async function createVerifiedPacSnapshot(
       warnings: compiled.artifact.warnings,
       verification: {
         passed: true,
+        mode: 'differential',
         vectorCount: verification.vectorCount,
         matchedCount: verification.matchedCount,
       },

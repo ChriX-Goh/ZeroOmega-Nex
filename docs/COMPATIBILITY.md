@@ -1,180 +1,174 @@
 # ZeroOmega Compatibility Contract
 
+`docs/PRODUCT_CONSTITUTION.md` is the highest-authority product contract. This document defines how its migration and parity requirements are measured.
+
 ## 1. Scope
 
-The first migration target is ZeroOmega export data using `schemaVersion: 2`. Compatibility is evaluated at three levels:
+The primary migration target is ZeroOmega v3.5.0 export data using `schemaVersion: 2`. Compatibility is evaluated at four levels:
 
 1. **Structural:** the file can be parsed and represented.
-2. **Semantic:** profile references and rule meanings are preserved.
-3. **Behavioral:** representative URLs resolve to the same effective route.
+2. **Semantic:** profile references, settings, rules, and result meanings are preserved.
+3. **Behavioral:** representative URLs resolve to the same effective route and result trace.
+4. **Observable:** the user encounters equivalent Toolbar, Popup, Options, dialogs, defaults, terminology, action order, and state transitions.
 
-Successful parsing alone is not sufficient.
+Successful parsing, a green importer test, or a similar-looking Nex screen alone is not sufficient.
 
 ## 2. Preservation requirements
 
 When present and valid, the importer preserves:
 
-- Profile display name.
-- Profile color.
-- User-visible profile order.
-- Profile type.
-- Rule order and notes.
-- Default and matched profile references.
-- Fixed proxy protocol, host, port, and per-scheme mapping.
-- Bypass list and local-host intent.
-- PAC URL and PAC body where supported.
-- Rule-list URL, format, update metadata, and profile targets.
-- Startup profile.
-- Quick-switch profile order.
-- Refresh-on-switch and related representable preferences.
-- Unknown safe fields as namespaced opaque import metadata when needed for lossless export or diagnostics.
+- Profile display name, color, user-visible order, and type.
+- Rule order, notes, defaults, matches, attached Rule Lists, and profile references.
+- Fixed proxy protocol, host, port, per-scheme mapping, bypass list, and local-host intent.
+- PAC URL, PAC body, update state, and last valid executable content where representable.
+- Rule-list URL, format, update metadata, cached source, and target profiles where representable.
+- Startup profile, Quick Switch order, refresh-on-switch, and related settings.
+- Temporary/site-rule meaning and lifecycle where supported by current browser capabilities.
+- Supported authentication metadata through secret references without leaking secrets into ordinary exports, PAC, logs, or UI.
+- Safe unknown fields as namespaced opaque legacy metadata when required for lossless preservation or future interpretation.
 
-References in the new model use stable IDs, but display names remain unchanged.
+References in the new model may use stable IDs internally, but user-visible names, ordering, colors, and behavior remain unchanged.
 
-## 3. Initial profile matrix
+## 3. Profile matrix
 
-| Legacy profile             | Import target                     | Initial release expectation                                            |
-| -------------------------- | --------------------------------- | ---------------------------------------------------------------------- |
-| `DirectProfile`            | Built-in direct route             | Full                                                                   |
-| `SystemProfile`            | Browser/system control mode       | Full, platform-specific behavior reported                              |
-| `FixedProfile`             | Fixed proxy policy                | Full for supported HTTP/HTTPS/SOCKS mappings and bypass rules          |
-| `SwitchProfile`            | Ordered decision profile          | Full for supported conditions and references                           |
-| `VirtualProfile`           | Ordered decision profile          | Import and normalize; verify actual legacy use through fixtures        |
-| `RuleListProfile`          | Rule source plus decision profile | Full for recognized formats and supported rule semantics               |
-| `SwitchyRuleListProfile`   | Rule source plus decision profile | Supported through format adapter                                       |
-| `AutoProxyRuleListProfile` | Rule source plus decision profile | Supported through format adapter with explicit unsupported-rule report |
-| `PacProfile`               | PAC source/profile                | Preserve and execute subject to browser capability and security checks |
-| `AutoDetectProfile`        | Auto-detect/PAC source            | Capability-dependent and explicitly reported                           |
+Required expectations by original profile type:
 
-## 4. Condition matrix
+- `DirectProfile` maps to the built-in direct route and remains original-equivalent.
+- `SystemProfile` maps to browser/system control mode and remains original-equivalent subject only to recorded platform-control limits.
+- `FixedProfile` maps to fixed proxy policy and preserves supported mappings, bypass behavior, and authentication boundaries.
+- `SwitchProfile` maps to ordered decision behavior and preserves supported conditions, attached Rule Lists, defaults, references, and nested results.
+- `VirtualProfile` preserves original graph semantics and observable result projection.
+- `RuleListProfile` preserves recognized formats, update/cache behavior, target profiles, and result details.
+- `SwitchyRuleListProfile` uses a format adapter while preserving supported original semantics.
+- `AutoProxyRuleListProfile` uses a format adapter while precisely reporting unsupported syntax.
+- `PacProfile` preserves and executes PAC subject only to proven browser and security limits.
+- `AutoDetectProfile` remains original-equivalent where current browser APIs permit; otherwise it requires an accepted `DR-xxxx` record.
 
-Each legacy condition receives one of four statuses:
+No profile is treated as complete solely because its JSON shape imports.
 
-- `exact`: equivalent semantics on all targeted browsers.
-- `target-dependent`: exact only on specified browsers/backends.
-- `downgraded`: safely transformed with a visible semantic change.
-- `unsupported`: preserved in import report but cannot be activated.
+## 4. Condition and result matrix
 
-Initial candidates:
+Each original condition, profile result, UI state, or browser transition receives one status:
 
-| Condition family     | Expected handling                                                |
-| -------------------- | ---------------------------------------------------------------- |
-| Exact host           | Exact through indexed model/PAC                                  |
-| Host wildcard/suffix | Exact after normalization and differential tests                 |
-| URL wildcard         | Target-dependent where HTTPS path visibility differs             |
-| Host regex           | Exact if accepted by safe regular-expression policy and backend  |
-| URL regex            | Target-dependent; never force global listener                    |
-| Bypass/local host    | Exact where browser semantics permit; normalized explicitly      |
-| IPv4/IPv6/CIDR       | Backend capability-tested                                        |
-| Scheme/port          | Exact when representable in PAC/backend                          |
-| Time/day conditions  | Deferred until legacy semantics and browser execution are proven |
+- `exact`: equivalent on all required targets.
+- `target-dependent`: equivalent only on identified targets/backends with evidence.
+- `downgraded`: minimum accepted semantic difference under a `DR-xxxx` record.
+- `unsupported`: preserved and precisely reported but cannot safely activate.
+- `unknown`: evidence is insufficient; implementation and visible wording must fail closed.
 
-The final matrix must be generated from actual ZeroOmega condition definitions and fixture tests, not assumptions.
+The final matrix is derived from original source, official packages, runtime probes, real exports, and differential tests rather than design inference.
 
-## 5. Import transaction
+Required condition families include exact host, domain/wildcard, URL wildcard, host/URL regex, bypass/local host, IPv4/IPv6/CIDR, scheme/port, Rule List formats, PAC results, and any original time/day or target-specific condition proven in scope.
+
+## 5. Import and activation transaction
 
 1. Read source as untrusted data.
-2. Enforce size and nesting limits.
-3. Parse JSON/base64 legacy representation.
-4. Validate schema shape.
-5. Enumerate profiles and assign stable IDs.
-6. Resolve name-based references.
-7. Detect missing references and cycles.
-8. Convert supported fields.
-9. Preserve safe unknown fields.
-10. Generate migration report.
-11. Build candidate ProfileSpec revision.
-12. Compile and run differential vectors.
-13. Require explicit activation; never overwrite active state during import.
+2. Enforce size, nesting, graph-depth, and resource limits.
+3. Parse supported JSON/base64 legacy representations.
+4. Validate schema shape and enumerate all profiles and settings.
+5. Assign stable internal IDs while preserving display order and identity.
+6. Resolve name-based references and detect missing references, cycles, and unsupported graphs.
+7. Convert supported fields and preserve safe opaque fields.
+8. Produce deterministic semantic and compatibility reports.
+9. Build an internal candidate ProfileSpec revision.
+10. Compile and run required differential and safety checks.
+11. Atomically activate the imported state according to the original startup/current-state contract.
+12. Confirm browser installation and observable state.
+13. On any failure, leave or restore the previous active state and report the exact reason.
 
-## 6. Migration report
+The internal candidate transaction is a safety mechanism, not a mandatory new user workflow. Supported imports must not require manual profile rebuilding, reinterpretation, or a forced migration wizard before normal use.
 
-Every import produces machine-readable and user-readable results:
+## 6. Migration reporting
 
-```text
-Imported profiles: N
-Exact profiles: N
-Target-dependent profiles: N
-Downgraded rules: N
-Unsupported rules: N
-Missing references: N
-Warnings: N
-```
+Reports are machine-readable and reviewable after import. Ordinary successful import must remain direct and familiar.
 
-Each item includes:
+Each non-exact item includes:
 
-- Legacy profile and rule identity.
-- Original value.
+- Original profile, rule, setting, or UI identity.
+- Original value and evidence anchor.
 - New representation.
 - Compatibility status.
 - Affected browser/backend.
-- Recommended user action.
+- Practical effect and recommended action.
+- Associated `DR-xxxx` where a necessary difference is accepted.
+
+Internal compile, snapshot, capability, or revision taxonomy is not exposed as ordinary-user workflow unless the original has an equivalent concept or an accepted difference requires it.
 
 ## 7. Differential compatibility testing
 
-### Fixture corpus
+### Fixture and real-export corpus
 
-Maintain sanitized fixtures for:
+Maintain sanitized evidence for:
 
-- Minimal profile of every type.
-- Nested SwitchProfiles.
-- Multiple rule-list formats.
-- Duplicate names and unusual Unicode names.
-- Missing references.
-- Circular references.
-- IPv4/IPv6 and bypass edge cases.
-- SOCKS and authentication metadata.
-- PAC URL and embedded PAC.
-- Large real-world configurations.
+- Official/default ZeroOmega v3.5.0 exports.
+- Minimal profile of every required type.
+- Owner representative real-world exports.
+- Nested Switch and Virtual graphs.
+- Attached and standalone Rule Lists in required formats.
+- PAC URL, embedded PAC, cache/update, and failure cases.
+- Duplicate names, Unicode, IDN, IPv4/IPv6, bypass, authentication metadata, and large configurations.
+- Missing references, circular references, malformed encodings, unsupported fields, and resource-limit failures.
+- External-control and restart/recovery states.
 
-### Decision vectors
+Synthetic fixtures are necessary but cannot replace representative real original exports.
 
-Each fixture includes URL inputs and expected effective result:
+### Decision and observable vectors
+
+Each vector records:
 
 ```text
-input URL
-expected profile path
-expected final route
-expected warnings
+input configuration and browser state
+input URL or user action
+expected original profile path/result trace
+expected effective route
+expected Toolbar/Popup/Options state
+expected warnings or failure behavior
 ```
 
-Run vectors against:
+Run applicable vectors against:
 
-1. Legacy/reference evaluator.
+1. Original source/package/runtime evidence.
 2. New reference interpreter.
-3. Generated PAC in a PAC test harness.
-4. Firefox adapter integration.
-5. Chromium adapter integration.
-6. Future native backend.
+3. Original-observable trace projector.
+4. Generated PAC harness.
+5. Chromium adapter and real extension package.
+6. Firefox adapter and real extension package.
+7. Owner acceptance build.
 
 ## 8. Export policy
 
-ZeroOmega Nex exports its own versioned ProfileSpec by default.
+Nex may use its own versioned internal/public representation, but exports must preserve all required user data and safe legacy metadata needed by the product contract.
 
-A legacy-export feature may be added only when:
+A legacy-export feature may claim compatibility only when mapping is lossless for the selected configuration and any Nex-only or target-limited behavior is identified before export.
 
-- Mapping is lossless for the selected configuration.
-- Unsupported Nex-only features are identified before export.
-- The export does not claim compatibility it cannot guarantee.
+Secrets, runtime caches that are not part of user intent, and diagnostic data are excluded unless the original contract and security model explicitly require safe representation.
 
-## 9. UI compatibility
+## 9. UI and workflow compatibility
 
-The goal is workflow familiarity, not copied implementation:
+The goal is observable equivalence, not merely familiarity:
 
-- Familiar profile list and colors.
-- Familiar profile editor categories.
-- Similar popup profile switching.
-- Clear Apply/Revert workflow.
-- Rule ordering remains visible and controllable.
-- New migration, compile, capability, and rollback information is integrated without burying the familiar controls.
+- Original-equivalent profile list, colors, ordering, density, and navigation.
+- Original-equivalent profile editor categories, controls, validation timing, and dialogs.
+- Original-equivalent Popup hierarchy, switching, current/result state, temporary/site-rule entry, and close behavior.
+- Original-equivalent Apply/Discard behavior and unsaved-state handling.
+- Original-equivalent Toolbar title, Badge, icon semantics, result details, and per-tab state.
+- No invented ordinary-user pages, explanations, status taxonomies, or mandatory workflow for internal Draft/Compile/Snapshot/Capability concepts.
 
-## 10. Compatibility completion gate
+A browser-controlled pixel difference is not a general exemption for hierarchy, wording, color meaning, state transitions, or operation order. Any unavoidable visible difference follows the `DR-xxxx` process.
 
-Compatibility milestone is not complete until:
+## 10. Completion gate
 
-- The profile/condition inventory is derived from source and fixtures.
-- Every item has an explicit status.
-- Supported items pass behavioral vectors.
-- Unsupported items are visible before activation.
-- Import never modifies active configuration on failure.
-- A representative user export can be imported and activated without manually rebuilding profiles.
+A compatibility row closes only when the evidence chain is complete:
+
+`Original source/runtime -> input data -> Nex mapping -> implementation -> deterministic tests -> Chromium -> Firefox -> owner result`
+
+Compatibility is not complete until:
+
+- The required original inventory is complete and every item has an explicit status.
+- Supported items pass semantic, route, observable, restart, and failure vectors.
+- Representative real original exports import directly and become immediately usable without manual reconstruction.
+- Failed import or activation preserves the previous active state.
+- Unsupported or necessary differences are precise and, where visible, owner-accepted.
+- Complete Chromium and Firefox user journeys pass on one exact build.
+- Unjustified visible workflow is removed.
+- The repository owner records explicit `PASS` for the applicable exact candidate.

@@ -1,0 +1,95 @@
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei UI', Arial, sans-serif;
+  color-scheme: light dark;
+  --bg: #fff;
+  --text: #263238;
+  --muted: #607d8b;
+  --border: #dfe4e7;
+  --surface: #f5f6f7;
+  --danger: #b71c1c;
+}
+
+:root[data-theme='dark'] {
+  --bg: #262b30;
+  --text: #e5e9ec;
+  --muted: #a8b2b9;
+  --border: #3c444a;
+  --surface: #202428;
+  --danger: #ffb3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #262b30;
+    --text: #e5e9ec;
+    --muted: #a8b2b9;
+    --border: #3c444a;
+    --surface: #202428;
+    --danger: #ffb3b8;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+button {
+  font: inherit;
+}
+.manager-shell {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px;
+}
+header {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+h1,
+p {
+  margin-top: 0;
+}
+header p {
+  color: var(--muted);
+}
+button {
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 10px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+th {
+  background: var(--surface);
+}
+.message {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.message.error {
+  color: var(--danger);
+}

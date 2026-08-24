@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { foundationGuards, productIdentity } from './index';
 
 describe('runtime contracts', () => {
-  it('identifies the product and active milestone', () => {
+  it('identifies the original-facing product and active internal milestone', () => {
     expect(productIdentity).toEqual({
-      name: 'ZeroOmega Nex',
-      milestone: 'Milestone 7',
+      name: 'ZeroOmega',
+      milestone: 'Milestone 8',
       architecture: 'compile-first',
     });
   });

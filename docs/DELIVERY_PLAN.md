@@ -1,344 +1,304 @@
-# Delivery Plan
+# ZeroOmega Nex Delivery Plan
 
-## Execution rule
+`PRODUCT_CONSTITUTION.md` is the highest-authority product contract. This plan translates that contract into delivery orders and acceptance gates.
 
-Work proceeds milestone by milestone. A later milestone may be researched in parallel, but production code depending on it does not merge until the preceding milestone acceptance criteria pass.
+## 1. Execution rules
 
-Each milestone must produce:
+1. Product progress is measured by complete user journeys, not by module count, commit count, changed lines, test count, or green CI alone.
+2. Historical engineering milestones remain valid architectural assets but do not close observable product parity.
+3. Every user-visible implementation starts from original source/package/runtime evidence or an accepted `DR-xxxx` record.
+4. Unknown behavior remains `UNKNOWN` and fails closed.
+5. Permanent CI is read-only. Do not create one-time workflows that commit or push implementation or documentation changes.
+6. Evidence collection is parameterized and batched. Temporary evidence is uploaded as artifacts; stable reviewed evidence is committed deliberately.
+7. Chromium and Firefox are tested separately.
+8. Internal candidate, compile, snapshot, install, confirmation, and rollback stages may differ from the original internally, but must not create mandatory new ordinary-user workflow.
+9. A delivery row closes only through the complete evidence chain:
 
-- A scoped branch and PR.
-- Tests and fixtures.
-- Updated documentation.
-- Explicit acceptance evidence.
-- Known limitations.
-- A rollback path where runtime behavior changes.
+   `Original source/runtime -> input data -> Nex mapping -> implementation -> deterministic tests -> Chromium -> Firefox -> owner result`
 
-## Milestone 0 — Foundation and governance
+10. A later product order may be researched in parallel, but its product-completion score does not close before its dependencies and acceptance gates pass.
 
-### Objective
+## 2. Completion levels
 
-Make the repository self-describing so development does not depend on chat context or individual memory.
+### Engineering Done
 
-### Steps
+- Behavior and failure behavior are specified.
+- Source, tests, and documentation are committed deliberately.
+- The exact Head passes required engineering checks.
+- Cross-browser and migration impact are assessed.
 
-1. Add project charter and non-goals.
-2. Add architecture and compatibility contracts.
-3. Add delivery plan and decision log.
-4. Add `AGENTS.md` instructions for AI contributors.
-5. Define branch, commit, review, and release conventions.
-6. Define issue templates for feature, compatibility, performance, and bug work.
-7. Update README with status, principles, and document links.
+### Parity Verified
 
-### Acceptance
+- Original-derived evidence and explicit mapping exist.
+- Real browser evidence passes on applicable targets.
+- Representative real data is used where synthetic fixtures are insufficient.
+- Necessary differences have accepted `DR-xxxx` records.
 
-- A new contributor can identify product scope, architecture, current milestone, and prohibited shortcuts from repository files alone.
-- Every architectural change has a documented decision path.
+### Journey Accepted
 
-## Milestone 1 — Monorepo and deterministic tooling
+- The complete user journey passes on one exact installable build.
+- The repository owner records explicit `PASS`.
 
-### Objective
+Only Journey Accepted closes product progress.
 
-Create a minimal buildable extension skeleton without implementing proxy behavior prematurely.
+## 3. Historical engineering milestones
 
-### Steps
+Milestones 0–7 are retained as engineering foundations integrated on `main`:
 
-1. Initialize pnpm workspace.
-2. Configure TypeScript strict mode and shared tsconfig.
-3. Initialize WXT extension app.
-4. Add Svelte UI integration.
-5. Add linting, formatting, unit-test runner, and type checking.
-6. Add Firefox and Chromium build targets.
-7. Add a minimal popup, options page, and background entrypoint.
-8. Add CI for install, typecheck, unit test, and both browser builds.
-9. Add deterministic lockfile and supported Node/pnpm versions.
-10. Add package boundary rules.
+- Milestone 0 — initial governance, architecture, compatibility, and agent rules.
+- Milestone 1 — pnpm/TypeScript/WXT/Svelte shell, deterministic builds, and dual-browser CI.
+- Milestone 2 — initial ZeroOmega schema-v2 inventory and fixture corpus.
+- Milestone 3 — versioned ProfileSpec, schema, validation, serialization, and migrations.
+- Milestone 4 — bounded ZeroOmega importer, mapping, secret isolation, and compatibility reports.
+- Milestone 5 — auditable reference interpreter and deterministic route traces.
+- Milestone 6 — deterministic PAC compiler, capability analysis, differential verification, budgets, and snapshots.
+- Milestone 7 — Chromium/Firefox adapters, atomic activation, confirmation, rollback, restart recovery, ownership checks, and optional proxy authentication.
 
-### Acceptance
+These assets are preserved unless evidence shows a contract defect. They do not by themselves prove direct migration, original-equivalent UI/workflow, complete browser journeys, or owner acceptance.
 
-- Clean checkout builds Firefox and Chromium packages.
-- Popup and options page load in both browsers.
-- No proxy permission or global request listener is added yet.
-- CI passes from a clean environment.
+## 4. Product delivery orders
 
-## Milestone 2 — Legacy inventory and fixture corpus
+## Order 0 — Constitution and governance convergence
 
 ### Objective
 
-Understand the real compatibility surface before designing the new public schema.
+Eliminate contradictory product contracts, stale dynamic state, and self-writing micro-workflows before further parity implementation.
 
-### Steps
+### Work packages
 
-1. Inventory ZeroOmega `schemaVersion: 2` top-level keys.
-2. Inventory every profile type and condition type from source.
-3. Inventory settings, sync fields, temporary state, generated fields, and authentication metadata.
-4. Separate user intent from cache/runtime fields.
-5. Build minimal fixture per profile and condition type.
-6. Add sanitized representative exports.
-7. Add malformed, missing-reference, circular-reference, Unicode, IDN, IPv6, and large-config fixtures.
-8. Record expected legacy behavior for URL vectors.
-9. Finalize compatibility matrix statuses.
+- Establish `PRODUCT_CONSTITUTION.md` as the highest-authority contract.
+- Bind `AGENTS.md`, Project Charter, Compatibility Contract, Delivery Plan, progress model, knowledge graph, and PR description to that contract.
+- Remove or neutralize wording such as “approximately familiar”, “similar popup”, or “workflow familiarity, not copied implementation”.
+- Separate stable historical milestone records from current product status.
+- Stop copying moving SHA, CI run, test count, candidate state, and blocker state into multiple documents.
+- Remove write-enabled one-time applicator/knowledge-sync workflows.
+- Define one hand-maintained product-status summary and use PR metadata/GitHub Checks for exact moving Head and CI.
 
 ### Acceptance
 
-- No supported legacy type is undocumented.
-- Every inventoried field has `map`, `preserve`, `ignore-generated`, `downgrade`, or `reject` status.
-- Fixtures are sufficient to reproduce all known migration decisions.
+- No core document weakens observable-equivalence, direct migration, no-relearning, dual-browser, rollback, or owner-acceptance requirements.
+- Permanent workflows are read-only.
+- Exact Head and CI are not copied into competing status documents.
+- Previous `98%`, broad `DONE` counts, and failed-candidate claims cannot be interpreted as current completion.
+- Exact Head passes all permanent gates.
 
-## Milestone 3 — ProfileSpec v1
+## Order 1 — Installation, startup, Toolbar, per-tab state, and recovery
 
 ### Objective
 
-Define the stable user configuration contract independent from ZeroOmega internals and browser runtime artifacts.
+Deliver one complete original-equivalent browser Action journey rather than isolated result-string slices.
 
-### Steps
+### Required original evidence families
 
-1. Define stable IDs and ordered profile collection.
-2. Define proxy endpoints and credential references.
-3. Define profile variants and rule sources.
-4. Define condition and route result types.
-5. Define startup, quick-switch, UI, and update preferences.
-6. Define namespaced opaque legacy metadata.
-7. Create JSON Schema.
-8. Implement structural and semantic validation.
-9. Define ProfileSpec revision and migration framework.
-10. Add round-trip serialization tests.
+- Clean install and initial System state.
+- Direct, System, and Fixed proxy/bypass.
+- Switch matched/default, nested Switch, and original-invalid targets.
+- Immediate and nested Virtual results.
+- Attached Rule List prefixes, matched lines, defaults, and target details.
+- PAC direct/proxy/default/matched result traces.
+- Temporary/site-rule state.
+- External-control state and recovery.
+- Inspect overlay behavior.
+- Dynamic renderer failure and static fallback where feasible.
+
+### Implementation work packages
+
+- Build one parameterized original evidence harness producing a unified evidence bundle.
+- Define one Original-observable result trace model independent from the internal graph trace.
+- Project represented trace shapes into title, multiline detail, Badge, colors, icon inputs, Popup state, and per-tab overrides.
+- Route all Toolbar mutations through one background writer.
+- Keep unknown shapes fail-closed.
+- Verify startup serialization, last-confirmed-state recovery, internal-page fallback, two-tab isolation, navigation updates, and Inspect overlay restoration.
 
 ### Acceptance
 
-- Valid ProfileSpec round-trips without data loss.
-- Invalid references, cycles, invalid ports, malformed addresses, and unsupported combinations produce precise errors.
-- Runtime caches and secrets cannot appear in normal exports.
+On one exact Chromium and Firefox build:
 
-## Milestone 4 — ZeroOmega importer
+- Clean installation initializes to original-equivalent System state without opening Popup or Options.
+- Direct, System, Fixed, Switch, Virtual, Rule List, PAC, temporary-rule, external-control, Inspect, fallback, and recovery rows pass the active matrix.
+- Action title, Badge, icon/color semantics, Popup binding, and per-tab behavior match original evidence.
+- Browser-controlled pixel differences are bounded and recorded; user-controlled hierarchy and state meaning match.
+- No second Action writer or global request-time decision listener exists.
+- Repository owner records `PASS` for the consolidated Order 1 build.
+
+## Order 2 — Real original export to direct immediate use
 
 ### Objective
 
-Import current user profiles safely and produce a complete migration report.
+Prove the central migration contract with representative real ZeroOmega v3.5.0 exports.
 
-### Steps
+### Corpus
 
-1. Detect supported legacy export encodings.
-2. Parse under resource limits.
-3. Map profiles to stable IDs while preserving order and display properties.
-4. Map settings and profile references.
-5. Parse fixed proxy and bypass semantics.
-6. Parse SwitchProfile rules in order.
-7. Parse rule-list profiles and source metadata.
-8. Preserve PAC profiles under explicit security/capability rules.
-9. Preserve safe unknown fields as opaque metadata.
-10. Generate structured compatibility report.
-11. Store import as an inactive candidate revision.
-12. Add importer snapshot tests for every fixture.
+- Official/default export.
+- Sanitized owner daily-use export.
+- Nested Switch/Virtual/Rule List export.
+- PAC, update/cache, bypass, and authentication-metadata export.
+- Malformed, missing-reference, cyclic, oversized, and unsupported-field negative cases.
+
+### Work packages
+
+- Create provenance manifests and local sanitization/secret-scanning rules.
+- Validate field, order, color, reference, startup, Quick Switch, PAC, Rule List, bypass, temporary-rule, and safe opaque metadata preservation.
+- Execute `import -> atomic activation -> browse -> restart -> export` on Chromium and Firefox.
+- Compare semantic manifests and route/result vectors.
+- Ensure successful imports do not force manual reconstruction or a mandatory new migration ritual.
+- Ensure all failures preserve the previous active state.
 
 ### Acceptance
 
-- Representative ZeroOmega exports import without manual profile recreation.
-- Failed imports leave active configuration untouched.
-- Every loss, downgrade, or target-dependent feature is reported.
-- Import output validates against ProfileSpec v1.
+- Supported real exports import directly and become immediately usable.
+- No required profile, rule, ordering, color, startup, or reference reconstruction remains.
+- Browsing, restart recovery, and re-export pass on both browsers.
+- Every loss, downgrade, unsupported field, or target difference is precise and reviewable.
+- Repository owner records `PASS` for the real migration journey.
 
-## Milestone 5 — Reference interpreter
+## Order 3 — Popup and temporary/site-rule journey
 
 ### Objective
 
-Create a correctness-first executable definition of policy semantics.
+Restore original-equivalent Popup hierarchy, switching, current/result state, and site-rule workflow.
 
-### Steps
+### Work packages
 
-1. Normalize URLs, hosts, schemes, ports, IDN, and IP values.
-2. Resolve profile graphs and defaults.
-3. Implement exact host and domain suffix rules.
-4. Implement fixed proxy and bypass behavior.
-5. Implement supported URL, regex, CIDR, and scheme/port conditions.
-6. Implement rule-list semantics.
-7. Produce a decision trace showing profile path and matched rule.
-8. Run all fixture decision vectors.
-9. Add property tests and cycle/resource-limit tests.
+- Match Popup dimensions, hierarchy, ordering, colors, selected/current/result semantics, and close behavior.
+- Restore original site-rule and temporary-rule entry points, scope, priority, and lifecycle.
+- Bind Popup display to the same Original-observable trace model as Toolbar.
+- Remove internal architecture explanations and unsupported status taxonomy.
+- Verify multiple tabs, internal pages, reload, navigation, and browser-session cleanup.
 
 ### Acceptance
 
-- Every supported imported fixture has deterministic decisions.
-- Decision traces explain why a route was selected.
-- The interpreter is simple enough to audit and is treated as the oracle for optimized backends.
+- Existing users can switch profiles and manage site/temporary rules without relearning.
+- Toolbar and Popup never disagree about current/result state.
+- Chromium and Firefox journeys pass with paired original evidence.
+- Repository owner records `PASS`.
 
-## Milestone 6 — PAC compiler and verifier
+## Order 4 — Options, dialogs, and Apply/Discard journey
 
 ### Objective
 
-Compile supported policy into deterministic browser-native PAC and prove parity with the reference interpreter.
+Restore original page hierarchy, density, controls, validation timing, dialogs, and unsaved-state behavior.
 
-### Steps
+### Work packages
 
-1. Define PAC capability subset.
-2. Partition PAC-compatible and compatibility-only conditions.
-3. Generate deterministic PAC with stable output ordering.
-4. Add safe string/regex escaping.
-5. Add script-size and complexity warnings.
-6. Build a PAC execution harness.
-7. Run differential tests against reference interpreter.
-8. Generate immutable RuntimeSnapshot metadata.
-9. Add content hashing and compiler-version tracking.
-10. Add incremental compilation cache only after correctness.
+- Inventory every visible page, section, dialog, button, label, help element, default, and transition.
+- Remove or hide Nex-only Draft/Compile/Snapshot/Capability/Migration workflow unless original-backed or covered by an accepted difference.
+- Restore original navigation, profile list, action hierarchy, Apply/Discard behavior, deletion protection, reference replacement, and validation timing.
+- Preserve modern internal atomic compilation and rollback behind the original workflow.
 
 ### Acceptance
 
-- PAC-compatible vectors match the reference interpreter.
-- Generated PAC passes syntax and resource checks.
-- Compilation is deterministic for identical input.
-- Unsupported conditions cannot silently enter the PAC output.
+- Every visible node has an original anchor or accepted `DR-xxxx` record.
+- Fixed paired-state screenshots and interaction recordings pass for supported locales and both browsers.
+- Apply/Discard, reload restoration, validation, dialogs, and destructive operations match original behavior.
+- Repository owner records `PASS`.
 
-## Milestone 7 — Browser adapters and atomic activation
+## Order 5 — Complete profile and lifecycle journeys
 
 ### Objective
 
-Install and switch verified snapshots safely on Firefox and Chromium.
+Close create, edit, reference, duplicate, rename, delete, update, cache, and activation behavior for all required profile families.
 
-### Steps
+### Required families
 
-1. Implement capability discovery per browser.
-2. Implement PAC installation and removal.
-3. Implement system/direct mode transitions.
-4. Detect competing extensions or uncontrollable proxy state.
-5. Implement candidate install, confirmation, active snapshot update, and rollback.
-6. Restore last known good snapshot on restart.
-7. Implement narrow Firefox compatibility listener only for proven cases.
-8. Verify listener filters never default to `<all_urls>`.
-9. Add browser integration tests.
-10. Add failure injection tests for storage/browser API errors.
+- Direct and System built-ins.
+- Fixed and bypass.
+- Switch and nested Switch.
+- Virtual and nested Virtual.
+- Attached and standalone Rule Lists.
+- PAC URL, raw PAC, update/cache, and failure retention.
+- AutoDetect where current browser capability permits.
 
 ### Acceptance
 
-- Normal PAC mode uses no extension-side global proxy decision callback.
-- Failed activation restores or preserves the previous snapshot.
-- Firefox and Chromium capability differences are visible.
-- Restart restores confirmed state.
+- Original configuration semantics and lifecycle behavior pass deterministic, Chromium, Firefox, and owner gates.
+- Unknown or unsupported graphs fail precisely without corrupting active state.
+- Rule ordering, references, colors, names, and defaults remain stable through edits and round trips.
 
-## Milestone 8 — Familiar UI and profile workflow
+## Order 6 — Export, restart, rollback, ownership, and authentication
 
 ### Objective
 
-Deliver a recognizable ZeroOmega-like workflow backed by the new model.
+Prove reliability and security without adding user-visible workflow that the original does not require.
 
-### Steps
+### Work packages
 
-1. Recreate left profile navigation and color identity.
-2. Implement fixed proxy editor.
-3. Implement automatic switch/rule editor with ordering.
-4. Implement rule-list and PAC profile editors.
-5. Implement startup and quick-switch settings.
-6. Implement popup profile switching.
-7. Implement Apply, Revert, compile status, and active state.
-8. Implement import wizard and migration report.
-9. Implement snapshot history and rollback UI.
-10. Add keyboard navigation, accessibility, responsive sizing, and UI performance tests.
+- Export and re-import round trips.
+- Normal restart, forced shutdown, interrupted activation, storage failure, PAC installation failure, confirmation mismatch, and browser crash recovery.
+- Competing extension/policy control and control restoration.
+- HTTP/HTTPS proxy 407 handling, incorrect credentials, permission changes, and separation from ordinary website 401 authentication.
+- Secret scanning across exports, PAC, logs, artifacts, diagnostics, and UI.
 
 ### Acceptance
 
-- Existing users can find familiar operations without relearning the whole product.
-- UI never directly manipulates browser proxy APIs.
-- Unsaved, compiled, installed, and active states are distinguishable.
-- Imported warnings remain reviewable after import.
+- The last confirmed working state survives or is restored after every injected failure.
+- External control is not overwritten when the extension lacks control.
+- Proxy credentials are used only for matching proxy challenges and never leak.
+- Chromium and Firefox reliability matrices pass.
+- Repository owner records `PASS`.
 
-## Milestone 9 — Rule-source updates and bounded diagnostics
+## Order 7 — Localization, information density, and visual alignment
 
 ### Objective
 
-Add production-grade update behavior without permanent request monitoring.
+Complete original-equivalent presentation after hierarchy and behavior are correct.
 
-### Steps
+### Work packages
 
-1. Implement conditional fetch, caching, timeout, size, and content-type limits.
-2. Preserve previous verified rule source on update failure.
-3. Compile updates as candidates before activation.
-4. Add explicit manual and scheduled update controls.
-5. Implement opt-in timed diagnostics with bounded ring buffer.
-6. Add redaction and privacy defaults.
-7. Add decision-test tool for a user-entered URL.
-8. Add exportable diagnostic bundle without secrets.
+- Source-backed English, Simplified Chinese, and Traditional Chinese terminology.
+- Original-equivalent density, spacing, grouping, colors, icons, focus, keyboard behavior, and responsive boundaries.
+- Paired Original ↔ Nex screenshots under fixed locale, viewport, theme, browser, and DPI conditions.
+- Accessibility fixes that do not redesign hierarchy or workflow.
 
 ### Acceptance
 
-- Update failures do not break active browsing.
-- Diagnostics disabled produces no persistent all-request collection.
-- Diagnostic sessions stop automatically at configured limits.
+- No untranslated or invented user-visible terminology remains.
+- Paired evidence shows acceptable hierarchy, density, color, icon, and interaction alignment.
+- Any browser-controlled pixel tolerance is documented.
+- Repository owner records `PASS`.
 
-## Milestone 10 — Packaging, migration hardening, and beta
+## Order 8 — Consolidated candidate and release hardening
 
 ### Objective
 
-Produce installable beta packages and validate real-world migration/performance.
+Produce one exact installable candidate after all required journeys are accepted.
 
-### Steps
+### Work packages
 
-1. Package signed-ready Firefox and Chromium artifacts.
-2. Add extension upgrade and storage migration tests.
-3. Test fresh install, legacy import, browser restart, downgrade, and rollback.
-4. Build performance baselines with extension disabled, Nex enabled, and legacy ZeroOmega enabled.
-5. Test representative small, medium, and large configurations.
-6. Add privacy policy, permission rationale, and release notes.
-7. Establish issue triage and compatibility-report template.
-8. Run limited beta with sanitized user profiles.
+- Clean Chromium and Firefox packages.
+- Fresh install, upgrade, downgrade, migration, restart, rollback, and performance baselines.
+- Permission rationale, privacy policy, release notes, known accepted differences, and blocker classification.
+- Exact artifact digests and reproducible build evidence.
 
 ### Acceptance
 
-- Beta packages install and operate on supported browser versions.
-- Representative configuration shows no Firefox-wide extension stall caused by global request matching.
-- No known data-loss migration bug remains.
-- Release blockers and non-blockers are explicitly classified.
+- All required journey rows are `OWNER_ACCEPTED`.
+- No unresolved release blocker remains.
+- Representative real original exports work directly.
+- Complete Chromium and Firefox matrices pass on the exact candidate.
+- Repository owner records final `PASS`.
 
-## Milestone 11 — Rust/WASM policy core
+## 5. Deferred and optional work
 
-### Entry gate
+### Rule-source updates and bounded diagnostics
 
-Do not start merely because Rust was planned. Start only after profiling identifies compiler/importer cost worth replacing and behavioral parity is protected.
+Production hardening for scheduled updates, retained verified cache, bounded diagnostics, user-entered URL decision tests, and secret-free diagnostic bundles follows the same original-equivalence and evidence rules. Existing pulled-forward infrastructure is not considered complete until its user journey closes.
 
-### Steps
+### Rust/WASM policy core
 
-1. Freeze language-neutral policy-core interfaces.
-2. Create Rust parser/normalizer/compiler crate.
-3. Compile to WASM for browser-side candidate compilation.
-4. Keep TypeScript reference interpreter as oracle.
-5. Run identical fixtures and differential vectors.
-6. Measure WASM startup, transfer, memory, and compile performance.
-7. Replace modules only where total system performance improves.
+Rust/WASM starts only after profiling identifies a meaningful total-system improvement and differential parity is protected by the TypeScript oracle.
 
-### Acceptance
+### Native engine
 
-- Zero behavioral regression across fixture corpus.
-- Measured total improvement justifies additional complexity.
-- TypeScript fallback or previous stable implementation remains available during transition.
+A native engine remains optional. The browser-only product must remain fully usable, migratable, and safely recoverable without it.
 
-## Milestone 12 — Optional native engine
+## 6. Current authorization
 
-### Objective
+The authorized sequence is:
 
-Add advanced capabilities impossible or inefficient in browser-only PAC mode.
+1. Complete Order 0.
+2. Complete and owner-accept Order 1.
+3. Complete and owner-accept Order 2.
+4. Continue Orders 3–8 in dependency order.
 
-### Steps
-
-1. Define versioned Native Messaging control protocol.
-2. Implement local Rust proxy endpoint and policy loading.
-3. Restrict control to approved extension IDs and pairing credentials.
-4. Add operating-system credential storage.
-5. Add health checks, priority failover, DNS policy, and metrics as separate features.
-6. Ensure browser traffic does not traverse Native Messaging.
-7. Add service lifecycle, update, uninstall, and recovery design.
-
-### Acceptance
-
-- Browser-only product remains fully usable.
-- Native engine failure can fall back safely.
-- Security review and platform installation tests pass.
-
-## Release gates applied to every milestone
-
-- Correctness: tests and specified behavior.
-- Compatibility: importer/exporter and legacy decision impact.
-- Performance: no uncontrolled request-time overhead.
-- Reliability: failure and rollback behavior.
-- Security: permissions, untrusted input, secrets, and remote data.
-- Documentation: current milestone and decisions updated.
-
-## Immediate next action after this planning PR
-
-Start Milestone 1 only. Do not implement importer, PAC logic, or Rust in the same PR. The first implementation PR should establish deterministic tooling and empty application boundaries that later milestones can safely fill.
+No unrelated redesign, Rust/WASM expansion, native-engine work, merge, release, or candidate claim is authorized before the applicable gates pass.

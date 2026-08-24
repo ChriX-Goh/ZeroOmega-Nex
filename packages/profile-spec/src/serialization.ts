@@ -1,7 +1,12 @@
 import { InvalidProfileSpecError } from './errors.js';
 import { migrateProfileSpec, type ProfileSpecMigration } from './migration.js';
 import type { JsonValue, ProfileSpec, RevisionMetadata } from './types.js';
-import { validateProfileSpec, type ValidationIssue } from './validation.js';
+import {
+  validateProfileSpec,
+  validateProfileSpecDraft,
+  type ProfileSpecValidationResult,
+  type ValidationIssue,
+} from './validation.js';
 
 export interface SerializeProfileSpecOptions {
   readonly space?: number;
@@ -49,10 +54,20 @@ function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function assertValidProfileSpec(value: unknown, operation: string): asserts value is ProfileSpec {
-  const result = validateProfileSpec(value);
+type ProfileSpecValidator = (value: unknown) => ProfileSpecValidationResult;
+
+function assertValidProfileSpec(
+  value: unknown,
+  operation: string,
+  validator: ProfileSpecValidator = validateProfileSpec,
+  requiredDescription = 'valid ProfileSpec',
+): asserts value is ProfileSpec {
+  const result = validator(value);
   if (!result.valid || !result.value) {
-    throw new InvalidProfileSpecError(`${operation} requires a valid ProfileSpec`, result.issues);
+    throw new InvalidProfileSpecError(
+      `${operation} requires a ${requiredDescription}`,
+      result.issues,
+    );
   }
 }
 
@@ -61,22 +76,54 @@ export function cloneProfileSpec(value: ProfileSpec): ProfileSpec {
   return cloneJson(value);
 }
 
+export function cloneProfileSpecDraft(value: ProfileSpec): ProfileSpec {
+  assertValidProfileSpec(
+    value,
+    'cloneProfileSpecDraft',
+    validateProfileSpecDraft,
+    'structurally valid ProfileSpec draft',
+  );
+  return cloneJson(value);
+}
+
 export function canonicalProfileSpecValue(value: ProfileSpec): JsonValue {
   assertValidProfileSpec(value, 'canonicalProfileSpecValue');
   return canonicalize(value) as JsonValue;
 }
 
-export function serializeProfileSpec(
+function serializeValidatedProfileSpec(
   value: ProfileSpec,
-  options: SerializeProfileSpecOptions = {},
+  options: SerializeProfileSpecOptions,
+  operation: string,
+  validator: ProfileSpecValidator,
 ): string {
   const space = options.space ?? 2;
   if (!Number.isInteger(space) || space < 0 || space > 10) {
     throw new RangeError('ProfileSpec indentation must be an integer between 0 and 10');
   }
 
-  const serialized = JSON.stringify(canonicalProfileSpecValue(value), null, space);
+  assertValidProfileSpec(value, operation, validator);
+  const serialized = JSON.stringify(canonicalize(value), null, space);
   return options.trailingNewline === false ? serialized : `${serialized}\n`;
+}
+
+export function serializeProfileSpec(
+  value: ProfileSpec,
+  options: SerializeProfileSpecOptions = {},
+): string {
+  return serializeValidatedProfileSpec(value, options, 'serializeProfileSpec', validateProfileSpec);
+}
+
+export function serializeProfileSpecDraft(
+  value: ProfileSpec,
+  options: SerializeProfileSpecOptions = {},
+): string {
+  return serializeValidatedProfileSpec(
+    value,
+    options,
+    'serializeProfileSpecDraft',
+    validateProfileSpecDraft,
+  );
 }
 
 export function parseProfileSpec(

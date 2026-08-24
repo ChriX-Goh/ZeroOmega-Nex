@@ -30,4 +30,8 @@ export class MemorySnapshotActivationRepository implements SnapshotActivationRep
     const snapshot = this.#snapshots.get(snapshotId);
     return snapshot === undefined ? undefined : clone(snapshot);
   }
+
+  async listSnapshots(): Promise<readonly PacRuntimeSnapshot[]> {
+    return [...this.#snapshots.values()].map(clone);
+  }
 }

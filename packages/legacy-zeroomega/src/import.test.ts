@@ -37,7 +37,7 @@ describe('ZeroOmega schema-v2 importer', () => {
       'pac',
       'auto-detect',
       'switch',
-      'switch',
+      'virtual',
       'rule-list',
       'rule-list',
       'rule-list',
@@ -46,6 +46,57 @@ describe('ZeroOmega schema-v2 importer', () => {
     expect(result.candidate.settings.quickSwitch.routes).toContainEqual({ kind: 'direct' });
     expect(result.report.profileCount).toBe(9);
     expect(result.report.summary.rejected).toBe(0);
+  });
+
+  it('imports the Virtual cross-reference browser fixture without rejected entries', async () => {
+    const result = importZeroOmegaBackup(
+      await fixture('virtual-reference-migration.json'),
+      context,
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    expect(result.ok).toBe(true);
+    expect(result.report.summary.rejected).toBe(0);
+    expect(result.candidate.profiles.map((profile) => profile.name)).toEqual([
+      'Target Proxy',
+      'Unrelated Proxy',
+      'Route Matrix',
+      'Rule Matrix',
+      'PAC Matrix',
+      'Auto Matrix',
+      'Existing Alias',
+    ]);
+  });
+
+  it('upgrades the source-backed schema-v1 auto_detect reference to the original WPAD PAC', async () => {
+    const source = await fixture('schema-v1-auto-detect.json');
+    const result = importZeroOmegaBackup(source, context);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+
+    const autoDetect = result.candidate.profiles.find((profile) => profile.name === 'auto_detect');
+    expect(autoDetect).toMatchObject({
+      kind: 'pac',
+      color: '#00cccc',
+      source: { kind: 'url', url: 'http://wpad/wpad.dat' },
+    });
+    const switchProfile = result.candidate.profiles.find((profile) => profile.name === 'switch');
+    expect(switchProfile?.kind).toBe('switch');
+    if (
+      !autoDetect ||
+      autoDetect.kind !== 'pac' ||
+      !switchProfile ||
+      switchProfile.kind !== 'switch'
+    ) {
+      throw new Error('schema-v1 WPAD fixture did not map expected profiles');
+    }
+    expect(switchProfile.rules[0]?.route).toEqual({
+      kind: 'profile',
+      profileId: autoDetect.id,
+    });
+    expect(codes(result)).toContain('schema.v1-upgraded');
+    expect(codes(result)).toContain('schema.v1-auto-detect-wpad-created');
+    expect(codes(result)).toContain('profile.disabled-sync-state-removed');
+    expect(JSON.stringify(result.candidate)).not.toContain('legacy-disabled-state');
   });
 
   it('imports a base64-encoded backup through the full migration pipeline', async () => {
@@ -140,6 +191,80 @@ describe('ZeroOmega schema-v2 importer', () => {
       new Set(['switchy', 'autoproxy']),
     );
     expect(codes(result)).toContain('rule-source.base64-decoded');
+  });
+
+  it('preserves downloaded Rule List content as an offline URL cache', () => {
+    const cachedContent = '[SwitchyOmega Conditions]\n\n*.cached.example.invalid\n';
+    const result = importZeroOmegaBackup(
+      {
+        schemaVersion: 2,
+        '+remote-rules': {
+          name: 'remote-rules',
+          profileType: 'RuleListProfile',
+          format: 'Switchy',
+          sourceUrl: 'https://rules.example.invalid/switchy.txt',
+          matchProfileName: 'direct',
+          defaultProfileName: 'direct',
+          ruleList: cachedContent,
+        },
+      },
+      context,
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    expect(codes(result)).toContain('rule-source.downloaded-cache-preserved');
+    const source = result.candidate.ruleSources[0];
+    expect(source?.location).toEqual({
+      kind: 'url',
+      url: 'https://rules.example.invalid/switchy.txt',
+      content: cachedContent,
+    });
+  });
+
+  it('reconstructs an original hidden attached Rule List relationship', () => {
+    const result = importZeroOmegaBackup(
+      {
+        schemaVersion: 2,
+        '+owner': {
+          name: 'owner',
+          profileType: 'SwitchProfile',
+          defaultProfileName: '__ruleListOf_owner',
+          rules: [],
+        },
+        '+__ruleListOf_owner': {
+          name: '__ruleListOf_owner',
+          profileType: 'RuleListProfile',
+          format: 'Switchy',
+          matchProfileName: 'direct',
+          defaultProfileName: 'system',
+          sourceUrl: 'https://rules.example.invalid/owner.txt',
+          ruleList: '[SwitchyOmega Conditions]\n@with result\n\n* +system\n',
+        },
+      },
+      context,
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.report, null, 2));
+    const owner = result.candidate.profiles.find((profile) => profile.name === 'owner');
+    const attached = result.candidate.profiles.find(
+      (profile) => profile.name === '__ruleListOf_owner',
+    );
+    expect(owner?.kind).toBe('switch');
+    expect(attached?.kind).toBe('rule-list');
+    if (!owner || owner.kind !== 'switch' || !attached || attached.kind !== 'rule-list') {
+      throw new Error('attached import fixture mismatch');
+    }
+    expect(owner.attachedRuleListProfileId).toBe(attached.id);
+    expect(owner.defaultRoute).toEqual({ kind: 'profile', profileId: attached.id });
+    const source = result.candidate.ruleSources.find(
+      (candidate) => candidate.id === attached.sourceId,
+    );
+    expect(source?.location).toMatchObject({
+      kind: 'url',
+      url: 'https://rules.example.invalid/owner.txt',
+      content: expect.stringContaining('[SwitchyOmega Conditions]'),
+    });
+    expect(codes(result)).toContain('profile.attached-rule-list-linked');
   });
 
   it('imports the deterministic 36-profile and 1,024-rule scale fixture', async () => {

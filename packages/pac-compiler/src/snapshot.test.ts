@@ -66,6 +66,7 @@ describe('verified PAC runtime snapshots', () => {
     expect(first.snapshot.scriptSha256).toBe(await sha256Hex(first.snapshot.script));
     expect(first.snapshot.verification).toEqual({
       passed: true,
+      mode: 'differential',
       vectorCount: 2,
       matchedCount: 2,
     });

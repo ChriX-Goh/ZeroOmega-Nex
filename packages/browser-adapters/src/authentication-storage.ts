@@ -14,21 +14,43 @@ function normalizeBinding(value: unknown, index: number): ProxyAuthenticationBin
     throw new TypeError(`proxy authentication binding ${index} must be an object`);
   }
   const record = value as Record<string, unknown>;
-  const { endpointId, protocol, host, port, username, passwordSecretRef } = record;
+  const { scope, username, passwordSecretRef } = record;
+  if (typeof username !== 'string' || typeof passwordSecretRef !== 'string') {
+    throw new TypeError(`proxy authentication binding ${index} is invalid`);
+  }
+  if (scope === 'all-proxies') {
+    if (typeof record.profileId !== 'string' || record.profileId.length === 0) {
+      throw new TypeError(`proxy authentication binding ${index} is invalid`);
+    }
+    return {
+      scope: 'all-proxies',
+      profileId: record.profileId,
+      username,
+      passwordSecretRef,
+    };
+  }
+  const { endpointId, protocol, host, port } = record;
   if (
+    (scope !== undefined && scope !== 'endpoint') ||
     typeof endpointId !== 'string' ||
     (protocol !== 'http' && protocol !== 'https') ||
     typeof host !== 'string' ||
     typeof port !== 'number' ||
     !Number.isInteger(port) ||
     port < 1 ||
-    port > 65_535 ||
-    typeof username !== 'string' ||
-    typeof passwordSecretRef !== 'string'
+    port > 65_535
   ) {
     throw new TypeError(`proxy authentication binding ${index} is invalid`);
   }
-  return { endpointId, protocol, host, port, username, passwordSecretRef };
+  return {
+    ...(scope === undefined ? {} : { scope: 'endpoint' as const }),
+    endpointId,
+    protocol,
+    host,
+    port,
+    username,
+    passwordSecretRef,
+  };
 }
 
 export class BrowserStorageProxyAuthenticationRepository
@@ -52,7 +74,15 @@ export class BrowserStorageProxyAuthenticationRepository
     if (!Array.isArray(raw)) throw new TypeError('proxy authentication bindings must be an array');
     const bindings = raw.map(normalizeBinding);
     const endpointIds = new Set<string>();
+    const allProxyProfileIds = new Set<string>();
     for (const binding of bindings) {
+      if (binding.scope === 'all-proxies') {
+        if (allProxyProfileIds.has(binding.profileId)) {
+          throw new TypeError(`duplicate all-proxy authentication profile ${binding.profileId}`);
+        }
+        allProxyProfileIds.add(binding.profileId);
+        continue;
+      }
       if (endpointIds.has(binding.endpointId)) {
         throw new TypeError(`duplicate proxy authentication endpoint ${binding.endpointId}`);
       }

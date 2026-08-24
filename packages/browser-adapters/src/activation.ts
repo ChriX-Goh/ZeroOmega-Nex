@@ -6,7 +6,10 @@ import type {
   ActiveSnapshotRestoreResult,
   BrowserProxyCapabilities,
   BrowserProxyDriver,
+  BuiltInModeActivationResult,
+  BuiltInProxyMode,
   PacInstallConfirmation,
+  PlatformProxyState,
   SnapshotActivationRepository,
   SnapshotActivationResult,
   SnapshotActivationState,
@@ -38,6 +41,14 @@ function failureRecord(
   };
 }
 
+function controlFailureMessage(capabilities: BrowserProxyCapabilities): string {
+  return capabilities.controlLevel === 'controlled-by-other-extension'
+    ? 'proxy settings are controlled by another extension'
+    : capabilities.requiresPrivateBrowsingAccess && !capabilities.privateBrowsingAllowed
+      ? 'Firefox private browsing access is required before proxy settings can be changed'
+      : 'proxy settings are not controllable by this extension';
+}
+
 async function confirmOrThrow(
   driver: BrowserProxyDriver,
   snapshot: PacRuntimeSnapshot,
@@ -55,6 +66,25 @@ async function confirmOrThrow(
   return confirmation;
 }
 
+async function setBuiltInMode(driver: BrowserProxyDriver, mode: BuiltInProxyMode): Promise<void> {
+  if (mode === 'direct') await driver.setDirect();
+  else await driver.setSystem();
+}
+
+function valueRecord(value: PlatformProxyState['value']): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function confirmsBuiltInMode(state: PlatformProxyState, mode: BuiltInProxyMode): boolean {
+  if (state.controlLevel !== 'controlled-by-this-extension') return false;
+  const value = valueRecord(state.value);
+  if (!value) return false;
+  if (state.family === 'chromium') return value.mode === mode;
+  return value.proxyType === (mode === 'direct' ? 'none' : 'system');
+}
+
 async function rollbackToPrevious(
   repository: SnapshotActivationRepository,
   driver: BrowserProxyDriver,
@@ -69,6 +99,12 @@ async function rollbackToPrevious(
       }
       await driver.installPac(previousSnapshot);
       await confirmOrThrow(driver, previousSnapshot);
+    } else if (previousState.activeBuiltInMode !== undefined) {
+      await setBuiltInMode(driver, previousState.activeBuiltInMode);
+      const restored = await driver.readState();
+      if (!confirmsBuiltInMode(restored, previousState.activeBuiltInMode)) {
+        throw new Error(`browser did not confirm restored ${previousState.activeBuiltInMode} mode`);
+      }
     } else {
       await driver.restoreState(platformBefore);
     }
@@ -101,12 +137,7 @@ export async function activatePacSnapshot(
   }
 
   if (!canControl(capabilities)) {
-    const message =
-      capabilities.controlLevel === 'controlled-by-other-extension'
-        ? 'proxy settings are controlled by another extension'
-        : capabilities.requiresPrivateBrowsingAccess && !capabilities.privateBrowsingAllowed
-          ? 'Firefox private browsing access is required before proxy settings can be changed'
-          : 'proxy settings are not controllable by this extension';
+    const message = controlFailureMessage(capabilities);
     await repository.setState({
       ...previousState,
       lastFailure: failureRecord(snapshot.snapshotId, 'preflight', message, failedAt, true),
@@ -146,6 +177,9 @@ export async function activatePacSnapshot(
       ...(previousState.activeSnapshotId === undefined
         ? {}
         : { previousActiveSnapshotId: previousState.activeSnapshotId }),
+      ...(previousState.activeBuiltInMode === undefined
+        ? {}
+        : { previousActiveBuiltInMode: previousState.activeBuiltInMode }),
       platformBefore,
       startedAt: context.startedAt,
     },
@@ -224,6 +258,83 @@ export async function activatePacSnapshot(
   };
 }
 
+export async function activateBuiltInMode(
+  repository: SnapshotActivationRepository,
+  driver: BrowserProxyDriver,
+  mode: BuiltInProxyMode,
+  context: ActivationContext,
+): Promise<BuiltInModeActivationResult> {
+  const previousState = await repository.getState();
+  const operationId = `built-in-${mode}`;
+  const failedAt = context.failedAt ?? context.startedAt;
+  let capabilities: BrowserProxyCapabilities;
+
+  try {
+    capabilities = await driver.getCapabilities();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'proxy capability discovery failed';
+    await repository.setState({
+      ...previousState,
+      lastFailure: failureRecord(operationId, 'preflight', message, failedAt, true),
+    });
+    return { ok: false, stage: 'preflight', message, rollbackSucceeded: true };
+  }
+
+  if (!canControl(capabilities)) {
+    const message = controlFailureMessage(capabilities);
+    await repository.setState({
+      ...previousState,
+      lastFailure: failureRecord(operationId, 'preflight', message, failedAt, true),
+    });
+    return {
+      ok: false,
+      stage: 'preflight',
+      message,
+      rollbackSucceeded: true,
+      controlLevel: capabilities.controlLevel,
+    };
+  }
+
+  let platformBefore: PlatformProxyState | undefined;
+  try {
+    platformBefore = await driver.readState();
+    await setBuiltInMode(driver, mode);
+    const installed = await driver.readState();
+    if (!confirmsBuiltInMode(installed, mode)) {
+      throw new Error(`browser did not confirm ${mode} mode`);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : `${mode} mode activation failed`;
+    const rollbackSucceeded =
+      platformBefore === undefined
+        ? true
+        : await rollbackToPrevious(repository, driver, previousState, platformBefore);
+    await repository.setState({
+      ...previousState,
+      lastFailure: failureRecord(
+        operationId,
+        rollbackSucceeded ? 'confirm' : 'rollback',
+        message,
+        failedAt,
+        rollbackSucceeded,
+      ),
+    });
+    return {
+      ok: false,
+      stage: rollbackSucceeded ? 'confirm' : 'rollback',
+      message,
+      rollbackSucceeded,
+      controlLevel: capabilities.controlLevel,
+    };
+  }
+
+  await repository.setState({
+    activeBuiltInMode: mode,
+    lastKnownGoodBuiltInMode: mode,
+  });
+  return { ok: true, activeBuiltInMode: mode };
+}
+
 export async function recoverPendingActivation(
   repository: SnapshotActivationRepository,
   driver: BrowserProxyDriver,
@@ -259,6 +370,32 @@ export async function recoverPendingActivation(
       };
     }
 
+    if (pending.previousActiveBuiltInMode !== undefined) {
+      await setBuiltInMode(driver, pending.previousActiveBuiltInMode);
+      const restored = await driver.readState();
+      if (!confirmsBuiltInMode(restored, pending.previousActiveBuiltInMode)) {
+        throw new Error(
+          `browser did not confirm restored ${pending.previousActiveBuiltInMode} mode`,
+        );
+      }
+      await repository.setState({
+        activeBuiltInMode: pending.previousActiveBuiltInMode,
+        lastKnownGoodBuiltInMode: pending.previousActiveBuiltInMode,
+        lastFailure: failureRecord(
+          pending.snapshotId,
+          'recovery',
+          'interrupted activation restored the previous built-in proxy mode',
+          failedAt,
+          true,
+        ),
+      });
+      return {
+        status: 'recovered',
+        activeBuiltInMode: pending.previousActiveBuiltInMode,
+        restoredPlatformBaseline: false,
+      };
+    }
+
     await driver.restoreState(pending.platformBefore);
     await repository.setState({
       lastFailure: failureRecord(
@@ -280,6 +417,9 @@ export async function recoverPendingActivation(
       status: 'failed',
       message,
       ...(state.activeSnapshotId === undefined ? {} : { activeSnapshotId: state.activeSnapshotId }),
+      ...(state.activeBuiltInMode === undefined
+        ? {}
+        : { activeBuiltInMode: state.activeBuiltInMode }),
     };
   }
 }
@@ -289,6 +429,22 @@ export async function restoreActiveSnapshot(
   driver: BrowserProxyDriver,
 ): Promise<ActiveSnapshotRestoreResult> {
   const state = await repository.getState();
+  if (state.activeBuiltInMode !== undefined) {
+    try {
+      await setBuiltInMode(driver, state.activeBuiltInMode);
+      const restored = await driver.readState();
+      if (!confirmsBuiltInMode(restored, state.activeBuiltInMode)) {
+        throw new Error(`browser did not confirm ${state.activeBuiltInMode} mode`);
+      }
+      return { status: 'restored-built-in', mode: state.activeBuiltInMode };
+    } catch (error) {
+      return {
+        status: 'failed',
+        snapshotId: `built-in-${state.activeBuiltInMode}`,
+        message: error instanceof Error ? error.message : 'active built-in mode restore failed',
+      };
+    }
+  }
   if (state.activeSnapshotId === undefined) return { status: 'no-active-snapshot' };
   const snapshot = await repository.getSnapshot(state.activeSnapshotId);
   if (!snapshot) {

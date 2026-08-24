@@ -2,6 +2,7 @@ import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 import type { JsonValue } from '@zeroomega-nex/profile-spec';
 
 export type BrowserFamily = 'chromium' | 'firefox';
+export type BuiltInProxyMode = 'direct' | 'system';
 
 export type ProxyControlLevel =
   | 'not-controllable'
@@ -48,6 +49,7 @@ export interface BrowserProxyDriver {
 export interface PendingActivation {
   readonly snapshotId: string;
   readonly previousActiveSnapshotId?: string;
+  readonly previousActiveBuiltInMode?: BuiltInProxyMode;
   readonly platformBefore: PlatformProxyState;
   readonly startedAt: string;
 }
@@ -63,6 +65,8 @@ export interface ActivationFailureRecord {
 export interface SnapshotActivationState {
   readonly activeSnapshotId?: string;
   readonly lastKnownGoodSnapshotId?: string;
+  readonly activeBuiltInMode?: BuiltInProxyMode;
+  readonly lastKnownGoodBuiltInMode?: BuiltInProxyMode;
   readonly pending?: PendingActivation;
   readonly lastFailure?: ActivationFailureRecord;
 }
@@ -94,21 +98,37 @@ export type SnapshotActivationResult =
       readonly controlLevel?: ProxyControlLevel;
     };
 
+export type BuiltInModeActivationResult =
+  | {
+      readonly ok: true;
+      readonly activeBuiltInMode: BuiltInProxyMode;
+    }
+  | {
+      readonly ok: false;
+      readonly stage: ActivationFailureRecord['stage'];
+      readonly message: string;
+      readonly rollbackSucceeded: boolean;
+      readonly controlLevel?: ProxyControlLevel;
+    };
+
 export type SnapshotRecoveryResult =
   | { readonly status: 'nothing-pending' }
   | {
       readonly status: 'recovered';
       readonly activeSnapshotId?: string;
+      readonly activeBuiltInMode?: BuiltInProxyMode;
       readonly restoredPlatformBaseline: boolean;
     }
   | {
       readonly status: 'failed';
       readonly message: string;
       readonly activeSnapshotId?: string;
+      readonly activeBuiltInMode?: BuiltInProxyMode;
     };
 
 export type ActiveSnapshotRestoreResult =
   | { readonly status: 'no-active-snapshot' }
   | { readonly status: 'already-confirmed'; readonly snapshotId: string }
   | { readonly status: 'restored'; readonly snapshotId: string }
+  | { readonly status: 'restored-built-in'; readonly mode: BuiltInProxyMode }
   | { readonly status: 'failed'; readonly snapshotId: string; readonly message: string };

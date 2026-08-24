@@ -1,25 +1,104 @@
 import { recoverPendingActivation, restoreActiveSnapshot } from '@zeroomega-nex/browser-adapters';
 import { productIdentity } from '@zeroomega-nex/core-contracts';
+import { BrowserStorageProfileWorkflowRepository } from '@zeroomega-nex/profile-workflow';
 
 import { currentBrowserProxyRuntime } from '../lib/browser-proxy-runtime';
 import {
+  currentInspectRuntimeApi,
+  registerInspectRuntime,
+  type RegisteredInspectRuntime,
+} from '../lib/inspect-runtime';
+import { currentOriginalToolbarBrowserRuntimeApi } from '../lib/original-toolbar-browser-runtime';
+import { currentOriginalToolbarCanvasFactory } from '../lib/original-toolbar-icon-renderer';
+import {
+  createOriginalToolbarRendererE2eProbe,
+  type OriginalToolbarRendererE2eRuntimeApi,
+} from '../lib/original-toolbar-renderer-e2e';
+import {
+  registerOriginalToolbarRuntime,
+  type OriginalToolbarNavigationCommittedListener,
+  type OriginalToolbarProxySettingsChangedListener,
+  type OriginalToolbarTabRemovedListener,
+  type RegisteredOriginalToolbarRuntime,
+} from '../lib/original-toolbar-runtime';
+import type { OriginalToolbarEvent } from '../lib/original-toolbar-tab-coordinator';
+import { BrowserProfileWorkflowActivationDriver } from '../lib/profile-workflow-activation';
+import {
+  currentProfileWorkflowRuntimeApi,
+  registerProfileWorkflowRuntime,
+  type RegisteredProfileWorkflowRuntime,
+} from '../lib/profile-workflow-runtime';
+import {
+  createPopupTemporaryRuleCoordinator,
+  currentPopupTemporaryRuleRuntimeApi,
+  registerPopupTemporaryRuleRuntime,
+  type PopupTemporaryRuleCoordinator,
+  type RegisteredPopupTemporaryRuleRuntime,
+} from '../lib/popup-temporary-rule-runtime';
+import {
   currentProxyAuthenticationApi,
-  registerStoredProxyAuthentication,
-  type ProxyAuthenticationRuntime,
+  ProxyAuthenticationRuntimeManager,
 } from '../lib/proxy-auth-runtime';
+import {
+  currentProxyOwnershipRuntimeApi,
+  registerProxyOwnershipRuntime,
+  shouldActivateStartupRouteAfterProxyRestore,
+  shouldPreserveExternalProxyState,
+  type ProxyRuntimeRestoreDisposition,
+  type RegisteredProxyOwnershipRuntime,
+} from '../lib/proxy-ownership-runtime';
+import {
+  currentRequestDiagnosticsRuntimeApi,
+  registerRequestDiagnosticsRuntime,
+  type RegisteredRequestDiagnosticsRuntime,
+} from '../lib/request-diagnostics-runtime';
 
-let authenticationRuntime: ProxyAuthenticationRuntime | undefined;
+let authenticationManager: ProxyAuthenticationRuntimeManager | undefined;
+let inspectRuntime: RegisteredInspectRuntime | undefined;
+let originalToolbarRuntime: RegisteredOriginalToolbarRuntime | undefined;
+let originalToolbarRendererE2eRuntime: { dispose(): void } | undefined;
+let profileWorkflowRuntime: RegisteredProfileWorkflowRuntime | undefined;
+let popupTemporaryRuleRuntime: RegisteredPopupTemporaryRuleRuntime | undefined;
+let proxyOwnershipRuntime: RegisteredProxyOwnershipRuntime | undefined;
+let requestDiagnosticsRuntime: RegisteredRequestDiagnosticsRuntime | undefined;
 
-async function restoreProxyRuntime(): Promise<void> {
+async function restoreProxyRuntime(
+  manager: ProxyAuthenticationRuntimeManager,
+  temporaryRules: PopupTemporaryRuleCoordinator | undefined,
+): Promise<ProxyRuntimeRestoreDisposition> {
+  const authenticationStatus = await manager.initialize();
+  console.info(`[${productIdentity.name}] proxy authentication state: ${authenticationStatus}.`);
+
   const runtime = currentBrowserProxyRuntime();
-  const recovered = await recoverPendingActivation(
-    runtime.repository,
-    runtime.driver,
-    new Date().toISOString(),
-  );
+  const workflow = await new BrowserStorageProfileWorkflowRepository(browser.storage.local).read();
+  const repaired =
+    workflow && temporaryRules
+      ? await temporaryRules.repairMissingSessionPending(workflow.applied, runtime.repository)
+      : false;
+  const recovered = repaired
+    ? { status: 'nothing-pending' as const }
+    : await recoverPendingActivation(runtime.repository, runtime.driver, new Date().toISOString());
   if (recovered.status === 'failed') {
     console.error(`[${productIdentity.name}] proxy activation recovery failed:`, recovered.message);
-    return;
+    return 'failed';
+  }
+
+  if (
+    workflow &&
+    temporaryRules &&
+    (repaired || (await temporaryRules.reconcileStartup(workflow.applied, runtime.repository)))
+  ) {
+    console.info(`[${productIdentity.name}] temporary-rule proxy runtime reconciled.`);
+    return 'startup-complete';
+  }
+
+  const activationState = await runtime.repository.getState();
+  if (activationState.activeBuiltInMode === 'system') {
+    const platformState = await runtime.driver.readState();
+    if (shouldPreserveExternalProxyState(activationState.activeBuiltInMode, platformState)) {
+      console.info(`[${productIdentity.name}] external proxy state preserved in System mode.`);
+      return 'startup-complete';
+    }
   }
 
   const restored = await restoreActiveSnapshot(runtime.repository, runtime.driver);
@@ -28,22 +107,131 @@ async function restoreProxyRuntime(): Promise<void> {
       `[${productIdentity.name}] active proxy snapshot restore failed:`,
       restored.message,
     );
-    return;
+    return 'failed';
   }
   console.info(`[${productIdentity.name}] proxy runtime state: ${restored.status}.`);
-
-  authenticationRuntime?.dispose();
-  authenticationRuntime = await registerStoredProxyAuthentication(currentProxyAuthenticationApi());
-  console.info(
-    `[${productIdentity.name}] proxy authentication state: ${authenticationRuntime.status}.`,
-  );
+  return 'inspect-startup-route';
 }
 
 export default defineBackground(() => {
   console.info(
     `[${productIdentity.name}] background initialized for ${productIdentity.milestone}.`,
   );
-  void restoreProxyRuntime().catch((error: unknown) => {
+
+  inspectRuntime?.dispose();
+  originalToolbarRendererE2eRuntime?.dispose();
+  originalToolbarRuntime?.dispose();
+  requestDiagnosticsRuntime?.dispose();
+  proxyOwnershipRuntime?.dispose();
+  popupTemporaryRuleRuntime?.dispose();
+  profileWorkflowRuntime?.dispose();
+  authenticationManager?.dispose();
+
+  const authentication = new ProxyAuthenticationRuntimeManager(currentProxyAuthenticationApi());
+  authenticationManager = authentication;
+  const baseActivationDriver = new BrowserProfileWorkflowActivationDriver({
+    authentication,
+  });
+  const temporaryRuleApi = currentPopupTemporaryRuleRuntimeApi();
+  const temporaryRuleCoordinator = createPopupTemporaryRuleCoordinator(
+    temporaryRuleApi,
+    baseActivationDriver,
+  );
+  const activationDriver = temporaryRuleCoordinator ?? baseActivationDriver;
+  const toolbarApi = currentOriginalToolbarBrowserRuntimeApi();
+  const rendererE2eProbe = createOriginalToolbarRendererE2eProbe(
+    toolbarApi,
+    currentOriginalToolbarCanvasFactory(),
+  );
+  const toolbarRuntime = registerOriginalToolbarRuntime({
+    api: rendererE2eProbe?.api ?? toolbarApi,
+    repository: new BrowserStorageProfileWorkflowRepository(browser.storage.local),
+    runtime: {
+      inspectRuntime: async (applied) => {
+        const toolbarView = temporaryRuleCoordinator
+          ? await temporaryRuleCoordinator.inspectToolbarRuntime(applied)
+          : ((await baseActivationDriver.inspectRuntime?.()) ?? {});
+        const proxyRuntime = currentBrowserProxyRuntime();
+        try {
+          const proxyControlLevel = (await proxyRuntime.driver.getCapabilities()).controlLevel;
+          return { ...toolbarView, proxyControlLevel };
+        } catch {
+          return toolbarView;
+        } finally {
+          proxyRuntime.dispose();
+        }
+      },
+    },
+    tabRemoved: browser.tabs
+      .onRemoved as unknown as OriginalToolbarEvent<OriginalToolbarTabRemovedListener>,
+    navigationCommitted: browser.webNavigation
+      .onCommitted as unknown as OriginalToolbarEvent<OriginalToolbarNavigationCommittedListener>,
+    proxySettingsChanged: browser.proxy.settings
+      .onChange as unknown as OriginalToolbarEvent<OriginalToolbarProxySettingsChangedListener>,
+    ...(rendererE2eProbe === undefined
+      ? {}
+      : { browserRuntime: { canvasFactory: rendererE2eProbe.canvasFactory } }),
+    onError: (error, context) => {
+      console.error(`[${productIdentity.name}] toolbar ${context.phase} failed:`, error, context);
+    },
+  });
+  originalToolbarRuntime = toolbarRuntime;
+  originalToolbarRendererE2eRuntime = rendererE2eProbe?.register(
+    browser.runtime as unknown as OriginalToolbarRendererE2eRuntimeApi,
+    (options) => toolbarRuntime.refreshAll(options),
+  );
+  const refreshToolbar = async (reason: string, clearIconCache = true): Promise<void> => {
+    try {
+      await toolbarRuntime.refreshAll(clearIconCache ? { clearIconCache: true } : {});
+    } catch (error) {
+      console.error(`[${productIdentity.name}] toolbar refresh failed after ${reason}:`, error);
+    }
+  };
+
+  const workflowRuntime = registerProfileWorkflowRuntime(currentProfileWorkflowRuntimeApi(), {
+    activationDriver,
+    authentication,
+    onActivationSucceeded: () => refreshToolbar('profile activation'),
+    completeInitialization: async (response) => {
+      if (!response.ok) {
+        throw new Error('profile workflow initialization command failed');
+      }
+      if (response.appliedSnapshotId !== undefined) return;
+      const restoreDisposition = await restoreProxyRuntime(
+        authentication,
+        temporaryRuleCoordinator,
+      );
+      if (restoreDisposition === 'failed') return;
+      const restoredRuntime = (await activationDriver.inspectRuntime?.()) ?? {};
+      if (
+        shouldActivateStartupRouteAfterProxyRestore(
+          restoreDisposition,
+          restoredRuntime.activeRoute !== undefined,
+        )
+      ) {
+        const startupRoute = response.state.applied.settings.startup.route ?? { kind: 'system' };
+        await activationDriver.activate(response.state.applied, startupRoute);
+      }
+      await refreshToolbar('startup recovery');
+    },
+  });
+  profileWorkflowRuntime = workflowRuntime;
+  popupTemporaryRuleRuntime = temporaryRuleCoordinator
+    ? registerPopupTemporaryRuleRuntime(temporaryRuleApi, temporaryRuleCoordinator, {
+        onActivationSucceeded: () => refreshToolbar('temporary rule'),
+      })
+    : undefined;
+  proxyOwnershipRuntime = registerProxyOwnershipRuntime(currentProxyOwnershipRuntimeApi());
+  requestDiagnosticsRuntime = registerRequestDiagnosticsRuntime(
+    currentRequestDiagnosticsRuntimeApi(),
+  );
+  const inspectApi = currentInspectRuntimeApi();
+  inspectRuntime = registerInspectRuntime({
+    ...inspectApi,
+    action: toolbarRuntime.inspectAction,
+  });
+
+  void workflowRuntime.initialize().catch((error: unknown) => {
     console.error(`[${productIdentity.name}] proxy runtime initialization failed:`, error);
   });
 });

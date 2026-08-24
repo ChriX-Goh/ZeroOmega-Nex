@@ -1,65 +1,82 @@
 # ZeroOmega Nex — Agent Operating Contract
 
-This file is the persistent source of truth for AI agents and contributors. Read it before making changes.
+Read `docs/PRODUCT_CONSTITUTION.md` before making any change. It is the highest-authority product contract. If another document conflicts with it, the constitution wins and the conflict must be corrected.
 
 ## Product objective
 
-Build a next-generation cross-browser proxy profile manager that preserves the familiar ZeroOmega/SwitchyOmega user experience and imports existing ZeroOmega user profiles, while replacing the request-time architecture that can stall Firefox.
+Build a clean-room, bottom-layer rewrite of ZeroOmega v3.5.0 for Chromium and Firefox while preserving the original observable product contract as modern browser APIs permit. This is not a modernization redesign.
 
 ## Binding constraints
 
-1. Existing ZeroOmega `schemaVersion: 2` user profiles must be importable without forcing users to recreate profiles.
-2. Preserve profile names, colors, ordering, references, startup profile, quick-switch settings, bypass lists, rule order, proxy endpoints, and supported authentication metadata whenever representable.
-3. UI layout and interaction should remain recognizably close to ZeroOmega unless a change materially improves correctness, accessibility, or performance.
-4. Ordinary browser requests must not depend on an extension-side `<all_urls>` proxy decision listener.
-5. Use browser-native PAC execution by default. Request-level compatibility hooks must be narrowly scoped and optional.
-6. User configuration is the stable public contract. Compiled PAC, indexes, caches, and runtime snapshots are derived artifacts.
-7. Configuration activation must be atomic and rollback-safe.
-8. Firefox and Chromium behavior must be tested separately; do not hide platform differences behind unsafe assumptions.
-9. Do not add Rust/WASM merely for appearance. Rust is reserved for deterministic parsing, validation, normalization, optimization, compilation, and optional native-engine work.
-10. Do not begin a later phase until the current phase acceptance criteria pass.
-11. Do not repeatedly ask the repository owner to load or inspect partial slices. Intermediate work must be self-verified through CI, deterministic fixtures, differential tests, static audits, browser automation where available, and internal review. Request owner QC only for a consolidated, installable release candidate or when an irreducible product decision requires the owner's judgment.
+1. Supported ZeroOmega `schemaVersion: 2` exports must import directly and become immediately usable without manual profile reconstruction or a mandatory new migration workflow.
+2. Preserve representable profile names, colors, ordering, references, startup profile, Quick Switch settings, bypass lists, rule order, proxy endpoints, PAC, Rule Lists, temporary rules, and supported authentication metadata.
+3. UI, terminology, hierarchy, defaults, validation timing, Toolbar, Popup, Options, dialogs, and state transitions are observable contracts and must be equivalent to the original by default.
+4. Do not invent visible pages, descriptions, status taxonomies, or workflow merely to expose rewrite internals.
+5. Any user-visible difference requires a `DR-xxxx` record containing original evidence, browser-limitation evidence, the minimum difference, cross-browser verification, impact analysis, and repository-owner acceptance.
+6. Ordinary browser requests must not depend on an extension-side global `<all_urls>` proxy decision listener.
+7. Use browser-native PAC execution by default. Request-level compatibility hooks must be narrowly scoped, evidence-backed, and optional.
+8. User configuration is the stable public contract. Compiled PAC, indexes, caches, and runtime snapshots are derived artifacts.
+9. Configuration activation must be atomic, confirmed, and rollback-safe.
+10. Firefox and Chromium behavior must be tested separately; do not hide platform differences behind assumptions.
+11. Unknown or target-dependent shapes fail closed. Never invent simplified wording or behavior to make a test pass.
+12. Do not add Rust/WASM merely for appearance. Introduce it only after measured need and protected differential parity.
+13. Do not repeatedly ask the repository owner to inspect micro-slices. Self-verify coherent work, then request owner QC for a complete user journey or irreducible product decision.
+14. Permanent CI is read-only. Do not create one-time workflows that commit or push implementation or documentation changes.
 
 ## Technical direction
 
 - Browser shell and UI: TypeScript strict mode, WXT, Svelte.
 - Public configuration: versioned JSON plus JSON Schema.
 - Browser storage: IndexedDB for durable data; browser storage for small active-state records.
-- Policy core: start with a TypeScript reference implementation; introduce Rust/WASM only behind stable interfaces and differential tests.
+- Policy core: TypeScript reference implementation remains the semantic oracle.
 - Default data plane: precompiled PAC installed through browser-native proxy APIs.
-- Optional advanced data plane: future Rust native local engine controlled through Native Messaging.
+- Optional advanced data plane: future native engine only after behavioral parity and measured need.
 
 ## Required workflow
 
-1. Read `docs/PROJECT_CHARTER.md`, `docs/ARCHITECTURE.md`, `docs/COMPATIBILITY.md`, `docs/DELIVERY_PLAN.md`, and `docs/DECISIONS.md`.
-2. Work on a dedicated branch.
-3. State the milestone and acceptance criteria in the PR description.
-4. Add or update tests before declaring completion.
-5. Record architecture-changing decisions in `docs/DECISIONS.md`.
-6. Update compatibility fixtures whenever importer behavior changes.
-7. Never silently reinterpret an unsupported legacy field. Import it, preserve it as opaque metadata, explicitly downgrade it with a warning, or reject it with a precise reason.
-8. Commit each coherent slice to GitHub before relying on it, run the repository verification pipeline against that exact Head, and continue only after the Head passes.
-9. Accumulate verified slices into a release candidate and present one concise final QC package containing installation steps, expected behavior, migration checks, and a result template.
+1. Read `docs/PRODUCT_CONSTITUTION.md`, `docs/PROJECT_CHARTER.md`, `docs/ARCHITECTURE.md`, `docs/COMPATIBILITY.md`, `docs/DELIVERY_PLAN.md`, and `docs/DECISIONS.md`.
+2. Read the latest knowledge graph, active delivery order, exact Head status, and unresolved evidence nodes before changing code.
+3. Work on the dedicated branch and preserve a clean, reviewable commit history for each coherent work package.
+4. State the user journey, original anchors, acceptance criteria, and known `UNKNOWN` or `DR-xxxx` items.
+5. Capture or cite original source/package/runtime evidence before implementing user-visible behavior.
+6. Add or update deterministic tests and parameterized browser evidence.
+7. Update compatibility fixtures whenever importer or semantic behavior changes.
+8. Never silently reinterpret unsupported legacy data. Map it, preserve it, explicitly downgrade it, or reject it precisely.
+9. Run the required verification pipeline against the exact committed Head.
+10. Update one authoritative status source. Do not hand-maintain competing Head, CI, progress, candidate, or blocker values across multiple documents.
+11. Accumulate verified work into a complete user-journey build and present one concise owner QC package.
 
-## Definition of done for any feature
+## Completion levels
 
-- Behavior is specified.
-- Edge cases and failure behavior are defined.
-- Unit tests pass.
-- Cross-browser impact is assessed.
-- Import/export compatibility impact is assessed.
-- No uncontrolled request-time listener or persistent diagnostic overhead is introduced.
-- Documentation and decision log are updated.
-- The exact GitHub Head containing the feature passes the required automated verification.
+### Engineering Done
 
-## Current order of work
+- Behavior and failure behavior are specified.
+- Unit and contract tests pass.
+- Cross-browser and import/export impact are assessed.
+- Architecture and decision records are updated where needed.
+- The exact Head passes required engineering checks.
 
-1. Foundation documentation and repository conventions.
-2. Monorepo/tooling skeleton.
-3. Legacy fixtures and schema discovery.
-4. Versioned ProfileSpec and legacy importer.
-5. Reference interpreter and decision tests.
-6. PAC compiler and browser adapters.
-7. ZeroOmega-like UI and profile editing.
-8. Packaging, migration, performance gates, and release hardening.
-9. Rust/WASM optimization only after behavioral parity is proven.
+### Parity Verified
+
+- Original-derived evidence and explicit mapping exist.
+- Chromium and Firefox evidence pass where applicable.
+- Real data or real browser evidence exists where synthetic fixtures are insufficient.
+- Any unavoidable difference has an accepted `DR-xxxx` record.
+
+### Journey Accepted
+
+- The complete user journey passes on one exact build.
+- The repository owner records explicit `PASS`.
+
+Only Journey Accepted work closes product progress. Commit count, changed lines, test count, green CI, or Nex-only screenshots do not establish product completion.
+
+## Current execution order
+
+1. Freeze the product constitution and eliminate conflicting wording and status sources.
+2. Complete Order 1: installation, startup, Toolbar, per-tab state, Popup smoke, Inspect, and recovery.
+3. Prove real original export -> direct import -> immediate equivalent use.
+4. Correct Popup and temporary/site-rule journeys.
+5. Correct Options, dialogs, and Apply/Discard journeys.
+6. Close Fixed, Switch, PAC, Virtual, Rule List, lifecycle, export, restart, rollback, ownership, and authentication journeys.
+7. Complete localization, density, and visual alignment.
+8. Produce one exact final candidate for repository-owner acceptance.

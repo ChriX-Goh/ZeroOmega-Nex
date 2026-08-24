@@ -113,6 +113,7 @@ export interface GraphTraceEntry {
     | 'rule-list'
     | 'rule-list-rule'
     | 'rule-list-default'
+    | 'virtual'
     | 'pac'
     | 'auto-detect'
     | 'invalid';

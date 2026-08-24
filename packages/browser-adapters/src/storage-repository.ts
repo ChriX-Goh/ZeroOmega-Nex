@@ -2,6 +2,7 @@ import type { PacRuntimeSnapshot } from '@zeroomega-nex/pac-compiler';
 
 import type {
   ActivationFailureRecord,
+  BuiltInProxyMode,
   PendingActivation,
   PlatformProxyState,
   SnapshotActivationRepository,
@@ -23,6 +24,18 @@ function optionalString(value: Record<string, unknown>, key: string): string | u
   const candidate = value[key];
   if (candidate === undefined) return undefined;
   if (typeof candidate !== 'string') throw new TypeError(`${key} must be a string`);
+  return candidate;
+}
+
+function optionalBuiltInMode(
+  value: Record<string, unknown>,
+  key: string,
+): BuiltInProxyMode | undefined {
+  const candidate = optionalString(value, key);
+  if (candidate === undefined) return undefined;
+  if (candidate !== 'direct' && candidate !== 'system') {
+    throw new TypeError(`${key} must be direct or system`);
+  }
   return candidate;
 }
 
@@ -57,9 +70,14 @@ function parsePending(value: unknown): PendingActivation {
     throw new TypeError('pending snapshotId and startedAt are required');
   }
   const previousActiveSnapshotId = optionalString(record, 'previousActiveSnapshotId');
+  const previousActiveBuiltInMode = optionalBuiltInMode(record, 'previousActiveBuiltInMode');
+  if (previousActiveSnapshotId !== undefined && previousActiveBuiltInMode !== undefined) {
+    throw new TypeError('pending previous active PAC and built-in mode are mutually exclusive');
+  }
   return {
     snapshotId,
     ...(previousActiveSnapshotId === undefined ? {} : { previousActiveSnapshotId }),
+    ...(previousActiveBuiltInMode === undefined ? {} : { previousActiveBuiltInMode }),
     platformBefore: parsePlatformState(record.platformBefore),
     startedAt,
   };
@@ -107,9 +125,19 @@ function parseState(value: unknown): SnapshotActivationState {
   const record = value as Record<string, unknown>;
   const activeSnapshotId = optionalString(record, 'activeSnapshotId');
   const lastKnownGoodSnapshotId = optionalString(record, 'lastKnownGoodSnapshotId');
+  const activeBuiltInMode = optionalBuiltInMode(record, 'activeBuiltInMode');
+  const lastKnownGoodBuiltInMode = optionalBuiltInMode(record, 'lastKnownGoodBuiltInMode');
+  if (activeSnapshotId !== undefined && activeBuiltInMode !== undefined) {
+    throw new TypeError('active PAC snapshot and built-in mode are mutually exclusive');
+  }
+  if (lastKnownGoodSnapshotId !== undefined && lastKnownGoodBuiltInMode !== undefined) {
+    throw new TypeError('last-known-good PAC snapshot and built-in mode are mutually exclusive');
+  }
   return {
     ...(activeSnapshotId === undefined ? {} : { activeSnapshotId }),
     ...(lastKnownGoodSnapshotId === undefined ? {} : { lastKnownGoodSnapshotId }),
+    ...(activeBuiltInMode === undefined ? {} : { activeBuiltInMode }),
+    ...(lastKnownGoodBuiltInMode === undefined ? {} : { lastKnownGoodBuiltInMode }),
     ...(record.pending === undefined ? {} : { pending: parsePending(record.pending) }),
     ...(record.lastFailure === undefined ? {} : { lastFailure: parseFailure(record.lastFailure) }),
   };
@@ -124,6 +152,8 @@ function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot |
   if (
     record.snapshotSchemaVersion !== 1 ||
     record.snapshotId !== expectedId ||
+    typeof record.createdAt !== 'string' ||
+    typeof record.sourceRevisionId !== 'string' ||
     typeof record.script !== 'string' ||
     typeof record.scriptSha256 !== 'string' ||
     typeof record.sourceProfileSpecSha256 !== 'string'
@@ -133,16 +163,29 @@ function parseSnapshot(value: unknown, expectedId: string): PacRuntimeSnapshot |
   return value as PacRuntimeSnapshot;
 }
 
+function parseSnapshotIndex(value: unknown): readonly string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string' || !entry)) {
+    throw new TypeError('snapshot index must be an array of non-empty strings');
+  }
+  if (new Set(value).size !== value.length) {
+    throw new TypeError('snapshot index contains duplicate IDs');
+  }
+  return value;
+}
+
 export class BrowserStorageSnapshotActivationRepository implements SnapshotActivationRepository {
   readonly #area: BrowserStorageArea;
   readonly #stateKey: string;
   readonly #snapshotPrefix: string;
+  readonly #snapshotIndexKey: string;
 
   constructor(area: BrowserStorageArea, options: BrowserStorageRepositoryOptions = {}) {
     this.#area = area;
     const namespace = options.namespace ?? 'zeroomega-nex/browser-proxy/v1';
     this.#stateKey = `${namespace}/state`;
     this.#snapshotPrefix = `${namespace}/snapshot/`;
+    this.#snapshotIndexKey = `${namespace}/snapshot-index`;
   }
 
   async getState(): Promise<SnapshotActivationState> {
@@ -151,11 +194,20 @@ export class BrowserStorageSnapshotActivationRepository implements SnapshotActiv
   }
 
   async setState(state: SnapshotActivationState): Promise<void> {
-    await this.#area.set({ [this.#stateKey]: state });
+    const normalized = parseState(state);
+    await this.#area.set({ [this.#stateKey]: normalized });
   }
 
   async putSnapshot(snapshot: PacRuntimeSnapshot): Promise<void> {
-    await this.#area.set({ [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: snapshot });
+    const normalized = parseSnapshot(snapshot, snapshot.snapshotId);
+    if (!normalized) throw new TypeError(`snapshot ${snapshot.snapshotId} is required`);
+    const values = await this.#area.get(this.#snapshotIndexKey);
+    const index = [...parseSnapshotIndex(values[this.#snapshotIndexKey])];
+    if (!index.includes(snapshot.snapshotId)) index.push(snapshot.snapshotId);
+    await this.#area.set({
+      [`${this.#snapshotPrefix}${snapshot.snapshotId}`]: normalized,
+      [this.#snapshotIndexKey]: index,
+    });
   }
 
   async getSnapshot(snapshotId: string): Promise<PacRuntimeSnapshot | undefined> {
@@ -164,7 +216,30 @@ export class BrowserStorageSnapshotActivationRepository implements SnapshotActiv
     return parseSnapshot(values[key], snapshotId);
   }
 
+  async listSnapshots(): Promise<readonly PacRuntimeSnapshot[]> {
+    const metadata = await this.#area.get([this.#stateKey, this.#snapshotIndexKey]);
+    const state = parseState(metadata[this.#stateKey]);
+    const snapshotIds = new Set(parseSnapshotIndex(metadata[this.#snapshotIndexKey]));
+    if (state.activeSnapshotId) snapshotIds.add(state.activeSnapshotId);
+    if (state.lastKnownGoodSnapshotId) snapshotIds.add(state.lastKnownGoodSnapshotId);
+    if (snapshotIds.size === 0) return [];
+
+    const ids = [...snapshotIds];
+    const keys = ids.map((snapshotId) => `${this.#snapshotPrefix}${snapshotId}`);
+    const values = await this.#area.get(keys);
+    return ids.map((snapshotId, index) => {
+      const snapshot = parseSnapshot(values[keys[index]!], snapshotId);
+      if (!snapshot) throw new Error(`snapshot ${snapshotId} is indexed but unavailable`);
+      return snapshot;
+    });
+  }
+
   async removeSnapshot(snapshotId: string): Promise<void> {
+    const values = await this.#area.get(this.#snapshotIndexKey);
+    const index = parseSnapshotIndex(values[this.#snapshotIndexKey]).filter(
+      (candidate) => candidate !== snapshotId,
+    );
+    await this.#area.set({ [this.#snapshotIndexKey]: index });
     await this.#area.remove(`${this.#snapshotPrefix}${snapshotId}`);
   }
 }

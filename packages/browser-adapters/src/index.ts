@@ -1,4 +1,5 @@
 export {
+  activateBuiltInMode,
   activatePacSnapshot,
   recoverPendingActivation,
   restoreActiveSnapshot,
@@ -11,6 +12,18 @@ export {
   type ProxyAuthenticationPermissionApi,
   type ProxyAuthenticationRequiredEvent,
 } from './authentication-listener.js';
+export {
+  parseExternalProfileCandidate,
+  type ExternalProfileCandidate,
+  type ExternalProxyProtocol,
+  type ExternalProxyScheme,
+  type ExternalProxyServer,
+} from './external-profile.js';
+export {
+  createProxyAuthenticationPlan,
+  type ProxyAuthenticationPlan,
+  type UnsupportedProxyAuthenticationEndpoint,
+} from './authentication-plan.js';
 export {
   BrowserStorageProxyAuthenticationRepository,
   type ProxyAuthenticationStorageOptions,
@@ -39,6 +52,8 @@ export type {
   BrowserFamily,
   BrowserProxyCapabilities,
   BrowserProxyDriver,
+  BuiltInModeActivationResult,
+  BuiltInProxyMode,
   PacInstallConfirmation,
   PendingActivation,
   PlatformProxyState,
@@ -58,6 +73,17 @@ export {
   type FirefoxProxySettingsApi,
 } from './firefox.js';
 export { MemorySnapshotActivationRepository } from './memory-repository.js';
+export {
+  inspectProxyOwnership,
+  proxyOwnershipFromCapabilities,
+  type ProxyOwnershipBlockReason,
+  type ProxyOwnershipView,
+} from './ownership.js';
+export {
+  listPacSnapshotHistory,
+  type PacSnapshotHistoryEntry,
+  type SnapshotHistoryRepository,
+} from './snapshot-history.js';
 export {
   BrowserStorageSnapshotActivationRepository,
   type BrowserStorageArea,

@@ -200,6 +200,12 @@ export function compilePac(
     return lines.join('\n');
   };
 
+  const compileVirtual = (
+    profile: Extract<UserProfile, { kind: 'virtual' }>,
+    functionName: string,
+  ): string =>
+    `function ${functionName}(url,host,scheme,port){return ${compileRoute(profile.targetRoute)};}`;
+
   const compileProfile = (profile: UserProfile): string => {
     const functionName = functionByProfileId.get(profile.id);
     if (!functionName) throw new Error(`Profile ${profile.id} has no PAC function name`);
@@ -210,6 +216,8 @@ export function compilePac(
         return compileSwitch(profile, functionName);
       case 'rule-list':
         return compileRuleList(profile, functionName);
+      case 'virtual':
+        return compileVirtual(profile, functionName);
       case 'pac':
       case 'auto-detect':
         throw new Error(`Unsupported profile ${profile.id} passed PAC capability analysis`);

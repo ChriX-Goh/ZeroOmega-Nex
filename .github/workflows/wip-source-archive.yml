@@ -1,0 +1,42 @@
+name: WIP Source Archive
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/wip-source-archive.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact WIP head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Archive source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Read-only packaging; this workflow never commits or mutates repository state.
+          archive="$RUNNER_TEMP/zeroomega-nex-wip-source.tar.gz"
+          checksum="$RUNNER_TEMP/zeroomega-nex-wip-source.tar.gz.sha256"
+          tar --exclude=.git -czf "$archive" .
+          sha256sum "$archive" > "$checksum"
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeroomega-nex-wip-source-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/zeroomega-nex-wip-source.tar.gz
+            ${{ runner.temp }}/zeroomega-nex-wip-source.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 3
