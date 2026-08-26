@@ -209,7 +209,19 @@ jobs:
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
-          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $artifactDigestRaw = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          function ConvertTo-CanonicalArtifactDigest([string] $value) {
+            $raw = if ($null -eq $value) { '' } else { $value.Trim() }
+            if ($raw -match '^sha256:') {
+              if ($raw -notmatch '^sha256:[0-9a-fA-F]{64}$') { return $null }
+              $hex = $raw.Substring(7).ToLowerInvariant()
+            } elseif ($raw -match '^[0-9a-fA-F]{64}$') {
+              $hex = $raw.ToLowerInvariant()
+            } else { return $null }
+            if ($hex -match '^0{64}$') { return $null }
+            return "sha256:$hex"
+          }
+          $artifactDigest = ConvertTo-CanonicalArtifactDigest $artifactDigestRaw
           $idFormat = if ($artifactId -match '^\d+$' -and $artifactId -ne '0') { 'decimal-nonzero' } else { 'missing-or-invalid' }
           $digestFormat = if ($artifactDigest -match '^sha256:[0-9a-fA-F]{64}$' -and $artifactDigest -notmatch '^sha256:0{64}$') { 'sha256-64hex' } else { 'missing-or-invalid' }
           $manifestSha256 = $null
@@ -227,6 +239,7 @@ jobs:
             runAttempt = $env:GITHUB_RUN_ATTEMPT
             manifestSha256 = $manifestSha256
             artifactId = [ordered]@{ value = $artifactId; type = 'string'; format = $idFormat }
+            artifactDigestRaw = $artifactDigestRaw
             artifactDigest = [ordered]@{ value = $artifactDigest; type = 'string'; format = $digestFormat }
             primaryFailureCode = $primaryFailureCode
           } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'runtime-binding-diagnostic.json') -Encoding UTF8
@@ -241,8 +254,20 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
-          $artifactDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
-          $identityInvalid = $artifactId -notmatch '^\d+$' -or $artifactId -eq '0' -or $artifactDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $artifactDigest -match '^sha256:0{64}$'
+          $artifactDigestRaw = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          function ConvertTo-CanonicalArtifactDigest([string] $value) {
+            $raw = if ($null -eq $value) { '' } else { $value.Trim() }
+            if ($raw -match '^sha256:') {
+              if ($raw -notmatch '^sha256:[0-9a-fA-F]{64}$') { return $null }
+              $hex = $raw.Substring(7).ToLowerInvariant()
+            } elseif ($raw -match '^[0-9a-fA-F]{64}$') {
+              $hex = $raw.ToLowerInvariant()
+            } else { return $null }
+            if ($hex -match '^0{64}$') { return $null }
+            return "sha256:$hex"
+          }
+          $artifactDigest = ConvertTo-CanonicalArtifactDigest $artifactDigestRaw
+          $identityInvalid = $artifactId -notmatch '^\d+$' -or $artifactId -eq '0' -or [string]::IsNullOrEmpty($artifactDigest)
           if ($identityInvalid) {
             $primaryFailureCode = 'RUNTIME_BINDING_IDENTITY_INVALID'
             "ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE=$primaryFailureCode" | Add-Content -LiteralPath $env:GITHUB_ENV
@@ -259,6 +284,7 @@ jobs:
             throw $primaryFailureCode
           }
           "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
+          "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST_RAW=$artifactDigestRaw" | Add-Content -LiteralPath $env:GITHUB_ENV
           "ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
           "ZEROOMEGA_ARTIFACT_ID=$artifactId" | Add-Content -LiteralPath $env:GITHUB_ENV
           "ZEROOMEGA_ARTIFACT_DIGEST=$artifactDigest" | Add-Content -LiteralPath $env:GITHUB_ENV
@@ -653,17 +679,32 @@ jobs:
           $head = $env:ZEROOMEGA_EXACT_HEAD
           $artifactRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts\firefox-m1\$head"
           $runtimeId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
-          $runtimeDigest = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $runtimeDigestSource = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST
+          $runtimeDigestRaw = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST_RAW
+          if ([string]::IsNullOrEmpty($runtimeDigestRaw)) { $runtimeDigestRaw = $runtimeDigestSource }
           $diagnosticsId = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID
-          $diagnosticsDigest = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST
+          $diagnosticsDigestRaw = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST
+          function ConvertTo-CanonicalArtifactDigest([string] $value) {
+            $raw = if ($null -eq $value) { '' } else { $value.Trim() }
+            if ($raw -match '^sha256:') {
+              if ($raw -notmatch '^sha256:[0-9a-fA-F]{64}$') { return $null }
+              $hex = $raw.Substring(7).ToLowerInvariant()
+            } elseif ($raw -match '^[0-9a-fA-F]{64}$') {
+              $hex = $raw.ToLowerInvariant()
+            } else { return $null }
+            if ($hex -match '^0{64}$') { return $null }
+            return "sha256:$hex"
+          }
+          $runtimeDigest = ConvertTo-CanonicalArtifactDigest $runtimeDigestSource
+          $diagnosticsDigest = ConvertTo-CanonicalArtifactDigest $diagnosticsDigestRaw
           $runtimePrimaryFailureCode = [string]$env:ZEROOMEGA_RUNTIME_BINDING_PRIMARY_FAILURE_CODE
           $blockedBy = if ($runtimePrimaryFailureCode) { 'runtime-binding' } else { $null }
           $errors = @()
           if ($runtimeId -notmatch '^\d+$' -or $runtimeId -eq '0') { $errors += 'runtime binding artifact-id is missing or invalid' }
           if ($diagnosticsId -notmatch '^\d+$' -or $diagnosticsId -eq '0') { $errors += 'diagnostics artifact-id is missing or invalid' }
           if ($runtimeId -eq $diagnosticsId) { $errors += 'runtime and diagnostics artifact IDs must differ' }
-          if ($runtimeDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $runtimeDigest -match '^sha256:0{64}$') { $errors += 'runtime binding artifact-digest is missing or invalid' }
-          if ($diagnosticsDigest -notmatch '^sha256:[0-9a-fA-F]{64}$' -or $diagnosticsDigest -match '^sha256:0{64}$') { $errors += 'diagnostics artifact-digest is missing or invalid' }
+          if ([string]::IsNullOrEmpty($runtimeDigest) -or $runtimeDigest -notmatch '^sha256:[0-9a-fA-F]{64}$') { $errors += 'runtime binding artifact-digest is missing or invalid' }
+          if ([string]::IsNullOrEmpty($diagnosticsDigest) -or $diagnosticsDigest -notmatch '^sha256:[0-9a-fA-F]{64}$') { $errors += 'diagnostics artifact-digest is missing or invalid' }
           $manifestBindingPath = Join-Path $artifactRoot 'manifest-binding.json'
           $manifestSha256 = $null
           if (Test-Path -LiteralPath $manifestBindingPath -PathType Leaf) {
@@ -689,8 +730,8 @@ jobs:
             jobId = $env:GITHUB_JOB
             runAttempt = $env:GITHUB_RUN_ATTEMPT
             manifestSha256 = if ($manifestSha256) { $manifestSha256.ToLowerInvariant() } else { $null }
-            runtimeBindingArtifact = [ordered]@{ id = $runtimeId; digest = $runtimeDigest.ToLowerInvariant() }
-            diagnosticsArtifact = [ordered]@{ id = $diagnosticsId; digest = $diagnosticsDigest.ToLowerInvariant() }
+            runtimeBindingArtifact = [ordered]@{ id = $runtimeId; rawDigest = $runtimeDigestRaw; digest = $runtimeDigest }
+            diagnosticsArtifact = [ordered]@{ id = $diagnosticsId; rawDigest = $diagnosticsDigestRaw; digest = $diagnosticsDigest }
             blockedBy = $blockedBy
             primaryFailureCode = $runtimePrimaryFailureCode
             errors = $errors
