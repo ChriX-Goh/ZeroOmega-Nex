@@ -202,8 +202,8 @@ jobs:
         if: always()
         shell: pwsh
         env:
-          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: \${{ steps.upload-runtime-binding.outputs.artifact-id }}
-          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: \${{ steps.upload-runtime-binding.outputs.artifact-digest }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID: ${{ steps.upload-runtime-binding.outputs.artifact-id }}
+          ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_DIGEST: ${{ steps.upload-runtime-binding.outputs.artifact-digest }}
         run: |
           $ErrorActionPreference = 'Continue'
           $artifactId = [string]$env:ZEROOMEGA_RUNTIME_BINDING_ARTIFACT_ID
@@ -675,8 +675,8 @@ jobs:
         if: always()
         shell: pwsh
         env:
-          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID: \${{ steps.upload-diagnostics.outputs.artifact-id }}
-          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST: \${{ steps.upload-diagnostics.outputs.artifact-digest }}
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID: ${{ steps.upload-diagnostics.outputs.artifact-id }}
+          ZEROOMEGA_DIAGNOSTICS_ARTIFACT_DIGEST: ${{ steps.upload-diagnostics.outputs.artifact-digest }}
         run: |
           $ErrorActionPreference = 'Continue'
           $artifactId = [string]$env:ZEROOMEGA_DIAGNOSTICS_ARTIFACT_ID
