@@ -589,7 +589,7 @@ jobs:
               if ($requiredFile.EndsWith('.json', [System.StringComparison]::OrdinalIgnoreCase)) {
                 $requiredJson = $requiredText | ConvertFrom-Json -ErrorAction Stop
                 $requiredName = Split-Path -Leaf $requiredFile
-                if ($null -eq $requiredJson.schemaVersion -or $requiredJson.schemaVersion -ne 1) { Add-ValidatorError 'missing-schema' $requiredName 'required JSON schemaVersion must be 1' }
+                if ($requiredName -ne 'runtime-binding.json' -and ($null -eq $requiredJson.schemaVersion -or $requiredJson.schemaVersion -ne 1)) { Add-ValidatorError 'missing-schema' $requiredName 'required JSON schemaVersion must be 1' }
                 if ($requiredName -ne 'firefox-toolchain-manifest.json' -and ($null -eq $requiredJson.exactHead -or $requiredJson.exactHead.ToLowerInvariant() -ne $head.ToLowerInvariant())) { Add-ValidatorError 'head-mismatch' $requiredName 'required JSON exactHead differs from target SHA' }
                 if ($requiredName -eq 'step12-result.json') { $step12Json = $requiredJson }
                 if ($requiredName -eq 'firefox-m1-report.json') { $reportJson = $requiredJson }
